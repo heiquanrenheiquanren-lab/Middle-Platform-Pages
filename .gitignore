@@ -1,5 +1,9 @@
 # macOS
 .DS_Store
 
-# 误生成的空文件
-货权
+# 编辑器
+.vscode/
+.idea/
+
+# 依赖
+node_modules/
