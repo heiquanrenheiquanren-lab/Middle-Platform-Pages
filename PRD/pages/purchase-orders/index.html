@@ -5,7 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>采购单｜查询区域交互原型</title>
-  <link rel="stylesheet" href="./styles.css?v=1.4.0">
+  <link rel="stylesheet" href="../../vendor/element-plus.css">
+  <link rel="stylesheet" href="./styles.css?v=1.3.0">
+  <link rel="stylesheet" href="./ownership.css?v=1.4.0">
 </head>
 <body>
   <div class="toast" id="toast">查询完成</div>
@@ -46,13 +48,17 @@
           <div class="query-row advanced-query-row"></div>
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
         </section>
-        <section class="action-strip"><div class="head-actions"><button class="btn primary">新建采购单</button><button class="btn primary">收货清单</button><button class="btn primary">采购运费分摊</button><button class="btn primary" id="openOwnershipTop">货权调整</button></div></section>
+        <section class="action-strip"><div class="head-actions"><button class="btn primary">新建采购单</button><button class="btn primary">收货清单</button><button class="btn primary">采购运费分摊</button><button class="btn primary" id="openOwnershipAdjustment">货权调整</button></div></section>
         <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><span class="tool" title="筛选">▽</span><span class="tool" title="搜索">⌕</span><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
         <section class="table-area" id="tableArea"><table class="stock-table po-table"><thead><tr><th class="check"><input class="head-check" id="selectAll" type="checkbox"></th><th class="batch-col">批次号</th><th class="plan-col">计划号</th><th class="sku-col">SKU</th><th class="qty-col">采购数</th><th class="qty-col">在途数</th><th class="qty-col">到货数</th><th class="qty-col">待发数</th><th class="qty-col">收货数量&nbsp; ✎</th><th class="note-col">收货备注&nbsp; ✎</th><th class="money-col">辅料包材费</th><th class="money-col">运费</th><th class="money-col">其他费用</th></tr></thead><tbody id="tableBody"></tbody></table></section>
         <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft">确认收货</button><button class="btn soft" id="openOwnershipBottom">加入货权调整</button></div><div class="bottom-right"><span>共 <b id="totalCount">27</b> 条</span><select class="control page-size" id="pageSize"><option value="25">25条/页</option><option value="10">10条/页</option><option value="50">50条/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
       </main>
     </div>
   </div>
-  <div class="ownership-modal" id="ownershipModal" aria-hidden="true"><div class="ownership-dialog" role="dialog" aria-modal="true" aria-labelledby="ownershipTitle"><div class="ownership-header"><div><h2 id="ownershipTitle">货权调整</h2><p>批量调整采购单在途货权</p></div><button class="modal-close" id="ownershipClose" type="button">×</button></div><div class="ownership-body"><section class="ownership-context"><div><span>采购单号</span><b id="ownershipPoNo">--</b></div><div><span>状态</span><b id="ownershipStatus">--</b></div><div><span>在途数量</span><b id="ownershipTransit">--</b></div></section><section class="ownership-section"><div class="ownership-section-title">批量搜索 SKU</div><div class="ownership-search"><textarea id="ownershipKeywords" placeholder="支持 SKU / SellerSKU / ASIN，多个关键词请用换行、逗号、空格、分号分隔"></textarea><div class="ownership-actions"><button class="btn primary" id="ownershipSearch" type="button">搜索</button><button class="btn" id="ownershipClearSearch" type="button">清空</button></div></div><div class="ownership-hint" id="ownershipSearchHint">请输入关键词后搜索</div><div class="ownership-results" id="ownershipResults"></div></section><section class="ownership-section"><div class="ownership-section-title">批量设置 <span class="ownership-muted">（先在搜索结果勾选 SKU）</span></div><div class="ownership-batch"><select class="control" id="batchPlatform"><option value="">调入平台</option></select><select class="control" id="batchStore" disabled><option value="">调入店铺</option></select><button class="btn" id="applyBatch" type="button" disabled>应用到已选</button></div></section><section class="ownership-section detail-section"><div class="ownership-section-title">本次调整明细 <span class="ownership-muted" id="detailCount">（0 个 SKU）</span><button class="btn link-btn" id="clearDetails" type="button">清空已选</button></div><div class="ownership-details" id="ownershipDetails"></div></section><div class="ownership-error" id="ownershipError"></div></div><div class="ownership-footer"><span>已选 <b id="ownershipSelectedCount">0</b> 个 SKU，数量合计 <b id="ownershipTotalQty">0</b></span><div><button class="btn" id="ownershipCancel" type="button">取消</button><button class="btn primary" id="ownershipSubmit" type="button">提交调整</button></div></div></div></div><script src="./app.js?v=1.4.0"></script>
+  <div id="ownership-adjustment-app"></div>
+  <script src="../../vendor/vue.global.prod.js"></script>
+  <script src="../../vendor/element-plus.js"></script>
+  <script src="./app.js?v=1.3.0"></script>
+  <script src="./ownership.js?v=1.4.0"></script>
 </body>
 </html>
