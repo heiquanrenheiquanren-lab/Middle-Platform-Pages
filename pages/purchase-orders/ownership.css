@@ -12,7 +12,7 @@
 }
 
 .el-dialog.ownership-adjustment-dialog {
-  width: min(1200px, 94vw);
+  width: min(1320px, 96vw);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -49,25 +49,39 @@
 
 .oa-dialog-title h1 { margin: 0; color: var(--oa-text); font-size: 19px; font-weight: 600; }
 .oa-dialog-title p { margin: 4px 0 0; color: var(--oa-muted); font-size: 12px; }
-.oa-source-summary { display: grid; grid-template-columns: repeat(4, 1fr); padding: 13px 16px; border: 1px solid var(--oa-border); border-radius: 6px; background: var(--oa-subtle); }
-.oa-source-summary > div { min-width: 0; padding: 0 18px; border-right: 1px solid var(--oa-border); }
-.oa-source-summary > div:first-child { padding-left: 0; }
-.oa-source-summary > div:last-child { border-right: 0; }
-.oa-source-summary span { display: block; margin-bottom: 4px; color: var(--oa-muted); font-size: 12px; }
-.oa-source-summary strong { display: block; overflow: hidden; color: var(--oa-text); text-overflow: ellipsis; white-space: nowrap; }
-.oa-blue { color: var(--oa-primary) !important; }
 .oa-section { margin-top: 16px; }
 .oa-section-head { min-height: 30px; display: flex; align-items: center; justify-content: space-between; }
 .oa-section-head > div { display: flex; align-items: center; gap: 7px; }
 .oa-section-head > span { color: var(--oa-muted); font-size: 12px; }
 .oa-step { width: 22px; height: 22px; display: inline-grid; place-items: center; color: #fff; border-radius: 50%; background: var(--oa-primary); font-size: 12px; }
+
+.oa-order-search {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #d9ecff;
+  border-radius: 6px;
+  background: #f8fbff;
+}
+.oa-order-search > div > span,
+.oa-order-input > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--oa-muted);
+  font-size: 11px;
+}
+
 .oa-batch-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
 .oa-search-actions { display: flex; gap: 8px; }
-.oa-search-meta { height: 38px; display: flex; align-items: center; justify-content: space-between; color: var(--oa-secondary); }
-.oa-search-meta > div { display: flex; align-items: center; gap: 8px; }
-.oa-search-meta .el-button + .el-button { margin-left: 0; }
-.oa-muted { color: var(--oa-muted); }
 .oa-alert { margin-bottom: 8px; }
+
+.oa-batch-toolbar { display: grid; grid-template-columns: 180px 210px auto auto 1fr; gap: 10px; align-items: end; min-height: 66px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid #bae0ff; border-radius: 6px; background: #f4f9ff; }
+.oa-batch-toolbar > div > span { display: block; margin-bottom: 4px; color: var(--oa-muted); font-size: 11px; }
+.oa-batch-toolbar .el-button { align-self: end; }
+
 .ownership-adjustment-dialog .el-table { width: 100%; }
 .ownership-adjustment-dialog .el-table .cell { white-space: nowrap; }
 .ownership-adjustment-dialog .el-table td.el-table__cell { height: 51px; padding: 7px 10px; color: var(--oa-secondary); }
@@ -76,27 +90,21 @@
 .ownership-adjustment-dialog .el-table .el-table__body tr:hover > td.el-table__cell { background: #f8fbff; }
 .ownership-adjustment-dialog .el-table__inner-wrapper::before { display: none; }
 .oa-target-section { margin-top: 18px; }
-.oa-batch-toolbar { display: grid; grid-template-columns: 180px 210px auto auto 1fr; gap: 10px; align-items: end; min-height: 66px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid #bae0ff; border-radius: 6px; background: #f4f9ff; }
-.oa-batch-toolbar > div > span { display: block; margin-bottom: 4px; color: var(--oa-muted); font-size: 11px; }
-.oa-batch-toolbar .el-button { align-self: end; }
-.oa-field-error { display: block; margin-top: 3px; color: var(--oa-error); font-size: 10px; white-space: normal; }
+
 .oa-dialog-footer { height: 68px; display: flex; align-items: center; justify-content: space-between; }
 .oa-footer-summary, .oa-footer-actions { display: flex; align-items: center; gap: 18px; }
 .oa-footer-summary { color: var(--oa-text); }
 .oa-footer-summary span { color: var(--oa-secondary); font-size: 12px; }
 .oa-error-summary { color: var(--oa-warning) !important; }
 .oa-success-summary { color: var(--oa-success) !important; }
+.oa-muted { color: var(--oa-muted); }
 .oa-confirm-summary { padding: 12px 14px; color: var(--oa-secondary); border-radius: 6px; background: var(--oa-subtle); line-height: 2; }
 .oa-confirm-summary p { margin: 0; }
 .oa-confirm-summary strong { color: var(--oa-text); }
 
-@media (max-width: 1320px) {
-  .el-dialog.ownership-adjustment-dialog { width: 94vw; }
+@media (max-width: 1380px) {
+  .el-dialog.ownership-adjustment-dialog { width: 96vw; }
 }
 
-/* v1.4.0 新增：提交失败提示、模拟失败复选框、确认提示 */
 .ownership-adjustment-dialog .oa-submit-error { margin-top: 12px; }
-.oa-confirm-warn { margin-top: 4px; color: var(--oa-warning); font-size: 12px; }
-.oa-sim-fail { margin-right: 4px; }
-.oa-sim-fail .el-checkbox__label { color: var(--oa-warning); font-size: 12px; }
 .oa-footer-actions .el-button.is-loading { pointer-events: none; }
