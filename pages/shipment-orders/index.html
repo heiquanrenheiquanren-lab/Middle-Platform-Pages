@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../../vendor/element-plus.css">
   
   
-  <link rel="stylesheet" href="styles.css?v=1.6.0">
+  <link rel="stylesheet" href="styles.css?v=1.6.1">
 </head>
 <body>
 <div id="app" v-cloak>
@@ -44,16 +44,20 @@
               <el-form-item label="计划单号"><el-input v-model="query.plan" clearable placeholder="请输入计划单号"></el-input></el-form-item>
               <el-form-item label="SKU"><el-input v-model="query.sku" clearable placeholder="请输入 SKU"></el-input></el-form-item>
               <el-form-item label="发货仓"><el-select v-model="query.from" clearable filterable placeholder="全部发货仓" style="width:100%"><el-option v-for="x in warehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-              <el-form-item label="履约状态"><el-select v-model="query.status" clearable placeholder="全部状态" style="width:100%"><el-option v-for="x in statuses.filter(s=>!['全部','可加工'].includes(s))" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+              <el-form-item label="目的仓"><el-select v-model="query.to" clearable filterable placeholder="全部目的仓" style="width:100%"><el-option v-for="x in destWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+              <el-form-item label="物流单号"><el-input v-model="query.logisticsNo" clearable placeholder="请输入物流单号"></el-input></el-form-item>
+              <el-form-item label="创建日期"><el-date-picker v-model="query.dateStart" type="date" value-format="YYYY-MM-DD" placeholder="开始日期" style="width:100%"></el-date-picker></el-form-item>
+              <el-form-item label="至"><el-date-picker v-model="query.dateEnd" type="date" value-format="YYYY-MM-DD" placeholder="结束日期" style="width:100%"></el-date-picker></el-form-item>
             </div>
             <div class="query-actions"><el-button type="primary" @click="applyQuery">查询</el-button><el-button @click="resetQuery">重置</el-button></div>
           </el-form>
         </div>
-        <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button type="success" plain @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button>其他头程费用分摊</el-button><el-button>手动完成</el-button><el-button @click="exportData">导出</el-button><el-button @click="columnVisible=true">列设置</el-button></div>
+        <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button type="success" plain @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button>其他头程费用分摊</el-button><el-button @click="openComplete()">手动完成</el-button><el-button @click="exportData">导出</el-button><el-button @click="columnVisible=true">列设置</el-button></div>
         <div class="card status-card"><el-tabs v-model="statusTab" class="status-tabs"><el-tab-pane v-for="s in statuses" :key="s" :name="s"><template #label><span>{{s}}<i class="tab-count">{{statusCount(s)}}</i></span></template></el-tab-pane></el-tabs></div>
         <div class="card list-card">
           <div class="list-head"><b>发货单列表</b><span class="list-count">共 {{filteredDocs.length}} 张</span></div>
-          <el-table :data="filteredDocs" row-key="id" class="main-table" style="width:100%">
+          <el-table ref="mainTableRef" :data="filteredDocs" row-key="id" class="main-table" style="width:100%" @selection-change="onDocSelection">
+            <el-table-column type="selection" width="46" fixed="left"></el-table-column>
             <el-table-column type="expand" width="46" fixed="left">
               <template #default="{row}"><div class="expand-panel"><div class="detail-table-wrap"><el-table :data="row.items" border size="small" class="detail-sku-table"><el-table-column prop="sku" label="SKU" width="145" fixed="left"><template #default="{row:item}"><div>{{item.sku}}<el-tag v-if="skuMeta(item.sku).skuType==='组合'" type="warning" size="small" style="margin-left:4px">组合</el-tag></div></template></el-table-column><el-table-column label="产品信息" width="220"><template #default="{row:item}"><div class="product-cell"><el-image :src="skuMeta(item.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="item.name||'—'" placement="top"><div class="product-title">{{item.name||'—'}}</div></el-tooltip></div></template></el-table-column><el-table-column prop="plan" label="计划号" width="155"></el-table-column><el-table-column label="海外仓 SKU" width="145"><template #default="{row:item}">{{skuMeta(item.sku).overseasSku||'—'}}</template></el-table-column><el-table-column label="FNSKU" width="120"><template #default="{row:item}">{{skuMeta(item.sku).fnsku||'—'}}</template></el-table-column><el-table-column label="平台" width="115"><template #default="{row:item}">{{skuMeta(item.sku).platform||'—'}}</template></el-table-column><el-table-column label="运营负责人" width="105"><template #default="{row:item}">{{skuMeta(item.sku).owner||'—'}}</template></el-table-column><el-table-column label="团队" width="105"><template #default="{row:item}">{{skuMeta(item.sku).team||'—'}}</template></el-table-column><el-table-column label="店铺" width="150"><template #default="{row:item}">{{skuMeta(item.sku).store||'—'}}</template></el-table-column><el-table-column label="箱数" width="75"><template #default="{row:item}">{{skuMeta(item.sku).boxes||'—'}}</template></el-table-column><el-table-column label="计划发货数量" width="110"><template #default="{row:item}">{{skuMeta(item.sku).planQty||item.declare}}</template></el-table-column><el-table-column prop="declare" label="申报数量" width="95"></el-table-column><el-table-column label="提货数量" width="95"><template #default="{row:item}">{{item.pick||0}}</template></el-table-column><el-table-column label="发货数量" width="95"><template #default="{row:item}">{{item.ship||0}}</template></el-table-column><el-table-column label="申发差异" width="95"><template #default="{row:item}">{{item.declare-(item.ship||0)}}</template></el-table-column><el-table-column label="重量＆体积" width="180"><template #default="{row:item}"><div class="measure-cell"><div>{{skuMeta(item.sku).weight||'—'}} KG</div><div>{{skuMeta(item.sku).length||'—'}} × {{skuMeta(item.sku).width||'—'}} × {{skuMeta(item.sku).height||'—'}}</div><div>{{skuMeta(item.sku).volume||'—'}} m³</div></div></template></el-table-column><el-table-column label="计划差额" width="95"><template #default="{row:item}">{{(skuMeta(item.sku).planQty||item.declare)-item.declare}}</template></el-table-column><el-table-column label="备注" width="140"><template #default="{row:item}">{{skuMeta(item.sku).skuRemark||'—'}}</template></el-table-column><el-table-column label="发货计划剩余数量" width="150"><template #default="{row:item}">{{skuMeta(item.sku).remain??item.declare}}</template></el-table-column></el-table></div></div></template>
             </el-table-column>
@@ -81,15 +85,16 @@
                   <template v-if="row.status==='草稿'"><el-button link type="primary" @click="transitionStatus(row,'待提货','提交')">提交</el-button><el-button link type="danger" @click="voidDocument(row)">作废</el-button></template>
                   <template v-else-if="row.status==='待提货'"><el-button link type="primary" @click="openPickup(row)">提货</el-button><el-button link type="danger" @click="voidDocument(row)">作废</el-button></template>
                   <template v-else-if="row.status==='可加工'"><el-button link type="primary" @click="openProcessing(row)">加工</el-button></template>
-                  <template v-else-if="row.status==='待发货'"><el-button link type="primary" @click="shipDocument(row)">发货</el-button></template>
-                  <template v-else-if="row.status==='待收货'"><el-button link type="primary" @click="openReceive(row)">收货</el-button></template>
-                  <template v-else-if="row.status==='部分收货'"><el-button link type="primary" @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="transitionStatus(row,'已完成','手动完成')">手动完成</el-button></template>
+                  <template v-else-if="row.status==='待发货'"><el-button link type="primary" @click="openShip(row)">发货</el-button></template>
+                  <template v-else-if="row.status==='待收货'"><el-button link type="primary" @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="openComplete(row)">手动完成</el-button></template>
+                  <template v-else-if="row.status==='部分收货'"><el-button link type="primary" @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="openComplete(row)">手动完成</el-button></template>
                   <span v-else class="muted">—</span>
                 </div>
               </template>
             </el-table-column>
           </el-table>
-          <div class="pagination"><el-pagination background layout="total, prev, pager, next" :total="filteredDocs.length" :page-size="10"></el-pagination></div>
+          <div v-if="filteredDocs.length" class="pagination"><el-pagination background layout="total, prev, pager, next" :total="filteredDocs.length" :page-size="10"></el-pagination></div>
+          <el-empty v-else description="暂无符合条件的发货单" :image-size="80" style="padding:40px 0"></el-empty>
         </div>
       </section>
     </main>
@@ -265,11 +270,59 @@
           <el-table-column prop="shipped" label="累计发货" width="95"></el-table-column>
           <el-table-column prop="received" label="累计收货" width="95"></el-table-column>
           <el-table-column prop="remain" label="剩余可收" width="95"><template #default="{row}"><span :class="{pickupDone:row.remain===0}">{{row.remain}}</span></template></el-table-column>
+          <el-table-column label="收发差异" width="110"><template #header><span>收发差异<el-tooltip content="(累计收货 + 本次收货) − 累计发货，正数 = 多收，负数 = 少收" placement="top"><span style="color:#909399;cursor:help;margin-left:3px;border:1px solid #c0c4cc;border-radius:50%;display:inline-block;width:16px;height:16px;text-align:center;line-height:15px;font-size:11px">?</span></el-tooltip></span></template><template #default="{row}"><span>{{ (row.received + Number(row.receiveQty||0) - row.shipped) > 0 ? '+' : '' }}{{ row.received + Number(row.receiveQty||0) - row.shipped }}</span></template></el-table-column>
           <el-table-column label="本次收货数量" width="150"><template #header><span style="color:#f56c6c">*</span> 本次收货数量</template><template #default="{row}"><el-input-number v-model="row.receiveQty" :min="1" :max="row.remain" controls-position="right" :disabled="!isReceiveSelected(row)"></el-input-number></template></el-table-column>
         </el-table>
       </div>
     </div>
     <template #footer><div class="pickup-footer"><div class="pickup-result">已选 <b>{{receiveSelection.length}}</b> 个 SKU　·　本次收货 <b>{{receiveQtyTotal}}</b>　·　收货后剩余 <b>{{receiveAfterRemaining}}</b>　·　提交后状态 <el-tag size="small" :type="receiveNextStatus==='已完成'?'success':receiveNextStatus==='部分收货'?'warning':'info'">{{receiveNextStatus}}</el-tag></div><div class="pickup-footer-actions"><el-button @click="receiveVisible=false">取消</el-button><el-button type="primary" :loading="receiveSubmitting" @click="submitReceive">确认收货</el-button></div></div></template>
+  </el-dialog>
+
+  <el-dialog v-model="shipVisible" :title="`发货｜${shipDoc?.id||''}`" width="78vw" top="8vh" class="ship-dialog" append-to-body :close-on-click-modal="false">
+    <div v-if="shipDoc">
+      <div class="pickup-summary">
+        <div class="pickup-summary-item"><span class="label">履约状态</span><span><el-tag :type="tagType(shipDoc.status)">{{shipDoc.status}}</el-tag></span></div>
+        <div class="pickup-summary-item"><span class="label">SKU 数量</span><b>{{shipDoc.skus}}</b></div>
+        <div class="pickup-summary-item"><span class="label">提货合计</span><b>{{shipDoc.pick}}</b></div>
+        <div class="pickup-summary-item"><span class="label">剩余可发</span><b>{{shipRemainingTotal}}</b></div>
+      </div>
+      <div class="receive-toolbar"><div><b>SKU 发货明细</b><span class="muted">　仅填写本次发货数量</span></div><el-button @click="fillShipRemaining">按剩余可发数量填充</el-button></div>
+      <div class="pickup-table-wrap">
+        <el-table ref="shipTableRef" :data="shipRows" row-key="key" border class="pickup-table" max-height="410" @selection-change="onShipSelection">
+          <el-table-column type="selection" width="52" fixed="left" reserve-selection :selectable="shipSelectable"></el-table-column>
+          <el-table-column prop="sku" label="SKU" width="145" fixed="left"></el-table-column>
+          <el-table-column label="产品信息" width="200" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="skuMeta(row.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
+          <el-table-column prop="plan" label="计划号" width="150"></el-table-column>
+          <el-table-column prop="declared" label="申报数量" width="95"></el-table-column>
+          <el-table-column prop="picked" label="提货数量" width="95"></el-table-column>
+          <el-table-column prop="remain" label="剩余可发" width="95"><template #default="{row}"><span :class="{pickupDone:row.remain===0}">{{row.remain}}</span></template></el-table-column>
+          <el-table-column label="本次发货数量" width="150"><template #header><span style="color:#f56c6c">*</span> 本次发货数量</template><template #default="{row}"><el-input-number v-model="row.shipQty" :min="1" :max="row.remain" controls-position="right" :disabled="!isShipSelected(row)"></el-input-number></template></el-table-column>
+          <el-table-column label="申发差异" width="100"><template #header><span>申发差异<el-tooltip content="本次发货数量 − 申报数量，正数 = 多发，负数 = 少发" placement="top"><span style="color:#909399;cursor:help;margin-left:3px;border:1px solid #c0c4cc;border-radius:50%;display:inline-block;width:16px;height:16px;text-align:center;line-height:15px;font-size:11px">?</span></el-tooltip></span></template><template #default="{row}"><span v-if="Number(row.shipQty||0)>0">{{ Number(row.shipQty||0) - row.declared }}</span><span v-else>—</span></template></el-table-column>
+          <el-table-column label="提发差异" width="100"><template #header><span>提发差异<el-tooltip content="本次发货数量 − 提货数量，正数 = 多发，负数 = 少发" placement="top"><span style="color:#909399;cursor:help;margin-left:3px;border:1px solid #c0c4cc;border-radius:50%;display:inline-block;width:16px;height:16px;text-align:center;line-height:15px;font-size:11px">?</span></el-tooltip></span></template><template #default="{row}"><span v-if="Number(row.shipQty||0)>0">{{ Number(row.shipQty||0) - row.picked }}</span><span v-else>—</span></template></el-table-column>
+          <el-table-column label="发货备注" width="180"><template #default="{row}"><el-input v-model="row.shipRemark" clearable maxlength="200" placeholder="请输入备注" :disabled="!isShipSelected(row)"></el-input></template></el-table-column>
+          <el-table-column label="差异原因" width="160"><template #header><span v-if="shipSelection.some(r=>Number(r.shipQty||0)>0&&Number(r.shipQty||0)-Number(r.picked||0)!==0)" style="color:#f56c6c">*</span> 差异原因</template><template #default="{row}"><el-select v-if="Number(row.shipQty||0)>0&&Number(row.shipQty||0)-Number(row.picked||0)!==0&&isShipSelected(row)" v-model="row.diffReason" placeholder="请选择" clearable :disabled="!isShipSelected(row)"><el-option v-for="x in diffReasonOptions" :key="x" :label="x" :value="x"></el-option></el-select><span v-else class="muted">—</span></template></el-table-column>
+        </el-table>
+      </div>
+    </div>
+    <template #footer><div class="pickup-footer"><div class="pickup-result">已选 <b>{{shipSelection.length}}</b> 个 SKU　·　本次发货 <b>{{shipQtyTotal}}</b>　·　提交后状态 <el-tag size="small" type="success">待收货</el-tag></div><div class="pickup-footer-actions"><el-button @click="shipVisible=false">取消</el-button><el-button type="primary" :loading="shipSubmitting" @click="submitShip">确认发货</el-button></div></div></template>
+  </el-dialog>
+
+  <el-dialog v-model="completeVisible" :title="completeDocs.length>1?'批量手动完结':'手动完结｜'+completeDoc?.id" width="560px" top="12vh" class="complete-dialog" append-to-body :close-on-click-modal="false">
+    <div v-if="completeDoc">
+      <div v-if="completeDocs.length>1" class="pickup-summary" style="grid-template-columns:1fr 1fr"><div class="pickup-summary-item" style="grid-column:1/-1"><span class="label">选择单据</span><b>{{completeDocs.length}} 张发货单</b></div></div>
+      <div class="pickup-summary" v-else>
+        <div class="pickup-summary-item"><span class="label">履约状态</span><span><el-tag :type="tagType(completeDoc.status)">{{completeDoc.status}}</el-tag></span></div>
+        <div class="pickup-summary-item"><span class="label">申报数量</span><b>{{completeDoc.declare}}</b></div>
+        <div class="pickup-summary-item"><span class="label">已发货</span><b>{{completeDoc.ship}}</b></div>
+        <div class="pickup-summary-item"><span class="label">已收货</span><b>{{completeDoc.receive}}</b></div>
+        <div class="pickup-summary-item"><span class="label">未收数量</span><b>{{Math.max((completeDoc.ship||0)-(completeDoc.receive||0),0)}}</b></div>
+      </div>
+      <el-form ref="completeFormRef" :model="completeForm" :rules="completeFormRules" label-position="top" class="complete-form">
+        <el-form-item label="完结原因" prop="reason"><el-select v-model="completeForm.reason" placeholder="请选择完结原因" style="width:100%"><el-option v-for="x in completeReasonOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+        <el-form-item label="备注"><el-input v-model="completeForm.remark" type="textarea" :rows="3" maxlength="300" show-word-limit placeholder="请输入备注（选填）"></el-input></el-form-item>
+      </el-form>
+    </div>
+    <template #footer><div class="pickup-footer-actions" style="justify-content:flex-end"><el-button @click="completeVisible=false">取消</el-button><el-button type="primary" :loading="completeSubmitting" @click="submitComplete">确认完结</el-button></div></template>
   </el-dialog>
 
   <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量物流加工':'物流加工｜'+processingDocId" width="74vw" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">
@@ -328,6 +381,6 @@
 </div>
 <script src="../../vendor/vue.global.prod.js"></script>
 <script src="../../vendor/element-plus.js"></script>
-<script src="app.js?v=1.6.0"></script>
+<script src="app.js?v=1.6.1"></script>
 </body>
 </html>
