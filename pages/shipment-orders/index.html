@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>供应链中台｜发货单多 SKU 原型</title>
+  <link rel="stylesheet" href="../../vendor/element-plus.css">
+  
+  
+  <link rel="stylesheet" href="styles.css?v=1.6.0">
+</head>
+<body>
+<div id="app" v-cloak>
+  <div class="app">
+    <header class="global-bar">
+      <div class="global-left"><span class="brand-shield"></span><span class="top-icon">▣</span><span class="top-icon">◉</span><span class="top-icon active">⛓</span><span class="top-icon">▥</span><span class="top-icon">▤</span><span class="top-icon">▧</span></div>
+      <div class="global-right"><span class="icon">⟳</span><span class="icon">⛶</span><span class="admin">Admin⌄</span></div>
+    </header>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="nav-scroll">
+          <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item"><span class="mini">▤</span>团队库存</div>
+          <div class="nav-item"><span class="mini">▥</span>平台仓&海外仓</div>
+          <div class="nav-item"><span class="mini">▱</span>供应商库存</div>
+          <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item"><span class="mini">▣</span>需求预测</div>
+          <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
+          <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
+          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+          <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
+          <div class="nav-item active" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
+        </div>
+        <div class="collapse">≡</div>
+      </aside>
+      <main class="main">
+        <section class="content">
+          <div class="page-head"><h1 class="page-title">发货单</h1><div class="page-desc">一张发货单可包含多个 SKU，每个 SKU 对应一个发货计划</div></div>
+        <div class="card query-card">
+          <el-form label-position="top" size="default">
+            <div class="query-grid">
+              <el-form-item label="发货单号"><el-input v-model="query.no" clearable placeholder="请输入发货单号"></el-input></el-form-item>
+              <el-form-item label="计划单号"><el-input v-model="query.plan" clearable placeholder="请输入计划单号"></el-input></el-form-item>
+              <el-form-item label="SKU"><el-input v-model="query.sku" clearable placeholder="请输入 SKU"></el-input></el-form-item>
+              <el-form-item label="发货仓"><el-select v-model="query.from" clearable filterable placeholder="全部发货仓" style="width:100%"><el-option v-for="x in warehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+              <el-form-item label="履约状态"><el-select v-model="query.status" clearable placeholder="全部状态" style="width:100%"><el-option v-for="x in statuses.filter(s=>!['全部','可加工'].includes(s))" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+            </div>
+            <div class="query-actions"><el-button type="primary" @click="applyQuery">查询</el-button><el-button @click="resetQuery">重置</el-button></div>
+          </el-form>
+        </div>
+        <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button type="success" plain @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button>其他头程费用分摊</el-button><el-button>手动完成</el-button><el-button @click="exportData">导出</el-button><el-button @click="columnVisible=true">列设置</el-button></div>
+        <div class="card status-card"><el-tabs v-model="statusTab" class="status-tabs"><el-tab-pane v-for="s in statuses" :key="s" :name="s"><template #label><span>{{s}}<i class="tab-count">{{statusCount(s)}}</i></span></template></el-tab-pane></el-tabs></div>
+        <div class="card list-card">
+          <div class="list-head"><b>发货单列表</b><span class="list-count">共 {{filteredDocs.length}} 张</span></div>
+          <el-table :data="filteredDocs" row-key="id" class="main-table" style="width:100%">
+            <el-table-column type="expand" width="46" fixed="left">
+              <template #default="{row}"><div class="expand-panel"><div class="detail-table-wrap"><el-table :data="row.items" border size="small" class="detail-sku-table"><el-table-column prop="sku" label="SKU" width="145" fixed="left"><template #default="{row:item}"><div>{{item.sku}}<el-tag v-if="skuMeta(item.sku).skuType==='组合'" type="warning" size="small" style="margin-left:4px">组合</el-tag></div></template></el-table-column><el-table-column label="产品信息" width="220"><template #default="{row:item}"><div class="product-cell"><el-image :src="skuMeta(item.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="item.name||'—'" placement="top"><div class="product-title">{{item.name||'—'}}</div></el-tooltip></div></template></el-table-column><el-table-column prop="plan" label="计划号" width="155"></el-table-column><el-table-column label="海外仓 SKU" width="145"><template #default="{row:item}">{{skuMeta(item.sku).overseasSku||'—'}}</template></el-table-column><el-table-column label="FNSKU" width="120"><template #default="{row:item}">{{skuMeta(item.sku).fnsku||'—'}}</template></el-table-column><el-table-column label="平台" width="115"><template #default="{row:item}">{{skuMeta(item.sku).platform||'—'}}</template></el-table-column><el-table-column label="运营负责人" width="105"><template #default="{row:item}">{{skuMeta(item.sku).owner||'—'}}</template></el-table-column><el-table-column label="团队" width="105"><template #default="{row:item}">{{skuMeta(item.sku).team||'—'}}</template></el-table-column><el-table-column label="店铺" width="150"><template #default="{row:item}">{{skuMeta(item.sku).store||'—'}}</template></el-table-column><el-table-column label="箱数" width="75"><template #default="{row:item}">{{skuMeta(item.sku).boxes||'—'}}</template></el-table-column><el-table-column label="计划发货数量" width="110"><template #default="{row:item}">{{skuMeta(item.sku).planQty||item.declare}}</template></el-table-column><el-table-column prop="declare" label="申报数量" width="95"></el-table-column><el-table-column label="提货数量" width="95"><template #default="{row:item}">{{item.pick||0}}</template></el-table-column><el-table-column label="发货数量" width="95"><template #default="{row:item}">{{item.ship||0}}</template></el-table-column><el-table-column label="申发差异" width="95"><template #default="{row:item}">{{item.declare-(item.ship||0)}}</template></el-table-column><el-table-column label="重量＆体积" width="180"><template #default="{row:item}"><div class="measure-cell"><div>{{skuMeta(item.sku).weight||'—'}} KG</div><div>{{skuMeta(item.sku).length||'—'}} × {{skuMeta(item.sku).width||'—'}} × {{skuMeta(item.sku).height||'—'}}</div><div>{{skuMeta(item.sku).volume||'—'}} m³</div></div></template></el-table-column><el-table-column label="计划差额" width="95"><template #default="{row:item}">{{(skuMeta(item.sku).planQty||item.declare)-item.declare}}</template></el-table-column><el-table-column label="备注" width="140"><template #default="{row:item}">{{skuMeta(item.sku).skuRemark||'—'}}</template></el-table-column><el-table-column label="发货计划剩余数量" width="150"><template #default="{row:item}">{{skuMeta(item.sku).remain??item.declare}}</template></el-table-column></el-table></div></div></template>
+            </el-table-column>
+            <el-table-column label="单号" min-width="230">
+              <template #default="{row}"><div class="group-cell"><div class="field-line doc-line"><span class="field-label">中台发货单：</span><span class="doc-no" @click="openDetail(row)">{{row.id}}</span></div><div class="field-line"><span class="field-label">易仓发货单：</span><span>{{row.yicangNo}}</span></div><div class="field-line"><span class="field-label">发货方式：</span><span>{{row.shipMode}}</span></div><div class="field-line"><span class="field-label">状态：</span><el-tag size="small" :type="tagType(row.status)">{{row.status}}</el-tag></div></div></template>
+            </el-table-column>
+            <el-table-column label="仓库＆渠道" min-width="230">
+              <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">发货仓：</span><span>{{row.from}}</span></div><div class="field-line"><span class="field-label">收货仓：</span><span>{{row.to}}</span></div><div class="field-line"><span class="field-label">物流渠道：</span><span>{{row.channel}}</span></div><div class="field-line"><span class="field-label">运输方式：</span><span>{{row.transport}}</span></div></div></template>
+            </el-table-column>
+            <el-table-column label="数量汇总" min-width="180">
+              <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">SKU 个数：</span><span>{{row.skus}}</span></div><div class="field-line"><span class="field-label">计划数量：</span><span>{{row.planQty}}</span></div><div class="field-line"><span class="field-label">申报数量：</span><span>{{row.declare}}</span></div><div class="field-line"><span class="field-label">提货数量：</span><span>{{row.pick}}</span></div><div v-if="row.pickDiff" class="field-line"><span class="field-label">申提差：</span><span style="color:#e6a23c">{{row.pickDiff}}</span></div></div></template>
+            </el-table-column>
+            <el-table-column label="发货时间" min-width="220">
+              <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">预计发货日期：</span><span>{{row.expectedShipDate}}</span></div><div class="field-line"><span class="field-label">预计到货日期：</span><span>{{row.eta}}</span></div></div></template>
+            </el-table-column>
+            <el-table-column label="入库信息" min-width="220">
+              <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">物流单号：</span><span>{{row.logisticsNo}}</span></div><div class="field-line"><span class="field-label">已收货数量：</span><span>{{row.receive}}</span></div><div class="field-line"><span class="field-label">待收货数量：</span><span>{{row.pendingReceive}}</span></div></div></template>
+            </el-table-column>
+            <el-table-column label="头程费用" min-width="220">
+              <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">实际运费：</span><span>{{row.actualFreight}}</span></div><div class="field-line"><span class="field-label">清关税费：</span><span>{{row.customsFee}}</span></div><div class="field-line total-line"><span class="field-label">头程费用合计：</span><span>{{row.firstLegTotal}}</span></div></div></template>
+            </el-table-column>
+            <el-table-column label="操作" fixed="right" width="230">
+              <template #default="{row}">
+                <div class="flow-ops">
+                  <template v-if="row.status==='草稿'"><el-button link type="primary" @click="transitionStatus(row,'待提货','提交')">提交</el-button><el-button link type="danger" @click="voidDocument(row)">作废</el-button></template>
+                  <template v-else-if="row.status==='待提货'"><el-button link type="primary" @click="openPickup(row)">提货</el-button><el-button link type="danger" @click="voidDocument(row)">作废</el-button></template>
+                  <template v-else-if="row.status==='可加工'"><el-button link type="primary" @click="openProcessing(row)">加工</el-button></template>
+                  <template v-else-if="row.status==='待发货'"><el-button link type="primary" @click="shipDocument(row)">发货</el-button></template>
+                  <template v-else-if="row.status==='待收货'"><el-button link type="primary" @click="openReceive(row)">收货</el-button></template>
+                  <template v-else-if="row.status==='部分收货'"><el-button link type="primary" @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="transitionStatus(row,'已完成','手动完成')">手动完成</el-button></template>
+                  <span v-else class="muted">—</span>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="pagination"><el-pagination background layout="total, prev, pager, next" :total="filteredDocs.length" :page-size="10"></el-pagination></div>
+        </div>
+      </section>
+    </main>
+    </div>
+  </div>
+
+  <el-dialog v-model="createVisible" title="新建发货单" width="92vw" top="4vh" class="create-dialog" :close-on-click-modal="false">
+    <div class="create-layout">
+      <div class="create-top">
+      <el-form ref="createFormRef" class="public-form" :model="createForm" :rules="createRules" label-position="left" label-width="100px">
+        <div class="public-grid">
+          <el-form-item label="发货仓" prop="from"><el-select v-model="createForm.from" filterable placeholder="请选择发货仓" style="width:100%"><el-option v-for="x in warehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="目的仓" prop="to"><el-select v-model="createForm.to" filterable placeholder="请选择目的仓" style="width:100%"><el-option v-for="x in destWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="发货方式" prop="shipMode"><el-select v-model="createForm.shipMode" filterable placeholder="请选择发货方式" style="width:100%"><el-option v-for="x in shipModes" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="头程服务商" prop="provider"><el-select v-model="createForm.provider" filterable placeholder="请选择头程服务商" style="width:100%"><el-option v-for="x in providers" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="运输方式" prop="transport"><el-select v-model="createForm.transport" placeholder="请选择运输方式" style="width:100%"><el-option v-for="x in transports" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="物流渠道" prop="channel"><el-select v-model="createForm.channel" filterable placeholder="请选择物流渠道" style="width:100%"><el-option v-for="x in channels" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="目的地国家"><el-select v-model="createForm.country" filterable clearable placeholder="请选择国家" style="width:100%"><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="仓库类型"><el-select v-model="createForm.warehouseType" clearable placeholder="请选择仓库类型" style="width:100%"><el-option label="海外仓" value="海外仓"></el-option><el-option label="本地仓" value="本地仓"></el-option><el-option label="中转仓" value="中转仓"></el-option></el-select></el-form-item>
+          <el-form-item label="物流商单号"><el-input v-model="createForm.logisticsNo" placeholder="选填，可提交后补录"></el-input></el-form-item>
+        </div>
+        <div class="address-area address-scroll">
+          <div class="address-row"><div class="address-label">发货仓信息</div><el-input v-model="createForm.fromAddress.contact" placeholder="联系人"></el-input><el-input v-model="createForm.fromAddress.phone" placeholder="联系电话"></el-input><el-select v-model="createForm.fromAddress.country" clearable placeholder="国家"><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select><el-input v-model="createForm.fromAddress.province" placeholder="省/州"></el-input><el-input v-model="createForm.fromAddress.city" placeholder="城市"></el-input><el-input v-model="createForm.fromAddress.district" placeholder="区/县"></el-input><el-input v-model="createForm.fromAddress.detail" placeholder="详细地址"></el-input><el-input v-model="createForm.fromAddress.zip" placeholder="邮编"></el-input></div>
+          <div class="address-row"><div class="address-label">目的仓信息</div><el-input v-model="createForm.toAddress.contact" placeholder="联系人"></el-input><el-input v-model="createForm.toAddress.phone" placeholder="联系电话"></el-input><el-select v-model="createForm.toAddress.country" clearable placeholder="国家"><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select><el-input v-model="createForm.toAddress.province" placeholder="省/州"></el-input><el-input v-model="createForm.toAddress.city" placeholder="城市"></el-input><el-input v-model="createForm.toAddress.district" placeholder="区/县"></el-input><el-input v-model="createForm.toAddress.detail" placeholder="详细地址"></el-input><el-input v-model="createForm.toAddress.zip" placeholder="邮编"></el-input></div>
+          <div class="remark-row"><div class="address-label">备注</div><el-input v-model="createForm.remark" type="textarea" :rows="3" placeholder="请输入备注"></el-input></div>
+        </div>
+      </el-form>
+      </div>
+      <div class="sku-section">
+        <div class="section-actions"><el-tooltip content="请先填写顶部必填字段" placement="top" :disabled="canAddSku"><span class="disabled-button-wrap"><el-button type="primary" :disabled="!canAddSku" @click="openSkuDialog">＋ 新增 SKU</el-button></span></el-tooltip></div>
+        <div class="sku-rule-hint">⚠ 同一发货单仅支持同一目的仓的货物合并发运；FBA 专属仓与非亚马逊团队货物不可混发</div>
+        <div v-if="!selectedSkus.length" class="sku-empty">尚未选择 SKU，至少选择一个 SKU</div>
+        <div v-else class="selected-table-wrap">
+          <el-table :data="selectedSkus" border height="100%" class="selected-sku-table">
+            <el-table-column prop="sku" label="SKU" width="145"></el-table-column>
+            <el-table-column label="产品信息" width="235"><template #default="{row}"><div class="product-cell"><el-image :src="row.image" fit="contain" class="product-image"></el-image><el-tooltip :content="row.title" placement="top"><div class="product-title">{{row.title}}</div></el-tooltip></div></template></el-table-column>
+            <el-table-column prop="planNo" label="计划号" width="155"></el-table-column>
+            <el-table-column prop="overseasSku" label="海外仓 SKU" width="145"></el-table-column>
+            <el-table-column prop="fnsku" label="FNSKU" width="120"></el-table-column>
+            <el-table-column prop="platform" label="平台" width="120"></el-table-column>
+            <el-table-column prop="team" label="团队" width="110"></el-table-column>
+            <el-table-column prop="store" label="店铺" width="155" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="boxes" label="箱数" width="75"></el-table-column>
+            <el-table-column prop="planQty" label="计划发货数量" width="120"></el-table-column>
+            <el-table-column label="申报量" width="135"><template #default="{row}"><el-input-number v-model="row.declareQty" :min="1" :max="row.remain" controls-position="right" style="width:110px"></el-input-number></template></el-table-column>
+            <el-table-column label="重量＆体积" width="185"><template #default="{row}"><div class="measure-cell"><div>{{row.weight}} KG</div><div>{{row.length}} × {{row.width}} × {{row.height}}</div><div>{{row.volume}} m³</div></div></template></el-table-column>
+            <el-table-column label="计划差额" width="95"><template #default="{row}">{{row.planQty-row.declareQty}}</template></el-table-column>
+            <el-table-column label="备注" width="180"><template #default="{row}"><el-input v-model="row.skuRemark" clearable placeholder="请输入备注"></el-input></template></el-table-column>
+            <el-table-column label="操作" width="80" fixed="right"><template #default="{row}"><el-button link type="danger" @click="removeSku(row)">移除</el-button></template></el-table-column>
+          </el-table>
+        </div>
+        <div class="summary-strip"><span>SKU 数 <b>{{selectedSkus.length}}</b></span><span>申报数量 <b>{{declareTotal}}</b></span></div>
+      </div>
+    </div>
+    <template #footer><div class="dialog-footer"><el-button @click="createVisible=false">取消</el-button><el-button @click="saveDraft">保存草稿</el-button><el-button type="primary" @click="submitCreate">提交</el-button></div></template>
+  </el-dialog>
+
+  <el-dialog v-model="skuVisible" title="新增 SKU" width="78vw" top="10vh" class="sku-dialog" append-to-body :close-on-click-modal="false">
+    <el-form label-position="top">
+      <div class="sku-query">
+        <el-form-item label="计划单号"><el-input v-model="skuSearch.planNos" type="textarea" :rows="2" placeholder="支持多个，使用逗号或换行分隔" clearable></el-input></el-form-item>
+        <el-form-item label="SKU"><el-input v-model="skuSearch.skus" type="textarea" :rows="2" placeholder="支持多个，使用逗号或换行分隔" clearable></el-input></el-form-item>
+        <el-form-item label="平台"><el-select v-model="skuSearch.platforms" multiple filterable collapse-tags collapse-tags-tooltip clearable placeholder="请选择平台" style="width:100%"><el-option v-for="x in platformOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+        <el-form-item label="团队"><el-select v-model="skuSearch.teams" multiple filterable collapse-tags collapse-tags-tooltip clearable placeholder="请选择团队" style="width:100%"><el-option v-for="x in teamOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+        <div><el-button type="primary" @click="runSkuQuery">查询</el-button><el-button @click="resetSkuQuery">重置</el-button></div>
+      </div>
+    </el-form>
+    <div class="sku-rule-hint">⚠ 同一发货单仅支持同一目的仓的货物合并发运；FBA 专属仓与非亚马逊团队货物不可混发（刚性规则）</div>
+    <div class="sku-table-wrap">
+      <el-table ref="skuTableRef" :data="filteredSkuCandidates" row-key="sku" border class="sku-table" max-height="430" @selection-change="onSkuSelection">
+        <el-table-column type="selection" width="52" reserve-selection></el-table-column>
+        <el-table-column prop="sku" label="SKU" min-width="140" fixed="left"></el-table-column>
+        <el-table-column prop="planNo" label="计划号" min-width="155"></el-table-column>
+        <el-table-column prop="overseasSku" label="海外仓 SKU" min-width="145"></el-table-column>
+        <el-table-column prop="fnsku" label="FNSKU" min-width="120"></el-table-column>
+        <el-table-column prop="platform" label="平台" min-width="120"></el-table-column>
+        <el-table-column prop="owner" label="运营负责人" width="105"></el-table-column>
+        <el-table-column prop="team" label="团队" min-width="110"></el-table-column>
+        <el-table-column prop="store" label="店铺" min-width="155" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="boxes" label="箱数" width="75"></el-table-column>
+        <el-table-column prop="planQty" label="计划发货数量" width="125"></el-table-column>
+        <el-table-column label="申报量" width="145"><template #header><span style="color:#f56c6c">*</span> 申报量</template><template #default="{row}"><el-input-number v-model="row.declareQty" :min="1" :max="row.remain" controls-position="right" class="declare-input"></el-input-number></template></el-table-column>
+        <el-table-column prop="note" label="备注" min-width="150" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="remain" label="发货计划剩余数量" width="150"></el-table-column>
+        <el-table-column label="计划差额" width="95"><template #default="{row}">{{row.planQty-row.declareQty}}</template></el-table-column>
+      </el-table>
+    </div>
+    <template #footer><div class="dialog-footer"><el-button @click="skuVisible=false">取消</el-button><el-button type="primary" @click="confirmSkuSelection">确认选择</el-button></div></template>
+  </el-dialog>
+
+  <el-dialog v-model="detailVisible" :title="`发货单详情｜${currentDoc?.id||''}`" width="88vw" top="4vh" class="detail-dialog" :close-on-click-modal="false">
+    <div v-if="currentDoc" class="detail-layout">
+      <div ref="detailScrollRef" class="detail-content" @scroll="onDetailScroll">
+        <section id="detail-info" class="detail-section"><div class="detail-section-head">发货单信息</div><div class="detail-info-grid">
+          <div class="detail-info-item"><span class="detail-info-label">中台发货单：</span><span class="detail-info-value">{{currentDoc.id}}</span></div><div class="detail-info-item"><span class="detail-info-label">易仓发货单：</span><span class="detail-info-value">{{currentDoc.yicangNo||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">履约状态：</span><span class="detail-info-value"><el-tag :type="tagType(currentDoc.status)">{{currentDoc.status}}</el-tag><el-tag v-if="currentDoc.processable" type="success" size="small" style="margin-left:6px">可加工</el-tag></span></div><div class="detail-info-item"><span class="detail-info-label">物流状态：</span><span class="detail-info-value">{{currentDoc.logistics||'—'}}</span></div>
+          <div class="detail-info-item"><span class="detail-info-label">发货仓：</span><span class="detail-info-value">{{currentDoc.from||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">目的仓：</span><span class="detail-info-value">{{currentDoc.to||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">发货方式：</span><span class="detail-info-value">{{currentDoc.shipMode||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">物流渠道：</span><span class="detail-info-value">{{currentDoc.channel||'—'}}</span></div>
+          <div class="detail-info-item"><span class="detail-info-label">运输方式：</span><span class="detail-info-value">{{currentDoc.transport||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">头程服务商：</span><span class="detail-info-value">{{currentDoc.provider||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">物流商单号：</span><span class="detail-info-value">{{currentDoc.logisticsNo||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">目的地国家：</span><span class="detail-info-value">{{currentDoc.country||'—'}}</span></div>
+          <div class="detail-info-item"><span class="detail-info-label">预计发货日期：</span><span class="detail-info-value">{{currentDoc.expectedShipDate||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">预计到货日期：</span><span class="detail-info-value">{{currentDoc.eta||'—'}}</span></div><div class="detail-info-item"><span class="detail-info-label">SKU 个数：</span><span class="detail-info-value">{{currentDoc.skus||0}}</span></div><div class="detail-info-item"><span class="detail-info-label">计划数量：</span><span class="detail-info-value">{{currentDoc.planQty||0}}</span></div>
+          <div class="detail-info-item"><span class="detail-info-label">申报数量：</span><span class="detail-info-value">{{currentDoc.declare||0}}</span></div><div class="detail-info-item"><span class="detail-info-label">提货数量：</span><span class="detail-info-value">{{currentDoc.pick||0}}</span></div><div class="detail-info-item"><span class="detail-info-label">已收货数量：</span><span class="detail-info-value">{{currentDoc.receive||0}}</span></div><div class="detail-info-item"><span class="detail-info-label">待收货数量：</span><span class="detail-info-value">{{currentDoc.pendingReceive||0}}</span></div>
+          <div class="detail-info-item"><span class="detail-info-label">仓库类型：</span><span class="detail-info-value">{{currentDoc.warehouseType||'—'}}</span></div><div class="detail-info-item detail-info-wide"><span class="detail-info-label">备注：</span><span class="detail-info-value">{{currentDoc.remark||'—'}}</span></div>
+        </div></section>
+        <section id="detail-sku" class="detail-section"><div class="detail-section-head">SKU 明细</div><div class="detail-table-wrap"><el-table :data="currentDoc.items" border size="small" class="detail-sku-table">
+          <el-table-column prop="sku" label="SKU" width="145" fixed="left"></el-table-column><el-table-column label="产品信息" width="220"><template #default="{row:item}"><div class="product-cell"><el-image :src="skuMeta(item.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="item.name||'—'" placement="top"><div class="product-title">{{item.name||'—'}}</div></el-tooltip></div></template></el-table-column><el-table-column prop="plan" label="计划号" width="155"></el-table-column><el-table-column label="海外仓 SKU" width="145"><template #default="{row:item}">{{skuMeta(item.sku).overseasSku||'—'}}</template></el-table-column><el-table-column label="FNSKU" width="120"><template #default="{row:item}">{{skuMeta(item.sku).fnsku||'—'}}</template></el-table-column><el-table-column label="平台" width="115"><template #default="{row:item}">{{skuMeta(item.sku).platform||'—'}}</template></el-table-column><el-table-column label="运营负责人" width="105"><template #default="{row:item}">{{skuMeta(item.sku).owner||'—'}}</template></el-table-column><el-table-column label="团队" width="105"><template #default="{row:item}">{{skuMeta(item.sku).team||'—'}}</template></el-table-column><el-table-column label="店铺" width="150"><template #default="{row:item}">{{skuMeta(item.sku).store||'—'}}</template></el-table-column><el-table-column label="箱数" width="75"><template #default="{row:item}">{{skuMeta(item.sku).boxes||'—'}}</template></el-table-column><el-table-column label="计划发货数量" width="110"><template #default="{row:item}">{{skuMeta(item.sku).planQty||item.declare}}</template></el-table-column><el-table-column prop="declare" label="申报数量" width="95"></el-table-column><el-table-column label="提货数量" width="95"><template #default="{row:item}">{{item.pick||0}}</template></el-table-column><el-table-column label="发货数量" width="95"><template #default="{row:item}">{{item.ship||0}}</template></el-table-column><el-table-column label="申发差异" width="95"><template #default="{row:item}">{{(item.declare||0)-(item.ship||0)}}</template></el-table-column><el-table-column label="重量＆体积" width="180"><template #default="{row:item}"><div class="measure-cell"><div>{{skuMeta(item.sku).weight||'—'}} KG</div><div>{{skuMeta(item.sku).length||'—'}} × {{skuMeta(item.sku).width||'—'}} × {{skuMeta(item.sku).height||'—'}}</div><div>{{skuMeta(item.sku).volume||'—'}} m³</div></div></template></el-table-column><el-table-column label="计划差额" width="95"><template #default="{row:item}">{{(skuMeta(item.sku).planQty||item.declare)-item.declare}}</template></el-table-column><el-table-column label="备注" width="140"><template #default="{row:item}">{{skuMeta(item.sku).skuRemark||'—'}}</template></el-table-column><el-table-column label="发货计划剩余数量" width="150"><template #default="{row:item}">{{skuMeta(item.sku).remain??item.declare}}</template></el-table-column>
+        </el-table></div></section>
+        <section id="detail-pickup" class="detail-section"><div class="detail-section-head">提货明细</div><div v-if="pickupDetailRows.length" class="detail-record-wrap"><el-table :data="pickupDetailRows" border size="small"><el-table-column prop="batchNo" label="提货批次" min-width="150"></el-table-column><el-table-column prop="date" label="提货时间" min-width="170"></el-table-column><el-table-column prop="sku" label="SKU" min-width="135"></el-table-column><el-table-column prop="plan" label="计划号" min-width="150"></el-table-column><el-table-column prop="warehouse" label="提货仓" min-width="120"></el-table-column><el-table-column prop="fromWarehouse" label="发货仓" min-width="120"></el-table-column><el-table-column prop="qty" label="提货数量" width="100"></el-table-column><el-table-column prop="pickDiff" label="提货差异" width="100"></el-table-column><el-table-column prop="diffReason" label="差异原因" width="140"></el-table-column><el-table-column prop="remark" label="提货备注" min-width="180"></el-table-column><el-table-column prop="operator" label="操作人" width="100"></el-table-column></el-table></div><el-empty v-else class="detail-empty" description="暂无提货明细" :image-size="56"></el-empty></section>
+        <section id="detail-processing" class="detail-section"><div class="detail-section-head">加工明细</div><div v-if="processingDetailRows.length" class="detail-record-wrap"><el-table :data="processingDetailRows" border size="small"><el-table-column prop="batchNo" label="加工批次" min-width="150"></el-table-column><el-table-column prop="date" label="加工时间" min-width="170"></el-table-column><el-table-column prop="sku" label="组合 SKU" min-width="135"></el-table-column><el-table-column prop="docId" label="发货单号" min-width="180"></el-table-column><el-table-column prop="qty" label="加工数量" width="100"></el-table-column><el-table-column prop="subDetails" label="消耗子件" min-width="280"></el-table-column><el-table-column prop="operator" label="操作人" width="100"></el-table-column></el-table></div><el-empty v-else class="detail-empty" description="暂无加工明细" :image-size="56"></el-empty></section>
+        <section id="detail-receive" class="detail-section"><div class="detail-section-head">收货明细</div><div v-if="receiveDetailRows.length" class="detail-record-wrap"><el-table :data="receiveDetailRows" border size="small"><el-table-column prop="batchNo" label="批次号" min-width="150"></el-table-column><el-table-column prop="date" label="操作时间" min-width="155"></el-table-column><el-table-column prop="sku" label="SKU" min-width="135"></el-table-column><el-table-column prop="plan" label="计划号" min-width="150"></el-table-column><el-table-column prop="qty" label="收货数量" width="100"></el-table-column><el-table-column prop="operator" label="操作人" width="100"></el-table-column></el-table></div><el-empty v-else class="detail-empty" description="暂无收货明细" :image-size="56"></el-empty></section>
+        <section id="detail-fee" class="detail-section"><div class="detail-section-head">物流费用</div><div class="detail-field-grid"><div v-for="field in logisticsFeeFields" :key="field.label" class="detail-field"><span class="detail-field-label">{{field.label}}：</span><span class="detail-field-value">{{field.value}}</span></div></div></section>
+        <section id="detail-track" class="detail-section"><div class="detail-section-head">轨迹信息</div><div class="detail-field-grid"><div v-for="field in trackingFields" :key="field.label" class="detail-field"><span class="detail-field-label">{{field.label}}：</span><span class="detail-field-value">{{field.value}}</span></div></div></section>
+      </div>
+      <nav class="detail-anchor"><div class="detail-anchor-title">详情导航</div><button v-for="item in detailNavItems" :key="item.id" type="button" class="detail-anchor-item" :class="{active:detailActive===item.id}" @click="scrollDetailTo(item.id)">{{item.label}}</button></nav>
+    </div>
+    <template #footer><el-button @click="detailVisible=false">关闭</el-button></template>
+  </el-dialog>
+
+  <el-dialog v-model="pickupVisible" :title="`提货｜${pickupDoc?.id||''}`" width="78vw" top="8vh" class="pickup-dialog" append-to-body :close-on-click-modal="false">
+    <div v-if="pickupDoc">
+      <div class="pickup-summary">
+        <div class="pickup-summary-item"><span class="label">履约状态</span><span><el-tag :type="tagType(pickupDoc.status)">{{pickupDoc.status}}</el-tag></span></div>
+        <div class="pickup-summary-item"><span class="label">SKU 数量</span><b>{{pickupDoc.skus}}</b></div>
+        <div class="pickup-summary-item"><span class="label">申报数量</span><b>{{pickupDoc.declare}}</b></div>
+        <div class="pickup-summary-item"><span class="label">累计提货</span><b>{{pickupDoc.pick}}</b></div>
+        <div class="pickup-summary-item"><span class="label">剩余可提</span><b>{{pickupRemainingTotal}}</b></div>
+      </div>
+      <div class="pickup-bulk">
+        <div class="pickup-bulk-title">批量设置 <span class="muted">（应用到已勾选的 SKU，单行仍可继续修改）</span></div>
+        <el-form label-position="top" size="small">
+          <div class="pickup-bulk-grid">
+            <el-form-item label="提货仓"><el-select v-model="pickupBatch.warehouse" filterable clearable placeholder="请选择统一提货仓" style="width:100%"><el-option v-for="x in pickupWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+            <el-form-item label="服务商提货"><div><el-switch v-model="pickupBatch.providerPickup" active-text="是" inactive-text="否"></el-switch><div v-if="pickupBatch.providerPickup" class="pickup-provider-note">头程服务商：{{pickupDoc.provider||'—'}}</div></div></el-form-item>
+            <el-form-item label="提货备注"><el-input v-model="pickupBatch.remark" clearable maxlength="200" show-word-limit placeholder="请输入统一备注"></el-input></el-form-item>
+            <div><el-button type="primary" plain @click="applyPickupBatch">应用到已选 SKU</el-button><el-button @click="fillPickupRemaining">按剩余数量填充</el-button></div>
+          </div>
+        </el-form>
+      </div>
+      <div class="pickup-table-wrap">
+        <el-table ref="pickupTableRef" :data="pickupRows" row-key="key" border class="pickup-table" max-height="390" @selection-change="onPickupSelection">
+          <el-table-column type="selection" width="52" fixed="left" reserve-selection :selectable="pickupSelectable"></el-table-column>
+          <el-table-column prop="sku" label="SKU" width="145" fixed="left"></el-table-column>
+          <el-table-column label="产品信息" width="210" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="skuMeta(row.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
+          <el-table-column prop="plan" label="计划号" width="150"></el-table-column>
+          <el-table-column label="库存/计划" width="100"><template #default="{row}"><div style="line-height:1.6"><div>在库 {{row.inStock}}</div><div>计划 {{row.planQty}}</div><div>申报 {{row.declare}}</div></div></template></el-table-column>
+          <el-table-column label="提货进度" width="90"><template #default="{row}"><div style="line-height:1.6"><div>累计 {{row.picked}}</div><div><span :class="{pickupDone:row.remain===0}">剩余 {{row.remain}}</span></div></div></template></el-table-column>
+          <el-table-column label="提货仓" width="195"><template #header><span style="color:#f56c6c">*</span> 提货仓</template><template #default="{row}"><el-select v-model="row.pickupWarehouse" filterable clearable placeholder="请选择" :disabled="!isPickupSelected(row)"><el-option v-for="x in pickupWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></template></el-table-column>
+          <el-table-column label="提货数量" width="145"><template #header><span style="color:#f56c6c">*</span> 提货数量</template><template #default="{row}"><el-input-number v-model="row.pickupQty" :min="1" :max="row.remain" controls-position="right" :disabled="!isPickupSelected(row)"></el-input-number></template></el-table-column>
+          <el-table-column label="服务商提货" width="145"><template #default="{row}"><el-switch v-model="row.providerPickup" active-text="是" inactive-text="否" :disabled="!isPickupSelected(row)"></el-switch></template></el-table-column>
+          <el-table-column label="提货备注" width="230"><template #default="{row}"><el-input v-model="row.pickupRemark" clearable maxlength="200" placeholder="请输入备注" :disabled="!isPickupSelected(row)"></el-input></template></el-table-column>
+          <el-table-column label="差异原因" width="180"><template #header><span v-if="pickupUnresolvedDiff>0" style="color:#f56c6c">*</span> 差异原因</template><template #default="{row}"><el-select v-if="Number(row.pickupQty||0)>0&&Number(row.pickupQty||0)<row.remain&&isPickupSelected(row)" v-model="row.diffReason" placeholder="请选择" clearable :disabled="!isPickupSelected(row)"><el-option label="盘亏（实物少于系统）" value="盘亏"></el-option><el-option label="货物损坏" value="货物损坏"></el-option><el-option label="货物丢失" value="货物丢失"></el-option><el-option label="其他" value="其他"></el-option></el-select><span v-else class="muted">—</span></template></el-table-column>
+        </el-table>
+      </div>
+    </div>
+    <template #footer><div class="pickup-footer"><div class="pickup-result">已选 <b>{{pickupSelection.length}}</b> 个 SKU　·　提交后状态 <el-tag size="small" :type="pickupNextStatus==='待发货'?'success':pickupNextStatus==='可加工'?'warning':'info'">{{pickupNextStatus}}</el-tag></div><div class="pickup-footer-actions"><el-button @click="pickupVisible=false">取消</el-button><el-button type="primary" :loading="pickupSubmitting" @click="submitPickup">确认提货</el-button></div></div></template>
+  </el-dialog>
+
+  <el-dialog v-model="receiveVisible" :title="`收货｜${receiveDoc?.id||''}`" width="74vw" top="9vh" class="receive-dialog" append-to-body :close-on-click-modal="false">
+    <div v-if="receiveDoc">
+      <div class="pickup-summary receive-summary">
+        <div class="pickup-summary-item"><span class="label">履约状态</span><span><el-tag :type="tagType(receiveDoc.status)">{{receiveDoc.status}}</el-tag></span></div>
+        <div class="pickup-summary-item"><span class="label">SKU 数量</span><b>{{receiveDoc.skus}}</b></div>
+        <div class="pickup-summary-item"><span class="label">申报数量</span><b>{{receiveDoc.declare}}</b></div>
+        <div class="pickup-summary-item"><span class="label">累计发货</span><b>{{receiveDoc.ship}}</b></div>
+        <div class="pickup-summary-item"><span class="label">累计收货</span><b>{{receiveDoc.receive}}</b></div>
+        <div class="pickup-summary-item"><span class="label">剩余可收</span><b>{{receiveRemainingTotal}}</b></div>
+      </div>
+      <div class="receive-toolbar"><div><b>SKU 收货明细</b><span class="muted">　仅填写本次收货数量</span></div><el-button @click="fillReceiveRemaining">按剩余可收数量填充</el-button></div>
+      <div class="pickup-table-wrap">
+        <el-table ref="receiveTableRef" :data="receiveRows" row-key="key" border class="pickup-table receive-table" max-height="410" @selection-change="onReceiveSelection">
+          <el-table-column type="selection" width="52" fixed="left" reserve-selection :selectable="receiveSelectable"></el-table-column>
+          <el-table-column prop="sku" label="SKU" width="145" fixed="left"></el-table-column>
+          <el-table-column label="产品信息" width="210"><template #default="{row}"><div class="product-cell"><el-image :src="skuMeta(row.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
+          <el-table-column prop="plan" label="计划号" width="150"></el-table-column>
+          <el-table-column prop="declare" label="申报数量" width="95"></el-table-column>
+          <el-table-column prop="shipped" label="累计发货" width="95"></el-table-column>
+          <el-table-column prop="received" label="累计收货" width="95"></el-table-column>
+          <el-table-column prop="remain" label="剩余可收" width="95"><template #default="{row}"><span :class="{pickupDone:row.remain===0}">{{row.remain}}</span></template></el-table-column>
+          <el-table-column label="本次收货数量" width="150"><template #header><span style="color:#f56c6c">*</span> 本次收货数量</template><template #default="{row}"><el-input-number v-model="row.receiveQty" :min="1" :max="row.remain" controls-position="right" :disabled="!isReceiveSelected(row)"></el-input-number></template></el-table-column>
+        </el-table>
+      </div>
+    </div>
+    <template #footer><div class="pickup-footer"><div class="pickup-result">已选 <b>{{receiveSelection.length}}</b> 个 SKU　·　本次收货 <b>{{receiveQtyTotal}}</b>　·　收货后剩余 <b>{{receiveAfterRemaining}}</b>　·　提交后状态 <el-tag size="small" :type="receiveNextStatus==='已完成'?'success':receiveNextStatus==='部分收货'?'warning':'info'">{{receiveNextStatus}}</el-tag></div><div class="pickup-footer-actions"><el-button @click="receiveVisible=false">取消</el-button><el-button type="primary" :loading="receiveSubmitting" @click="submitReceive">确认收货</el-button></div></div></template>
+  </el-dialog>
+
+  <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量物流加工':'物流加工｜'+processingDocId" width="74vw" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">
+    <div v-if="processingMode==='batch'" class="processing-batch-summary">
+      <div class="batch-summary-info"><b>可加工发货单 {{processingBatchSummary.docCount}} 张</b><span class="muted">　·　组合 SKU {{processingBatchSummary.comboCount}} 个　·　提货合计 {{processingBatchSummary.totalPick}} 件　·　可加工合计 {{processingBatchSummary.totalProcessable}} 件</span></div>
+      <div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键全部填充</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div>
+    </div>
+    <div v-else class="processing-single-hint"><div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键填满</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div></div>
+    <div class="processing-search-bar"><el-input v-model="processingSearch.sku" clearable placeholder="搜索 SKU" style="width:180px" @input="processingTableRef?.clearSelection()"></el-input><el-input v-if="processingMode==='batch'" v-model="processingSearch.docId" clearable placeholder="搜索发货单号" style="width:200px;margin-left:10px" @input="processingTableRef?.clearSelection()"></el-input><el-button v-if="processingSearch.sku||processingSearch.docId" link type="primary" @click="resetProcessingSearch" style="margin-left:8px">清除筛选</el-button></div>
+    <div class="processing-table-wrap">
+      <el-table ref="processingTableRef" :data="filteredProcessingRows" row-key="id" border class="processing-table" max-height="460" @selection-change="onProcessingSelection" :span-method="processingSpanMethod">
+        <el-table-column type="selection" width="52" fixed="left" reserve-selection :selectable="processingSelectable"></el-table-column>
+        <el-table-column v-if="processingMode==='batch'" label="发货单号" width="195" fixed="left"><template #default="{row}"><span v-if="row.isParent" class="doc-no" style="cursor:default">{{row.docId}}</span></template></el-table-column>
+        <el-table-column label="SKU" width="190" fixed="left"><template #default="{row}"><div v-if="row.isParent"><span>{{row.sku}}</span><el-tag size="small" type="primary" effect="plain" style="display:block;margin-top:4px;width:fit-content">组合</el-tag></div></template></el-table-column>
+        <el-table-column prop="subSku" label="子件 SKU" width="190"><template #default="{row}"><span v-if="!row.isParent" style="padding-left:8px;color:#666">└ {{row.subSku}}</span></template></el-table-column>
+        <el-table-column label="库存明细" width="190" align="right"><template #default="{row}"><div class="nested-cell"><div>在库量 {{row.stock}}</div><div>在库（待发）量 {{row.pendingStock}}</div><div>在途／在产量 {{row.transitQty}}</div><div class="nested-total">总量 {{row.total}}</div></div></template></el-table-column>
+        <el-table-column prop="pickupQty" label="提货数量" width="110" align="right"></el-table-column>
+        <el-table-column label="加工进度" width="140" align="right"><template #default="{row}"><div v-if="row.isParent" class="nested-cell"><div>已加工 {{row.processedQty}}</div><div :class="{pickupDone:row.processableQty===0}">可加工 {{row.processableQty}}</div></div><span v-else>—</span></template></el-table-column>
+        <el-table-column label="本次加工数量" width="170" fixed="right"><template #default="{row}"><el-input-number v-if="row.isParent" v-model="row.processQty" :min="1" :max="row.processableQty" :precision="0" controls-position="right" :disabled="!isProcessingSelected(row)||row.processableQty===0" style="width:135px"></el-input-number><span v-else class="muted">—</span></template></el-table-column>
+      </el-table>
+    </div>
+    <template #footer>
+      <div class="processing-footer">
+        <div class="processing-footer-total">已选 {{processingSelection.length}} 个组合 SKU，本次加工合计 <b>{{processingQtyTotal}}</b></div>
+        <div class="pickup-footer-actions"><el-button @click="processingVisible=false">取消</el-button><el-button type="primary" :loading="processingSubmitting" @click="submitProcessing">确认加工</el-button></div>
+      </div>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="importVisible" :title="importTitle" width="680px" top="10vh" class="import-dialog" append-to-body :close-on-click-modal="false">
+    <el-steps :active="importStep" align-center finish-status="success" class="import-steps"><el-step title="下载模板"></el-step><el-step title="选择文件"></el-step><el-step title="校验文件"></el-step><el-step title="确认导入"></el-step></el-steps>
+    <div class="import-guide">
+      <div class="import-guide-title">第一步：使用标准模板整理数据</div>
+      <div class="muted">请勿修改模板表头。支持 .xlsx、.xls、.csv 文件，单次仅导入一个文件。</div>
+      <div class="import-fields"><el-tag v-for="field in importFields" :key="field" size="small" type="info" effect="plain">{{field}}</el-tag></div>
+      <el-button type="primary" plain style="margin-top:12px" @click="downloadImportTemplate">下载模板</el-button>
+    </div>
+    <div class="import-upload">
+      <el-upload ref="importUploadRef" drag :auto-upload="false" :limit="1" accept=".xlsx,.xls,.csv" :on-change="onImportFileChange" :on-remove="removeImportFile">
+        <div style="font-size:34px;color:#a8abb2;line-height:1;margin-bottom:10px">⇧</div>
+        <div class="el-upload__text">将 Excel 文件拖到此处，或<em>点击选择文件</em></div>
+        <template #tip><div class="el-upload__tip">选择文件后请先执行校验；校验通过才能确认导入。</div></template>
+      </el-upload>
+    </div>
+    <div v-if="importValidated" class="import-validated"><span>✓</span><span>文件校验通过：表头与数据格式符合要求，可确认导入。</span></div>
+    <template #footer><div class="import-footer"><span class="muted">{{importFile?`当前文件：${importFile.name}`:'尚未选择文件'}}</span><div class="import-footer-actions"><el-button @click="importVisible=false">取消</el-button><el-button :disabled="!importFile" @click="validateImportFile">校验文件</el-button><el-button type="primary" :disabled="!importValidated" @click="submitImport">确认导入</el-button></div></div></template>
+  </el-dialog>
+
+  <el-dialog v-model="batchVisible" title="新增履约批次" width="760px" append-to-body>
+    <el-form label-position="top"><div class="batch-grid"><el-form-item label="批次类型"><el-select v-model="batchForm.type" style="width:100%"><el-option label="提货" value="提货"></el-option><el-option label="发货" value="发货"></el-option><el-option label="收货" value="收货"></el-option></el-select></el-form-item><el-form-item label="批次日期"><el-date-picker v-model="batchForm.date" type="date" value-format="YYYY-MM-DD" style="width:100%"></el-date-picker></el-form-item><el-form-item label="物流单号"><el-input v-model="batchForm.logisticsNo" placeholder="选填"></el-input></el-form-item></div></el-form>
+    <el-table :data="batchRows" border><el-table-column prop="sku" label="SKU"></el-table-column><el-table-column prop="declare" label="申报量"></el-table-column><el-table-column prop="ship" label="已完成"></el-table-column><el-table-column label="本批数量" width="150"><template #default="{row}"><el-input-number v-model="row.batchQty" :min="0" :max="row.declare-row.ship" controls-position="right" style="width:120px"></el-input-number></template></el-table-column></el-table>
+    <template #footer><el-button @click="batchVisible=false">取消</el-button><el-button type="primary" @click="saveBatch">保存批次</el-button></template>
+  </el-dialog>
+
+  <el-dialog v-model="columnVisible" title="列设置" width="520px" append-to-body><el-checkbox-group v-model="checkedColumns"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><el-checkbox v-for="x in columnOptions" :key="x" :label="x" border>{{x}}</el-checkbox></div></el-checkbox-group><template #footer><el-button @click="columnVisible=false">取消</el-button><el-button type="primary" @click="saveColumns">应用</el-button></template></el-dialog>
+</div>
+<script src="../../vendor/vue.global.prod.js"></script>
+<script src="../../vendor/element-plus.js"></script>
+<script src="app.js?v=1.6.0"></script>
+</body>
+</html>
