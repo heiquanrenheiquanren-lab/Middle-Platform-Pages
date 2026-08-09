@@ -112,6 +112,7 @@
     .table-wrap { padding: 14px 18px 0; }
     .document-no { color: #409eff; font-weight: 500; cursor: pointer; }
     .document-tag-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .confirmer-label { font-size: 12px; color: #909399; margin-left: 4px; }
     .relation-label { color: #909399; font-size: 12px; line-height: 18px; }
     .relation-value { margin-top: 3px; color: #409eff; font-size: 13px; font-weight: 500; line-height: 20px; cursor: pointer; }
     .relation-value:hover { text-decoration: underline; }
@@ -476,9 +477,6 @@
           :disabled="documentDialogMode === 'view'"
         >
           <div class="form-grid">
-            <el-form-item label="预测单号">
-              <el-input v-model="form.docNo" disabled placeholder="保存后自动生成"></el-input>
-            </el-form-item>
             <el-form-item label="预测批次" prop="batch">
               <el-select v-model="form.batch" placeholder="请选择预测批次" style="width:100%">
                 <el-option label="2026/08-1" value="2026/08-1"></el-option>
@@ -518,15 +516,6 @@
             </el-form-item>
             <el-form-item label="单据备注">
               <el-input v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入备注"></el-input>
-            </el-form-item>
-            <el-form-item label="创建人">
-              <el-input v-model="form.createdBy" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="创建时间">
-              <el-input :model-value="form.createdAt || '保存后自动生成'" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="更新时间">
-              <el-input :model-value="form.updatedAt || '保存后自动生成'" disabled></el-input>
             </el-form-item>
           </div>
         </el-form>
@@ -696,7 +685,7 @@
                 </template>
               </el-table-column>
               <el-table-column label="备货计划" min-width="180">
-                <template #default="scope"><div class="document-no" @click="openView(scope.row)">{{ scope.row.docNo }}</div><div class="cell-secondary">需求类型：{{ scope.row.demandType }}</div><div class="document-tag-row"><el-tag size="small" :type="scope.row.sourceType === 'forecast' ? 'primary' : 'info'" effect="plain">{{ scope.row.sourceType === 'forecast' ? '预测生成' : '手工新建' }}</el-tag><el-tag size="small" :type="statusMeta(scope.row.status).type" effect="light">{{ statusMeta(scope.row.status).label }}</el-tag></div></template>
+                <template #default="scope"><div class="document-no" @click="openView(scope.row)">{{ scope.row.docNo }}</div><div class="cell-secondary">需求类型：{{ scope.row.demandType }}</div><div class="document-tag-row"><el-tag size="small" :type="scope.row.sourceType === 'forecast' ? 'primary' : 'info'" effect="plain">{{ scope.row.sourceType === 'forecast' ? '预测生成' : '手工新建' }}</el-tag><el-tag size="small" :type="statusMeta(scope.row.status).type" effect="light">{{ statusMeta(scope.row.status).label }}</el-tag><span v-if="confirmerLabel(scope.row)" class="confirmer-label">{{ confirmerLabel(scope.row) }}</span></div></template>
               </el-table-column>
               <el-table-column label="关联单据" min-width="205">
                 <template #default="scope">
@@ -708,13 +697,11 @@
               <el-table-column label="业务信息" min-width="190"><template #default="scope"><div class="business-cell"><div class="platform-shop">{{ scope.row.platform }} · {{ scope.row.shop }}</div><div class="business-meta">{{ scope.row.country }}站 · {{ scope.row.team }}</div><div class="business-owner">运营负责人：{{ scope.row.owner }}</div><div class="business-owner">计划负责人：{{ scope.row.planOwner }}</div></div></template></el-table-column>
               <el-table-column label="SKU数" width="56" align="center"><template #default="scope">{{ scope.row.items.length }}</template></el-table-column>
               <el-table-column label="创建及更新信息" min-width="150"><template #default="scope"><div class="cell-primary">{{ scope.row.createdBy }}</div><div class="cell-secondary">创建：{{ scope.row.createdAt }}</div><div class="cell-secondary">更新：{{ scope.row.updatedAt }}</div></template></el-table-column>
-              <el-table-column label="操作" min-width="140">
+              <el-table-column label="操作" min-width="160">
                 <template #default="scope"><div class="operation-links">
                   <el-button link type="primary" @click="openView(scope.row)">查看</el-button>
-                  <template v-if="['plan_pending','ops_pending','owner_pending'].includes(scope.row.status)"><el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button></template>
-                  <template v-if="scope.row.status === 'plan_pending'"><el-button link type="success" @click="advanceStatus(scope.row)">计划确认</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
-                  <template v-else-if="scope.row.status === 'ops_pending'"><el-button link type="success" @click="advanceStatus(scope.row)">运营确认</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
-                  <template v-else-if="scope.row.status === 'owner_pending'"><el-button link type="success" @click="advanceStatus(scope.row)">负责人确认</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
+                  <template v-if="DRAFT_STATUSES.includes(scope.row.status)"><el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button><el-button link type="success" @click="advanceStatus(scope.row)">提交确认</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
+                  <template v-else-if="PENDING_STATUSES.includes(scope.row.status)"><el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button><el-button link type="success" @click="advanceStatus(scope.row)">确认</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
                   <template v-else-if="scope.row.status === 'purchase_pending'"><el-button link type="primary" @click="generatePurchasePlan(scope.row)">生成采购计划</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
                   <template v-else-if="scope.row.status === 'shipment_pending'"><el-button link type="primary" @click="generateShipmentPlan(scope.row)">生成发货计划</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
                   <template v-else-if="scope.row.status === 'void'"><el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button></template>
@@ -848,13 +835,14 @@
         const formatQty = value => Number(value || 0).toLocaleString('zh-CN');
 
         const documents = ref([
-          { id: 1, docNo: 'RP20260804001', demandType: '常规备货', sourceType: 'manual', forecastNo: '', platform: 'Amazon', shop: 'ARCCAPTAIN_US', country: '美国', team: '亚马逊团队', owner: '王方圆', planOwner: 'Admin', status: 'plan_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: 'Admin', createdAt: '2026-08-04 15:20', updatedAt: '2026-08-04 15:20', remark: '美国站8月手工备货', items: [mkItem(productPool[0], { expectedDate: '2026-08-20', suggestedOrderQty: 420, remark: '优先补货' }), mkItem(productPool[3], { expectedDate: '2026-08-25', suggestedOrderQty: 260 })] },
+          { id: 1, docNo: 'RP20260804001', demandType: '常规备货', sourceType: 'manual', forecastNo: '', platform: 'Amazon', shop: 'ARCCAPTAIN_US', country: '美国', team: '亚马逊团队', owner: '王方圆', planOwner: 'Admin', status: 'draft', purchasePlanNo: '', shipmentPlanNo: '', createdBy: 'Admin', createdAt: '2026-08-04 15:20', updatedAt: '2026-08-04 15:20', remark: '美国站8月手工备货', items: [mkItem(productPool[0], { expectedDate: '2026-08-20', suggestedOrderQty: 420, remark: '优先补货' }), mkItem(productPool[3], { expectedDate: '2026-08-25', suggestedOrderQty: 260 })] },
           { id: 2, docNo: 'RP20260804002', demandType: '公共库存备货', sourceType: 'manual', forecastNo: '', platform: 'Amazon', shop: 'ARCCAPTAIN_CA', country: '加拿大', team: '亚马逊团队', owner: '李明', planOwner: '李明', status: 'ops_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '李明', createdAt: '2026-08-04 14:06', updatedAt: '2026-08-04 14:30', remark: '加拿大站公共库存备货', items: [mkItem(productPool[1], { expectedDate: '2026-08-28', suggestedOrderQty: 220 }), mkItem(productPool[0], { expectedDate: '2026-08-28', suggestedOrderQty: 120 })] },
           { id: 3, docNo: 'RP20260803003', demandType: '常规备货', sourceType: 'forecast', forecastNo: 'XQYC20260803003', platform: 'eBay', shop: 'arccaptain_industrial', country: '美国', team: 'eBay团队', owner: '陈晓', planOwner: '陈晓', status: 'owner_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '系统', createdAt: '2026-08-03 18:43', updatedAt: '2026-08-03 19:05', remark: '', items: [mkItem(productPool[2], { expectedDate: '2026-08-26', suggestedOrderQty: 180 }), mkItem(productPool[5], { expectedDate: '2026-08-26', suggestedOrderQty: 520 })] },
           { id: 4, docNo: 'RP20260802004', demandType: '按需备货', sourceType: 'forecast', forecastNo: 'XQYC20260802004', platform: 'B2B', shop: 'B端独立站', country: '美国', team: 'B端团队', owner: '周杰', planOwner: '周杰', status: 'purchase_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '系统', createdAt: '2026-08-02 16:11', updatedAt: '2026-08-02 17:40', remark: '等待采购计划', items: [mkItem(productPool[3], { expectedDate: '2026-08-22', suggestedOrderQty: 700 })] },
           { id: 5, docNo: 'RP20260802005', demandType: '按需备货', sourceType: 'manual', forecastNo: '', platform: 'B2B', shop: 'B端独立站', country: '美国', team: 'B端团队', owner: '周杰', planOwner: '周杰', status: 'shipment_pending', purchasePlanNo: 'CGJH20260802005', shipmentPlanNo: '', createdBy: '周杰', createdAt: '2026-08-02 15:35', updatedAt: '2026-08-02 17:10', remark: '现有库存可直接发运', items: [mkItem(productPool[3], { expectedDate: '2026-08-18', suggestedOrderQty: 0, remark: '无需采购' })] },
           { id: 6, docNo: 'RP20260801006', demandType: '新品备货', sourceType: 'forecast', forecastNo: 'XQYC20260801006', platform: 'Shopify', shop: 'B端独立站', country: '德国', team: 'Jasic团队', owner: '陈晓', planOwner: '陈晓', status: 'executed', purchasePlanNo: 'CGJH20260801006', shipmentPlanNo: 'FHJH20260801006', createdBy: '系统', createdAt: '2026-08-01 10:10', updatedAt: '2026-08-01 16:20', remark: '采购与发货计划均已生成', items: [mkItem(productPool[6], { expectedDate: '2026-08-30', suggestedOrderQty: 260 })] },
-          { id: 7, docNo: 'RP20260728007', demandType: '常规备货', sourceType: 'manual', forecastNo: '', platform: 'eBay', shop: 'arccaptain_industrial', country: '美国', team: 'eBay团队', owner: '陈晓', planOwner: '陈晓', status: 'void', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '陈晓', createdAt: '2026-07-28 10:12', updatedAt: '2026-07-28 11:30', remark: '作废原因：备货数量填写错误', items: [mkItem(productPool[5], { expectedDate: '2026-08-31', suggestedOrderQty: 500 })] }
+          { id: 7, docNo: 'RP20260728007', demandType: '常规备货', sourceType: 'manual', forecastNo: '', platform: 'eBay', shop: 'arccaptain_industrial', country: '美国', team: 'eBay团队', owner: '陈晓', planOwner: '陈晓', status: 'void', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '陈晓', createdAt: '2026-07-28 10:12', updatedAt: '2026-07-28 11:30', remark: '作废原因：备货数量填写错误', items: [mkItem(productPool[5], { expectedDate: '2026-08-31', suggestedOrderQty: 500 })] },
+          { id: 8, docNo: 'RP20260803008', demandType: '新品备货', sourceType: 'forecast', forecastNo: 'XQYC20260803008', platform: 'Shopify', shop: 'B端独立站', country: '德国', team: 'Jasic团队', owner: '陈晓', planOwner: '陈晓', status: 'plan_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '系统', createdAt: '2026-08-03 09:00', updatedAt: '2026-08-03 09:15', remark: '新品首次备货，待计划确认', items: [mkItem(productPool[6], { expectedDate: '2026-09-15', suggestedOrderQty: 100 })] }
         ]);
 
         const filters = reactive({ demandType: '', platform: '', shop: '', team: '', country: '', owner: '', sourceType: '', keyword: '' });
@@ -862,22 +850,51 @@
         const page = ref(1);
         const pageSize = ref(10);
         const selectedDocs = ref([]);
+        const DRAFT_STATUSES = ['draft'];
+        const PENDING_STATUSES = ['plan_pending', 'ops_pending', 'owner_pending'];
+        const EXECUTING_STATUSES = ['purchase_pending', 'shipment_pending'];
         const statusTabs = [
-          { name: 'all', label: '全部' }, { name: 'plan_pending', label: '待计划确认' },
-          { name: 'ops_pending', label: '待运营确认' }, { name: 'owner_pending', label: '待负责人确认' },
-          { name: 'purchase_pending', label: '待生成采购计划' }, { name: 'shipment_pending', label: '待生成发货计划' },
-          { name: 'executed', label: '已执行' }, { name: 'void', label: '已作废' }
+          { name: 'all', label: '全部' },
+          { name: 'draft', label: '草稿' },
+          { name: 'pending', label: '待确认' },
+          { name: 'executing', label: '待执行' },
+          { name: 'executed', label: '已执行' },
+          { name: 'void', label: '已作废' }
         ];
-        const statusMeta = status => ({
-          plan_pending: { label: '待计划确认', type: 'info' }, ops_pending: { label: '待运营确认', type: 'warning' },
-          owner_pending: { label: '待负责人确认', type: 'warning' }, purchase_pending: { label: '待生成采购计划', type: 'primary' },
-          shipment_pending: { label: '待生成发货计划', type: 'primary' }, executed: { label: '已执行', type: 'success' },
-          void: { label: '已作废', type: 'danger' }
-        }[status] || { label: status, type: 'info' });
+        const statusMeta = (() => {
+          const map = {
+            draft: { label: '草稿', type: 'info' },
+            plan_pending: { label: '待确认', type: 'warning' },
+            ops_pending: { label: '待确认', type: 'warning' },
+            owner_pending: { label: '待确认', type: 'warning' },
+            purchase_pending: { label: '待执行', type: 'primary' },
+            shipment_pending: { label: '待执行', type: 'primary' },
+            executed: { label: '已执行', type: 'success' },
+            void: { label: '已作废', type: 'danger' }
+          };
+          return status => map[status] || { label: status, type: 'info' };
+        })();
+        const confirmerLabel = doc => {
+          const map = {
+            draft: '草稿',
+            plan_pending: '待计划确认',
+            ops_pending: '待运营确认',
+            owner_pending: '待负责人确认',
+            purchase_pending: '待生成采购计划',
+            shipment_pending: '待生成发货计划'
+          };
+          return map[doc.status] || '';
+        };
+        const STATUS_GROUP_MAP = { draft: DRAFT_STATUSES, pending: PENDING_STATUSES, executing: EXECUTING_STATUSES };
         const filteredDocs = computed(() => {
           const keyword = filters.keyword.toLowerCase();
           return documents.value.filter(doc => {
-            if (activeStatus.value !== 'all' && doc.status !== activeStatus.value) return false;
+            if (activeStatus.value !== 'all') {
+              const group = STATUS_GROUP_MAP[activeStatus.value];
+              if (group) {
+                if (!group.includes(doc.status)) return false;
+              } else if (doc.status !== activeStatus.value) return false;
+            }
             if (filters.demandType && doc.demandType !== filters.demandType) return false;
             if (filters.platform && doc.platform !== filters.platform) return false;
             if (filters.shop && doc.shop !== filters.shop) return false;
@@ -890,14 +907,19 @@
           });
         });
         const pagedDocs = computed(() => filteredDocs.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value));
-        const statusCount = status => status === 'all' ? documents.value.length : documents.value.filter(doc => doc.status === status).length;
+        const statusCount = status => {
+          if (status === 'all') return documents.value.length;
+          const group = STATUS_GROUP_MAP[status];
+          if (group) return documents.value.filter(doc => group.includes(doc.status)).length;
+          return documents.value.filter(doc => doc.status === status).length;
+        };
         const suggestedOrderTotal = doc => doc.items.reduce((sum, item) => sum + Number(item.suggestedOrderQty || 0), 0);
 
         const documentDialogVisible = ref(false);
         const documentDialogMode = ref('create');
         const documentDialogTitle = computed(() => documentDialogMode.value === 'create' ? '新建备货计划' : documentDialogMode.value === 'edit' ? '编辑备货计划' : '查看备货计划');
         const docFormRef = ref();
-        const blankForm = () => ({ id: null, docNo: '', demandType: '', sourceType: 'manual', forecastNo: '', platform: '', shop: '', country: '', team: '', owner: '', planOwner: 'Admin', status: 'plan_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: 'Admin', createdAt: '', updatedAt: '', remark: '', items: [] });
+        const blankForm = () => ({ id: null, docNo: '', demandType: '', sourceType: 'manual', forecastNo: '', platform: '', shop: '', country: '', team: '', owner: '', planOwner: 'Admin', status: 'draft', purchasePlanNo: '', shipmentPlanNo: '', createdBy: 'Admin', createdAt: '', updatedAt: '', remark: '', items: [] });
         const form = reactive(blankForm());
         const rules = {
           demandType: [{ required: true, message: '请选择需求类型', trigger: 'change' }], platform: [{ required: true, message: '请选择平台', trigger: 'change' }],
@@ -952,23 +974,29 @@
             payload.planOwner = 'Admin';
             payload.createdBy = 'Admin';
             payload.createdAt = payload.updatedAt;
-            payload.status = 'plan_pending';
+            payload.status = 'draft';
             documents.value.unshift(payload);
           } else {
-            if (payload.status === 'void') payload.status = 'plan_pending';
+            if (payload.status === 'void') payload.status = 'draft';
             const index = documents.value.findIndex(doc => doc.id === payload.id);
             if (index >= 0) documents.value[index] = payload;
           }
           documentDialogVisible.value = false;
-          ElementPlus.ElMessage.success(documentDialogMode.value === 'create' ? '备货计划创建成功，进入待计划确认' : '备货计划修改成功');
+          ElementPlus.ElMessage.success(documentDialogMode.value === 'create' ? '备货计划创建成功，进入草稿' : '备货计划修改成功');
         };
 
         const changeStatus = (doc, status, message) => { doc.status = status; doc.updatedAt = nowText(); ElementPlus.ElMessage.success(message); };
         const advanceStatus = doc => {
-          const nextMap = { plan_pending: ['ops_pending', '计划确认'], ops_pending: ['owner_pending', '运营确认'], owner_pending: [doc.items.some(item => Number(item.suggestedOrderQty) > 0) ? 'purchase_pending' : 'shipment_pending', '负责人确认'] };
+          const nextMap = {
+            draft: ['plan_pending', '提交确认'],
+            plan_pending: ['ops_pending', '计划确认'],
+            ops_pending: ['owner_pending', '运营确认'],
+            owner_pending: [doc.items.some(item => Number(item.suggestedOrderQty) > 0) ? 'purchase_pending' : 'shipment_pending', '负责人确认']
+          };
           const next = nextMap[doc.status];
           if (!next) return;
-          ElementPlus.ElMessageBox.confirm(`确认完成${next[1]}？`, next[1], { type: 'warning' }).then(() => changeStatus(doc, next[0], `${next[1]}完成`)).catch(() => {});
+          const label = confirmerLabel(doc);
+          ElementPlus.ElMessageBox.confirm('确认完成' + next[1] + '？', next[1], { type: 'warning' }).then(() => changeStatus(doc, next[0], label + '完成')).catch(() => {});
         };
         const generatePurchasePlan = doc => ElementPlus.ElMessageBox.confirm(`确认为备货计划 ${doc.docNo} 生成采购计划？`, '生成采购计划', { type: 'warning' }).then(() => {
           doc.purchasePlanNo = doc.purchasePlanNo || doc.docNo.replace('RP', 'CGJH');
@@ -980,10 +1008,15 @@
         }).catch(() => {});
         const voidDocument = doc => ElementPlus.ElMessageBox.prompt('作废后将停止当前备货流程，请输入作废原因：', '二次确认：作废备货计划', { type: 'warning', inputPlaceholder: '请输入作废原因', inputValidator: value => !!value || '请输入作废原因', confirmButtonText: '确认作废', cancelButtonText: '取消' }).then(({ value }) => { doc.remark = `作废原因：${value}`; changeStatus(doc, 'void', '备货计划已作废'); }).catch(() => {});
         const batchConfirm = () => {
-          const targets = selectedDocs.value.filter(doc => doc.status === 'plan_pending');
-          if (!targets.length) return ElementPlus.ElMessage.warning('选中的单据中没有待计划确认的备货计划');
-          targets.forEach(doc => { doc.status = 'ops_pending'; doc.updatedAt = nowText(); });
-          ElementPlus.ElMessage.success(`已完成 ${targets.length} 张备货计划的计划确认`);
+          const ALL_CONFIRMABLE = [...DRAFT_STATUSES, ...PENDING_STATUSES];
+          const targets = selectedDocs.value.filter(doc => ALL_CONFIRMABLE.includes(doc.status));
+          if (!targets.length) return ElementPlus.ElMessage.warning('选中的单据中没有可确认的备货计划');
+          targets.forEach(doc => {
+            const nextMap = { draft: 'plan_pending', plan_pending: 'ops_pending', ops_pending: 'owner_pending', owner_pending: doc.items.some(item => Number(item.suggestedOrderQty) > 0) ? 'purchase_pending' : 'shipment_pending' };
+            doc.status = nextMap[doc.status] || doc.status;
+            doc.updatedAt = nowText();
+          });
+          ElementPlus.ElMessage.success('已完成 ' + targets.length + ' 张备货计划的确认');
         };
         const batchVoid = () => {
           const targets = selectedDocs.value.filter(doc => !['executed', 'void'].includes(doc.status));
@@ -1007,7 +1040,7 @@
 
         return {
           demandTypes, platforms, shops, countries, teams, owners, documents, filters, activeStatus, statusTabs, page, pageSize, selectedDocs, formatQty,
-          filteredDocs, pagedDocs, statusMeta, statusCount, suggestedOrderTotal,
+          filteredDocs, pagedDocs, statusMeta, confirmerLabel, DRAFT_STATUSES, PENDING_STATUSES, EXECUTING_STATUSES, statusCount, suggestedOrderTotal,
           documentDialogVisible, documentDialogMode, documentDialogTitle, docFormRef, form, rules, openCreate, openEdit, openView, saveDocument,
           skuDialogVisible, skuBatchInput, skuSearchExecuted, skuQueryResults, unmatchedSkuCodes, selectedProducts, openSkuDialog, querySkus, clearSkuQuery, addSelectedSkus, removeSku,
           advanceStatus, generatePurchasePlan, generateShipmentPlan, voidDocument, batchConfirm, batchVoid, resetFilters, applyFilters, showImport, showExport

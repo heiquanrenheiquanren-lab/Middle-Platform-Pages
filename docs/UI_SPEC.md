@@ -58,6 +58,87 @@
 - 弹窗中不展示与当前操作无关的行（如加工弹窗不显示非组合SKU）
 - 不展示与当前操作无关的列（用户要求去掉的列直接移除）
 
+### 2.6 表格溢出与横向滚动（**强制规范，违反一次返工一次**）
+
+> **背景**：采购计划页面曾因容器多层 `overflow:hidden` + Grid `min-width:auto` 默认值，导致操作列及其后所有列被裁剪不可见，调试花费大量时间。**所有带 el-table 的页面必须遵守以下规则。**
+
+#### 2.6.1 根本原因（三层叠加问题）
+1. **查询面板/表单层**：查询区如果设置了 `min-width` 但自身没有 `overflow-x:auto`，会把整个页面撑宽，导致外层 Grid 宽度计算错误
+2. **Grid/Flex 容器层**：CSS Grid 子元素默认 `min-width:auto`，即使内部表格设置了 `overflow-x:auto` 也无法收缩，会被内容撑破父容器
+3. **Element Plus el-table 层**：
+   - 外层容器 `.el-table` 或父包装 div 如果设置了 `overflow:hidden`，会把 el-scrollbar 的横向滚动条裁剪掉
+   - `.el-table__body-wrapper` / `.el-table__header-wrapper` 内部的 `.el-scrollbar__wrap` 会被 Element Plus JS 动态设置为 `overflow-x:hidden`，必须用 `!important` 强制覆盖
+
+#### 2.6.2 必须遵守的布局层级（从外到内）
+
+| 层级 | 元素 | 必须设置 | 禁止设置 |
+|---|---|---|---|
+| 1. 最外层内容区 | `.main`（Grid 容器）| `display:grid; grid-template-rows:...; min-width:0; min-height:0` | 固定 `width` / 固定 `min-width` |
+| 2. 业务区容器 | `.stock-business`（Grid 子项）| `min-width:0; min-height:0; overflow:auto` | 无 |
+| 3. 表格包装容器 | `.xxx-table` | `width:100%; min-width:0` | `overflow:hidden`（会裁剪滚动条）|
+| 4. el-table 本体 | `.el-table` | `width:100%`；圆角在这一层实现 | 无 |
+| 5. el-table 滚动容器 | `.el-table__body-wrapper` / `.el-table__header-wrapper` | `overflow-x:auto !important` | 无 |
+| 6. el-scrollbar 滚动条 | `.el-scrollbar__wrap`（body/header 内部）| `overflow-x:auto !important` | 无 |
+| 7. table 标签 | `table` | `min-width:XXXpx !important; width:XXXpx !important`（根据列宽总和设定）| 无 |
+| 8. 查询面板/表单 | `.query-panel` | 如果内部表单总宽超过容器，必须自己 `overflow-x:auto` | 不能让表单撑宽外层容器 |
+| 9. 操作按钮栏 | `.action-strip` | `min-width:0; overflow-x:auto; white-space:nowrap` | 无 |
+| 10. 状态标签栏 | `.status-bar` | `min-width:0; overflow-x:auto` | 无 |
+
+#### 2.6.3 标准 CSS 模板（每个带表格的业务页必须套用）
+
+```css
+/* Grid 子项必须 min-width:0，否则无法收缩 */
+.stock-business{min-width:0;min-height:0;overflow:auto;background:#f5f7fa;padding:0 14px 18px}
+
+/* 查询面板自己处理横向滚动，不能撑宽页面 */
+.stock-business .query-panel{min-width:0;overflow-x:auto}
+
+/* 操作栏、状态栏也要自己处理溢出 */
+.stock-business .action-strip{min-width:0;height:48px;padding:0;border-bottom:1px solid #ebeef5;background:#fff;overflow-x:auto;white-space:nowrap}
+.stock-business .status-bar{min-width:0;height:47px;padding:0 14px;background:#fff;overflow-x:auto}
+
+/* 表格容器：不能加 overflow:hidden（会裁滚动条）*/
+.stock-business-table{min-width:0;background:#fff;border:1px solid #ebeef5;border-radius:6px;width:100%}
+.stock-business-table > .el-table{border-radius:6px;overflow:hidden}
+.stock-business-table .el-table{width:100%}
+
+/* 强制启用横向滚动（Element Plus 会动态覆盖，必须 !important）*/
+.stock-business-table .el-table .el-table__body-wrapper,
+.stock-business-table .el-table .el-table__header-wrapper{overflow-x:auto!important}
+.stock-business-table .document-table .el-table__body-wrapper .el-scrollbar__wrap,
+.stock-business-table .document-table .el-table__header-wrapper .el-scrollbar__wrap{overflow-x:auto!important}
+
+/* 表格最小宽度 = 所有列的 min-width 之和 + 边框，防止列被压缩 */
+.stock-business-table .document-table table{min-width:1060px!important;width:1060px!important}
+.stock-business-table .detail-box .el-table table{min-width:1420px!important;width:1420px!important}
+```
+
+#### 2.6.4 列宽策略
+- **优先使用 `min-width`** 而非固定 `width`，让表格在宽屏下自动分配剩余空间
+- **序号/复选框/日期/操作列** 可使用固定 `width`
+- **长文本列**（如品名、备注）必须开启 `show-overflow-tooltip`，并配合单元格 ellipsis
+- **操作列** 必须留足空间（至少 `min-width="180"`），按钮多时考虑用「更多」下拉
+
+#### 2.6.5 调试时必查项（浏览器 Console）
+写完表格后必须在控制台执行以下检查，确认横向滚动正常：
+```js
+// 1. 检查容器宽度链路
+const main = document.querySelector('.main');
+const business = document.querySelector('.stock-business');
+const tableWrap = document.querySelector('.stock-business-table');
+const wrap = document.querySelector('.document-table .el-table__body-wrapper .el-scrollbar__wrap');
+console.log({
+  mainW: main?.offsetWidth,
+  businessW: business?.offsetWidth,
+  tableWrapW: tableWrap?.offsetWidth,
+  wrapSw: wrap?.scrollWidth,    // 内容宽度
+  wrapCw: wrap?.clientWidth,    // 可视宽度
+  hasHScroll: wrap?.scrollWidth > wrap?.clientWidth,  // 应有滚动条时为 true
+  overflowX: getComputedStyle(wrap).overflowX  // 必须是 "auto" 或 "scroll"
+});
+// 验证：wrapSw > wrapCw 时，overflowX 必须是 auto/scroll，且页面底部能看到横向滚动条
+```
+
 ---
 
 ## 三、交互操作规范
@@ -134,3 +215,11 @@ border-radius: 8px;
 - [ ] 有无「一键填满」和「清空」按钮？
 - [ ] 非相关数据是否已过滤？（如加工弹窗无普通SKU）
 - [ ] 搜索框是否在数据超过 5 行时存在？
+- [ ] **表格横向滚动（强制必查）**：
+  - [ ] 所有 Grid/Flex 子项容器（`.stock-business`、表格包装层、查询面板）是否都加了 `min-width:0`？
+  - [ ] 表格包装容器是否**没有**设置 `overflow:hidden`？（会裁剪滚动条）
+  - [ ] `.el-table__body-wrapper` / `.el-scrollbar__wrap` 是否强制 `overflow-x:auto !important`？
+  - [ ] `table` 标签是否设置了正确的 `min-width`（等于所有列 min-width 之和）？
+  - [ ] 查询面板/操作栏/状态栏是否自己处理了 `overflow-x:auto`，不会撑宽外层？
+  - [ ] 控制台验证：`wrap.scrollWidth > wrap.clientWidth` 时 `getComputedStyle(wrap).overflowX === "auto"`，且横向滚动到底能看到操作列所有按钮？
+  - [ ] 在窄屏（缩小浏览器窗口到 1200px 以下）时是否出现横向滚动条且可滚动看到所有列？

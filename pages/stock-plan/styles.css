@@ -56,6 +56,10 @@
     .stock-business .pagination-bar{padding:14px 18px;display:flex;justify-content:flex-end}
     .stock-business .document-no{color:#409eff;font-weight:500;cursor:pointer}
     .stock-business .document-tag-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:6px}
+    .stock-business .confirmer-label{font-size:12px;color:#909399;margin-left:4px}
+.audit-targets{padding:8px 12px;background:#f5f7fa;border-radius:4px;margin-bottom:16px;max-height:140px;overflow-y:auto}
+.audit-target-label{font-size:13px;color:#606266;margin-bottom:4px;font-weight:500}
+.audit-target-item{font-size:13px;color:#303133;line-height:22px;padding:2px 0}
     .stock-business .relation-label{color:#909399;font-size:12px;line-height:18px}
     .stock-business .relation-value{margin-top:3px;color:#409eff;font-size:13px;font-weight:500;line-height:20px;cursor:pointer}
     .stock-business .relation-empty{margin-top:3px;color:#c0c4cc;font-size:13px;line-height:20px}
