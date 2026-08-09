@@ -19,7 +19,7 @@ button{cursor:pointer}
 .nav-item{height:48px;padding-left:50px;cursor:default}.nav-item[data-page-nav]{cursor:pointer}.nav-item .mini{margin-left:-20px;width:16px;text-align:center}
 .nav-item.active{background:#dff5ff;color:var(--blue);border-right:2px solid var(--blue)}
 .collapse{height:42px;border-top:1px solid #edf0f5;padding:11px 20px;font-size:18px;color:#666}
-.main{min-width:0;min-height:0;display:grid;grid-template-rows:58px auto 48px 47px minmax(0,1fr) 53px;background:#fff}
+.main{min-width:0;min-height:0;display:grid;grid-template-rows:58px 48px auto 47px minmax(0,1fr) 53px;background:#fff}
 .page-head{display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #f1f2f5;box-shadow:0 2px 8px rgba(0,0,0,.035)}
 .page-tab{height:58px;display:flex;align-items:center;gap:8px;color:var(--blue);font-size:16px;font-weight:600;border-bottom:2px solid var(--blue);padding:0 8px}
 .action-strip{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #ebeef5;background:#fff}

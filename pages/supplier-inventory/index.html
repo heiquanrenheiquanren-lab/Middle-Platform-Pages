@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>供应商库存</title>
-  <link rel="stylesheet" href="./styles.css?v=1.7.3">
+  <link rel="stylesheet" href="./styles.css?v=1.7.4">
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="./ownership.css?v=1.7.3">
+  <link rel="stylesheet" href="./ownership.css?v=1.7.4">
 </head>
 <body>
   <div class="toast" id="toast">查询完成</div>
@@ -28,6 +28,15 @@
       </aside>
       <main class="main">
         <section class="page-head"><div class="page-tab"><span>▱</span><span>供应商库存</span></div></section>
+        <section class="action-strip">
+          <div class="head-tabs">
+            <button class="tab-btn active"><span>🔍</span> 本地库存查询</button>
+            <button class="tab-btn"><span>📋</span> 批次查询</button>
+          </div>
+          <div class="head-actions-right">
+            <label class="compare"><input type="checkbox"> 显示库存货值</label>
+          </div>
+        </section>
         <section class="query-panel">
           <div class="query-row" id="queryRowOne">
             <div class="query-item" data-query-order="1"><div class="sku-combo"><select class="control sku-type" id="skuType"><option value="sku">SKU</option><option value="lx">领星SKU</option><option value="seller">SellerSKU</option></select><input class="control sku-input" id="skuSearch" placeholder="请输入编码，支持多个，用逗号或空格分隔"></div></div>
@@ -47,15 +56,6 @@
             <div class="query-item" data-query-order="12"><div class="multi stockstatus-box" id="stockStatusMulti"><div class="multi-trigger" data-trigger>在库状态</div><div class="dropdown" data-menu></div></div></div>
           </div>
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
-        </section>
-        <section class="action-strip">
-          <div class="head-tabs">
-            <button class="tab-btn active"><span>🔍</span> 本地库存查询</button>
-            <button class="tab-btn"><span>📋</span> 批次查询</button>
-          </div>
-          <div class="head-actions-right">
-            <label class="compare"><input type="checkbox"> 显示库存货值</label>
-          </div>
         </section>
         <section class="status-bar">
           <div class="status-tabs"></div>
@@ -131,7 +131,7 @@
   <div id="ownership-adjustment-app"></div>
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
-  <script src="./app.js?v=1.7.3"></script>
-  <script src="./ownership.js?v=1.7.3"></script>
+  <script src="./app.js?v=1.7.4"></script>
+  <script src="./ownership.js?v=1.7.4"></script>
 </body>
 </html>
