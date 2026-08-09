@@ -75,6 +75,7 @@
             <el-table-column label="调入平台" width="150"><template #default="scope"><el-select v-model="formFor(scope.row).platform" placeholder="请选择平台" style="width:130px" @change="onRowPlatformChange(scope.row)"><el-option v-for="platform in platforms" :key="platform" :label="platform" :value="platform"></el-option></el-select></template></el-table-column>
             <el-table-column label="调入店铺" width="175"><template #default="scope"><el-select v-model="formFor(scope.row).store" :disabled="!formFor(scope.row).platform" placeholder="请选择店铺" style="width:155px"><el-option v-for="store in storesFor(formFor(scope.row).platform)" :key="store" :label="store" :value="store"></el-option></el-select></template></el-table-column>
             <el-table-column label="调入 SellerSKU / ASIN" min-width="210"><template #default="scope"><el-select v-model="formFor(scope.row).targetSku" filterable allow-create default-first-option placeholder="搜索或输入 SellerSKU / ASIN" style="width:100%"><el-option v-for="option in sellerSkuOptions" :key="option" :label="option" :value="option"></el-option></el-select></template></el-table-column>
+            <el-table-column label="调入团队" width="130"><template #default="scope"><span :class="{ 'oa-muted': !formFor(scope.row).platform }">{{ teamFor(formFor(scope.row).platform) }}</span></template></el-table-column>
             <el-table-column label="调入数量" width="125" fixed="right"><template #default="scope"><el-input-number v-model="formFor(scope.row).quantity" :min="1" :max="scope.row.transit" controls-position="right" style="width:105px"></el-input-number></template></el-table-column>
             <el-table-column label="操作" width="70" fixed="right"><template #default="scope"><el-button link type="danger" @click="removeRow(scope.row)">移除</el-button></template></el-table-column>
             <template #empty><el-empty description="未找到匹配的在途 SKU" :image-size="55"></el-empty></template>
@@ -125,14 +126,21 @@
       const resultTable = ref(null);
       const formMap = reactive({});
       const platforms = ['Amazon', 'Shopify', 'eBay'];
+      // 平台 → 团队映射（系统维护的团队枚举，选平台后自动带出，不可手动编辑）
+      const teamByPlatform = {
+        Amazon: '亚马逊团队',
+        Shopify: 'shopify团队',
+        eBay: 'eBay团队'
+      };
       const sellerSkuOptions = ['AMZ-US-34001001110', 'AMZ-US-34001001128', 'ASIN-B0D7K92M6Q', 'EBAY-ARCCAP-110', 'AMZ-CA-34001001501', 'AMZ-UK-34001001701', 'SHOP-B-34001001401', 'EBAY-JASIC-601'];
 
       const orderSearchLabel = computed(() => orderSearchTypes.find((t) => t.key === orderSearchType.value)?.label || '');
       const selectedRows = computed(() => filteredRows.value.filter((row) => selected.value.some((item) => item.id === row.id)));
       const totalQuantity = computed(() => filteredRows.value.reduce((sum, row) => sum + (Number(formFor(row).quantity) || 0), 0));
-      const targetSummary = computed(() => [...new Set(filteredRows.value.map((row) => (formFor(row).platform || '未选择') + ' / ' + (formFor(row).store || '未选择')))].join('、'));
+      const targetSummary = computed(() => [...new Set(filteredRows.value.map((row) => (formFor(row).platform || '未选择') + ' / ' + (formFor(row).store || '未选择') + ' / ' + teamFor(formFor(row).platform)))].join('、'));
 
       function storesFor(platform) { return storesByPlatform[platform] || []; }
+      function teamFor(platform) { return platform ? (teamByPlatform[platform] || '—') : '—'; }
       function parseCodes(value) { return [...new Set(value.trim().split(/[\s,，;；]+/).filter(Boolean))]; }
       function sourceTeamText(row) {
         const parts = [row.targetPlatform || '—', row.targetStore || '—', row.team || '—'];
@@ -297,7 +305,7 @@
         orderSearchType, orderSearchText, orderSearchTypes, orderSearchLabel,
         searchText, filteredRows, unmatched, selectedRows, batchPlatform, batchStore,
         platforms, sellerSkuOptions, resultTable, totalQuantity, targetSummary,
-        storesFor, sourceTeamText, purchaseOrderText, formFor, validateRow, onRowPlatformChange,
+        storesFor, teamFor, sourceTeamText, purchaseOrderText, formFor, validateRow, onRowPlatformChange,
         onSelectionChange, runSearch, clearSearch,
         applyBatch, fillMaxQuantity, removeRow, resetDialog, onBeforeClose, openConfirm, submitConfirmed
       };

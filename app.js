@@ -1,6 +1,6 @@
 const VER='1.6.2';
-const pages={stock:`./pages/stock-plan/index.html?v=${VER}`,purchase:`./pages/purchase-plan/index.html?v=${VER}`,shipment:`./pages/shipment-plan/index.html?v=${VER}`,purchaseOrder:`./pages/purchase-orders/index.html?v=${VER}`,shipmentOrder:`./pages/shipment-orders/index.html?v=${VER}`};
-const pageNames={stock:'备货计划',purchase:'采购计划',shipment:'发货计划',purchaseOrder:'采购单',shipmentOrder:'发货单'};
+const pages={stock:`./pages/stock-plan/index.html?v=${VER}`,purchase:`./pages/purchase-plan/index.html?v=${VER}`,shipment:`./pages/shipment-plan/index.html?v=${VER}`,purchaseOrder:`./pages/purchase-orders/index.html?v=${VER}`,shipmentOrder:`./pages/shipment-orders/index.html?v=${VER}`,supplierInventory:`./pages/supplier-inventory/index.html?v=${VER}`};
+const pageNames={stock:'备货计划',purchase:'采购计划',shipment:'发货计划',purchaseOrder:'采购单',shipmentOrder:'发货单',supplierInventory:'供应商库存'};
 const frame=document.querySelector('#prototypeFrame');
 
 function openPage(key,updateHash=true){
