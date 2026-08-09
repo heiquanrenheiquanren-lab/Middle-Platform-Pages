@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>供应链中台｜计划管理统一原型</title>
+  <link rel="stylesheet" href="../../vendor/element-plus.css?v=1.7.0" />
+  <style>
+    :root {
+      --app-sidebar: #172033;
+      --app-sidebar-active: #243653;
+      --app-bg: #f4f6f9;
+      --app-line: #e5e7eb;
+      --app-text-secondary: #606266;
+    }
+
+    * { box-sizing: border-box; }
+    html, body, #app { width: 100%; height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      color: #303133;
+      background: var(--app-bg);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    .app-shell { display: flex; width: 100%; height: 100%; }
+    .side-nav {
+      width: 224px;
+      flex: 0 0 224px;
+      color: #cbd5e1;
+      background: var(--app-sidebar);
+      display: flex;
+      flex-direction: column;
+    }
+    .brand {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #fff;
+      background: #409eff;
+      font-size: 15px;
+    }
+    .nav-section { padding: 16px 12px 6px; color: #8190a8; font-size: 12px; }
+    .nav-item {
+      height: 44px;
+      margin: 2px 10px;
+      padding: 0 14px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,.06); }
+    .nav-item.active { color: #fff; background: var(--app-sidebar-active); }
+    .nav-icon { width: 18px; text-align: center; opacity: .9; }
+    .side-footer { margin-top: auto; padding: 16px 20px; font-size: 12px; color: #64748b; }
+
+    .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+    .top-header {
+      height: 64px;
+      flex: 0 0 64px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border-bottom: 1px solid var(--app-line);
+    }
+    .header-title { font-size: 15px; color: #606266; }
+    .header-user { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+
+    .content-scroll { min-height: 0; flex: 1; overflow: auto; padding: 20px 24px 30px; }
+    .page-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .page-title { margin: 0 0 6px; font-size: 22px; font-weight: 600; color: #1f2937; }
+    .page-desc { margin: 0; color: #909399; font-size: 13px; }
+    .panel { background: #fff; border: 1px solid #ebeef5; border-radius: 8px; }
+    .filter-panel { padding: 12px 18px; }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(145px, 1fr));
+      gap: 10px 12px;
+    }
+    .filter-grid .el-form-item { margin-bottom: 0; }
+    .filter-actions { grid-column: span 2; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+    .list-action-bar { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+
+    .list-panel { min-height: 520px; }
+    .tabs-toolbar {
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      border-bottom: 1px solid #ebeef5;
+    }
+    .tabs-toolbar .el-tabs__header { margin: 0; }
+    .tabs-toolbar .el-tabs__nav-wrap::after { display: none; }
+    .tabs-toolbar .el-tabs__item { padding: 0 10px; font-size: 13px; }
+    .table-wrap { padding: 14px 18px 0; }
+    .document-no { color: #409eff; font-weight: 500; cursor: pointer; }
+    .document-tag-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .relation-label { color: #909399; font-size: 12px; line-height: 18px; }
+    .relation-value { margin-top: 3px; color: #409eff; font-size: 13px; font-weight: 500; line-height: 20px; cursor: pointer; }
+    .relation-value:hover { text-decoration: underline; }
+    .relation-gap { margin-top: 7px; }
+    .relation-static { cursor: default; }
+    .relation-static:hover { text-decoration: none; }
+    .relation-empty { margin-top: 3px; color: #c0c4cc; font-size: 13px; line-height: 20px; }
+    .muted { color: #909399; }
+    .cell-primary { color: #303133; font-weight: 500; line-height: 20px; }
+    .cell-secondary { margin-top: 3px; color: #909399; font-size: 12px; line-height: 18px; }
+    .business-cell { line-height: 20px; }
+    .business-cell .platform-shop { color: #303133; font-weight: 500; }
+    .business-cell .business-meta { margin-top: 2px; color: #606266; font-size: 12px; }
+    .business-cell .business-owner { margin-top: 2px; color: #909399; font-size: 12px; }
+    .operation-links { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+    .operation-links .el-button { margin-left: 0; padding: 0; }
+    .document-table .el-table__cell { padding: 8px 0; }
+    .document-table .cell { padding-left: 8px; padding-right: 8px; }
+
+    .detail-box {
+      margin: 2px 42px 10px;
+      padding: 14px 16px 16px;
+      border: 1px solid #dcdfe6;
+      border-radius: 6px;
+      background: #fafcff;
+    }
+    .detail-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .detail-title { font-size: 14px; font-weight: 600; color: #303133; }
+    .detail-summary { display: flex; gap: 18px; color: #606266; font-size: 13px; }
+    .pagination-bar { padding: 16px 18px; display: flex; justify-content: flex-end; }
+
+    .document-dialog-body { padding-bottom: 8px; }
+    .section-title {
+      margin: 2px 0 14px;
+      padding-left: 10px;
+      border-left: 3px solid #409eff;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 0 18px;
+    }
+    .compact-document-form .el-form-item { margin-bottom: 12px; }
+    .compact-document-form .el-form-item__label { padding-right: 10px; line-height: 32px; }
+    .sku-editor { margin-top: 6px; }
+    .sku-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .sku-toolbar-note { color: #909399; font-size: 12px; }
+    .document-dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .month-input { width: 96px; }
+    .read-value { color: #303133; }
+    .grouped-detail-table .el-table__cell { vertical-align: top; }
+    .grouped-detail-table .cell { padding: 8px 10px; }
+    .metric-cell { display: flex; flex-direction: column; gap: 5px; color: #606266; font-size: 12px; line-height: 18px; }
+    .metric-cell .metric-title { color: #303133; font-size: 13px; font-weight: 600; line-height: 20px; }
+    .metric-cell .metric-subtitle { color: #909399; }
+    .metric-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+    .metric-line .metric-name { color: #909399; white-space: nowrap; }
+    .metric-line .metric-value { color: #303133; font-weight: 500; text-align: right; }
+    .metric-block { padding-top: 5px; border-top: 1px dashed #ebeef5; }
+    .metric-block:first-child { padding-top: 0; border-top: 0; }
+    .metric-highlight { color: #409eff !important; font-size: 14px; font-weight: 600 !important; }
+    .metric-warning { color: #f56c6c !important; }
+    .decision-editor { display: flex; flex-direction: column; gap: 7px; }
+    .decision-editor .el-date-editor, .decision-editor .el-input-number { width: 100%; }
+    .decision-editor-label { color: #909399; font-size: 12px; }
+    .remove-sku-button { font-size: 20px; line-height: 20px; }
+    .table-product-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .select-dialog-hint { margin-bottom: 12px; }
+    .sku-batch-query { padding: 12px; margin-bottom: 12px; border: 1px solid #dcdfe6; border-radius: 6px; background: #f8fafc; }
+    .sku-query-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    .sku-result-head { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 8px; }
+    .sku-result-title { color: #303133; font-size: 14px; font-weight: 600; }
+
+    .el-table th.el-table__cell { background: #f5f7fa; color: #303133; font-weight: 600; }
+    .forecast-dialog { max-width: 1500px; }
+    .forecast-dialog .el-dialog__header {
+      margin-right: 0;
+      padding: 18px 24px;
+      border-bottom: 1px solid #ebeef5;
+    }
+    .forecast-dialog .el-dialog__body {
+      max-height: calc(90vh - 132px);
+      overflow: auto;
+      padding: 20px 24px 12px;
+    }
+    .forecast-dialog .el-dialog__footer {
+      padding: 14px 24px;
+      border-top: 1px solid #ebeef5;
+    }
+    .el-form-item { margin-bottom: 16px; }
+    .module-page { min-height: 0; flex: 1; display: flex; flex-direction: column; }
+
+    /* 统一使用中台现有浅色导航，不沿用外部原型的深色导航。 */
+    .side-nav { width: 190px; flex: 0 0 190px; color: #303133; background: #fff; border-right: 1px solid #dfe3eb; }
+    .brand { height: 38px; padding: 0 16px; color: #303133; font-size: 14px; border-bottom: 1px solid #dfe3eb; }
+    .brand-mark { width: 20px; height: 25px; border-radius: 0; background: #c91f3a; clip-path: polygon(50% 0,100% 14%,88% 72%,50% 100%,12% 72%,0 14%); font-size: 0; position: relative; }
+    .brand-mark::after { content: ''; position: absolute; width: 2px; height: 27px; background: #fff; left: 9px; top: -1px; transform: rotate(-21deg); }
+    .nav-section { height: 54px; display: flex; align-items: center; gap: 15px; padding: 0 20px; color: #303133; font-weight: 600; font-size: 14px; }
+    .nav-item { height: 48px; margin: 0; padding: 0 20px 0 50px; border-radius: 0; color: #303133; cursor: pointer; }
+    .nav-item:hover { color: #1890ff; background: #f5fbff; }
+    .nav-item.active { color: #1890ff; background: #dff5ff; border-right: 2px solid #1890ff; }
+    .nav-icon { width: 16px; margin-left: -20px; color: currentColor; }
+    .side-footer { color: #909399; padding: 16px 20px; }
+    .main-area { background: #fff; }
+    .top-header { height: 58px; flex-basis: 58px; padding: 0 14px; border-bottom: 1px solid #f1f2f5; box-shadow: 0 2px 8px rgba(0,0,0,.035); }
+    .content-scroll { padding: 16px 18px 24px; }
+    .page-title { font-size: 20px; }
+
+    @media (max-width: 1400px) {
+      .side-nav { width: 170px; flex-basis: 170px; }
+      .nav-item { padding-left: 44px; }
+    }
+
+    @media (max-width: 1100px) {
+      .filter-grid { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
+      .filter-actions { grid-column: span 1; }
+      .form-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="app-shell">
+      <aside class="side-nav">
+        <div class="brand"><span class="brand-mark"></span><span>供应链中台</span></div>
+        <div class="nav-section"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+        <div class="nav-item"><span class="nav-icon">▤</span><span>团队库存</span></div>
+        <div class="nav-item"><span class="nav-icon">▥</span><span>平台仓&海外仓</span></div>
+        <div class="nav-item" data-page-nav="supplierInventory"><span class="nav-icon">▱</span><span>供应商库存</span></div>
+        <div class="nav-section"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+        <div class="nav-item active" data-page-nav="forecast"><span class="nav-icon">▣</span><span>需求预测</span></div>
+        <div class="nav-item" data-page-nav="stock"><span class="nav-icon">▤</span><span>备货计划</span></div>
+        <div class="nav-item" data-page-nav="purchase"><span class="nav-icon">▥</span><span>采购计划</span></div>
+        <div class="nav-item" data-page-nav="shipment"><span class="nav-icon">♨</span><span>发货计划</span></div>
+        <div class="nav-section"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+        <div class="nav-item" data-page-nav="purchaseOrder"><span class="nav-icon">▰</span><span>采购单</span></div>
+        <div class="nav-item" data-page-nav="shipmentOrder"><span class="nav-icon">▤</span><span>发货单</span></div>
+        <div class="side-footer">Element Plus 页面重构原型</div>
+      </aside>
+
+      <main class="main-area">
+        <header class="top-header">
+          <div class="header-title">计划管理 / {{ currentModule === 'forecast' ? '需求预测' : '备货计划' }}</div>
+          <div class="header-user">
+            <el-avatar :size="30">管</el-avatar>
+            <span>Admin</span>
+            <span class="muted">⌄</span>
+          </div>
+        </header>
+
+        <div v-if="currentModule === 'forecast'" class="content-scroll">
+          <section class="page-head">
+            <div>
+              <h1 class="page-title">需求预测</h1>
+              <p class="page-desc">按平台、店铺、国家、团队、运营负责人和预测类型建立预测单据，并维护多个 SKU 月度销量。</p>
+            </div>
+          </section>
+
+          <section class="panel filter-panel">
+            <el-form size="default">
+              <div class="filter-grid">
+                <el-form-item>
+                  <el-select v-model="filters.batch" clearable placeholder="请选择预测批次">
+                    <el-option label="2026/08-1" value="2026/08-1"></el-option>
+                    <el-option label="2026/08-2" value="2026/08-2"></el-option>
+                    <el-option label="2026/09-1" value="2026/09-1"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-select v-model="filters.platform" clearable placeholder="请选择平台">
+                    <el-option v-for="item in platforms" :key="item" :label="item" :value="item"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-select v-model="filters.shop" clearable placeholder="请选择店铺">
+                    <el-option v-for="item in shops" :key="item" :label="item" :value="item"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-select v-model="filters.team" clearable placeholder="请选择团队">
+                    <el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-select v-model="filters.country" clearable placeholder="请选择国家">
+                    <el-option v-for="item in countries" :key="item" :label="item" :value="item"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-select v-model="filters.owner" clearable placeholder="请选择运营负责人">
+                    <el-option v-for="item in owners" :key="item" :label="item" :value="item"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-select v-model="filters.type" clearable placeholder="请选择预测类型">
+                    <el-option v-for="item in forecastTypes" :key="item" :label="item" :value="item"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-input v-model.trim="filters.keyword" clearable placeholder="请输入预测单号或 SKU" @keyup.enter="page = 1"></el-input>
+                </el-form-item>
+                <div class="filter-actions">
+                  <el-button @click="resetFilters">重置</el-button>
+                  <el-button type="primary" @click="applyFilters">查询</el-button>
+                </div>
+              </div>
+            </el-form>
+          </section>
+
+          <section class="list-action-bar">
+            <el-button type="primary" @click="openCreate">新建需求预测</el-button>
+            <el-button @click="showImport">导入预测</el-button>
+            <el-button :disabled="selectedDocs.length === 0" @click="batchSubmit">批量提交</el-button>
+            <el-button :disabled="selectedDocs.length === 0" @click="batchVoid">批量作废</el-button>
+            <el-button @click="showExport">导出</el-button>
+          </section>
+
+          <section class="panel list-panel">
+            <div class="tabs-toolbar">
+              <el-tabs v-model="activeStatus" @tab-change="page = 1">
+                <el-tab-pane v-for="tab in statusTabs" :key="tab.name" :name="tab.name">
+                  <template #label>{{ tab.label }}（{{ statusCount(tab.name) }}）</template>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+
+            <div class="table-wrap">
+              <el-table
+                v-if="pagedDocs.length"
+                :data="pagedDocs"
+                row-key="id"
+                border
+                class="document-table"
+                style="width: 100%"
+                @selection-change="selectedDocs = $event"
+              >
+                <el-table-column type="selection" width="40"></el-table-column>
+                <el-table-column type="expand" width="40">
+                  <template #default="scope">
+                    <div class="detail-box">
+                      <div class="detail-head">
+                        <div class="detail-title">SKU 预测明细</div>
+                        <div class="detail-summary">
+                          <span>SKU 数：{{ scope.row.items.length }}</span>
+                          <span>六个月预测合计：{{ documentTotal(scope.row).toLocaleString() }}</span>
+                        </div>
+                      </div>
+                      <el-table :data="scope.row.items" size="small" border>
+                        <el-table-column prop="sku" label="SKU" width="132" fixed="left"></el-table-column>
+                        <el-table-column prop="productName" label="品名" min-width="180" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="lingxingSku" label="领星SKU" width="128"></el-table-column>
+                        <el-table-column prop="sellerSku" label="SellerSKU / ASIN" min-width="165" show-overflow-tooltip></el-table-column>
+                        <el-table-column v-for="month in months" :key="month.key" :label="month.label" width="104" align="right">
+                          <template #default="itemScope">{{ itemScope.row[month.key].toLocaleString() }}</template>
+                        </el-table-column>
+                        <el-table-column label="六个月合计" width="118" align="right" fixed="right">
+                          <template #default="itemScope"><strong>{{ rowTotal(itemScope.row).toLocaleString() }}</strong></template>
+                        </el-table-column>
+                      </el-table>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="预测单据" min-width="190">
+                  <template #default="scope">
+                    <div class="document-no" @click="openView(scope.row)">{{ scope.row.docNo }}</div>
+                    <div class="cell-secondary">批次：{{ scope.row.batch }}</div>
+                    <div class="document-tag-row">
+                      <el-tag size="small" :type="forecastTypeMeta(scope.row.type)" effect="plain">{{ scope.row.type }}</el-tag>
+                      <el-tag size="small" :type="statusMeta(scope.row.status).type" effect="light">{{ statusMeta(scope.row.status).label }}</el-tag>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="关联单据" min-width="150">
+                  <template #default="scope">
+                    <div class="relation-label">备货计划单号</div>
+                    <div v-if="scope.row.stockPlanNo" class="relation-value" title="点击查看备货计划" @click="openRelatedStockPlan(scope.row)">{{ scope.row.stockPlanNo }}</div>
+                    <div v-else class="relation-empty">待确认后生成</div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="业务信息" min-width="195">
+                  <template #default="scope">
+                    <div class="business-cell">
+                      <div class="platform-shop">{{ scope.row.platform }} · {{ scope.row.shop }}</div>
+                      <div class="business-meta">{{ scope.row.country }}站 · {{ scope.row.team }}</div>
+                      <div class="business-owner">运营负责人：{{ scope.row.owner }}</div>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="SKU数" width="56" align="center">
+                  <template #default="scope">{{ scope.row.items.length }}</template>
+                </el-table-column>
+                <el-table-column label="创建及更新信息" min-width="162">
+                  <template #default="scope">
+                    <div class="cell-primary">{{ scope.row.createdBy }}</div>
+                    <div class="cell-secondary">创建：{{ scope.row.createdAt }}</div>
+                    <div class="cell-secondary">更新：{{ scope.row.updatedAt }}</div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" min-width="130">
+                  <template #default="scope">
+                    <div class="operation-links">
+                      <el-button link type="primary" @click="openView(scope.row)">查看</el-button>
+                      <template v-if="scope.row.status === 'draft'">
+                        <el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button>
+                        <el-button link type="primary" @click="submitDocument(scope.row)">提交</el-button>
+                        <el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button>
+                      </template>
+                      <template v-else-if="scope.row.status === 'pending'">
+                        <el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button>
+                        <el-button link type="success" @click="confirmDocument(scope.row)">确认</el-button>
+                        <el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button>
+                      </template>
+                      <template v-else-if="scope.row.status === 'void'">
+                        <el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button>
+                      </template>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <el-empty v-else description="未找到符合条件的需求预测单据"></el-empty>
+            </div>
+
+            <div class="pagination-bar">
+              <el-pagination
+                v-model:current-page="page"
+                v-model:page-size="pageSize"
+                :page-sizes="[5, 10, 20]"
+                :total="filteredDocs.length"
+                layout="total, sizes, prev, pager, next, jumper"
+              />
+            </div>
+          </section>
+        </div>
+        <stock-plan-page v-else class="module-page" :focus-no="stockFocusNo" @go-forecast="openRelatedForecast"></stock-plan-page>
+      </main>
+    </div>
+
+    <el-dialog
+      v-model="documentDialogVisible"
+      :title="documentDialogTitle"
+      width="90%"
+      top="5vh"
+      class="forecast-dialog"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <div class="document-dialog-body">
+        <div class="section-title">单据公共信息</div>
+        <el-form
+          ref="docFormRef"
+          :model="form"
+          :rules="rules"
+          label-position="left"
+          label-width="88px"
+          class="compact-document-form"
+          :disabled="documentDialogMode === 'view'"
+        >
+          <div class="form-grid">
+            <el-form-item label="预测单号">
+              <el-input v-model="form.docNo" disabled placeholder="保存后自动生成"></el-input>
+            </el-form-item>
+            <el-form-item label="预测批次" prop="batch">
+              <el-select v-model="form.batch" placeholder="请选择预测批次" style="width:100%">
+                <el-option label="2026/08-1" value="2026/08-1"></el-option>
+                <el-option label="2026/08-2" value="2026/08-2"></el-option>
+                <el-option label="2026/09-1" value="2026/09-1"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="平台" prop="platform">
+              <el-select v-model="form.platform" placeholder="请选择平台" style="width:100%">
+                <el-option v-for="item in platforms" :key="item" :label="item" :value="item"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="店铺" prop="shop">
+              <el-select v-model="form.shop" placeholder="请选择店铺" style="width:100%">
+                <el-option v-for="item in shops" :key="item" :label="item" :value="item"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="国家" prop="country">
+              <el-select v-model="form.country" placeholder="请选择国家" style="width:100%">
+                <el-option v-for="item in countries" :key="item" :label="item" :value="item"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="团队" prop="team">
+              <el-select v-model="form.team" placeholder="请选择团队" style="width:100%">
+                <el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="运营负责人" prop="owner">
+              <el-select v-model="form.owner" placeholder="请选择负责人" style="width:100%">
+                <el-option v-for="item in owners" :key="item" :label="item" :value="item"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="预测类型" prop="type">
+              <el-select v-model="form.type" placeholder="请选择预测类型" style="width:100%">
+                <el-option v-for="item in forecastTypes" :key="item" :label="item" :value="item"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="单据备注">
+              <el-input v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入备注"></el-input>
+            </el-form-item>
+            <el-form-item label="创建人">
+              <el-input v-model="form.createdBy" disabled></el-input>
+            </el-form-item>
+            <el-form-item label="创建时间">
+              <el-input :model-value="form.createdAt || '保存后自动生成'" disabled></el-input>
+            </el-form-item>
+            <el-form-item label="更新时间">
+              <el-input :model-value="form.updatedAt || '保存后自动生成'" disabled></el-input>
+            </el-form-item>
+          </div>
+        </el-form>
+
+        <el-divider></el-divider>
+        <div class="section-title">SKU 销量预测明细</div>
+        <div class="sku-editor">
+          <div class="sku-toolbar">
+            <div class="sku-toolbar-note">同一单据下的 SKU 共享上述平台、店铺、国家、团队、运营负责人和预测类型。</div>
+            <el-button v-if="documentDialogMode !== 'view'" type="primary" plain @click="openSkuDialog">新增 SKU</el-button>
+          </div>
+          <el-table v-if="form.items.length" :data="form.items" border style="width:100%">
+            <el-table-column prop="sku" label="SKU" width="130" fixed="left"></el-table-column>
+            <el-table-column prop="productName" label="品名" min-width="176" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="lingxingSku" label="领星SKU" width="126"></el-table-column>
+            <el-table-column prop="sellerSku" label="SellerSKU / ASIN" min-width="165" show-overflow-tooltip></el-table-column>
+            <el-table-column v-for="month in months" :key="month.key" :label="month.label" width="122" align="center">
+              <template #default="scope">
+                <span v-if="documentDialogMode === 'view'" class="read-value">{{ scope.row[month.key].toLocaleString() }}</span>
+                <el-input-number v-else v-model="scope.row[month.key]" :min="0" :max="999999" :controls="false" class="month-input"></el-input-number>
+              </template>
+            </el-table-column>
+            <el-table-column label="六个月合计" width="116" align="right" fixed="right">
+              <template #default="scope"><strong>{{ rowTotal(scope.row).toLocaleString() }}</strong></template>
+            </el-table-column>
+            <el-table-column v-if="documentDialogMode !== 'view'" label="操作" width="78" fixed="right">
+              <template #default="scope"><el-button link type="danger" @click="removeSku(scope.$index)">移除</el-button></template>
+            </el-table-column>
+          </el-table>
+          <el-empty v-else description="尚未添加 SKU，请点击“新增 SKU”" :image-size="72"></el-empty>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="document-dialog-footer">
+          <el-button @click="documentDialogVisible = false">{{ documentDialogMode === 'view' ? '关闭' : '取消' }}</el-button>
+          <template v-if="documentDialogMode !== 'view'">
+            <template v-if="documentDialogMode === 'edit' && form.status === 'pending'">
+              <el-button type="primary" @click="saveDocument(false)">保存修改</el-button>
+            </template>
+            <template v-else>
+              <el-button @click="saveDocument(false)">保存草稿</el-button>
+              <el-button type="primary" @click="saveDocument(true)">保存并提交</el-button>
+            </template>
+          </template>
+        </div>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="skuDialogVisible" title="批量选择 SKU" width="820px" :close-on-click-modal="false" append-to-body>
+      <el-alert class="select-dialog-hint" title="支持粘贴多个 SKU，使用换行、逗号、空格或分号分隔；已加入当前单据的 SKU 不会重复添加。" type="info" show-icon :closable="false"></el-alert>
+      <div class="sku-batch-query">
+        <el-input
+          v-model="skuBatchInput"
+          type="textarea"
+          :rows="3"
+          resize="none"
+          placeholder="请输入或粘贴多个 SKU，例如：&#10;5101010025&#10;34301D0002, 130US160006"
+        ></el-input>
+        <div class="sku-query-actions">
+          <el-button @click="clearSkuQuery">清空</el-button>
+          <el-button type="primary" @click="querySkus">批量查询</el-button>
+        </div>
+      </div>
+      <el-alert
+        v-if="unmatchedSkuCodes.length"
+        class="select-dialog-hint"
+        :title="`以下 SKU 未匹配或已加入明细：${unmatchedSkuCodes.join('、')}`"
+        type="warning"
+        show-icon
+        :closable="false"
+      ></el-alert>
+      <div class="sku-result-head">
+        <div class="sku-result-title">查询结果（{{ skuQueryResults.length }}）</div>
+        <span class="muted" v-if="skuSearchExecuted">请勾选需要加入预测单的 SKU</span>
+      </div>
+      <el-table v-if="skuQueryResults.length" :data="skuQueryResults" border @selection-change="selectedProducts = $event">
+        <el-table-column type="selection" width="48"></el-table-column>
+        <el-table-column prop="sku" label="SKU" width="138"></el-table-column>
+        <el-table-column prop="productName" label="品名" min-width="190"></el-table-column>
+        <el-table-column prop="lingxingSku" label="领星SKU" width="136"></el-table-column>
+        <el-table-column prop="sellerSku" label="SellerSKU / ASIN" min-width="180"></el-table-column>
+      </el-table>
+      <el-empty v-else :description="skuSearchExecuted ? '没有匹配到可加入的 SKU' : '请输入 SKU 后点击“批量查询”'" :image-size="72"></el-empty>
+      <template #footer>
+        <el-button @click="skuDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="addSelectedSkus">加入明细（{{ selectedProducts.length }}）</el-button>
+      </template>
+    </el-dialog>
+  </div>
+
+  <template id="stock-plan-template">
+    <div class="module-page">
+      <div class="content-scroll">
+        <section class="page-head">
+          <div>
+            <h1 class="page-title">备货计划</h1>
+            <p class="page-desc">按业务范围建立备货计划，集中维护多个 SKU 的建议下单数量、期望交货时间和明细备注。</p>
+          </div>
+        </section>
+
+        <section class="panel filter-panel">
+          <el-form size="default">
+            <div class="filter-grid">
+              <el-form-item><el-select v-model="filters.demandType" clearable placeholder="请选择需求类型"><el-option v-for="item in demandTypes" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item><el-select v-model="filters.platform" clearable placeholder="请选择平台"><el-option v-for="item in platforms" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item><el-select v-model="filters.shop" clearable placeholder="请选择店铺"><el-option v-for="item in shops" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item><el-select v-model="filters.team" clearable placeholder="请选择团队"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item><el-select v-model="filters.country" clearable placeholder="请选择国家"><el-option v-for="item in countries" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item><el-select v-model="filters.owner" clearable placeholder="请选择运营负责人"><el-option v-for="item in owners" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item><el-select v-model="filters.sourceType" clearable placeholder="请选择生成来源"><el-option label="需求预测自动生成" value="forecast"></el-option><el-option label="手工新建" value="manual"></el-option></el-select></el-form-item>
+              <el-form-item><el-input v-model.trim="filters.keyword" clearable placeholder="请输入备货计划号、预测单号或 SKU" @keyup.enter="page = 1"></el-input></el-form-item>
+              <div class="filter-actions"><el-button @click="resetFilters">重置</el-button><el-button type="primary" @click="applyFilters">查询</el-button></div>
+            </div>
+          </el-form>
+        </section>
+
+        <section class="list-action-bar">
+          <el-button type="primary" @click="openCreate">新建备货计划</el-button>
+          <el-button @click="showImport">导入备货计划</el-button>
+          <el-button :disabled="selectedDocs.length === 0" @click="batchConfirm">批量确认</el-button>
+          <el-button :disabled="selectedDocs.length === 0" @click="batchVoid">批量作废</el-button>
+          <el-button @click="showExport">导出</el-button>
+        </section>
+
+        <section class="panel list-panel">
+          <div class="tabs-toolbar">
+            <el-tabs v-model="activeStatus" @tab-change="page = 1">
+              <el-tab-pane v-for="tab in statusTabs" :key="tab.name" :name="tab.name"><template #label>{{ tab.label }}（{{ statusCount(tab.name) }}）</template></el-tab-pane>
+            </el-tabs>
+          </div>
+          <div class="table-wrap">
+            <el-table v-if="pagedDocs.length" :data="pagedDocs" row-key="id" border class="document-table" style="width:100%" @selection-change="selectedDocs = $event">
+              <el-table-column type="selection" width="40"></el-table-column>
+              <el-table-column type="expand" width="40">
+                <template #default="scope">
+                  <div class="detail-box">
+                    <div class="detail-head"><div class="detail-title">SKU 备货明细</div><div class="detail-summary"><span>SKU 数：{{ scope.row.items.length }}</span><span>建议下单合计：{{ suggestedOrderTotal(scope.row).toLocaleString() }}</span></div></div>
+                    <el-table :data="scope.row.items" size="small" border class="grouped-detail-table">
+                      <el-table-column label="商品信息" min-width="150" fixed="left">
+                        <template #default="itemScope"><div class="metric-cell"><div class="metric-title">{{ itemScope.row.sku }}</div><div>{{ itemScope.row.productName }}</div><div class="metric-line"><span class="metric-name">领星SKU</span><span class="metric-value">{{ itemScope.row.lingxingSku }}</span></div><div class="metric-line"><span class="metric-name">SellerSKU/ASIN</span><span class="metric-value">{{ itemScope.row.sellerSku }}</span></div></div></template>
+                      </el-table-column>
+                      <el-table-column label="仓库库存" min-width="150">
+                        <template #default="itemScope"><div class="metric-cell">
+                          <div class="metric-block"><div class="metric-title">平台仓</div><div class="metric-line"><span class="metric-name">在库</span><span class="metric-value">{{ formatQty(itemScope.row.platformOnHand) }}</span></div><div class="metric-line"><span class="metric-name">在途</span><span class="metric-value">{{ formatQty(itemScope.row.platformInTransit) }}</span></div></div>
+                          <div class="metric-block"><div class="metric-title">海外仓</div><div class="metric-line"><span class="metric-name">在库</span><span class="metric-value">{{ formatQty(itemScope.row.overseasOnHand) }}</span></div><div class="metric-line"><span class="metric-name">在库（待发）</span><span class="metric-value">{{ formatQty(itemScope.row.overseasPendingShip) }}</span></div><div class="metric-line"><span class="metric-name">在途</span><span class="metric-value">{{ formatQty(itemScope.row.overseasInTransit) }}</span></div></div>
+                          <div class="metric-block"><div class="metric-title">本地仓</div><div class="metric-line"><span class="metric-name">在库</span><span class="metric-value">{{ formatQty(itemScope.row.localOnHand) }}</span></div><div class="metric-line"><span class="metric-name">在库（待发）</span><span class="metric-value">{{ formatQty(itemScope.row.localPendingShip) }}</span></div></div>
+                        </div></template>
+                      </el-table-column>
+                      <el-table-column label="供应侧" min-width="120">
+                        <template #default="itemScope"><div class="metric-cell"><div class="metric-block"><div class="metric-title">采购单</div><div class="metric-line"><span class="metric-name">总数</span><span class="metric-value">{{ formatQty(itemScope.row.purchaseTotal) }}</span></div><div class="metric-line"><span class="metric-name">在途</span><span class="metric-value">{{ formatQty(itemScope.row.purchaseInTransit) }}</span></div></div><div class="metric-block"><div class="metric-title">供应商库存</div><div class="metric-line"><span class="metric-name">在库</span><span class="metric-value">{{ formatQty(itemScope.row.supplierOnHand) }}</span></div><div class="metric-line"><span class="metric-name">在产</span><span class="metric-value">{{ formatQty(itemScope.row.supplierInProduction) }}</span></div></div></div></template>
+                      </el-table-column>
+                      <el-table-column label="库存分析" min-width="110">
+                        <template #default="itemScope"><div class="metric-cell"><div class="metric-line"><span class="metric-name">总库存</span><span class="metric-value metric-highlight">{{ formatQty(itemScope.row.totalInventory) }}</span></div><div class="metric-line"><span class="metric-name">周转天数</span><span class="metric-value">{{ itemScope.row.turnoverDays }} 天</span></div><div class="metric-line"><span class="metric-name">需求缺口</span><span class="metric-value" :class="{ 'metric-warning': itemScope.row.demandGap > 0 }">{{ formatQty(itemScope.row.demandGap) }}</span></div></div></template>
+                      </el-table-column>
+                      <el-table-column label="销量表现" min-width="100">
+                        <template #default="itemScope"><div class="metric-cell"><div class="metric-line"><span class="metric-name">30天销量</span><span class="metric-value">{{ formatQty(itemScope.row.sales30) }}</span></div><div class="metric-line"><span class="metric-name">60天销量</span><span class="metric-value">{{ formatQty(itemScope.row.sales60) }}</span></div><div class="metric-line"><span class="metric-name">90天销量</span><span class="metric-value">{{ formatQty(itemScope.row.sales90) }}</span></div></div></template>
+                      </el-table-column>
+                      <el-table-column label="备货决策" min-width="145">
+                        <template #default="itemScope"><div class="metric-cell"><div class="metric-line"><span class="metric-name">期望交货时间</span><span class="metric-value">{{ itemScope.row.expectedDate }}</span></div><div class="metric-line"><span class="metric-name">建议下单数量</span><span class="metric-value metric-highlight">{{ formatQty(itemScope.row.suggestedOrderQty) }}</span></div><div class="metric-subtitle">备注：{{ itemScope.row.remark || '—' }}</div></div></template>
+                      </el-table-column>
+                      <el-table-column label="更新信息" min-width="105">
+                        <template #default="itemScope"><div class="metric-cell"><div class="metric-line"><span class="metric-name">创建人</span><span class="metric-value">{{ itemScope.row.lineCreatedBy }}</span></div><div class="metric-subtitle">更新时间</div><div>{{ itemScope.row.lineUpdatedAt }}</div></div></template>
+                      </el-table-column>
+                    </el-table>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column label="备货计划" min-width="180">
+                <template #default="scope"><div class="document-no" @click="openView(scope.row)">{{ scope.row.docNo }}</div><div class="cell-secondary">需求类型：{{ scope.row.demandType }}</div><div class="document-tag-row"><el-tag size="small" :type="scope.row.sourceType === 'forecast' ? 'primary' : 'info'" effect="plain">{{ scope.row.sourceType === 'forecast' ? '预测生成' : '手工新建' }}</el-tag><el-tag size="small" :type="statusMeta(scope.row.status).type" effect="light">{{ statusMeta(scope.row.status).label }}</el-tag></div></template>
+              </el-table-column>
+              <el-table-column label="关联单据" min-width="205">
+                <template #default="scope">
+                  <div class="relation-label">需求预测</div><div v-if="scope.row.forecastNo" class="relation-value" title="点击查看需求预测" @click="$emit('go-forecast', scope.row.forecastNo)">{{ scope.row.forecastNo }}</div><div v-else class="relation-empty">无来源预测单</div>
+                  <div class="relation-label relation-gap">采购计划</div><div :class="scope.row.purchasePlanNo ? 'relation-value relation-static' : 'relation-empty'">{{ scope.row.purchasePlanNo || '待生成' }}</div>
+                  <div class="relation-label relation-gap">发货计划</div><div :class="scope.row.shipmentPlanNo ? 'relation-value relation-static' : 'relation-empty'">{{ scope.row.shipmentPlanNo || '待生成' }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column label="业务信息" min-width="190"><template #default="scope"><div class="business-cell"><div class="platform-shop">{{ scope.row.platform }} · {{ scope.row.shop }}</div><div class="business-meta">{{ scope.row.country }}站 · {{ scope.row.team }}</div><div class="business-owner">运营负责人：{{ scope.row.owner }}</div><div class="business-owner">计划负责人：{{ scope.row.planOwner }}</div></div></template></el-table-column>
+              <el-table-column label="SKU数" width="56" align="center"><template #default="scope">{{ scope.row.items.length }}</template></el-table-column>
+              <el-table-column label="创建及更新信息" min-width="150"><template #default="scope"><div class="cell-primary">{{ scope.row.createdBy }}</div><div class="cell-secondary">创建：{{ scope.row.createdAt }}</div><div class="cell-secondary">更新：{{ scope.row.updatedAt }}</div></template></el-table-column>
+              <el-table-column label="操作" min-width="140">
+                <template #default="scope"><div class="operation-links">
+                  <el-button link type="primary" @click="openView(scope.row)">查看</el-button>
+                  <template v-if="['plan_pending','ops_pending','owner_pending'].includes(scope.row.status)"><el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button></template>
+                  <template v-if="scope.row.status === 'plan_pending'"><el-button link type="success" @click="advanceStatus(scope.row)">计划确认</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
+                  <template v-else-if="scope.row.status === 'ops_pending'"><el-button link type="success" @click="advanceStatus(scope.row)">运营确认</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
+                  <template v-else-if="scope.row.status === 'owner_pending'"><el-button link type="success" @click="advanceStatus(scope.row)">负责人确认</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
+                  <template v-else-if="scope.row.status === 'purchase_pending'"><el-button link type="primary" @click="generatePurchasePlan(scope.row)">生成采购计划</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
+                  <template v-else-if="scope.row.status === 'shipment_pending'"><el-button link type="primary" @click="generateShipmentPlan(scope.row)">生成发货计划</el-button><el-button link type="danger" @click="voidDocument(scope.row)">作废</el-button></template>
+                  <template v-else-if="scope.row.status === 'void'"><el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button></template>
+                </div></template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-else description="未找到符合条件的备货计划"></el-empty>
+          </div>
+          <div class="pagination-bar"><el-pagination v-model:current-page="page" v-model:page-size="pageSize" :page-sizes="[5,10,20]" :total="filteredDocs.length" layout="total, sizes, prev, pager, next, jumper"></el-pagination></div>
+        </section>
+      </div>
+
+      <el-dialog v-model="documentDialogVisible" :title="documentDialogTitle" width="90%" top="5vh" class="forecast-dialog" :close-on-click-modal="false" destroy-on-close>
+        <div class="document-dialog-body">
+          <div class="section-title">单据公共信息</div>
+          <el-form ref="docFormRef" :model="form" :rules="rules" label-position="left" label-width="88px" class="compact-document-form" :disabled="documentDialogMode === 'view'">
+            <div class="form-grid">
+              <template v-if="documentDialogMode !== 'create'">
+                <el-form-item label="备货计划号"><el-input v-model="form.docNo" disabled></el-input></el-form-item>
+                <el-form-item label="生成来源"><el-input :model-value="form.sourceType === 'forecast' ? '需求预测自动生成' : '手工新建'" disabled></el-input></el-form-item>
+                <el-form-item label="预测单号"><el-input :model-value="form.forecastNo || '无来源预测单'" disabled></el-input></el-form-item>
+              </template>
+              <el-form-item label="需求类型" prop="demandType"><el-select v-model="form.demandType" placeholder="请选择需求类型" style="width:100%"><el-option v-for="item in demandTypes" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item label="平台" prop="platform"><el-select v-model="form.platform" placeholder="请选择平台" style="width:100%"><el-option v-for="item in platforms" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item label="店铺" prop="shop"><el-select v-model="form.shop" placeholder="请选择店铺" style="width:100%"><el-option v-for="item in shops" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item label="国家" prop="country"><el-select v-model="form.country" placeholder="请选择国家" style="width:100%"><el-option v-for="item in countries" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item label="团队" prop="team"><el-select v-model="form.team" placeholder="请选择团队" style="width:100%"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item label="运营负责人" prop="owner"><el-select v-model="form.owner" placeholder="请选择负责人" style="width:100%"><el-option v-for="item in owners" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+              <el-form-item label="计划负责人"><el-input v-model="form.planOwner" disabled></el-input></el-form-item>
+              <el-form-item label="计划备注"><el-input v-model="form.remark" maxlength="200" show-word-limit placeholder="请输入计划备注"></el-input></el-form-item>
+              <template v-if="documentDialogMode !== 'create'">
+                <el-form-item label="创建人"><el-input v-model="form.createdBy" disabled></el-input></el-form-item>
+                <el-form-item label="创建时间"><el-input v-model="form.createdAt" disabled></el-input></el-form-item>
+                <el-form-item label="更新时间"><el-input v-model="form.updatedAt" disabled></el-input></el-form-item>
+              </template>
+            </div>
+          </el-form>
+          <el-divider></el-divider>
+          <div class="section-title">SKU 备货明细</div>
+          <div class="sku-editor">
+            <div class="sku-toolbar"><div class="sku-toolbar-note">同一备货计划下的 SKU 共享上述需求类型、平台、店铺、国家、团队、运营负责人和计划负责人。</div><el-button v-if="documentDialogMode !== 'view'" type="primary" plain @click="openSkuDialog">新增 SKU</el-button></div>
+            <el-table v-if="form.items.length" :data="form.items" border style="width:100%" class="grouped-detail-table">
+              <el-table-column v-if="documentDialogMode !== 'view'" label="移除" width="54" fixed="left" align="center"><template #default="scope"><el-button link type="danger" class="remove-sku-button" title="移除该 SKU" @click="removeSku(scope.$index)">×</el-button></template></el-table-column>
+              <el-table-column label="商品信息" min-width="150" :fixed="documentDialogMode !== 'view' ? 'left' : false">
+                <template #default="scope"><div class="metric-cell"><div class="metric-title">{{ scope.row.sku }}</div><div>{{ scope.row.productName }}</div><div class="metric-line"><span class="metric-name">领星SKU</span><span class="metric-value">{{ scope.row.lingxingSku }}</span></div><div class="metric-line"><span class="metric-name">SellerSKU/ASIN</span><span class="metric-value">{{ scope.row.sellerSku }}</span></div></div></template>
+              </el-table-column>
+              <el-table-column label="仓库库存" min-width="150">
+                <template #default="scope"><div class="metric-cell">
+                  <div class="metric-block"><div class="metric-title">平台仓</div><div class="metric-line"><span class="metric-name">在库</span><span class="metric-value">{{ formatQty(scope.row.platformOnHand) }}</span></div><div class="metric-line"><span class="metric-name">在途</span><span class="metric-value">{{ formatQty(scope.row.platformInTransit) }}</span></div></div>
+                  <div class="metric-block"><div class="metric-title">海外仓</div><div class="metric-line"><span class="metric-name">在库</span><span class="metric-value">{{ formatQty(scope.row.overseasOnHand) }}</span></div><div class="metric-line"><span class="metric-name">在库（待发）</span><span class="metric-value">{{ formatQty(scope.row.overseasPendingShip) }}</span></div><div class="metric-line"><span class="metric-name">在途</span><span class="metric-value">{{ formatQty(scope.row.overseasInTransit) }}</span></div></div>
+                  <div class="metric-block"><div class="metric-title">本地仓</div><div class="metric-line"><span class="metric-name">在库</span><span class="metric-value">{{ formatQty(scope.row.localOnHand) }}</span></div><div class="metric-line"><span class="metric-name">在库（待发）</span><span class="metric-value">{{ formatQty(scope.row.localPendingShip) }}</span></div></div>
+                </div></template>
+              </el-table-column>
+              <el-table-column label="供应侧" min-width="120">
+                <template #default="scope"><div class="metric-cell"><div class="metric-block"><div class="metric-title">采购单</div><div class="metric-line"><span class="metric-name">总数</span><span class="metric-value">{{ formatQty(scope.row.purchaseTotal) }}</span></div><div class="metric-line"><span class="metric-name">在途</span><span class="metric-value">{{ formatQty(scope.row.purchaseInTransit) }}</span></div></div><div class="metric-block"><div class="metric-title">供应商库存</div><div class="metric-line"><span class="metric-name">在库</span><span class="metric-value">{{ formatQty(scope.row.supplierOnHand) }}</span></div><div class="metric-line"><span class="metric-name">在产</span><span class="metric-value">{{ formatQty(scope.row.supplierInProduction) }}</span></div></div></div></template>
+              </el-table-column>
+              <el-table-column label="库存分析" min-width="110">
+                <template #default="scope"><div class="metric-cell"><div class="metric-line"><span class="metric-name">总库存</span><span class="metric-value metric-highlight">{{ formatQty(scope.row.totalInventory) }}</span></div><div class="metric-line"><span class="metric-name">周转天数</span><span class="metric-value">{{ scope.row.turnoverDays }} 天</span></div><div class="metric-line"><span class="metric-name">需求缺口</span><span class="metric-value" :class="{ 'metric-warning': scope.row.demandGap > 0 }">{{ formatQty(scope.row.demandGap) }}</span></div></div></template>
+              </el-table-column>
+              <el-table-column label="销量表现" min-width="100">
+                <template #default="scope"><div class="metric-cell"><div class="metric-line"><span class="metric-name">30天销量</span><span class="metric-value">{{ formatQty(scope.row.sales30) }}</span></div><div class="metric-line"><span class="metric-name">60天销量</span><span class="metric-value">{{ formatQty(scope.row.sales60) }}</span></div><div class="metric-line"><span class="metric-name">90天销量</span><span class="metric-value">{{ formatQty(scope.row.sales90) }}</span></div></div></template>
+              </el-table-column>
+              <el-table-column label="备货决策" min-width="145">
+                <template #default="scope">
+                  <div v-if="documentDialogMode === 'view'" class="metric-cell"><div class="metric-line"><span class="metric-name">期望交货时间</span><span class="metric-value">{{ scope.row.expectedDate }}</span></div><div class="metric-line"><span class="metric-name">建议下单数量</span><span class="metric-value metric-highlight">{{ formatQty(scope.row.suggestedOrderQty) }}</span></div><div class="metric-subtitle">备注：{{ scope.row.remark || '—' }}</div></div>
+                  <div v-else class="decision-editor"><div class="decision-editor-label">期望交货时间</div><el-date-picker v-model="scope.row.expectedDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期"></el-date-picker><div class="decision-editor-label">建议下单数量</div><el-input-number v-model="scope.row.suggestedOrderQty" :min="0" :max="999999" :controls="false"></el-input-number><div class="decision-editor-label">备货计划备注</div><el-input v-model="scope.row.remark" type="textarea" :rows="2" resize="none" placeholder="请输入备注"></el-input></div>
+                </template>
+              </el-table-column>
+              <el-table-column label="更新信息" min-width="105">
+                <template #default="scope"><div class="metric-cell"><div class="metric-line"><span class="metric-name">创建人</span><span class="metric-value">{{ scope.row.lineCreatedBy }}</span></div><div class="metric-subtitle">更新时间</div><div>{{ scope.row.lineUpdatedAt }}</div></div></template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-else description="尚未添加 SKU，请点击“新增 SKU”" :image-size="72"></el-empty>
+          </div>
+        </div>
+        <template #footer><div class="document-dialog-footer"><el-button @click="documentDialogVisible = false">{{ documentDialogMode === 'view' ? '关闭' : '取消' }}</el-button><el-button v-if="documentDialogMode !== 'view'" type="primary" @click="saveDocument">{{ documentDialogMode === 'create' ? '保存备货计划' : '保存修改' }}</el-button></div></template>
+      </el-dialog>
+
+      <el-dialog v-model="skuDialogVisible" title="批量选择 SKU" width="820px" :close-on-click-modal="false" append-to-body>
+        <el-alert class="select-dialog-hint" title="支持粘贴多个 SKU，使用换行、逗号、空格或分号分隔；已加入当前单据的 SKU 不会重复添加。" type="info" show-icon :closable="false"></el-alert>
+        <div class="sku-batch-query"><el-input v-model="skuBatchInput" type="textarea" :rows="3" resize="none" placeholder="请输入或粘贴多个 SKU，例如：&#10;5101010025&#10;34301D0002, 130US160006"></el-input><div class="sku-query-actions"><el-button @click="clearSkuQuery">清空</el-button><el-button type="primary" @click="querySkus">批量查询</el-button></div></div>
+        <el-alert v-if="unmatchedSkuCodes.length" class="select-dialog-hint" :title="'以下 SKU 未匹配或已加入明细：' + unmatchedSkuCodes.join('、')" type="warning" show-icon :closable="false"></el-alert>
+        <div class="sku-result-head"><div class="sku-result-title">查询结果（{{ skuQueryResults.length }}）</div><span class="muted" v-if="skuSearchExecuted">请勾选需要加入备货计划的 SKU</span></div>
+        <el-table v-if="skuQueryResults.length" :data="skuQueryResults" border @selection-change="selectedProducts = $event"><el-table-column type="selection" width="48"></el-table-column><el-table-column prop="sku" label="SKU" width="138"></el-table-column><el-table-column prop="productName" label="品名" min-width="190"></el-table-column><el-table-column prop="lingxingSku" label="领星SKU" width="136"></el-table-column><el-table-column prop="sellerSku" label="SellerSKU / ASIN" min-width="180"></el-table-column></el-table>
+        <el-empty v-else :description="skuSearchExecuted ? '没有匹配到可加入的 SKU' : '请输入 SKU 后点击“批量查询”'" :image-size="72"></el-empty>
+        <template #footer><el-button @click="skuDialogVisible = false">取消</el-button><el-button type="primary" @click="addSelectedSkus">加入明细（{{ selectedProducts.length }}）</el-button></template>
+      </el-dialog>
+    </div>
+  </template>
+
+  <script src="../../vendor/vue.global.prod.js?v=1.7.0"></script>
+  <script src="../../vendor/element-plus.js?v=1.7.0"></script>
+  <script>
+    const { createApp, ref, reactive, computed, watch, nextTick } = Vue;
+
+    const StockPlanPage = {
+      name: 'StockPlanPage',
+      props: { focusNo: { type: String, default: '' } },
+      emits: ['go-forecast'],
+      template: document.getElementById('stock-plan-template').innerHTML,
+      setup(props) {
+        const clone = value => JSON.parse(JSON.stringify(value));
+        const demandTypes = ['常规备货', '新品备货', '按需备货', '公共库存备货'];
+        const platforms = ['Amazon', 'eBay', 'Shopify', 'B2B'];
+        const shops = ['ARCCAPTAIN_US', 'ARCCAPTAIN_CA', 'arccaptain_industrial', 'B端独立站', 'Lowe’s'];
+        const countries = ['美国', '加拿大', '墨西哥', '德国', '其他'];
+        const teams = ['亚马逊团队', 'eBay团队', 'Jasic团队', 'B端团队'];
+        const owners = ['王方圆', '李明', '陈晓', '周杰'];
+        const productPool = [
+          { sku: '5101010025', productName: '小屏焊帽-基础款', lingxingSku: 'AR-HM-001', sellerSku: 'Helmet-beyond05' },
+          { sku: '34301D0002', productName: '焊接围裙36寸棕色', lingxingSku: '10430100114', sellerSku: 'apron-brown-ca' },
+          { sku: '5200100001', productName: '大屏焊帽（黑色）', lingxingSku: '10400100101', sellerSku: '140US160006' },
+          { sku: '130US160006', productName: 'ARC130 110V 掌上焊机', lingxingSku: '10300200306', sellerSku: 'WELDERARC130' },
+          { sku: '130US160012', productName: 'ARC200L 焊机+Lift TIG', lingxingSku: 'AR-ARC200R201', sellerSku: 'ARC200-LIFTTIG' },
+          { sku: '42101000004', productName: 'TIG焊丝-不锈钢', lingxingSku: '10250100710', sellerSku: 'ARER308L-516' },
+          { sku: '34001001110', productName: '焊接帽子迷彩款', lingxingSku: '10410112110', sellerSku: '10410112110' }
+        ];
+        const metricProfiles = {
+          '5101010025': { platformOnHand: 180, platformInTransit: 60, overseasOnHand: 320, overseasPendingShip: 40, overseasInTransit: 100, localOnHand: 260, localPendingShip: 80, purchaseTotal: 420, purchaseInTransit: 260, supplierOnHand: 150, supplierInProduction: 300, totalInventory: 1810, sales30: 210, sales60: 405, sales90: 590, turnoverDays: 86, demandGap: 420 },
+          '34301D0002': { platformOnHand: 90, platformInTransit: 30, overseasOnHand: 140, overseasPendingShip: 20, overseasInTransit: 50, localOnHand: 110, localPendingShip: 35, purchaseTotal: 220, purchaseInTransit: 120, supplierOnHand: 80, supplierInProduction: 160, totalInventory: 1055, sales30: 132, sales60: 251, sales90: 366, turnoverDays: 74, demandGap: 220 },
+          '5200100001': { platformOnHand: 75, platformInTransit: 20, overseasOnHand: 190, overseasPendingShip: 35, overseasInTransit: 60, localOnHand: 95, localPendingShip: 25, purchaseTotal: 180, purchaseInTransit: 100, supplierOnHand: 60, supplierInProduction: 140, totalInventory: 980, sales30: 118, sales60: 224, sales90: 331, turnoverDays: 83, demandGap: 180 },
+          '130US160006': { platformOnHand: 120, platformInTransit: 40, overseasOnHand: 260, overseasPendingShip: 55, overseasInTransit: 110, localOnHand: 180, localPendingShip: 70, purchaseTotal: 700, purchaseInTransit: 420, supplierOnHand: 210, supplierInProduction: 480, totalInventory: 2645, sales30: 185, sales60: 352, sales90: 516, turnoverDays: 143, demandGap: 700 },
+          '130US160012': { platformOnHand: 65, platformInTransit: 25, overseasOnHand: 130, overseasPendingShip: 30, overseasInTransit: 55, localOnHand: 85, localPendingShip: 20, purchaseTotal: 300, purchaseInTransit: 180, supplierOnHand: 90, supplierInProduction: 230, totalInventory: 1210, sales30: 96, sales60: 184, sales90: 270, turnoverDays: 134, demandGap: 300 },
+          '42101000004': { platformOnHand: 260, platformInTransit: 90, overseasOnHand: 480, overseasPendingShip: 120, overseasInTransit: 170, localOnHand: 360, localPendingShip: 100, purchaseTotal: 520, purchaseInTransit: 320, supplierOnHand: 240, supplierInProduction: 430, totalInventory: 3090, sales30: 420, sales60: 810, sales90: 1180, turnoverDays: 78, demandGap: 520 },
+          '34001001110': { platformOnHand: 45, platformInTransit: 15, overseasOnHand: 80, overseasPendingShip: 10, overseasInTransit: 25, localOnHand: 50, localPendingShip: 10, purchaseTotal: 260, purchaseInTransit: 160, supplierOnHand: 40, supplierInProduction: 190, totalInventory: 885, sales30: 68, sales60: 126, sales90: 182, turnoverDays: 130, demandGap: 260 }
+        };
+        const baseMetrics = { platformOnHand: 0, platformInTransit: 0, overseasOnHand: 0, overseasPendingShip: 0, overseasInTransit: 0, localOnHand: 0, localPendingShip: 0, purchaseTotal: 0, purchaseInTransit: 0, supplierOnHand: 0, supplierInProduction: 0, totalInventory: 0, sales30: 0, sales60: 0, sales90: 0, turnoverDays: 0, demandGap: 0 };
+        const mkItem = (product, values = {}) => ({
+          ...clone(product), ...baseMetrics, ...clone(metricProfiles[product.sku] || {}), expectedDate: '2026-08-31', suggestedOrderQty: 0, remark: '', lineCreatedBy: 'Admin', lineUpdatedAt: '2026-08-04 15:20', ...values
+        });
+        const formatQty = value => Number(value || 0).toLocaleString('zh-CN');
+
+        const documents = ref([
+          { id: 1, docNo: 'RP20260804001', demandType: '常规备货', sourceType: 'manual', forecastNo: '', platform: 'Amazon', shop: 'ARCCAPTAIN_US', country: '美国', team: '亚马逊团队', owner: '王方圆', planOwner: 'Admin', status: 'plan_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: 'Admin', createdAt: '2026-08-04 15:20', updatedAt: '2026-08-04 15:20', remark: '美国站8月手工备货', items: [mkItem(productPool[0], { expectedDate: '2026-08-20', suggestedOrderQty: 420, remark: '优先补货' }), mkItem(productPool[3], { expectedDate: '2026-08-25', suggestedOrderQty: 260 })] },
+          { id: 2, docNo: 'RP20260804002', demandType: '公共库存备货', sourceType: 'manual', forecastNo: '', platform: 'Amazon', shop: 'ARCCAPTAIN_CA', country: '加拿大', team: '亚马逊团队', owner: '李明', planOwner: '李明', status: 'ops_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '李明', createdAt: '2026-08-04 14:06', updatedAt: '2026-08-04 14:30', remark: '加拿大站公共库存备货', items: [mkItem(productPool[1], { expectedDate: '2026-08-28', suggestedOrderQty: 220 }), mkItem(productPool[0], { expectedDate: '2026-08-28', suggestedOrderQty: 120 })] },
+          { id: 3, docNo: 'RP20260803003', demandType: '常规备货', sourceType: 'forecast', forecastNo: 'XQYC20260803003', platform: 'eBay', shop: 'arccaptain_industrial', country: '美国', team: 'eBay团队', owner: '陈晓', planOwner: '陈晓', status: 'owner_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '系统', createdAt: '2026-08-03 18:43', updatedAt: '2026-08-03 19:05', remark: '', items: [mkItem(productPool[2], { expectedDate: '2026-08-26', suggestedOrderQty: 180 }), mkItem(productPool[5], { expectedDate: '2026-08-26', suggestedOrderQty: 520 })] },
+          { id: 4, docNo: 'RP20260802004', demandType: '按需备货', sourceType: 'forecast', forecastNo: 'XQYC20260802004', platform: 'B2B', shop: 'B端独立站', country: '美国', team: 'B端团队', owner: '周杰', planOwner: '周杰', status: 'purchase_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '系统', createdAt: '2026-08-02 16:11', updatedAt: '2026-08-02 17:40', remark: '等待采购计划', items: [mkItem(productPool[3], { expectedDate: '2026-08-22', suggestedOrderQty: 700 })] },
+          { id: 5, docNo: 'RP20260802005', demandType: '按需备货', sourceType: 'manual', forecastNo: '', platform: 'B2B', shop: 'B端独立站', country: '美国', team: 'B端团队', owner: '周杰', planOwner: '周杰', status: 'shipment_pending', purchasePlanNo: 'CGJH20260802005', shipmentPlanNo: '', createdBy: '周杰', createdAt: '2026-08-02 15:35', updatedAt: '2026-08-02 17:10', remark: '现有库存可直接发运', items: [mkItem(productPool[3], { expectedDate: '2026-08-18', suggestedOrderQty: 0, remark: '无需采购' })] },
+          { id: 6, docNo: 'RP20260801006', demandType: '新品备货', sourceType: 'forecast', forecastNo: 'XQYC20260801006', platform: 'Shopify', shop: 'B端独立站', country: '德国', team: 'Jasic团队', owner: '陈晓', planOwner: '陈晓', status: 'executed', purchasePlanNo: 'CGJH20260801006', shipmentPlanNo: 'FHJH20260801006', createdBy: '系统', createdAt: '2026-08-01 10:10', updatedAt: '2026-08-01 16:20', remark: '采购与发货计划均已生成', items: [mkItem(productPool[6], { expectedDate: '2026-08-30', suggestedOrderQty: 260 })] },
+          { id: 7, docNo: 'RP20260728007', demandType: '常规备货', sourceType: 'manual', forecastNo: '', platform: 'eBay', shop: 'arccaptain_industrial', country: '美国', team: 'eBay团队', owner: '陈晓', planOwner: '陈晓', status: 'void', purchasePlanNo: '', shipmentPlanNo: '', createdBy: '陈晓', createdAt: '2026-07-28 10:12', updatedAt: '2026-07-28 11:30', remark: '作废原因：备货数量填写错误', items: [mkItem(productPool[5], { expectedDate: '2026-08-31', suggestedOrderQty: 500 })] }
+        ]);
+
+        const filters = reactive({ demandType: '', platform: '', shop: '', team: '', country: '', owner: '', sourceType: '', keyword: '' });
+        const activeStatus = ref('all');
+        const page = ref(1);
+        const pageSize = ref(10);
+        const selectedDocs = ref([]);
+        const statusTabs = [
+          { name: 'all', label: '全部' }, { name: 'plan_pending', label: '待计划确认' },
+          { name: 'ops_pending', label: '待运营确认' }, { name: 'owner_pending', label: '待负责人确认' },
+          { name: 'purchase_pending', label: '待生成采购计划' }, { name: 'shipment_pending', label: '待生成发货计划' },
+          { name: 'executed', label: '已执行' }, { name: 'void', label: '已作废' }
+        ];
+        const statusMeta = status => ({
+          plan_pending: { label: '待计划确认', type: 'info' }, ops_pending: { label: '待运营确认', type: 'warning' },
+          owner_pending: { label: '待负责人确认', type: 'warning' }, purchase_pending: { label: '待生成采购计划', type: 'primary' },
+          shipment_pending: { label: '待生成发货计划', type: 'primary' }, executed: { label: '已执行', type: 'success' },
+          void: { label: '已作废', type: 'danger' }
+        }[status] || { label: status, type: 'info' });
+        const filteredDocs = computed(() => {
+          const keyword = filters.keyword.toLowerCase();
+          return documents.value.filter(doc => {
+            if (activeStatus.value !== 'all' && doc.status !== activeStatus.value) return false;
+            if (filters.demandType && doc.demandType !== filters.demandType) return false;
+            if (filters.platform && doc.platform !== filters.platform) return false;
+            if (filters.shop && doc.shop !== filters.shop) return false;
+            if (filters.team && doc.team !== filters.team) return false;
+            if (filters.country && doc.country !== filters.country) return false;
+            if (filters.owner && doc.owner !== filters.owner) return false;
+            if (filters.sourceType && doc.sourceType !== filters.sourceType) return false;
+            if (keyword && !doc.docNo.toLowerCase().includes(keyword) && !(doc.forecastNo || '').toLowerCase().includes(keyword) && !doc.items.some(item => item.sku.toLowerCase().includes(keyword))) return false;
+            return true;
+          });
+        });
+        const pagedDocs = computed(() => filteredDocs.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value));
+        const statusCount = status => status === 'all' ? documents.value.length : documents.value.filter(doc => doc.status === status).length;
+        const suggestedOrderTotal = doc => doc.items.reduce((sum, item) => sum + Number(item.suggestedOrderQty || 0), 0);
+
+        const documentDialogVisible = ref(false);
+        const documentDialogMode = ref('create');
+        const documentDialogTitle = computed(() => documentDialogMode.value === 'create' ? '新建备货计划' : documentDialogMode.value === 'edit' ? '编辑备货计划' : '查看备货计划');
+        const docFormRef = ref();
+        const blankForm = () => ({ id: null, docNo: '', demandType: '', sourceType: 'manual', forecastNo: '', platform: '', shop: '', country: '', team: '', owner: '', planOwner: 'Admin', status: 'plan_pending', purchasePlanNo: '', shipmentPlanNo: '', createdBy: 'Admin', createdAt: '', updatedAt: '', remark: '', items: [] });
+        const form = reactive(blankForm());
+        const rules = {
+          demandType: [{ required: true, message: '请选择需求类型', trigger: 'change' }], platform: [{ required: true, message: '请选择平台', trigger: 'change' }],
+          shop: [{ required: true, message: '请选择店铺', trigger: 'change' }], country: [{ required: true, message: '请选择国家', trigger: 'change' }],
+          team: [{ required: true, message: '请选择团队', trigger: 'change' }], owner: [{ required: true, message: '请选择运营负责人', trigger: 'change' }]
+        };
+        const assignForm = doc => Object.assign(form, blankForm(), clone(doc));
+        const openCreate = () => { documentDialogMode.value = 'create'; assignForm(blankForm()); documentDialogVisible.value = true; };
+        const openEdit = doc => { documentDialogMode.value = 'edit'; assignForm(doc); documentDialogVisible.value = true; };
+        const openView = doc => { documentDialogMode.value = 'view'; assignForm(doc); documentDialogVisible.value = true; };
+
+        const skuDialogVisible = ref(false);
+        const skuBatchInput = ref('');
+        const skuSearchExecuted = ref(false);
+        const skuQueryResults = ref([]);
+        const unmatchedSkuCodes = ref([]);
+        const selectedProducts = ref([]);
+        const availableProducts = computed(() => productPool.filter(product => !form.items.some(item => item.sku === product.sku)));
+        const clearSkuQuery = () => { skuBatchInput.value = ''; skuSearchExecuted.value = false; skuQueryResults.value = []; unmatchedSkuCodes.value = []; selectedProducts.value = []; };
+        const openSkuDialog = () => { clearSkuQuery(); skuDialogVisible.value = true; };
+        const querySkus = () => {
+          const skuCodes = [...new Set(skuBatchInput.value.split(/[\s,，;；]+/).map(value => value.trim()).filter(Boolean))];
+          if (!skuCodes.length) return ElementPlus.ElMessage.warning('请先输入至少一个 SKU');
+          const productMap = new Map(availableProducts.value.map(product => [product.sku.toUpperCase(), product]));
+          skuQueryResults.value = skuCodes.map(code => productMap.get(code.toUpperCase())).filter(Boolean);
+          unmatchedSkuCodes.value = skuCodes.filter(code => !productMap.has(code.toUpperCase()));
+          selectedProducts.value = [];
+          skuSearchExecuted.value = true;
+          ElementPlus.ElMessage[skuQueryResults.value.length ? 'success' : 'warning'](skuQueryResults.value.length ? `匹配到 ${skuQueryResults.value.length} 个可加入的 SKU` : '没有匹配到可加入的 SKU');
+        };
+        const addSelectedSkus = () => {
+          if (!selectedProducts.value.length) return ElementPlus.ElMessage.warning('请至少选择一个 SKU');
+          selectedProducts.value.forEach(product => form.items.push(mkItem(product, { lineCreatedBy: 'Admin', lineUpdatedAt: '保存后生成' })));
+          skuDialogVisible.value = false;
+          clearSkuQuery();
+          ElementPlus.ElMessage.success('SKU 已加入备货明细');
+        };
+        const removeSku = index => form.items.splice(index, 1);
+
+        const nowText = () => { const now = new Date(); const pad = value => String(value).padStart(2, '0'); return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`; };
+        const nextDocNo = () => `RP20260804${String(Math.max(...documents.value.map(doc => doc.id), 0) + 1).padStart(3, '0')}`;
+        const saveDocument = async () => {
+          try { await docFormRef.value.validate(); } catch (error) { return; }
+          if (!form.items.length) return ElementPlus.ElMessage.warning('请至少添加一个 SKU 明细');
+          const payload = clone(form);
+          payload.updatedAt = nowText();
+          payload.items = payload.items.map(item => ({ ...item, lineCreatedBy: item.lineCreatedBy || 'Admin', lineUpdatedAt: payload.updatedAt }));
+          if (documentDialogMode.value === 'create') {
+            payload.id = Math.max(...documents.value.map(doc => doc.id), 0) + 1;
+            payload.docNo = nextDocNo();
+            payload.sourceType = 'manual';
+            payload.planOwner = 'Admin';
+            payload.createdBy = 'Admin';
+            payload.createdAt = payload.updatedAt;
+            payload.status = 'plan_pending';
+            documents.value.unshift(payload);
+          } else {
+            if (payload.status === 'void') payload.status = 'plan_pending';
+            const index = documents.value.findIndex(doc => doc.id === payload.id);
+            if (index >= 0) documents.value[index] = payload;
+          }
+          documentDialogVisible.value = false;
+          ElementPlus.ElMessage.success(documentDialogMode.value === 'create' ? '备货计划创建成功，进入待计划确认' : '备货计划修改成功');
+        };
+
+        const changeStatus = (doc, status, message) => { doc.status = status; doc.updatedAt = nowText(); ElementPlus.ElMessage.success(message); };
+        const advanceStatus = doc => {
+          const nextMap = { plan_pending: ['ops_pending', '计划确认'], ops_pending: ['owner_pending', '运营确认'], owner_pending: [doc.items.some(item => Number(item.suggestedOrderQty) > 0) ? 'purchase_pending' : 'shipment_pending', '负责人确认'] };
+          const next = nextMap[doc.status];
+          if (!next) return;
+          ElementPlus.ElMessageBox.confirm(`确认完成${next[1]}？`, next[1], { type: 'warning' }).then(() => changeStatus(doc, next[0], `${next[1]}完成`)).catch(() => {});
+        };
+        const generatePurchasePlan = doc => ElementPlus.ElMessageBox.confirm(`确认为备货计划 ${doc.docNo} 生成采购计划？`, '生成采购计划', { type: 'warning' }).then(() => {
+          doc.purchasePlanNo = doc.purchasePlanNo || doc.docNo.replace('RP', 'CGJH');
+          changeStatus(doc, 'shipment_pending', `采购计划 ${doc.purchasePlanNo} 已生成，下一步可安排发货计划`);
+        }).catch(() => {});
+        const generateShipmentPlan = doc => ElementPlus.ElMessageBox.confirm(`确认为备货计划 ${doc.docNo} 生成发货计划？`, '生成发货计划', { type: 'warning' }).then(() => {
+          doc.shipmentPlanNo = doc.shipmentPlanNo || doc.docNo.replace('RP', 'FHJH');
+          changeStatus(doc, 'executed', `发货计划 ${doc.shipmentPlanNo} 已生成，备货计划执行完成`);
+        }).catch(() => {});
+        const voidDocument = doc => ElementPlus.ElMessageBox.prompt('作废后将停止当前备货流程，请输入作废原因：', '二次确认：作废备货计划', { type: 'warning', inputPlaceholder: '请输入作废原因', inputValidator: value => !!value || '请输入作废原因', confirmButtonText: '确认作废', cancelButtonText: '取消' }).then(({ value }) => { doc.remark = `作废原因：${value}`; changeStatus(doc, 'void', '备货计划已作废'); }).catch(() => {});
+        const batchConfirm = () => {
+          const targets = selectedDocs.value.filter(doc => doc.status === 'plan_pending');
+          if (!targets.length) return ElementPlus.ElMessage.warning('选中的单据中没有待计划确认的备货计划');
+          targets.forEach(doc => { doc.status = 'ops_pending'; doc.updatedAt = nowText(); });
+          ElementPlus.ElMessage.success(`已完成 ${targets.length} 张备货计划的计划确认`);
+        };
+        const batchVoid = () => {
+          const targets = selectedDocs.value.filter(doc => !['executed', 'void'].includes(doc.status));
+          if (!targets.length) return ElementPlus.ElMessage.warning('选中的单据当前不可作废');
+          ElementPlus.ElMessageBox.prompt(`确认作废选中的 ${targets.length} 张备货计划？请输入原因：`, '二次确认：批量作废', { type: 'warning', inputPlaceholder: '请输入作废原因', inputValidator: value => !!value || '请输入作废原因', confirmButtonText: '确认作废', cancelButtonText: '取消' }).then(({ value }) => { targets.forEach(doc => { doc.status = 'void'; doc.updatedAt = nowText(); doc.remark = `作废原因：${value}`; }); ElementPlus.ElMessage.success(`已作废 ${targets.length} 张备货计划`); }).catch(() => {});
+        };
+
+        const resetFilters = () => { Object.keys(filters).forEach(key => filters[key] = ''); activeStatus.value = 'all'; page.value = 1; };
+        const applyFilters = () => { page.value = 1; ElementPlus.ElMessage.success(`查询完成，共 ${filteredDocs.value.length} 张备货计划`); };
+        const showImport = () => ElementPlus.ElMessageBox.alert('导入模板包含需求类型、业务公共字段、SKU、领星SKU、SellerSKU/ASIN、建议下单数量、期望交货时间和明细备注。当前原型仅演示入口。', '导入备货计划', { confirmButtonText: '知道了' });
+        const showExport = () => ElementPlus.ElMessage.success('已按当前筛选条件生成备货计划导出任务');
+
+        watch(() => props.focusNo, value => {
+          if (!value) return;
+          Object.keys(filters).forEach(key => filters[key] = '');
+          filters.keyword = value;
+          activeStatus.value = 'all';
+          page.value = 1;
+          nextTick(() => ElementPlus.ElMessage.success(`已定位备货计划 ${value}`));
+        }, { immediate: true });
+
+        return {
+          demandTypes, platforms, shops, countries, teams, owners, documents, filters, activeStatus, statusTabs, page, pageSize, selectedDocs, formatQty,
+          filteredDocs, pagedDocs, statusMeta, statusCount, suggestedOrderTotal,
+          documentDialogVisible, documentDialogMode, documentDialogTitle, docFormRef, form, rules, openCreate, openEdit, openView, saveDocument,
+          skuDialogVisible, skuBatchInput, skuSearchExecuted, skuQueryResults, unmatchedSkuCodes, selectedProducts, openSkuDialog, querySkus, clearSkuQuery, addSelectedSkus, removeSku,
+          advanceStatus, generatePurchasePlan, generateShipmentPlan, voidDocument, batchConfirm, batchVoid, resetFilters, applyFilters, showImport, showExport
+        };
+      }
+    };
+
+    createApp({
+      setup() {
+        const clone = (value) => JSON.parse(JSON.stringify(value));
+        const months = [
+          { key: 'm202608', label: '2026/08' },
+          { key: 'm202609', label: '2026/09' },
+          { key: 'm202610', label: '2026/10' },
+          { key: 'm202611', label: '2026/11' },
+          { key: 'm202612', label: '2026/12' },
+          { key: 'm202701', label: '2027/01' }
+        ];
+
+        const platforms = ['Amazon', 'eBay', 'Shopify', 'B2B'];
+        const shops = ['ARCCAPTAIN_US', 'ARCCAPTAIN_CA', 'arccaptain_industrial', 'B端独立站', 'Lowe’s'];
+        const countries = ['美国', '加拿大', '墨西哥', '德国', '其他'];
+        const teams = ['亚马逊团队', 'eBay团队', 'Jasic团队', 'B端团队'];
+        const owners = ['王方圆', '李明', '陈晓', '周杰'];
+        const forecastTypes = ['常规备货', '新品备货', '按需备货', '公共库存备货'];
+
+        const productPool = [
+          { sku: '5101010025', productName: '小屏焊帽-基础款', lingxingSku: 'AR-HM-001', sellerSku: 'Helmet-beyond05' },
+          { sku: '34301D0002', productName: '焊接围裙36寸棕色', lingxingSku: '10430100114', sellerSku: 'apron-brown-ca' },
+          { sku: '5200100001', productName: '大屏焊帽（黑色）', lingxingSku: '10400100101', sellerSku: '140US160006' },
+          { sku: '130US160006', productName: 'ARC130 110V 掌上焊机', lingxingSku: '10300200306', sellerSku: 'WELDERARC130' },
+          { sku: '130US160012', productName: 'ARC200L 焊机+Lift TIG', lingxingSku: 'AR-ARC200R201', sellerSku: 'ARC200-LIFTTIG' },
+          { sku: '42101000004', productName: 'TIG焊丝-不锈钢', lingxingSku: '10250100710', sellerSku: 'ARER308L-516' },
+          { sku: '34001001110', productName: '焊接帽子迷彩款', lingxingSku: '10410112110', sellerSku: '10410112110' }
+        ];
+
+        const mkItem = (product, values) => ({ ...clone(product), ...values });
+        const documents = ref([
+          {
+            id: 1, docNo: 'XQYC20260804001', batch: '2026/08-1', platform: 'Amazon', shop: 'ARCCAPTAIN_US', country: '美国',
+            team: '亚马逊团队', owner: '王方圆', type: '常规备货', status: 'draft', stockPlanNo: '', createdBy: 'Admin', createdAt: '2026-08-04 14:50', updatedAt: '2026-08-04 15:20', remark: '8月第一批常规预测',
+            items: [
+              mkItem(productPool[0], { m202608: 180, m202609: 200, m202610: 220, m202611: 240, m202612: 260, m202701: 280 }),
+              mkItem(productPool[3], { m202608: 100, m202609: 120, m202610: 130, m202611: 150, m202612: 160, m202701: 180 }),
+              mkItem(productPool[4], { m202608: 80, m202609: 100, m202610: 120, m202611: 130, m202612: 150, m202701: 160 })
+            ]
+          },
+          {
+            id: 2, docNo: 'XQYC20260804002', batch: '2026/08-1', platform: 'Amazon', shop: 'ARCCAPTAIN_CA', country: '加拿大',
+            team: '亚马逊团队', owner: '李明', type: '公共库存备货', status: 'pending', stockPlanNo: '', createdBy: '李明', createdAt: '2026-08-04 13:40', updatedAt: '2026-08-04 14:05', remark: '',
+            items: [
+              mkItem(productPool[1], { m202608: 90, m202609: 110, m202610: 130, m202611: 140, m202612: 150, m202701: 160 }),
+              mkItem(productPool[0], { m202608: 60, m202609: 70, m202610: 80, m202611: 90, m202612: 100, m202701: 110 })
+            ]
+          },
+          {
+            id: 3, docNo: 'XQYC20260803003', batch: '2026/08-1', platform: 'eBay', shop: 'arccaptain_industrial', country: '美国',
+            team: 'eBay团队', owner: '陈晓', type: '常规备货', status: 'confirmed', stockPlanNo: 'RP20260803003', createdBy: '陈晓', createdAt: '2026-08-03 17:18', updatedAt: '2026-08-03 18:42', remark: '已完成业务确认',
+            items: [
+              mkItem(productPool[2], { m202608: 120, m202609: 120, m202610: 130, m202611: 140, m202612: 150, m202701: 160 }),
+              mkItem(productPool[5], { m202608: 300, m202609: 320, m202610: 350, m202611: 360, m202612: 380, m202701: 400 })
+            ]
+          },
+          {
+            id: 4, docNo: 'XQYC20260802004', batch: '2026/08-1', platform: 'B2B', shop: 'B端独立站', country: '美国',
+            team: 'B端团队', owner: '周杰', type: '按需备货', status: 'confirmed', stockPlanNo: 'RP20260802004', createdBy: '周杰', createdAt: '2026-08-02 15:35', updatedAt: '2026-08-02 16:10', remark: '客户项目订单',
+            items: [
+              mkItem(productPool[3], { m202608: 1000, m202609: 0, m202610: 0, m202611: 0, m202612: 0, m202701: 0 })
+            ]
+          },
+          {
+            id: 5, docNo: 'XQYC20260728005', batch: '2026/08-1', platform: 'Shopify', shop: 'B端独立站', country: '其他',
+            team: 'Jasic团队', owner: '陈晓', type: '新品备货', status: 'void', stockPlanNo: '', createdBy: 'Admin', createdAt: '2026-07-28 10:12', updatedAt: '2026-07-28 11:30', remark: '新品延期，单据作废',
+            items: [
+              mkItem(productPool[6], { m202608: 0, m202609: 100, m202610: 150, m202611: 180, m202612: 200, m202701: 220 })
+            ]
+          }
+        ]);
+
+        const filters = reactive({ batch: '', platform: '', shop: '', team: '', country: '', owner: '', type: '', keyword: '' });
+        const activeStatus = ref('all');
+        const page = ref(1);
+        const pageSize = ref(10);
+        const selectedDocs = ref([]);
+        const statusTabs = [
+          { name: 'all', label: '全部' },
+          { name: 'draft', label: '草稿' },
+          { name: 'pending', label: '待确认' },
+          { name: 'confirmed', label: '已确认' },
+          { name: 'void', label: '已作废' }
+        ];
+
+        const filteredDocs = computed(() => {
+          const keyword = filters.keyword.toLowerCase();
+          return documents.value.filter(doc => {
+            if (activeStatus.value !== 'all' && doc.status !== activeStatus.value) return false;
+            if (filters.batch && doc.batch !== filters.batch) return false;
+            if (filters.platform && doc.platform !== filters.platform) return false;
+            if (filters.shop && doc.shop !== filters.shop) return false;
+            if (filters.team && doc.team !== filters.team) return false;
+            if (filters.country && doc.country !== filters.country) return false;
+            if (filters.owner && doc.owner !== filters.owner) return false;
+            if (filters.type && doc.type !== filters.type) return false;
+            if (keyword && !doc.docNo.toLowerCase().includes(keyword) && !doc.items.some(item => item.sku.toLowerCase().includes(keyword))) return false;
+            return true;
+          });
+        });
+        const pagedDocs = computed(() => filteredDocs.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value));
+
+        const statusMeta = (status) => ({
+          draft: { label: '草稿', type: 'info' },
+          pending: { label: '待确认', type: 'warning' },
+          confirmed: { label: '已确认', type: 'success' },
+          void: { label: '已作废', type: 'danger' }
+        }[status] || { label: status, type: 'info' });
+        const forecastTypeMeta = (type) => ({
+          '常规备货': 'primary',
+          '新品备货': 'success',
+          '按需备货': 'warning',
+          '公共库存备货': 'info'
+        }[type] || 'info');
+        const statusCount = (status) => status === 'all' ? documents.value.length : documents.value.filter(doc => doc.status === status).length;
+        const rowTotal = (row) => months.reduce((sum, month) => sum + Number(row[month.key] || 0), 0);
+        const documentTotal = (doc) => doc.items.reduce((sum, row) => sum + rowTotal(row), 0);
+
+        const documentDialogVisible = ref(false);
+        const documentDialogMode = ref('create');
+        const documentDialogTitle = computed(() => documentDialogMode.value === 'create' ? '新建需求预测' : documentDialogMode.value === 'edit' ? '编辑需求预测' : '查看需求预测');
+        const docFormRef = ref();
+        const blankForm = () => ({ id: null, docNo: '', batch: '2026/08-1', platform: '', shop: '', country: '', team: '', owner: '', type: '', status: 'draft', stockPlanNo: '', createdBy: 'Admin', createdAt: '', updatedAt: '', remark: '', items: [] });
+        const form = reactive(blankForm());
+        const rules = {
+          batch: [{ required: true, message: '请选择预测批次', trigger: 'change' }],
+          platform: [{ required: true, message: '请选择平台', trigger: 'change' }],
+          shop: [{ required: true, message: '请选择店铺', trigger: 'change' }],
+          country: [{ required: true, message: '请选择国家', trigger: 'change' }],
+          team: [{ required: true, message: '请选择团队', trigger: 'change' }],
+          owner: [{ required: true, message: '请选择运营负责人', trigger: 'change' }],
+          type: [{ required: true, message: '请选择预测类型', trigger: 'change' }]
+        };
+
+        const assignForm = (doc) => Object.assign(form, blankForm(), clone(doc));
+        const openCreate = () => { documentDialogMode.value = 'create'; assignForm(blankForm()); documentDialogVisible.value = true; };
+        const openEdit = (doc) => { documentDialogMode.value = 'edit'; assignForm(doc); documentDialogVisible.value = true; };
+        const openView = (doc) => { documentDialogMode.value = 'view'; assignForm(doc); documentDialogVisible.value = true; };
+
+        const skuDialogVisible = ref(false);
+        const skuBatchInput = ref('');
+        const skuSearchExecuted = ref(false);
+        const skuQueryResults = ref([]);
+        const unmatchedSkuCodes = ref([]);
+        const selectedProducts = ref([]);
+        const availableProducts = computed(() => productPool.filter(product => !form.items.some(item => item.sku === product.sku)));
+        const clearSkuQuery = () => {
+          skuBatchInput.value = '';
+          skuSearchExecuted.value = false;
+          skuQueryResults.value = [];
+          unmatchedSkuCodes.value = [];
+          selectedProducts.value = [];
+        };
+        const openSkuDialog = () => {
+          clearSkuQuery();
+          skuDialogVisible.value = true;
+        };
+        const querySkus = () => {
+          const skuCodes = [...new Set(skuBatchInput.value.split(/[\s,，;；]+/).map(value => value.trim()).filter(Boolean))];
+          if (!skuCodes.length) return ElementPlus.ElMessage.warning('请先输入至少一个 SKU');
+          const productMap = new Map(availableProducts.value.map(product => [product.sku.toUpperCase(), product]));
+          skuQueryResults.value = skuCodes.map(code => productMap.get(code.toUpperCase())).filter(Boolean);
+          unmatchedSkuCodes.value = skuCodes.filter(code => !productMap.has(code.toUpperCase()));
+          selectedProducts.value = [];
+          skuSearchExecuted.value = true;
+          if (skuQueryResults.value.length) {
+            ElementPlus.ElMessage.success(`匹配到 ${skuQueryResults.value.length} 个可加入的 SKU`);
+          } else {
+            ElementPlus.ElMessage.warning('没有匹配到可加入的 SKU');
+          }
+        };
+        const addSelectedSkus = () => {
+          if (!selectedProducts.value.length) return ElementPlus.ElMessage.warning('请至少选择一个 SKU');
+          selectedProducts.value.forEach(product => form.items.push(mkItem(product, { m202608: 0, m202609: 0, m202610: 0, m202611: 0, m202612: 0, m202701: 0 })));
+          skuDialogVisible.value = false;
+          clearSkuQuery();
+          ElementPlus.ElMessage.success('SKU 已加入预测明细');
+        };
+        const removeSku = (index) => form.items.splice(index, 1);
+
+        const nowText = () => {
+          const now = new Date();
+          const pad = v => String(v).padStart(2, '0');
+          return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        };
+        const nextDocNo = () => `XQYC20260804${String(Math.max(...documents.value.map(d => d.id), 0) + 1).padStart(3, '0')}`;
+        const saveDocument = async (submitAfterSave) => {
+          try { await docFormRef.value.validate(); } catch (e) { return; }
+          if (!form.items.length) return ElementPlus.ElMessage.warning('请至少添加一个 SKU 明细');
+          const editingPending = documentDialogMode.value === 'edit' && form.status === 'pending';
+          const payload = clone(form);
+          payload.updatedAt = nowText();
+          payload.status = editingPending ? 'pending' : (submitAfterSave ? 'pending' : 'draft');
+          if (documentDialogMode.value === 'create') {
+            payload.id = Math.max(...documents.value.map(d => d.id), 0) + 1;
+            payload.docNo = nextDocNo();
+            payload.createdBy = 'Admin';
+            payload.createdAt = payload.updatedAt;
+            documents.value.unshift(payload);
+          } else {
+            const index = documents.value.findIndex(doc => doc.id === payload.id);
+            if (index >= 0) documents.value[index] = payload;
+          }
+          documentDialogVisible.value = false;
+          ElementPlus.ElMessage.success(editingPending ? '修改已保存，单据仍为待确认状态' : (submitAfterSave ? '需求预测已保存并提交确认' : '草稿保存成功'));
+        };
+
+        const changeStatus = (doc, status, message) => { doc.status = status; doc.updatedAt = nowText(); ElementPlus.ElMessage.success(message); };
+        const submitDocument = (doc) => ElementPlus.ElMessageBox.confirm(`确认提交预测单 ${doc.docNo}？提交后 SKU 明细将不能直接修改。`, '提交确认', { type: 'warning' }).then(() => changeStatus(doc, 'pending', '单据已提交')).catch(() => {});
+        const confirmDocument = (doc) => ElementPlus.ElMessageBox.confirm(`确认通过预测单 ${doc.docNo}？确认后将自动生成备货计划。`, '确认预测', { type: 'warning' }).then(() => {
+          doc.stockPlanNo = doc.stockPlanNo || doc.docNo.replace('XQYC', 'RP');
+          changeStatus(doc, 'confirmed', `预测单已确认，已生成备货计划 ${doc.stockPlanNo}`);
+        }).catch(() => {});
+        const voidDocument = (doc) => ElementPlus.ElMessageBox.prompt(
+          '作废后单据将停止当前流程；如需重新使用，可从已作废状态进入编辑。请输入作废原因：',
+          '二次确认：作废预测单',
+          {
+            type: 'warning',
+            inputPlaceholder: '请输入作废原因',
+            inputValidator: value => !!value || '请输入作废原因',
+            confirmButtonText: '确认作废',
+            cancelButtonText: '取消'
+          }
+        ).then(({ value }) => {
+          doc.remark = `作废原因：${value}`;
+          changeStatus(doc, 'void', '预测单已作废，可在已作废状态下重新编辑');
+        }).catch(() => {});
+
+        const batchSubmit = () => {
+          const targets = selectedDocs.value.filter(doc => doc.status === 'draft');
+          if (!targets.length) return ElementPlus.ElMessage.warning('选中的单据中没有可提交的草稿');
+          targets.forEach(doc => { doc.status = 'pending'; doc.updatedAt = nowText(); });
+          ElementPlus.ElMessage.success(`已提交 ${targets.length} 张预测单`);
+        };
+        const batchVoid = () => {
+          const targets = selectedDocs.value.filter(doc => ['draft', 'pending'].includes(doc.status));
+          if (!targets.length) return ElementPlus.ElMessage.warning('仅草稿或待确认状态允许批量作废');
+          ElementPlus.ElMessageBox.prompt(`确认作废选中的 ${targets.length} 张预测单？请输入作废原因：`, '二次确认：批量作废', {
+            type: 'warning',
+            inputPlaceholder: '请输入作废原因',
+            inputValidator: value => !!value || '请输入作废原因',
+            confirmButtonText: '确认作废',
+            cancelButtonText: '取消'
+          }).then(({ value }) => {
+            targets.forEach(doc => { doc.status = 'void'; doc.updatedAt = nowText(); doc.remark = `作废原因：${value}`; });
+            ElementPlus.ElMessage.success(`已作废 ${targets.length} 张预测单`);
+          }).catch(() => {});
+        };
+
+        const resetFilters = () => { Object.keys(filters).forEach(key => filters[key] = ''); activeStatus.value = 'all'; page.value = 1; };
+        const applyFilters = () => { page.value = 1; ElementPlus.ElMessage.success(`查询完成，共 ${filteredDocs.value.length} 张单据`); };
+        const showImport = () => ElementPlus.ElMessageBox.alert('导入文件应按“单据公共字段 + SKU 月度预测明细”模板填写。当前原型仅演示入口。', '导入预测', { confirmButtonText: '知道了' });
+        const showExport = () => ElementPlus.ElMessage.success('已按当前筛选条件生成导出任务');
+
+        const currentModule = ref('forecast');
+        const stockFocusNo = ref('');
+        const switchModule = module => {
+          currentModule.value = module;
+          if (module === 'stock') stockFocusNo.value = '';
+        };
+        const showPendingModule = name => ElementPlus.ElMessage.info(`${name}模块尚未纳入本轮原型，当前可体验需求预测和备货计划`);
+        const openRelatedStockPlan = doc => {
+          const target = doc.stockPlanNo ? `?focus=${encodeURIComponent(doc.stockPlanNo)}` : '';
+          if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page: 'stock', focus: target }, '*');
+          else window.location.href = `../stock-plan/index.html${target}`;
+        };
+        const openRelatedForecast = forecastNo => {
+          currentModule.value = 'forecast';
+          Object.keys(filters).forEach(key => filters[key] = '');
+          filters.keyword = forecastNo;
+          activeStatus.value = 'all';
+          page.value = 1;
+          nextTick(() => ElementPlus.ElMessage.success(`已定位需求预测 ${forecastNo}`));
+        };
+
+        return {
+          currentModule, stockFocusNo, switchModule, showPendingModule, openRelatedStockPlan, openRelatedForecast,
+          months, platforms, shops, countries, teams, owners, forecastTypes,
+          documents, filters, activeStatus, statusTabs, page, pageSize, selectedDocs,
+          filteredDocs, pagedDocs, statusMeta, forecastTypeMeta, statusCount, rowTotal, documentTotal,
+          documentDialogVisible, documentDialogMode, documentDialogTitle, docFormRef, form, rules,
+          openCreate, openEdit, openView, saveDocument,
+          skuDialogVisible, skuBatchInput, skuSearchExecuted, skuQueryResults, unmatchedSkuCodes,
+          selectedProducts, openSkuDialog, querySkus, clearSkuQuery, addSelectedSkus, removeSku,
+          submitDocument, confirmDocument, voidDocument,
+          batchSubmit, batchVoid, resetFilters, applyFilters, showImport, showExport
+        };
+      }
+    }).component('stock-plan-page', StockPlanPage).use(ElementPlus).mount('#app');
+  </script>
+  <script>
+    (() => {
+      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', supplierInventory: '../supplier-inventory/index.html' };
+      document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => {
+        const page = item.dataset.pageNav;
+        if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page }, '*');
+        else if (routes[page]) window.location.href = routes[page];
+      }));
+    })();
+  </script>
+</body>
+</html>

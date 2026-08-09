@@ -4,8 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>备货计划｜查询区域交互原型</title>
-  <link rel="stylesheet" href="./styles.css?v=1.3.0">
+  <title>备货计划｜供应链中台</title>
+  <link rel="stylesheet" href="../../vendor/element-plus.css?v=1.7.0">
+  <link rel="stylesheet" href="./styles.css?v=1.7.0">
 </head>
 <body>
   <div class="toast" id="toast">查询完成</div>
@@ -20,7 +21,7 @@
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
           <div class="nav-item"><span class="mini">▤</span>团队库存</div><div class="nav-item"><span class="mini">▥</span>平台仓&海外仓</div><div class="nav-item" data-page-nav="supplierInventory"><span class="mini">▱</span>供应商库存</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item"><span class="mini">▣</span>需求预测</div><div class="nav-item active" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item active" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
         </div><div class="collapse">≡</div>
@@ -50,13 +51,15 @@
           </div>
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
         </section>
-        <section class="action-strip"><div class="head-actions"><button class="btn primary">新建备货计划</button><button class="btn primary">备货计划管理清单</button></div></section>
-        <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><label class="compare"><input id="compareToggle" type="checkbox" checked>显示销量环比</label><span class="tool" title="筛选">▽</span><span class="tool" title="搜索">⌕</span><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="上传">↥</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
+        <section id="stockBusinessApp" class="stock-business"></section>
+
         <section class="table-area" id="tableArea"><table class="stock-table"><thead><tr><th class="check"><input class="head-check" id="selectAll" type="checkbox"></th><th class="plan">计划号</th><th class="sku">SKU</th><th class="name">品名</th><th class="lx">领星SKU</th><th class="seller">SellerSKU/Asin</th><th class="small">平台</th><th class="small">店铺</th><th class="small">国家</th><th class="small">团队</th><th class="month">2026/08</th><th class="month">2026/09</th><th class="month">2026/10</th></tr></thead><tbody id="tableBody"></tbody></table></section>
         <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft">确认</button><button class="btn soft">加入计划管理清单</button><button class="btn soft">生成采购计划</button><button class="btn soft">生成发货计划</button><button class="btn soft">作废</button></div><div class="bottom-right"><span>共 <b id="totalCount">32</b> 条</span><select class="control page-size" id="pageSize"><option value="25">25条/页</option><option value="10">10条/页</option><option value="50">50条/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
       </main>
     </div>
   </div>
-  <script src="./app.js?v=1.3.0"></script>
+  <script src="../../vendor/vue.global.prod.js?v=1.7.0"></script>
+  <script src="../../vendor/element-plus.js?v=1.7.0"></script>
+  <script src="./app.js?v=1.7.0"></script>
 </body>
 </html>

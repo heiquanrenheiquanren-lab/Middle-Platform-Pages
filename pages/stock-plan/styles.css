@@ -40,3 +40,31 @@
     .bottom-bar{display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-top:1px solid #e4e9f2;background:#fff}.bottom-left,.bottom-right{display:flex;align-items:center;gap:9px}.selected-count b{color:var(--blue);font-weight:500}.bottom-right{gap:14px;color:#606266}.page-size{width:92px}.page-btn{border:0;background:#fff;color:#909399;padding:5px 8px}.page-btn.current{color:var(--blue);font-weight:600}.jump{width:52px;text-align:center}.toast{position:fixed;z-index:100;left:50%;top:18px;transform:translateX(-50%) translateY(-8px);padding:10px 16px;border:1px solid #e1f3d8;border-radius:4px;background:#f0f9eb;color:#67c23a;box-shadow:0 4px 12px rgba(0,0,0,.1);opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     .empty-row td{height:220px!important;color:#909399!important;text-align:center!important}.empty-icon{font-size:45px;color:#dcdfe6;margin-bottom:8px}
     @media(max-width:1400px){.shell{grid-template-columns:170px 1fr}.sidebar{font-size:13px}.nav-item{padding-left:44px}.query-panel{overflow-x:auto}.status-tabs{gap:16px}.status-tools{gap:12px}}
+
+    /* 新版备货业务区；查询面板以上的旧版筛选 DOM 和样式保持不变。 */
+    .main{grid-template-rows:58px auto minmax(0,1fr)}
+    .main>.table-area,.main>.bottom-bar{display:none}
+    .stock-business{min-height:0;overflow:auto;background:#f5f7fa;padding:0 14px 18px}
+    .stock-business .action-strip{height:48px;padding:0;border-bottom:1px solid #ebeef5;background:#fff}
+    .stock-business .status-bar{height:47px;padding:0 14px;background:#fff}
+    .stock-business .status-tab{border:0;background:transparent;font:inherit;padding:0;color:#303133}
+    .stock-business .status-tab.active{color:var(--blue)}
+    .stock-business-table{background:#fff;border:1px solid #ebeef5;border-radius:6px;overflow:hidden}
+    .stock-business-table .el-table th.el-table__cell{background:#f5f7fa;color:#303133;font-weight:600}
+    .stock-business-table .el-table__cell{padding:8px 0}
+    .stock-business-table .cell{padding-left:8px;padding-right:8px}
+    .stock-business .pagination-bar{padding:14px 18px;display:flex;justify-content:flex-end}
+    .stock-business .document-no{color:#409eff;font-weight:500;cursor:pointer}
+    .stock-business .document-tag-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:6px}
+    .stock-business .relation-label{color:#909399;font-size:12px;line-height:18px}
+    .stock-business .relation-value{margin-top:3px;color:#409eff;font-size:13px;font-weight:500;line-height:20px;cursor:pointer}
+    .stock-business .relation-empty{margin-top:3px;color:#c0c4cc;font-size:13px;line-height:20px}
+    .stock-business .cell-primary{color:#303133;font-weight:500;line-height:20px}
+    .stock-business .cell-secondary{margin-top:3px;color:#909399;font-size:12px;line-height:18px}
+    .stock-business .business-cell{line-height:20px}.stock-business .platform-shop{color:#303133;font-weight:500}.stock-business .business-meta{margin-top:2px;color:#606266;font-size:12px}.stock-business .business-owner{margin-top:2px;color:#909399;font-size:12px}
+    .stock-business .operation-links{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px}.stock-business .operation-links .el-button{margin-left:0;padding:0}
+    .stock-business .detail-box{margin:2px 42px 10px;padding:14px 16px 16px;border:1px solid #dcdfe6;border-radius:6px;background:#fafcff}
+    .stock-business .detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.stock-business .detail-title{font-size:14px;font-weight:600;color:#303133}.stock-business .detail-summary{display:flex;gap:18px;color:#606266;font-size:13px}
+    .stock-business .forecast-dialog .el-dialog__body{max-height:calc(90vh - 132px);overflow:auto;padding:20px 24px 12px}.stock-business .forecast-dialog .el-dialog__footer{padding:14px 24px;border-top:1px solid #ebeef5}
+    .stock-business .section-title{margin:2px 0 14px;padding-left:10px;border-left:3px solid var(--blue);font-size:15px;font-weight:600}.stock-business .form-grid{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:0 18px}.stock-business .compact-document-form .el-form-item{margin-bottom:12px}.stock-business .sku-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.stock-business .sku-toolbar-note{color:#909399;font-size:12px}.stock-business .month-input{width:96px}.stock-business .sku-batch-query{padding:12px;margin:12px 0;border:1px solid #dcdfe6;border-radius:6px;background:#f8fafc}.stock-business .sku-query-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}.stock-business .sku-result-head{display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px}.stock-business .sku-result-title{color:#303133;font-size:14px;font-weight:600}
+    @media(max-width:1100px){.stock-business .form-grid{grid-template-columns:repeat(2,minmax(220px,1fr))}}

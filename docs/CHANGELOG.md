@@ -38,6 +38,22 @@
 
 ## 二、版本变更记录（倒序）
 
+### v1.7.0 — 2026-08-09 · 接入需求预测与新版备货计划
+
+**变更目的**：将外部 Element Plus 需求预测/备货计划原型接入中台，并统一使用现有浅色导航。
+
+#### 一、需求预测
+1. 新增 `pages/demand-forecast/index.html`，接入需求预测查询、状态流转、新建/编辑、SKU 明细和批量操作。
+2. 接入统一 iframe 路由 `forecast`，所有现有页面的需求预测菜单均可跳转。
+
+#### 二、备货计划
+1. 保留旧版备货计划查询区域的字段、布局、展开收起和筛选交互。
+2. 查询区下方替换为 Element Plus 备货计划表格、明细展开、状态流转、新建/编辑和 SKU 批量加入弹窗。
+
+#### 三、依赖与缓存
+1. 两个页面改用项目内 `vendor/vue.global.prod.js` 和 `vendor/element-plus.js`，不再依赖 CDN。
+2. 根路由与页面资源版本号统一递增至 `1.7.0`。
+
 ### v1.6.2 — 2026-08-09 · 货权调整弹窗全面重做
 
 **变更目的**：将采购单货权调整弹窗从「搜索 + 已选」两步分拆模式重构为单列表直填模式，同时优化搜索能力和数据展示。
@@ -698,6 +714,7 @@ if (!整数 || qty<=0 || qty>row.transit)  errors.push('数量需为 1-'+row.tra
 
 | key | 页面路径 | 显示名称 |
 |---|---|---|
+| `forecast` | `pages/demand-forecast/index.html` | 需求预测 |
 | `stock` | `pages/stock-plan/index.html` | 备货计划 |
 | `purchase` | `pages/purchase-plan/index.html` | 采购计划 |
 | `shipment` | `pages/shipment-plan/index.html` | 发货计划 |
@@ -709,7 +726,7 @@ if (!整数 || qty<=0 || qty>row.transit)  errors.push('数量需为 1-'+row.tra
 2. **iframe 内部 postMessage**：iframe 内点击 `.nav-item[data-page-nav=X]` → `window.parent.postMessage({type:'prototype:navigate', page: X})` → 父窗口改 hash → 改 iframe src
 3. **页面独立打开**（非 iframe）：`.nav-item[data-page-nav=X]` → `window.location.href = '../xxx-page/index.html'`
 
-> 所有 5 个页面的侧边栏都使用同一套"分组标题 + nav-item + mini 图标"结构，选中态样式一致（浅蓝背景 + 蓝色文字 + 右侧蓝边框）
+> 所有业务页面的侧边栏都使用同一套浅色导航结构，选中态样式一致（浅蓝背景 + 蓝色文字 + 右侧蓝边框）。
 
 ---
 
@@ -721,6 +738,7 @@ if (!整数 || qty<=0 || qty>row.transit)  errors.push('数量需为 1-'+row.tra
 Middle-Platform-Pages/
 ├── pages/
 │   ├── purchase-orders/     # 采购单（含 ownership.* 货权弹窗）
+│   ├── demand-forecast/     # 需求预测（Element Plus）
 │   ├── purchase-plan/       # 采购计划
 │   ├── shipment-plan/       # 发货计划
 │   ├── stock-plan/          # 备货计划

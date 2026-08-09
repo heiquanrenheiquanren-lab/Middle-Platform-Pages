@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>供应商库存</title>
-  <link rel="stylesheet" href="./styles.css?v=1.7.1">
+  <link rel="stylesheet" href="./styles.css?v=1.7.2">
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="./ownership.css?v=1.7.1">
+  <link rel="stylesheet" href="./ownership.css?v=1.7.2">
 </head>
 <body>
   <div class="toast" id="toast">查询完成</div>
@@ -28,6 +28,26 @@
       </aside>
       <main class="main">
         <section class="page-head"><div class="page-tab"><span>▱</span><span>供应商库存</span></div></section>
+        <section class="query-panel">
+          <div class="query-row" id="queryRowOne">
+            <div class="query-item" data-query-order="1"><input class="control sku-input" id="skuSearch" placeholder="SKU / 领星SKU / SellerSKU（多个用逗号或空格分隔）"></div>
+            <div class="query-item" data-query-order="2"><div class="multi supplier-box" id="supplierMulti"><div class="multi-trigger" data-trigger>供应商（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="3"><div class="multi platform-box" id="platformMulti"><div class="multi-trigger" data-trigger>平台（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="4"><div class="multi store-box" id="storeMulti"><div class="multi-trigger" data-trigger>店铺（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="5"><div class="multi team-box" id="teamMulti"><div class="multi-trigger" data-trigger>团队（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="6"><div class="multi warehouse-box" id="warehouseMulti"><div class="multi-trigger" data-trigger>仓库（可多选）</div><div class="dropdown" data-menu></div></div></div>
+          </div>
+          <div class="query-row" id="queryRowTwo"><div class="query-actions"><button class="btn primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button></div></div>
+          <div class="query-row advanced-query-row">
+            <div class="query-item" data-query-order="7"><div class="multi country-box" id="countryMulti"><div class="multi-trigger" data-trigger>国家（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="8"><div class="multi whtype-box" id="whTypeMulti"><div class="multi-trigger" data-trigger>仓库属性（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="9"><div class="multi teamlead-box" id="teamLeadMulti"><div class="multi-trigger" data-trigger>团队负责人（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="10"><div class="multi opslead-box" id="opsLeadMulti"><div class="multi-trigger" data-trigger>运营负责人（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="11"><input class="control common-input" id="nameSearch" placeholder="品名（模糊搜索）"></div>
+            <div class="query-item" data-query-order="12"><div class="multi stockstatus-box" id="stockStatusMulti"><div class="multi-trigger" data-trigger>在库状态</div><div class="dropdown" data-menu></div></div></div>
+          </div>
+          <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
+        </section>
         <section class="action-strip">
           <div class="head-tabs">
             <button class="tab-btn active"><span>🔍</span> 本地库存查询</button>
@@ -37,15 +57,13 @@
             <label class="compare"><input type="checkbox"> 显示库存货值</label>
           </div>
         </section>
-        <section class="action-strip action-strip-secondary">
-          <div class="head-actions-left">
+        <section class="status-bar">
+          <div class="status-tabs"></div>
+          <div class="status-actions-left">
             <button class="btn">仓库费用分摊</button>
             <button class="btn primary">库内加工</button>
             <button class="btn" id="openOwnershipAdjustment">货权调整</button>
           </div>
-        </section>
-        <section class="status-bar">
-          <div class="status-tabs"></div>
           <div class="status-tools">
             <span class="tool" title="筛选">▽</span>
             <span class="tool" title="搜索">⌕</span>
@@ -113,7 +131,7 @@
   <div id="ownership-adjustment-app"></div>
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
-  <script src="./app.js?v=1.7.1"></script>
-  <script src="./ownership.js?v=1.7.1"></script>
+  <script src="./app.js?v=1.7.2"></script>
+  <script src="./ownership.js?v=1.7.2"></script>
 </body>
 </html>
