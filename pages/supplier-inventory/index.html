@@ -4,14 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>供应商库存</title>
-  <link rel="stylesheet" href="../../vendor/element-plus.css">
   <link rel="stylesheet" href="./styles.css?v=1.6.2">
 </head>
 <body>
   <div class="toast" id="toast">查询完成</div>
   <div class="app">
     <header class="global-bar">
-      <div class="global-left"><span class="brand-shield"></span><span class="top-icon">▣</span><span class="top-icon">◉</span><span class="top-icon active">⛓</span><span class="top-icon">▥</span><span class="top-icon">▤</span><span class="top-icon"></span></div>
+      <div class="global-left"><span class="brand-shield"></span><span class="top-icon">▣</span><span class="top-icon">◉</span><span class="top-icon active">⛓</span><span class="top-icon">▥</span><span class="top-icon">▤</span><span class="top-icon">▧</span></div>
       <div class="global-right"><span class="icon">⟳</span><span class="icon">⛶</span><span class="admin">Admin⌄</span></div>
     </header>
     <div class="shell">
@@ -28,40 +27,59 @@
       <main class="main">
         <section class="page-head"><div class="page-tab"><span>▱</span><span>供应商库存</span></div></section>
         <section class="action-strip">
-          <div class="head-actions">
-            <button class="btn primary"><span>🔍</span> 本地库存查询</button>
-            <button class="btn"><span>📋</span> 批次查询</button>
+          <div class="head-tabs">
+            <button class="tab-btn active"><span>🔍</span> 本地库存查询</button>
+            <button class="tab-btn"><span>📋</span> 批次查询</button>
           </div>
           <div class="head-actions-right">
             <label class="compare"><input type="checkbox"> 显示库存货值</label>
             <button class="btn">仓库费用分摊</button>
-            <button class="btn">库内加工</button>
+            <button class="btn primary">库内加工</button>
           </div>
         </section>
         <section class="status-bar">
           <div class="status-tabs"></div>
           <div class="status-tools">
+            <span class="tool" title="筛选">▽</span>
             <span class="tool" title="搜索">⌕</span>
             <span class="tool" title="设置">⚙</span>
-            <span class="tool" title="刷新">↻</span>
+            <span class="tool" title="刷新" id="refreshBtn">↻</span>
             <span class="tool" title="下载">↧</span>
-            <span class="tool" title="文档">▧</span>
+            <span class="tool" title="列设置">▤</span>
           </div>
         </section>
         <section class="table-area" id="tableArea">
           <table class="stock-table si-table">
             <thead>
-              <tr class="group-row">
-                <th class="check" rowspan="2"></th>
-                <th rowspan="2">SKU</th>
-                <th colspan="8">基本信息</th>
-                <th colspan="8">库存归属</th>
-                <th colspan="10">库存数量与库龄</th>
-              </tr>
               <tr>
-                <th>领星SKU</th><th>供应商名称</th><th>品名</th><th>采购单价（未税）</th><th>采购单价（含税）</th><th>SellerSKU</th><th>平台</th><th>店铺</th><th>国家</th>
-                <th>团队</th><th>团队负责人</th><th>运营负责人</th><th>仓库属性</th><th>关联服务商</th><th>仓库名称</th><th>仓库代码</th><th>在库量</th>
-                <th>在途/在产量</th><th>总量</th><th>0-30日库龄</th><th>31-60日库龄</th><th>61-90日库龄</th><th>91-180日库龄</th><th>&gt;180日库龄</th><th>计划采购数量</th><th>计划发货数量</th>
+                <th class="col-sku sticky-col">SKU</th>
+                <th class="col-lx">领星SKU</th>
+                <th class="col-supplier">供应商名称</th>
+                <th class="col-name">品名</th>
+                <th class="col-price">采购单价（未税）</th>
+                <th class="col-price">采购单价（含税）</th>
+                <th class="col-seller">SellerSKU</th>
+                <th class="col-platform">平台</th>
+                <th class="col-store">店铺</th>
+                <th class="col-country">国家</th>
+                <th class="col-team">团队</th>
+                <th class="col-person">团队负责人</th>
+                <th class="col-person">运营负责人</th>
+                <th class="col-wh-type">仓库属性</th>
+                <th class="col-provider">关联服务商</th>
+                <th class="col-wh-name">仓库名称</th>
+                <th class="col-wh-code">仓库代码</th>
+                <th class="col-qty">在库量</th>
+                <th class="col-qty">在库（待发）量</th>
+                <th class="col-qty">在途/在产量</th>
+                <th class="col-qty">总量</th>
+                <th class="col-qty">0-30日库龄数量</th>
+                <th class="col-qty">31-60日库龄数量</th>
+                <th class="col-qty">61-90日库龄数量</th>
+                <th class="col-qty">91-180日库龄数量</th>
+                <th class="col-qty">&gt;180日库龄数量</th>
+                <th class="col-qty">计划采购数量</th>
+                <th class="col-qty">计划发货数量</th>
               </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -85,8 +103,6 @@
       </main>
     </div>
   </div>
-  <script src="../../vendor/vue.global.prod.js"></script>
-  <script src="../../vendor/element-plus.js"></script>
   <script src="./app.js?v=1.6.2"></script>
 </body>
 </html>
