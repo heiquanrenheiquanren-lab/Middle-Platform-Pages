@@ -92,14 +92,14 @@ function equalsAny(v,arr){return !arr.length||arr.includes(v);}
 
 function applyFilters(showMsg=true){
   const skus=splitValues($('#skuSearch').value);
+  const skuType=$('#skuType').value;
   const nameKw=($('#nameSearch').value||'').toLowerCase();
   state.filtered=rows.filter(r=>{
     if(skus.length){
-      const matched=skus.some(v=>
-        (r.sku||'').toLowerCase().includes(v)||
-        (r.lx||'').toLowerCase().includes(v)||
-        (r.seller||'').toLowerCase().includes(v)
-      );
+      let matched=false;
+      if(skuType==='sku') matched=skus.some(v=>(r.sku||'').toLowerCase().includes(v));
+      else if(skuType==='lx') matched=skus.some(v=>(r.lx||'').toLowerCase().includes(v));
+      else if(skuType==='seller') matched=skus.some(v=>(r.seller||'').toLowerCase().includes(v));
       if(!matched) return false;
     }
     if(nameKw && !(r.name||'').toLowerCase().includes(nameKw)) return false;
@@ -136,7 +136,7 @@ function applyFilters(showMsg=true){
 
 function resetQuery(){
   Object.assign(state,{suppliers:[],platforms:[],stores:[],teams:[],warehouses:[],countries:[],whTypes:[],teamLeads:[],opsLeads:[],stockStatus:[],platformStoreMap:{},page:1,filtered:[...rows]});
-  $('#skuSearch').value='';$('#nameSearch').value='';
+  $('#skuSearch').value='';$('#skuType').value='sku';$('#nameSearch').value='';
   const multiConfigs=[
     ['#supplierMulti',allSuppliers,'suppliers','供应商（可多选）'],
     ['#platformMulti',allPlatforms,'platforms','平台（可多选）'],
