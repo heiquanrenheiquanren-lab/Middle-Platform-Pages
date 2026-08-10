@@ -56,11 +56,13 @@
 
         <section class="oa-section oa-target-section">
           <div class="oa-section-head"><div><span class="oa-step">2</span><strong>设置调入信息</strong></div><span>公共字段批量应用到勾选行，特殊 SKU 可逐行修改</span></div>
-          <div class="oa-batch-toolbar">
-            <div><span>调入平台</span><el-select v-model="batchPlatform" placeholder="请选择平台" style="width:180px" @change="batchStore = ''"><el-option v-for="platform in platforms" :key="platform" :label="platform" :value="platform"></el-option></el-select></div>
-            <div><span>调入店铺</span><el-select v-model="batchStore" :disabled="!batchPlatform" placeholder="请先选择平台" style="width:210px"><el-option v-for="store in storesFor(batchPlatform)" :key="store" :label="store" :value="store"></el-option></el-select></div>
+          <div class="oa-batch-toolbar" :class="{ 'is-public-target': isPublicTeam(batchTargetTeam) }">
+            <div><span>调入团队</span><el-select v-model="batchTargetTeam" filterable clearable placeholder="请选择调入团队" style="width:180px" @change="onBatchTeamChange"><el-option v-for="team in teamOptions" :key="team" :label="team" :value="team"></el-option></el-select></div>
+            <div v-if="!isPublicTeam(batchTargetTeam)"><span>调入平台</span><el-select v-model="batchPlatform" filterable clearable :disabled="!batchTargetTeam" placeholder="请先选择调入团队" style="width:180px" @change="batchStore = ''"><el-option v-for="platform in platformsForTeam(batchTargetTeam)" :key="platform" :label="platform" :value="platform"></el-option></el-select></div>
+            <div v-if="!isPublicTeam(batchTargetTeam)"><span>调入店铺</span><el-select v-model="batchStore" filterable clearable :disabled="!batchPlatform" placeholder="请先选择平台" style="width:210px"><el-option v-for="store in storesFor(batchPlatform)" :key="store" :label="store" :value="store"></el-option></el-select></div>
             <el-button type="primary" plain @click="applyBatch">应用到勾选 SKU</el-button>
             <el-button @click="fillMaxQuantity">按可调整数填充勾选行</el-button>
+            <span v-if="isPublicTeam(batchTargetTeam)" class="oa-public-hint">公共库存不绑定平台、店铺和 SellerSKU / ASIN</span>
           </div>
 
           <el-table v-if="filteredRows.length" ref="resultTable" :data="filteredRows" row-key="id" border max-height="380" @selection-change="onSelectionChange">
@@ -72,10 +74,10 @@
             <el-table-column label="采购数" width="80"><template #default="scope">{{ scope.row.purchase }}</template></el-table-column>
             <el-table-column label="在途数" width="80"><template #default="scope">{{ scope.row.transit }}</template></el-table-column>
             <el-table-column label="可调整数" width="90"><template #default="scope">{{ scope.row.transit }}</template></el-table-column>
-            <el-table-column label="调入平台" width="150"><template #default="scope"><el-select v-model="formFor(scope.row).platform" placeholder="请选择平台" style="width:130px" @change="onRowPlatformChange(scope.row)"><el-option v-for="platform in platforms" :key="platform" :label="platform" :value="platform"></el-option></el-select></template></el-table-column>
-            <el-table-column label="调入店铺" width="175"><template #default="scope"><el-select v-model="formFor(scope.row).store" :disabled="!formFor(scope.row).platform" placeholder="请选择店铺" style="width:155px"><el-option v-for="store in storesFor(formFor(scope.row).platform)" :key="store" :label="store" :value="store"></el-option></el-select></template></el-table-column>
-            <el-table-column label="调入 SellerSKU / ASIN" min-width="210"><template #default="scope"><el-select v-model="formFor(scope.row).targetSku" filterable allow-create default-first-option placeholder="搜索或输入 SellerSKU / ASIN" style="width:100%"><el-option v-for="option in sellerSkuOptions" :key="option" :label="option" :value="option"></el-option></el-select></template></el-table-column>
-            <el-table-column label="调入团队" width="130"><template #default="scope"><span :class="{ 'oa-muted': !formFor(scope.row).platform }">{{ teamFor(formFor(scope.row).platform) }}</span></template></el-table-column>
+            <el-table-column label="调入团队" width="160"><template #default="scope"><el-select v-model="formFor(scope.row).targetTeam" filterable clearable placeholder="请选择调入团队" style="width:140px" @change="onRowTeamChange(scope.row)"><el-option v-for="team in teamOptions" :key="team" :label="team" :value="team"></el-option></el-select></template></el-table-column>
+            <el-table-column label="调入平台" width="150"><template #default="scope"><span v-if="isPublicTeam(formFor(scope.row).targetTeam)" class="oa-not-applicable">不适用</span><el-select v-else v-model="formFor(scope.row).platform" filterable clearable :disabled="!formFor(scope.row).targetTeam" placeholder="请先选择调入团队" style="width:130px" @change="onRowPlatformChange(scope.row)"><el-option v-for="platform in platformsForTeam(formFor(scope.row).targetTeam)" :key="platform" :label="platform" :value="platform"></el-option></el-select></template></el-table-column>
+            <el-table-column label="调入店铺" width="175"><template #default="scope"><span v-if="isPublicTeam(formFor(scope.row).targetTeam)" class="oa-not-applicable">不适用</span><el-select v-else v-model="formFor(scope.row).store" filterable clearable :disabled="!formFor(scope.row).platform" placeholder="请先选择平台" style="width:155px"><el-option v-for="store in storesFor(formFor(scope.row).platform)" :key="store" :label="store" :value="store"></el-option></el-select></template></el-table-column>
+            <el-table-column label="调入 SellerSKU / ASIN" min-width="210"><template #default="scope"><span v-if="isPublicTeam(formFor(scope.row).targetTeam)" class="oa-not-applicable">不适用</span><el-select v-else v-model="formFor(scope.row).targetSku" filterable clearable :disabled="!formFor(scope.row).store" placeholder="请先选择店铺" style="width:100%"><el-option v-for="option in sellerSkuOptions" :key="option" :label="option" :value="option"></el-select></template></el-table-column>
             <el-table-column label="调入数量" width="125" fixed="right"><template #default="scope"><el-input-number v-model="formFor(scope.row).quantity" :min="1" :max="scope.row.transit" controls-position="right" style="width:105px"></el-input-number></template></el-table-column>
             <el-table-column label="操作" width="70" fixed="right"><template #default="scope"><el-button link type="danger" @click="removeRow(scope.row)">移除</el-button></template></el-table-column>
             <template #empty><el-empty description="未找到匹配的在途 SKU" :image-size="55"></el-empty></template>
@@ -121,6 +123,7 @@
       const filteredRows = ref([]);
       const unmatched = ref([]);
       const selected = ref([]);
+      const batchTargetTeam = ref('');
       const batchPlatform = ref('');
       const batchStore = ref('');
       const resultTable = ref(null);
@@ -132,15 +135,21 @@
         Shopify: 'shopify团队',
         eBay: 'eBay团队'
       };
+      const teamOptions = [...new Set(['公共库存', ...skuRows.map((row) => row.team), ...Object.values(teamByPlatform)])];
       const sellerSkuOptions = ['AMZ-US-34001001110', 'AMZ-US-34001001128', 'ASIN-B0D7K92M6Q', 'EBAY-ARCCAP-110', 'AMZ-CA-34001001501', 'AMZ-UK-34001001701', 'SHOP-B-34001001401', 'EBAY-JASIC-601'];
 
       const orderSearchLabel = computed(() => orderSearchTypes.find((t) => t.key === orderSearchType.value)?.label || '');
       const selectedRows = computed(() => filteredRows.value.filter((row) => selected.value.some((item) => item.id === row.id)));
       const totalQuantity = computed(() => filteredRows.value.reduce((sum, row) => sum + (Number(formFor(row).quantity) || 0), 0));
-      const targetSummary = computed(() => [...new Set(filteredRows.value.map((row) => (formFor(row).platform || '未选择') + ' / ' + (formFor(row).store || '未选择') + ' / ' + teamFor(formFor(row).platform)))].join('、'));
+      const targetSummary = computed(() => [...new Set(filteredRows.value.map((row) => {
+        const form = formFor(row);
+        if (isPublicTeam(form.targetTeam)) return '公共库存';
+        return [form.targetTeam || '未选择', form.platform || '未选择', form.store || '未选择', form.targetSku || '未选择'].join(' / ');
+      }))].join('、'));
 
       function storesFor(platform) { return storesByPlatform[platform] || []; }
-      function teamFor(platform) { return platform ? (teamByPlatform[platform] || '—') : '—'; }
+      function isPublicTeam(team) { return team === '公共库存'; }
+      function platformsForTeam(team) { return isPublicTeam(team) ? [] : platforms; }
       function parseCodes(value) { return [...new Set(value.trim().split(/[\s,，;；]+/).filter(Boolean))]; }
       function sourceTeamText(row) {
         const parts = [row.targetPlatform || '—', row.targetStore || '—', row.team || '—'];
@@ -153,22 +162,48 @@
         return { main: '易仓 ' + (row.purchaseOrderNo || '—'), sub: '采购跟踪 ' + (row.trackingNo || '—') };
       }
       function formFor(row) {
-        if (!formMap[row.id]) formMap[row.id] = { platform: row.targetPlatform, store: row.targetStore, targetSku: row.targetSku, quantity: row.transit };
+        if (!formMap[row.id]) {
+          formMap[row.id] = {
+            targetTeam: row.targetTeam || (row.targetPlatform ? (teamByPlatform[row.targetPlatform] || '') : ''),
+            platform: row.targetPlatform || '',
+            store: row.targetStore || '',
+            targetSku: row.targetSku || '',
+            quantity: row.transit
+          };
+        }
         return formMap[row.id];
       }
       function validateRow(row) {
         const form = formFor(row);
         const errors = [];
-        if (!form.platform) errors.push('请选择平台');
-        if (!form.store) errors.push('请选择店铺');
-        if (!form.targetSku) errors.push('请补充 SellerSKU / ASIN');
+        if (!form.targetTeam) errors.push('请选择调入团队');
+        if (form.targetTeam === row.team) errors.push('调入团队不能与来源团队相同');
+        if (!isPublicTeam(form.targetTeam)) {
+          if (!form.platform) errors.push('请选择平台');
+          if (!form.store) errors.push('请选择店铺');
+          if (!form.targetSku) errors.push('请选择 SellerSKU / ASIN');
+        }
         const qty = Number(form.quantity);
         if (!Number.isInteger(qty) || qty <= 0 || qty > row.transit) errors.push('数量需为 1-' + row.transit + ' 的整数');
         return errors;
       }
-      function onRowPlatformChange(row) { formFor(row).store = ''; }
+      function onRowTeamChange(row) {
+        const form = formFor(row);
+        form.platform = '';
+        form.store = '';
+        form.targetSku = '';
+      }
+      function onRowPlatformChange(row) {
+        const form = formFor(row);
+        form.store = '';
+        form.targetSku = '';
+      }
+      function onBatchTeamChange() {
+        batchPlatform.value = '';
+        batchStore.value = '';
+      }
       function hasContent() {
-        return !!(searchText.value.trim() || orderSearchText.value.trim() || filteredRows.value.length || batchPlatform.value || batchStore.value);
+        return !!(searchText.value.trim() || orderSearchText.value.trim() || filteredRows.value.length || batchTargetTeam.value || batchPlatform.value || batchStore.value);
       }
 
       function onSelectionChange(visibleSelection) { selected.value = visibleSelection; }
@@ -214,8 +249,16 @@
       function applyBatch() {
         const targets = selectedRows.value;
         if (!targets.length) { ElMessage.warning('请先勾选需要批量设置的 SKU'); return; }
-        if (!batchPlatform.value || !batchStore.value) { ElMessage.error('请先选择调入平台和调入店铺'); return; }
-        targets.forEach((row) => { formFor(row).platform = batchPlatform.value; formFor(row).store = batchStore.value; });
+        if (!batchTargetTeam.value) { ElMessage.error('请先选择调入团队'); return; }
+        if (!isPublicTeam(batchTargetTeam.value) && (!batchPlatform.value || !batchStore.value)) { ElMessage.error('请先选择调入平台和调入店铺'); return; }
+        targets.forEach((row) => {
+          const form = formFor(row);
+          const destinationChanged = form.targetTeam !== batchTargetTeam.value || form.platform !== batchPlatform.value || form.store !== batchStore.value;
+          form.targetTeam = batchTargetTeam.value;
+          form.platform = isPublicTeam(batchTargetTeam.value) ? '' : batchPlatform.value;
+          form.store = isPublicTeam(batchTargetTeam.value) ? '' : batchStore.value;
+          if (isPublicTeam(batchTargetTeam.value) || destinationChanged) form.targetSku = '';
+        });
         ElMessage.success('已应用到 ' + targets.length + ' 个 SKU');
       }
       function fillMaxQuantity() {
@@ -236,6 +279,7 @@
         searchText.value = defaultSearchText;
         orderSearchText.value = '';
         orderSearchType.value = 'ec';
+        batchTargetTeam.value = '';
         batchPlatform.value = '';
         batchStore.value = '';
         submitError.value = '';
@@ -283,6 +327,7 @@
         searchText.value = defaultSearchText;
         orderSearchText.value = '';
         orderSearchType.value = 'ec';
+        batchTargetTeam.value = '';
         batchPlatform.value = '';
         batchStore.value = '';
         submitError.value = '';
@@ -303,9 +348,9 @@
       return {
         visible, confirmVisible, submitting, submitError,
         orderSearchType, orderSearchText, orderSearchTypes, orderSearchLabel,
-        searchText, filteredRows, unmatched, selectedRows, batchPlatform, batchStore,
-        platforms, sellerSkuOptions, resultTable, totalQuantity, targetSummary,
-        storesFor, teamFor, sourceTeamText, purchaseOrderText, formFor, validateRow, onRowPlatformChange,
+        searchText, filteredRows, unmatched, selectedRows, batchTargetTeam, batchPlatform, batchStore,
+        teamOptions, platforms, sellerSkuOptions, resultTable, totalQuantity, targetSummary,
+        storesFor, platformsForTeam, isPublicTeam, sourceTeamText, purchaseOrderText, formFor, validateRow, onRowTeamChange, onRowPlatformChange, onBatchTeamChange,
         onSelectionChange, runSearch, clearSearch,
         applyBatch, fillMaxQuantity, removeRow, resetDialog, onBeforeClose, openConfirm, submitConfirmed
       };

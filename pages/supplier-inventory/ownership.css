@@ -105,6 +105,9 @@
   border: 1px dashed #d1d5db;
   margin-bottom: 12px;
 }
+.ownership-adjustment-dialog .oa-target-section .oa-batch-toolbar.is-public-target {
+  flex-wrap: wrap;
+}
 .ownership-adjustment-dialog .oa-batch-toolbar > div {
   display: flex;
   align-items: center;
@@ -118,6 +121,11 @@
 
 .ownership-adjustment-dialog .oa-muted {
   color: #bbb;
+}
+.ownership-adjustment-dialog .oa-public-hint,
+.ownership-adjustment-dialog .oa-not-applicable {
+  color: #999;
+  font-size: 12px;
 }
 
 .ownership-adjustment-dialog .oa-dialog-footer {
