@@ -37,19 +37,23 @@
       <main class="main">
         <section class="content">
           <div class="page-head"><h1 class="page-title">发货单</h1><div class="page-desc">一张发货单可包含多个 SKU，每个 SKU 对应一个发货计划</div></div>
-        <div class="card query-card">
-          <el-form label-position="top" size="default">
+        <div class="card query-card" :class="{'query-expanded':queryExpanded,'query-has-overflow':queryOverflow,'query-collapsed':queryOverflow&&!queryExpanded}">
+          <el-form size="default" @submit.prevent>
             <div class="query-grid">
-              <el-form-item label="发货单号"><el-input v-model="query.no" clearable placeholder="请输入发货单号"></el-input></el-form-item>
-              <el-form-item label="计划单号"><el-input v-model="query.plan" clearable placeholder="请输入计划单号"></el-input></el-form-item>
-              <el-form-item label="SKU"><el-input v-model="query.sku" clearable placeholder="请输入 SKU"></el-input></el-form-item>
-              <el-form-item label="发货仓"><el-select v-model="query.from" clearable filterable placeholder="全部发货仓" style="width:100%"><el-option v-for="x in warehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-              <el-form-item label="目的仓"><el-select v-model="query.to" clearable filterable placeholder="全部目的仓" style="width:100%"><el-option v-for="x in destWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-              <el-form-item label="物流单号"><el-input v-model="query.logisticsNo" clearable placeholder="请输入物流单号"></el-input></el-form-item>
-              <el-form-item label="创建日期"><el-date-picker v-model="query.dateStart" type="date" value-format="YYYY-MM-DD" placeholder="开始日期" style="width:100%"></el-date-picker></el-form-item>
-              <el-form-item label="至"><el-date-picker v-model="query.dateEnd" type="date" value-format="YYYY-MM-DD" placeholder="结束日期" style="width:100%"></el-date-picker></el-form-item>
+              <div class="query-item query-combo query-code-combo"><el-select v-model="query.codeType" filterable class="query-type-select" aria-label="单号类型"><el-option v-for="item in codeTypeOptions" :key="item.value" :label="item.label" :value="item.value"></el-option></el-select><el-input v-model="query.codeText" clearable :placeholder="`请输入${codeTypeLabel}，支持输入多个，用逗号、空格或换行隔开`" aria-label="单号查询"></el-input></div>
+              <div class="query-item query-combo query-sku-combo"><el-select v-model="query.skuType" filterable class="query-type-select" aria-label="SKU类型"><el-option v-for="item in skuTypeOptions" :key="item.value" :label="item.label" :value="item.value"></el-option></el-select><el-input v-model="query.skuText" clearable :placeholder="`请输入${skuTypeLabel}，支持输入多个，用逗号、空格或换行隔开`" aria-label="SKU查询"></el-input></div>
+              <div class="query-item"><el-select v-model="query.shipModes" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择发货方式（可多选）" class="query-select"><el-option v-for="x in shipModes" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.froms" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择发货仓（可多选）" class="query-select"><el-option v-for="x in warehouses" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.tos" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择目的仓（可多选）" class="query-select"><el-option v-for="x in destWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.channels" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择物流渠道（可多选）" class="query-select"><el-option v-for="x in channels" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.transports" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择运输方式（可多选）" class="query-select"><el-option v-for="x in transports" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.platforms" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择平台（可多选）" class="query-select"><el-option v-for="x in platformOptions" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.stores" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择店铺（可多选）" class="query-select"><el-option v-for="x in storeOptions" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.teams" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择团队（可多选）" class="query-select"><el-option v-for="x in teamOptions" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item query-advanced-item"><el-select v-model="query.creators" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择创建人（默认当前账号，可多选）" class="query-select"><el-option v-for="x in creatorOptions" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="query-item query-advanced-item query-date-item"><el-date-picker v-model="query.createdRange" type="daterange" value-format="YYYY-MM-DD" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" class="query-date-picker" aria-label="创建日期范围"></el-date-picker></div>
+              <div class="query-item query-action-item"><div class="query-actions"><button v-show="queryOverflow" class="query-inline-expand" type="button" :aria-expanded="String(queryExpanded)" @click="queryExpanded=!queryExpanded"><span>{{queryExpanded?'⌃':'⌄'}}</span><span>{{queryExpanded?'收起':'展开'}}</span></button><el-button type="primary" @click="applyQuery">查询</el-button><el-button @click="resetQuery">重置</el-button></div></div>
             </div>
-            <div class="query-actions"><el-button type="primary" @click="applyQuery">查询</el-button><el-button @click="resetQuery">重置</el-button></div>
           </el-form>
         </div>
         <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button type="success" plain @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button @click="openCostApportion">其他头程费用分摊</el-button><el-button @click="exportData">导出</el-button></div>
