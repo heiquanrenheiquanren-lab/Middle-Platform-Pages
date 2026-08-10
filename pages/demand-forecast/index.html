@@ -551,7 +551,7 @@
 
       <template #footer>
         <div class="document-dialog-footer">
-          <el-button @click="documentDialogVisible = false">{{ documentDialogMode === 'view' ? '关闭' : '取消' }}</el-button>
+          <el-button v-if="documentDialogMode !== 'view'" @click="documentDialogVisible = false">取消</el-button>
           <template v-if="documentDialogMode !== 'view'">
             <template v-if="documentDialogMode === 'edit' && form.status === 'pending'">
               <el-button type="primary" @click="saveDocument(false)">保存修改</el-button>
@@ -777,7 +777,7 @@
             <el-empty v-else description="尚未添加 SKU，请点击“新增 SKU”" :image-size="72"></el-empty>
           </div>
         </div>
-        <template #footer><div class="document-dialog-footer"><el-button @click="documentDialogVisible = false">{{ documentDialogMode === 'view' ? '关闭' : '取消' }}</el-button><el-button v-if="documentDialogMode !== 'view'" type="primary" @click="saveDocument">{{ documentDialogMode === 'create' ? '保存备货计划' : '保存修改' }}</el-button></div></template>
+        <template #footer><div class="document-dialog-footer"><el-button v-if="documentDialogMode !== 'view'" @click="documentDialogVisible = false">取消</el-button><el-button v-if="documentDialogMode !== 'view'" type="primary" @click="saveDocument">{{ documentDialogMode === 'create' ? '保存备货计划' : '保存修改' }}</el-button></div></template>
       </el-dialog>
 
       <el-dialog v-model="skuDialogVisible" title="批量选择 SKU" width="820px" :close-on-click-modal="false" append-to-body>
