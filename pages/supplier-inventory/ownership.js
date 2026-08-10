@@ -3,30 +3,31 @@
   const { ElMessage, ElMessageBox } = window.ElementPlus;
 
   const skuRows = [
-    { id: 'sku-110', sku: '34001001110', sellerSku: '10410112110', asin: '', name: '焊接帽子迷彩2-6 7/8', supplier: '梧州市友盟焊接防护用品有限公司', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_MX', inStock: 0 },
-    { id: 'sku-110b', sku: '130US160003', sellerSku: 'AR-ARC160R201201', asin: '', name: 'ARC160（AC-美规）', supplier: '深圳市康仕达科技有限公司', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_MX', inStock: 0 },
-    { id: 'sku-110c', sku: '42101000004', sellerSku: '10250100710', asin: '', name: 'TIG焊丝-不锈钢/ER308L-1.6', supplier: '常州市佳士达焊材有限公司', team: 'Jasic团队', platform: 'b2c', store: 'Lowes_arccaptain', inStock: 9 },
-    { id: 'sku-110d', sku: '34001001110', sellerSku: '10410112110', asin: '', name: '焊接帽子迷彩2-6 7/8', supplier: '梧州市友盟焊接防护用品有限公司', team: 'B端团队', platform: 'shopify', store: 'B端独立站', inStock: 10 },
-    { id: 'sku-110e', sku: 'EE123456', sellerSku: '', asin: '', name: '测试EE123456', supplier: '默认供应商', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_MX', inStock: 0 },
-    { id: 'sku-110f', sku: 'FF123456', sellerSku: '', asin: '', name: '测试FF123456', supplier: '默认供应商', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_MX', inStock: 0 },
-    { id: 'sku-110g', sku: '140US260008', sellerSku: '10502020706', asin: '', name: 'CUT55 ProLux 等离子切割机', supplier: '深圳市康仕达科技有限公司', team: 'eBay', platform: 'ebay', store: 'arccaptain_official', inStock: 0 },
-    { id: 'sku-110h', sku: '51101000004', sellerSku: '10460100310', asin: '', name: '大屏焊帽放大镜片2.0*2', supplier: '江苏奥信光电科技有限公司', team: 'eBay', platform: 'ebay', store: 'arccaptain_official', inStock: 66 },
-    { id: 'sku-110i', sku: '51001010025', sellerSku: 'AR-HM-001', asin: '', name: '小屏焊帽-基础款（黑色）', supplier: '常州市佳士达焊材有限公司', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_US', inStock: 0 },
-    { id: 'sku-110j', sku: '34001001128', sellerSku: '10410112128', asin: '', name: '焊接帽子黑色', supplier: '梧州市友盟焊接防护用品有限公司', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_US', inStock: 0 },
-    { id: 'sku-110k', sku: '34001001206', sellerSku: '10410112206', asin: '', name: '焊接帽子蓝色', supplier: '梧州市友盟焊接防护用品有限公司', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_US', inStock: 0 },
-    { id: 'sku-110l', sku: '51001010025', sellerSku: 'AR-HM-001', asin: '', name: '小屏焊帽-基础款（黑色）', supplier: '常州市佳士达焊材有限公司', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_US', inStock: 11 }
+    { id: 'sku-110', sku: '34001001110', sellerSku: '10410112110', asin: '', name: '焊接帽子迷彩2-6 7/8', supplier: '梧州市友盟焊接防护用品有限公司', warehouse: '梧州供应商仓', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_MX', inStock: 0 },
+    { id: 'sku-110b', sku: '130US160003', sellerSku: 'AR-ARC160R201201', asin: '', name: 'ARC160（AC-美规）', supplier: '深圳市康仕达科技有限公司', warehouse: '深圳供应商仓', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_MX', inStock: 0 },
+    { id: 'sku-110c', sku: '42101000004', sellerSku: '10250100710', asin: '', name: 'TIG焊丝-不锈钢/ER308L-1.6', supplier: '常州市佳士达焊材有限公司', warehouse: '常州供应商仓', team: 'Jasic团队', platform: 'b2c', store: 'Lowes_arccaptain', inStock: 9 },
+    { id: 'sku-110d', sku: '34001001110', sellerSku: '10410112110', asin: '', name: '焊接帽子迷彩2-6 7/8', supplier: '梧州市友盟焊接防护用品有限公司', warehouse: '梧州供应商仓', team: 'B端团队', platform: 'shopify', store: 'B端独立站', inStock: 10 },
+    { id: 'sku-110e', sku: 'EE123456', sellerSku: '', asin: '', name: '测试EE123456', supplier: '默认供应商', warehouse: '默认供应商仓', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_MX', inStock: 0 },
+    { id: 'sku-110f', sku: 'FF123456', sellerSku: '', asin: '', name: '测试FF123456', supplier: '默认供应商', warehouse: '默认供应商仓', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_MX', inStock: 0 },
+    { id: 'sku-110g', sku: '140US260008', sellerSku: '10502020706', asin: '', name: 'CUT55 ProLux 等离子切割机', supplier: '深圳市康仕达科技有限公司', warehouse: '深圳供应商仓', team: 'eBay', platform: 'ebay', store: 'arccaptain_official', inStock: 0 },
+    { id: 'sku-110h', sku: '51101000004', sellerSku: '10460100310', asin: '', name: '大屏焊帽放大镜片2.0*2', supplier: '江苏奥信光电科技有限公司', warehouse: '江苏供应商仓', team: 'eBay', platform: 'ebay', store: 'arccaptain_official', inStock: 66 },
+    { id: 'sku-110i', sku: '51001010025', sellerSku: 'AR-HM-001', asin: '', name: '小屏焊帽-基础款（黑色）', supplier: '常州市佳士达焊材有限公司', warehouse: '常州供应商仓', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_US', inStock: 0 },
+    { id: 'sku-110j', sku: '34001001128', sellerSku: '10410112128', asin: '', name: '焊接帽子黑色', supplier: '梧州市友盟焊接防护用品有限公司', warehouse: '梧州供应商仓', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_US', inStock: 0 },
+    { id: 'sku-110k', sku: '34001001206', sellerSku: '10410112206', asin: '', name: '焊接帽子蓝色', supplier: '梧州市友盟焊接防护用品有限公司', warehouse: '梧州供应商仓', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_US', inStock: 0 },
+    { id: 'sku-110l', sku: '51001010025', sellerSku: 'AR-HM-001', asin: '', name: '小屏焊帽-基础款（黑色）', supplier: '常州市佳士达焊材有限公司', warehouse: '常州供应商仓', team: '亚马逊团队', platform: 'amazon', store: 'ARCCAPTAIN_US', inStock: 11 }
   ];
 
   const storesByPlatform = { Amazon: ['US旗舰店', 'CA旗舰店', 'UK旗舰店'], Shopify: ['B端独立站', 'D端独立站'], eBay: ['ARCCAP', 'JASIC官方店'] };
   const teamByPlatform = { Amazon: '亚马逊团队', Shopify: 'shopify团队', eBay: 'eBay团队' };
   const suppliers = [...new Set(skuRows.map(r => r.supplier))];
+  const warehouses = [...new Set(skuRows.map(r => r.warehouse))];
   const platforms = ['Amazon', 'Shopify', 'eBay'];
   const sellerSkuOptions = ['AMZ-US-34001001110', 'AMZ-US-34001001128', 'ASIN-B0D7K92M6Q', 'EBAY-ARCCAP-110', 'AMZ-CA-34001001501', 'SHOP-B-34001001401'];
   const teamOptions = [...new Set(['公共库存', ...skuRows.map(r => r.team), ...Object.values(teamByPlatform)])];
 
   const app = createApp({
     template: `
-      <el-dialog v-model="visible" align-center width="1200px" class="ownership-adjustment-dialog" :close-on-click-modal="false" destroy-on-close>
+      <el-dialog v-model="visible" align-center width="1320px" class="ownership-adjustment-dialog" :close-on-click-modal="false" destroy-on-close>
         <template #header>
           <div class="oa-dialog-title"><div><h1>供应商库存货权调整</h1><p>查询 SKU 后，直接在列表中设置调入信息</p></div></div>
         </template>
@@ -35,7 +36,10 @@
           <div class="oa-section-head"><div><span class="oa-step">1</span><strong>批量搜索 SKU</strong></div><span>支持 SKU / SellerSKU / ASIN，最多 100 个</span></div>
           <div class="oa-search-row">
             <div class="oa-search-item"><span>供应商</span>
-              <el-select v-model="selectedSupplier" clearable placeholder="全部供应商" style="width:220px"><el-option v-for="s in suppliers" :key="s" :label="s" :value="s"></el-option></el-select>
+              <el-select v-model="selectedSuppliers" multiple filterable clearable collapse-tags collapse-tags-tooltip placeholder="全部供应商" style="width:300px"><el-option v-for="s in suppliers" :key="s" :label="s" :value="s"></el-option></el-select>
+            </div>
+            <div class="oa-search-item"><span>仓库名称</span>
+              <el-select v-model="selectedWarehouses" multiple filterable clearable collapse-tags collapse-tags-tooltip placeholder="全部仓库" style="width:220px"><el-option v-for="warehouse in warehouses" :key="warehouse" :label="warehouse" :value="warehouse"></el-option></el-select>
             </div>
           </div>
           <div class="oa-batch-search">
@@ -59,6 +63,7 @@
             <el-table-column label="来源 SKU" width="150" fixed="left"><template #default="s"><strong>{{ s.row.sku }}</strong><small>SellerSKU {{ s.row.sellerSku || '—' }}</small></template></el-table-column>
             <el-table-column prop="name" label="品名" width="150"></el-table-column>
             <el-table-column prop="supplier" label="供应商" width="180"></el-table-column>
+            <el-table-column prop="warehouse" label="仓库名称" width="140"></el-table-column>
             <el-table-column label="来源平台/店铺/团队" min-width="180"><template #default="s">{{ s.row.platform }} / {{ s.row.store }} / {{ s.row.team }}</template></el-table-column>
             <el-table-column label="在库量" width="80"><template #default="s">{{ s.row.inStock }}</template></el-table-column>
             <el-table-column label="可调整数" width="90"><template #default="s">{{ s.row.inStock }}</template></el-table-column>
@@ -90,7 +95,8 @@
     setup() {
       const visible = ref(false);
       const searchText = ref('');
-      const selectedSupplier = ref('');
+      const selectedSuppliers = ref([]);
+      const selectedWarehouses = ref([]);
       const batchTargetTeam = ref('');
       const batchPlatform = ref('');
       const batchStore = ref('');
@@ -104,7 +110,8 @@
       function open() {
         visible.value = true;
         searchText.value = '';
-        selectedSupplier.value = '';
+        selectedSuppliers.value = [];
+        selectedWarehouses.value = [];
         batchTargetTeam.value = '';
         batchPlatform.value = '';
         batchStore.value = '';
@@ -123,12 +130,17 @@
         submitError.value = ''; unmatched.value = [];
         const matched = [], seen = new Set();
         codes.forEach(code => {
-          const found = skuRows.find(r => {
-            const ok = !selectedSupplier.value || r.supplier === selectedSupplier.value;
+          const foundRows = skuRows.filter(r => {
+            const supplierMatched = !selectedSuppliers.value.length || selectedSuppliers.value.includes(r.supplier);
+            const warehouseMatched = !selectedWarehouses.value.length || selectedWarehouses.value.includes(r.warehouse);
+            const ok = supplierMatched && warehouseMatched;
             return ok && (r.sku.toLowerCase().includes(code) || (r.sellerSku || '').toLowerCase().includes(code) || (r.asin || '').toLowerCase().includes(code));
           });
-          if (found && !seen.has(found.id)) { matched.push(found); seen.add(found.id); }
-          else if (!found) unmatched.value.push(code);
+          if (foundRows.length) {
+            foundRows.forEach(row => {
+              if (!seen.has(row.id)) { matched.push(row); seen.add(row.id); }
+            });
+          } else unmatched.value.push(code);
         });
         filteredRows.value = matched.map(r => ({ ...r }));
         filteredRows.value.forEach(r => { forms[r.id] = { targetTeam: '', platform: '', store: '', targetSku: '', quantity: r.inStock }; });
@@ -136,7 +148,7 @@
       }
 
       function clearSearch() {
-        searchText.value = ''; selectedSupplier.value = ''; filteredRows.value = []; selectedRows.value = []; submitError.value = ''; unmatched.value = [];
+        searchText.value = ''; selectedSuppliers.value = []; selectedWarehouses.value = []; filteredRows.value = []; selectedRows.value = []; submitError.value = ''; unmatched.value = [];
       }
 
       function onSelectionChange(rows) { selectedRows.value = rows; }
@@ -219,7 +231,7 @@
       }
 
       function resetDialog() {
-        searchText.value = ''; selectedSupplier.value = ''; batchTargetTeam.value = ''; batchPlatform.value = ''; batchStore.value = '';
+        searchText.value = ''; selectedSuppliers.value = []; selectedWarehouses.value = []; batchTargetTeam.value = ''; batchPlatform.value = ''; batchStore.value = '';
         filteredRows.value = []; selectedRows.value = []; submitError.value = ''; unmatched.value = [];
         Object.keys(forms).forEach(k => delete forms[k]);
       }
@@ -228,7 +240,7 @@
       window.__openOwnershipAdjustment = open;
 
       return {
-        visible, searchText, selectedSupplier, suppliers, batchTargetTeam, batchPlatform, batchStore,
+        visible, searchText, selectedSuppliers, selectedWarehouses, suppliers, warehouses, batchTargetTeam, batchPlatform, batchStore,
         filteredRows, submitting, submitError, unmatched, totalQuantity,
         platforms, teamOptions, sellerSkuOptions,
         runSearch, clearSearch, onSelectionChange, formFor, storesFor, platformsForTeam, isPublicTeam,
