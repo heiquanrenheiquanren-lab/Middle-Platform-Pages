@@ -240,7 +240,7 @@ createApp({
 }).use(ElementPlus).mount(root);
 
 document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => {
-  const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', supplierInventory: '../supplier-inventory/index.html' };
+  const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', supplierInventory: '../supplier-inventory/index.html' };
   const page = item.dataset.pageNav;
   if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page }, '*');
   else if (routes[page]) window.location.href = routes[page];

@@ -256,6 +256,7 @@
         <div class="nav-section"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
         <div class="nav-item" data-page-nav="purchaseOrder"><span class="nav-icon">▰</span><span>采购单</span></div>
         <div class="nav-item" data-page-nav="shipmentOrder"><span class="nav-icon">▤</span><span>发货单</span></div>
+        <div class="nav-item" data-page-nav="skuFirstLegCost"><span class="nav-icon">¥</span><span>SKU单位头程成本</span></div>
         <div class="side-footer">Element Plus 页面重构原型</div>
       </aside>
 
@@ -1340,7 +1341,7 @@
   </script>
   <script>
     (() => {
-      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', supplierInventory: '../supplier-inventory/index.html' };
+      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', supplierInventory: '../supplier-inventory/index.html' };
       document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => {
         const page = item.dataset.pageNav;
         if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page }, '*');
