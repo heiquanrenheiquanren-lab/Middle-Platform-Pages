@@ -197,6 +197,15 @@ console.log({
 
 ### 3.9 查询区域规范
 
+#### 3.9.0 查询区总则（强制规范）
+
+> 背景：头程费用页面曾因使用 `el-form-item` 的 `label`（字段名显示在组件上方/左侧），导致查询区布局反复返工。查询区标准实现已沉淀在发货单页面（pages/shipment-orders/index.html），新页面必须照搬其结构和 CSS，禁止另起炉灶。
+
+- 查询区**不显示字段名 label**，字段名一律放在组件的 placeholder 中
+- **禁止**使用 `el-form-item` 的 `label` 属性、`label-position="top/left"` 写法
+- 查询项不需要外层 `<el-form>` 包裹，直接用 `.query-grid` + `.query-item` 结构
+- 参考实现模板见「3.9.10 标准实现模板（照搬发货单）」，所有页面查询区必须与发货单视觉一致
+
 #### 3.9.1 查询项排序原则
 
 查询项必须按照业务使用频率和产品定义顺序排列：
@@ -229,7 +238,7 @@ console.log({
 - SKU 类默认选择「SKU」
 - 文本框支持输入多个值
 - 支持逗号、中文逗号、空格、换行分隔
-- 占位文案根据下拉框选择的字段动态变化
+- 占位文案根据下拉框选择的字段动态变化，格式：「请输入XXX，支持输入多个，用逗号、空格或换行隔开」（如「请输入发货单号，支持输入多个，用逗号、空格或换行隔开」）
 - 组合项不能占用整行或半屏宽度，应采用“固定下拉宽度 + 输入框自适应宽度”
 - 类型下拉框推荐宽度约为 `115px`
 
@@ -249,7 +258,7 @@ console.log({
 
 规则：
 
-- 使用多选下拉框
+- 使用多选下拉框，**无 label**，placeholder 格式：「请选择XXX（可多选）」（如「请选择物流渠道（可多选）」）
 - 支持搜索和清空
 - 已选项较多时使用折叠标签
 - 选中值不得撑大组件宽度
@@ -355,6 +364,92 @@ console.log({
 
 > 核心原则：查询项按序号自动排列；按钮组固定在第二行右侧；只有实际溢出到第三行时才启用展开/收起。
 
+#### 3.9.10 标准实现模板（照搬发货单，禁止另起炉灶）
+
+> 历史教训：头程费用页面曾用 `el-form-item` + `label` 实现查询区，字段名显示在组件上方/左侧，布局反复返工。**所有页面的查询区必须照搬发货单页面的结构与 CSS，只改字段，不创新写法。**
+
+**网格布局**：
+
+- 容器 `.query-grid`：`display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:10px; align-items:center`
+- 每个查询项一个 `.query-item`，设置 `min-width:0`
+- 组合项（单号/SKU）加 `query-combo` class，且 `grid-column:span 2`
+- 创建日期加 `query-date-item`，`grid-column:span 2`
+- 按钮组所在项加 `query-action-item`：`grid-column:8; grid-row:2`（固定在第二行最右侧）
+
+**HTML 结构**（组合项示例）：
+
+```html
+<div class="query-item query-combo query-code-combo">
+  <el-select v-model="query.codeType" filterable class="query-type-select" aria-label="单号类型">
+    <el-option label="..." value="..."></el-option>
+  </el-select>
+  <el-input v-model="query.codeText" clearable placeholder="请输入XXX，支持输入多个，用逗号、空格或换行隔开"></el-input>
+</div>
+```
+
+多选下拉：加 `class="query-select"`，`placeholder="请选择XXX（可多选）"`。
+
+**折叠机制**：
+
+- JS：`layoutQuery()` 遍历 `.query-item:not(.query-action-item)`，按 `getBoundingClientRect().top` 去重得到行数，第三行起的项添加 `.query-overflow-item` class，`queryOverflow` 为 true 时显示「展开」按钮
+- CSS：`.query-card.query-collapsed .query-overflow-item{display:none}`
+- 按钮顺序：展开/收起（`query-inline-expand` 文字按钮）→ 查询（主按钮）→ 重置（普通按钮）
+
+**窄屏（≤1380px）**：网格降为 4 列，组合项仍 `span 2`，按钮组 `grid-column:4`。
+
+### 3.10 页面命名统一规范（强制）
+
+> 历史教训：头程费用页面改名时只改了页面内部（title/h1/自身侧边栏），漏改了**其他页面的侧边栏导航项**和**根 app.js 的 pageNames**，导致导航栏显示「SKU单位头程成本」、页面内显示「头程费用」，两边对不上。
+
+**一个页面的名称必须在以下所有位置保持一致：**
+
+1. 页面自身 `<title>`（浏览器标签）
+2. 页面标题（h1 / page-tab）
+3. 页面自身侧边栏的对应 `nav-item` 文字
+4. **其他所有页面的侧边栏对应导航项文字**（每个页面自带一份侧边栏，都要改）
+5. **根 `app.js` 的 `pageNames` 映射**（父框架 iframe 标题用）
+6. 根 `app.js` 的 `pages` 路由（key 用英文 slug 保持不变，如 `skuFirstLegCost`）
+
+**改名/新增页面后必做**：全局搜索旧名称，确认无残留（允许保留的例外：表格业务列名、CSV 导出表头、CHANGELOG 历史记录）。
+
+### 3.11 表格底部整行合计（强制规范）
+
+> 历史教训：头程费用页面曾按「每列底部各加一个合计」实现，用户实际要求的是表格最底部**一整行**汇总，且合计基于全部查询结果（不分页），返工一轮。以后任何表格要加合计，一律按本规范做。
+
+**位置**：表格最底部一整行（el-table 的 `#append` 插槽），**不是**每列底部单独一个
+
+**计算范围**：合计基于**用户查询筛选后的全部结果**（不分页），翻页不影响合计数字
+
+**布局（与表格列严格对齐）**：
+
+- 用 CSS Grid 模拟列：`grid-template-columns` 的每列宽度与 el-table-column 的 `width` 一一对应
+- 每个格子一个 `.total-slot`，`border-right` 模拟表格列边框，最后一格去掉
+- 需要合计的列位置显示「合计（CNY）」小字 + 数字，其余格子留空
+- **必须覆盖** `.el-table__append-wrapper{padding:0}`，否则默认 padding 会导致合计行与表格列错位
+
+**颜色规则**：
+
+- 金额类：加粗 + 品牌橙（`#e67e22`）
+- 差异类：非 0 红色（`#f56c6c`）、0 灰色（`#909399`），与行内差异颜色规则一致
+
+**参考实现**：`pages/sku-first-leg-cost/index.html` 的 `.cost-total-row`（11 格 Grid 对应 11 列，第 7/8/9 格分别放总费用、单位成本、差异合计）。
+
+```html
+<template #append>
+  <div class="cost-total-row">
+    <div class="total-slot"></div>
+    <!-- ... 每列一个格子，宽度与列宽一致 ... -->
+    <div class="total-slot align-right"><span class="total-caption">合计（CNY）</span><span class="total-num cost-value">{{totalUnitCostSum}}</span></div>
+    <div class="total-slot align-right"><span class="total-caption">合计（CNY）</span><span class="total-num">{{diffTotalSum}}</span></div>
+  </div>
+</template>
+```
+
+**合计计算口径**：
+
+- 按行累加的字段（如单位成本×数量）：直接对全部查询结果求和
+- 单据级字段（如差异，同单多行值相同）：**按单据去重**后求和，避免重复累加
+
 ## 四、视觉规范
 
 ### 4.1 设计体系
@@ -387,6 +482,14 @@ border-radius: 8px;
 - [ ] 有无「一键填满」和「清空」按钮？
 - [ ] 非相关数据是否已过滤？（如加工弹窗无普通SKU）
 - [ ] 搜索框是否在数据超过 5 行时存在？
+- [ ] **查询区（强制必查）**：
+  - [ ] 是否**没有**任何 `el-form-item label` / `label-position`？（字段名必须在 placeholder 中）
+  - [ ] 是否照搬发货单的 `.query-grid`（8 列）+ `.query-item` 结构？组合项是否 `span 2`？
+  - [ ] placeholder 格式是否为「请选择XXX（可多选）」/「请输入XXX，支持输入多个，用逗号、空格或换行隔开」？
+  - [ ] 按钮组（展开/收起 → 查询 → 重置）是否固定在第二行最右侧（`grid-column:8; grid-row:2`）？
+  - [ ] 溢出折叠是否用 `layoutQuery()` + `.query-overflow-item` 实现，而非 max-height？
+- [ ] **页面命名统一（强制必查）**：改过的页面名称是否在 5 处一致（页面 title / 页面标题 / 自身侧边栏 / 其他所有页面侧边栏 / 根 app.js pageNames）？是否已全局搜索旧名称确认无残留？
+- [ ] **表格整行合计（强制必查）**：合计是否用 el-table `#append` 整行 + CSS Grid 列对齐实现（而非每列底部各一个）？是否覆盖了 `.el-table__append-wrapper{padding:0}`？合计是否基于全部查询结果（非当前页）？单据级字段是否按单据去重？
 - [ ] **表格横向滚动（强制必查）**：
   - [ ] 所有 Grid/Flex 子项容器（`.stock-business`、表格包装层、查询面板）是否都加了 `min-width:0`？
   - [ ] 表格包装容器是否**没有**设置 `overflow:hidden`？（会裁剪滚动条）

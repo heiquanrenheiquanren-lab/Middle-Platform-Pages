@@ -1,4 +1,4 @@
-const {createApp,ref,reactive,computed}=Vue;
+const {createApp,ref,reactive,computed,nextTick,onMounted}=Vue;
 
 const splitValues=value=>String(value||'').split(/[\s,，、;；]+/).map(item=>item.trim()).filter(Boolean).map(item=>item.toLowerCase());
 const textMatch=(value,query)=>{const terms=splitValues(query);if(!terms.length)return true;const source=String(value||'').toLowerCase();return terms.some(term=>source.includes(term));};
@@ -25,9 +25,8 @@ const unique=key=>[...new Set(rows.map(row=>row[key]).filter(value=>value&&value
 const app=createApp({setup(){
   const query=reactive({sku:'',skuType:'sku',orderType:'middleOrder',orderNo:'',planNo:'',destinations:[],platforms:[],stores:[],teams:[],transports:[],channels:[],creators:[],createdRange:[],hasDiff:''});
   const applied=reactive(JSON.parse(JSON.stringify(query)));
-  const page=ref(1),pageSize=ref(10),refreshing=ref(false),queryExpanded=ref(false);
+  const page=ref(1),pageSize=ref(10),refreshing=ref(false),queryExpanded=ref(false),queryOverflow=ref(false),queryGridRef=ref(null);
   const destinations=unique('destination'),platforms=unique('platform'),stores=unique('store'),teams=unique('team'),transports=unique('transport'),channels=unique('channel'),creators=['Admin','张敏','李晨','王磊'];
-  const hasAdvanced=true;
 
   // 按发货单号分组计算差异
   const enrichedRows=computed(()=>{
@@ -75,13 +74,37 @@ const app=createApp({setup(){
     return filteredRows.value.reduce((s,row)=>s+(row.unitCost||0)*(row.shippedQty||0),0).toFixed(2);
   });
 
+  // 差异合计：按发货单去重（同单多行差异相同），基于全部查询结果而非当前页
+  const diffTotalSum=computed(()=>{
+    const seen=new Set();
+    let sum=0;
+    filteredRows.value.forEach(row=>{
+      if(row.diff!=null&&!seen.has(row.middleOrder)){seen.add(row.middleOrder);sum+=row.diff;}
+    });
+    return sum.toFixed(2);
+  });
+
   const applyQuery=()=>{Object.assign(applied,JSON.parse(JSON.stringify(query)));page.value=1;ElementPlus.ElMessage.success(`查询完成，共 ${filteredRows.value.length} 条明细`)};
   const resetQuery=()=>{Object.assign(query,{sku:'',skuType:'sku',orderType:'middleOrder',orderNo:'',planNo:'',destinations:[],platforms:[],stores:[],teams:[],transports:[],channels:[],creators:[],createdRange:[],hasDiff:''});applyQuery()};
   const refreshData=async()=>{refreshing.value=true;await new Promise(resolve=>setTimeout(resolve,450));refreshing.value=false;ElementPlus.ElMessage.success('数据已刷新')};
+
+  // 溢出检测（与发货单一致）：按查询项实际位置计算行数，给第三行起的项打 overflow 标记
+  const layoutQuery=()=>{
+    const grid=queryGridRef.value;if(!grid)return;
+    const items=[...grid.querySelectorAll('.query-item:not(.query-action-item)')];
+    items.forEach(item=>item.classList.remove('query-overflow-item'));
+    const tops=[...new Set(items.map(item=>Math.round(item.getBoundingClientRect().top)))].sort((a,b)=>a-b);
+    const overflowTop=tops[2];
+    const overflowItems=overflowTop===undefined?[]:items.filter(item=>Math.round(item.getBoundingClientRect().top)>=overflowTop);
+    overflowItems.forEach(item=>item.classList.add('query-overflow-item'));
+    queryOverflow.value=overflowItems.length>0;
+    if(!queryOverflow.value)queryExpanded.value=false;
+  };
+  onMounted(()=>{nextTick(()=>{layoutQuery();let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(layoutQuery,80)})})});
   const csvEscape=value=>`"${String(value??'').replaceAll('"','""')}"`;
   const exportData=()=>{const headers=['目的仓','中台发货单号','ERP发货单号','平台','店铺','团队','SKU','发货计划','实际发货数量','收货数量','发货单总费用','SKU单位头程成本（CNY）','差异','运输方式','物流渠道','创建时间'];const lines=[headers,...filteredRows.value.map(row=>[row.destination,row.middleOrder,row.erpOrder,row.platform,row.store,row.team,row.sku,row.planNo,row.shippedQty,row.receiveQty,row.totalCost||'—',row.unitCost!=null?row.unitCost:'—',row.diff!=null?(Math.abs(row.diff)<0.001?'0':row.diff.toFixed(2)):'—',row.transport,row.channel,row.createdAt])].map(line=>line.map(csvEscape).join(','));const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='头程费用明细.csv';link.click();URL.revokeObjectURL(url);ElementPlus.ElMessage.success(`已导出 ${filteredRows.value.length} 条明细`)};
   const navigate=pageKey=>{if(window.parent!==window)window.parent.postMessage({type:'prototype:navigate',page:pageKey},'*');else if(navRoutes[pageKey])window.location.href=navRoutes[pageKey]};
-  return{query,queryExpanded,hasAdvanced,destinations,platforms,stores,teams,transports,channels,creators,filteredRows,pageRows,page,pageSize,refreshing,totalCostSum,totalUnitCostSum,applyQuery,resetQuery,refreshData,exportData,navigate};
+  return{query,queryExpanded,queryOverflow,queryGridRef,destinations,platforms,stores,teams,transports,channels,creators,filteredRows,pageRows,page,pageSize,refreshing,totalCostSum,totalUnitCostSum,diffTotalSum,applyQuery,resetQuery,refreshData,exportData,navigate};
 }}).use(ElementPlus).mount('#app');
 
 document.querySelectorAll('[data-page-nav]').forEach(item=>item.addEventListener('click',()=>{
