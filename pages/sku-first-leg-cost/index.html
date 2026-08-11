@@ -102,6 +102,9 @@
                   <template #default="{row}"><span :class="row.unitCost?'cost-value':'empty-cost'">{{row.unitCost||'—'}}</span></template>
                 </el-table-column>
                 <el-table-column label="差异" width="130" align="right">
+                  <template #header>
+                    <span class="diff-header">差异<el-tooltip placement="top"><template #content>差异 = Σ（单位成本 × 实际发货数量）− 发货单总费用<br>0 表示费用分摊完整；负数表示有费用未分摊到 SKU<br>同一发货单下所有 SKU 明细行的差异相同</template><span class="help-icon">?</span></el-tooltip></span>
+                  </template>
                   <template #default="{row}"><span :class="row.diff===0?'zero-diff':(row.diff?'diff-value':'empty-cost')">{{row.diff!=null?(row.diff===0?'0':row.diff.toFixed(2)):'—'}}</span></template>
                 </el-table-column>
                 <el-table-column label="物流信息" width="200">

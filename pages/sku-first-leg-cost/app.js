@@ -44,7 +44,7 @@ const app=createApp({setup(){
       const key=row.middleOrder;
       let diff=null;
       if(docTotalCost[key]&&(row.unitCost||0)>0){
-        diff=docTotalCost[key]-docSkuSum[key];
+        diff=docSkuSum[key]-docTotalCost[key];
       }
       return {...row,diff};
     });
