@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../../vendor/element-plus.css">
   
   
-  <link rel="stylesheet" href="styles.css?v=1.7.13">
+  <link rel="stylesheet" href="styles.css?v=1.7.23">
 </head>
 <body>
 <div id="app" v-cloak>
@@ -95,10 +95,10 @@
                 <div class="flow-ops">
                   <template v-if="row.status==='草稿'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link type="primary" @click="openEdit(row)">编辑</el-button><el-button link @click="transitionStatus(row,'待提货','提交')">提交</el-button><el-button link type="danger" @click="voidDocument(row)">作废</el-button><el-button link @click="openLog(row)">日志</el-button></template>
                   <template v-else-if="row.status==='待提货'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link @click="openPickup(row)">提货</el-button><el-button link type="warning" @click="cancelShip(row)">取消发货</el-button><el-button link @click="openLog(row)">日志</el-button></template>
-                  <template v-else-if="row.status==='可加工'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link @click="openProcessing(row)">加工</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link @click="openLog(row)">日志</el-button></template>
+                  <template v-else-if="row.status==='可加工'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link @click="openProcessing(row)">组合加工</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link @click="openLog(row)">日志</el-button></template>
                   <template v-else-if="row.status==='待发货'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link @click="openShip(row)">发货</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link @click="openLog(row)">日志</el-button></template>
-                  <template v-else-if="row.status==='待收货'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link @click="openLog(row)">日志</el-button></template>
-                  <template v-else-if="row.status==='部分收货'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link type="warning" @click="openComplete(row)">手动完成</el-button><el-button link @click="openLog(row)">日志</el-button></template>
+                  <template v-else-if="row.status==='待收货'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><!-- 手动收货入口已隐藏（自动收货为主），如需恢复去掉注释即可 --><el-button link @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link @click="openLog(row)">日志</el-button></template>
+                  <template v-else-if="row.status==='部分收货'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><!-- 手动收货入口已隐藏（自动收货为主），如需恢复去掉注释即可 --><el-button link @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link type="warning" @click="openComplete(row)">手动完成</el-button><el-button link @click="openLog(row)">日志</el-button></template>
                   <template v-else-if="row.status==='已完成'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link @click="openLog(row)">日志</el-button></template>
                   <template v-else-if="row.status==='已作废'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link type="primary" @click="openEdit(row)">编辑</el-button><el-button link @click="openLog(row)">日志</el-button></template>
                   <template v-else-if="row.status==='已取消'"><el-button link type="primary" @click="openDetail(row)">查看</el-button><el-button link @click="openLog(row)">日志</el-button></template>
@@ -121,7 +121,7 @@
       <el-form ref="createFormRef" class="public-form" :model="createForm" :rules="createRules" label-position="left" label-width="100px">
         <div class="public-grid">
           <el-form-item label="发货仓" prop="from"><el-select v-model="createForm.from" filterable placeholder="请选择发货仓" style="width:100%"><el-option v-for="x in warehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-          <el-form-item label="目的仓" prop="to"><el-select v-model="createForm.to" filterable placeholder="请选择目的仓" style="width:100%"><el-option v-for="x in destWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="目的仓" prop="to"><el-select v-model="createForm.to" filterable placeholder="请选择目的仓" style="width:100%"><el-option v-for="x in destWarehouses" :key="x" :label="x" :value="x"></el-option><el-option label="FBA专属仓" value="__FBA__" disabled></el-option></el-select></el-form-item>
           <el-form-item label="发货方式" prop="shipMode"><el-select v-model="createForm.shipMode" filterable placeholder="请选择发货方式" style="width:100%"><el-option v-for="x in shipModes" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="头程服务商" prop="provider"><el-select v-model="createForm.provider" filterable placeholder="请选择头程服务商" style="width:100%"><el-option v-for="x in providers" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="运输方式" prop="transport"><el-select v-model="createForm.transport" placeholder="请选择运输方式" style="width:100%"><el-option v-for="x in transports" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
@@ -139,7 +139,7 @@
       </div>
       <div class="sku-section">
         <div class="section-actions"><el-tooltip content="请先填写顶部必填字段" placement="top" :disabled="canAddSku"><span class="disabled-button-wrap"><el-button type="primary" :disabled="!canAddSku" @click="openSkuDialog">＋ 新增 SKU</el-button></span></el-tooltip></div>
-        <div class="sku-rule-hint">⚠ 同一发货单仅支持同一目的仓的货物合并发运；FBA 专属仓与非亚马逊团队货物不可混发</div>
+        <div class="sku-rule-hint">⚠ 同一发货单仅支持同一目的仓的货物合并发货；亚马逊相关发货单由领星生成，不在中台手动创建</div>
         <div v-if="!selectedSkus.length" class="sku-empty">尚未选择 SKU，至少选择一个 SKU</div>
         <div v-else class="selected-table-wrap">
           <el-table :data="selectedSkus" border height="100%" class="selected-sku-table">
@@ -147,20 +147,20 @@
             <el-table-column label="产品信息" width="235"><template #default="{row}"><div class="product-cell"><el-image :src="row.image" fit="contain" class="product-image"></el-image><el-tooltip :content="row.title" placement="top"><div class="product-title">{{row.title}}</div></el-tooltip></div></template></el-table-column>
             <el-table-column prop="planNo" label="发货计划" width="155"></el-table-column>
             <el-table-column prop="overseasSku" label="海外仓 SKU" width="145"></el-table-column>
-            <el-table-column prop="fnsku" label="FNSKU" width="120"></el-table-column>
+            <el-table-column prop="easSku" label="易仓 SKU" width="120"></el-table-column>
             <el-table-column prop="platform" label="平台" width="120"></el-table-column>
             <el-table-column prop="team" label="团队" width="110"></el-table-column>
             <el-table-column prop="store" label="店铺" width="155" show-overflow-tooltip></el-table-column>
             <el-table-column prop="boxes" label="箱数" width="75"></el-table-column>
             <el-table-column prop="planQty" label="计划发货数量" width="120"></el-table-column>
-            <el-table-column label="申报量" width="135"><template #default="{row}"><el-input-number v-model="row.declareQty" :min="1" :max="row.remain" controls-position="right" style="width:110px"></el-input-number></template></el-table-column>
+            <el-table-column label="发货量" width="135"><template #default="{row}"><el-input-number v-model="row.declareQty" :min="1" :max="row.remain" controls-position="right" style="width:110px"></el-input-number></template></el-table-column>
             <el-table-column label="重量＆体积" width="185"><template #default="{row}"><div class="measure-cell"><div>{{row.weight}} KG</div><div>{{row.length}} × {{row.width}} × {{row.height}}</div><div>{{row.volume}} m³</div></div></template></el-table-column>
             <el-table-column label="计划差额" width="95"><template #default="{row}">{{row.planQty-row.declareQty}}</template></el-table-column>
             <el-table-column label="备注" width="180"><template #default="{row}"><el-input v-model="row.skuRemark" clearable placeholder="请输入备注"></el-input></template></el-table-column>
             <el-table-column label="操作" width="80" fixed="right"><template #default="{row}"><el-button link type="danger" @click="removeSku(row)">移除</el-button></template></el-table-column>
           </el-table>
         </div>
-        <div class="summary-strip"><span>SKU 数 <b>{{selectedSkus.length}}</b></span><span>申报数量 <b>{{declareTotal}}</b></span></div>
+        <div class="summary-strip"><span>SKU 数 <b>{{selectedSkus.length}}</b></span><span>发货数量 <b>{{declareTotal}}</b></span></div>
       </div>
     </div>
     <template #footer><div class="dialog-footer"><el-button @click="createVisible=false">取消</el-button><el-button @click="saveDraft">保存草稿</el-button><el-button type="primary" @click="submitCreate">提交</el-button></div></template>
@@ -171,27 +171,27 @@
       <div class="sku-query">
         <el-form-item label="发货计划"><el-input v-model="skuSearch.planNos" type="textarea" :rows="2" placeholder="支持多个，使用逗号或换行分隔" clearable></el-input></el-form-item>
         <el-form-item label="SKU"><el-input v-model="skuSearch.skus" type="textarea" :rows="2" placeholder="支持多个，使用逗号或换行分隔" clearable></el-input></el-form-item>
-        <el-form-item label="平台"><el-select v-model="skuSearch.platforms" multiple filterable collapse-tags collapse-tags-tooltip clearable placeholder="请选择平台" style="width:100%"><el-option v-for="x in platformOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-        <el-form-item label="店铺"><el-select v-model="skuSearch.stores" multiple filterable collapse-tags collapse-tags-tooltip clearable placeholder="请选择店铺" style="width:100%"><el-option v-for="x in storeOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+        <el-form-item label="平台"><el-select v-model="skuSearch.platforms" multiple filterable collapse-tags collapse-tags-tooltip clearable placeholder="请选择平台" style="width:100%"><el-option v-for="x in platformOptions" :key="x" :label="x" :value="x" :disabled="isAmazonOption(x)"></el-option></el-select></el-form-item>
+        <el-form-item label="店铺"><el-select v-model="skuSearch.stores" multiple filterable collapse-tags collapse-tags-tooltip clearable placeholder="请选择店铺" style="width:100%"><el-option v-for="x in storeOptions" :key="x" :label="x" :value="x" :disabled="isAmazonOption(x)"></el-option></el-select></el-form-item>
         <el-form-item label="团队"><el-select v-model="skuSearch.teams" multiple filterable collapse-tags collapse-tags-tooltip clearable placeholder="请选择团队" style="width:100%"><el-option v-for="x in teamOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
         <div><el-button type="primary" @click="runSkuQuery">查询</el-button><el-button @click="resetSkuQuery">重置</el-button></div>
       </div>
     </el-form>
-    <div class="sku-rule-hint">⚠ 同一发货单仅支持同一目的仓的货物合并发运；FBA 专属仓与非亚马逊团队货物不可混发（刚性规则）</div>
+    <div class="sku-rule-hint">⚠ 同一发货单仅支持同一目的仓的货物合并发货；亚马逊相关发货单由领星生成，不在中台手动创建</div>
     <div class="sku-table-wrap">
       <el-table ref="skuTableRef" :data="filteredSkuCandidates" row-key="sku" border class="sku-table" max-height="430" @selection-change="onSkuSelection">
         <el-table-column type="selection" width="52" reserve-selection></el-table-column>
         <el-table-column prop="sku" label="SKU" min-width="140" fixed="left"></el-table-column>
         <el-table-column prop="planNo" label="发货计划" min-width="155"></el-table-column>
         <el-table-column prop="overseasSku" label="海外仓 SKU" min-width="145"></el-table-column>
-        <el-table-column prop="fnsku" label="FNSKU" min-width="120"></el-table-column>
+        <el-table-column prop="easSku" label="易仓 SKU" min-width="120"></el-table-column>
         <el-table-column prop="platform" label="平台" min-width="120"></el-table-column>
         <el-table-column prop="owner" label="运营负责人" width="105"></el-table-column>
         <el-table-column prop="team" label="团队" min-width="110"></el-table-column>
         <el-table-column prop="store" label="店铺" min-width="155" show-overflow-tooltip></el-table-column>
         <el-table-column prop="boxes" label="箱数" width="75"></el-table-column>
         <el-table-column prop="planQty" label="计划发货数量" width="125"></el-table-column>
-        <el-table-column label="申报量" width="145"><template #header><span style="color:#f56c6c">*</span> 申报量</template><template #default="{row}"><el-input-number v-model="row.declareQty" :min="1" :max="row.remain" controls-position="right" class="declare-input"></el-input-number></template></el-table-column>
+        <el-table-column label="发货量" width="145"><template #header><span style="color:#f56c6c">*</span> 发货量</template><template #default="{row}"><el-input-number v-model="row.declareQty" :min="1" :max="row.remain" controls-position="right" class="declare-input"></el-input-number></template></el-table-column>
         <el-table-column label="备注" min-width="190"><template #default="{row}"><el-input v-model="row.skuRemark" clearable placeholder="默认带出发货计划备注"></el-input></template></el-table-column>
         <el-table-column prop="remain" label="发货计划剩余数量" width="150"></el-table-column>
         <el-table-column label="计划差额" width="95"><template #default="{row}">{{row.planQty-row.declareQty}}</template></el-table-column>
@@ -418,19 +418,20 @@
     <template #footer><div class="quantity-adjust-footer"><span class="muted">确认后将重算差异并写入操作日志</span><div><el-button @click="quantityAdjustVisible=false">取消</el-button><el-button type="primary" :loading="quantityAdjustSubmitting" @click="submitQuantityAdjust">确认调整</el-button></div></div></template>
   </el-dialog>
 
-  <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量物流加工':'物流加工｜'+processingDocId" width="74vw" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量组合加工':'组合加工｜'+processingDocId" width="74vw" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="processingMode==='batch'" class="processing-batch-summary">
       <div class="batch-summary-info"><b>可加工发货单 {{processingBatchSummary.docCount}} 张</b><span class="muted">　·　组合 SKU {{processingBatchSummary.comboCount}} 个　·　提货合计 {{processingBatchSummary.totalPick}} 件　·　可加工合计 {{processingBatchSummary.totalProcessable}} 件</span></div>
       <div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键全部填充</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div>
     </div>
     <div v-else class="processing-single-hint"><div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键填满</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div></div>
-    <div class="processing-search-bar"><el-input v-model="processingSearch.sku" clearable placeholder="搜索 SKU" style="width:180px" @input="processingTableRef?.clearSelection()"></el-input><el-input v-if="processingMode==='batch'" v-model="processingSearch.docId" clearable placeholder="搜索发货单号" style="width:200px;margin-left:10px" @input="processingTableRef?.clearSelection()"></el-input><el-button v-if="processingSearch.sku||processingSearch.docId" link type="primary" @click="resetProcessingSearch" style="margin-left:8px">清除筛选</el-button></div>
+    <div class="processing-search-bar"><el-input v-model="processingSearch.sku" clearable placeholder="搜索 SKU" style="width:180px" @input="processingTableRef?.clearSelection()"></el-input><el-select v-model="processingSearch.supplier" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="供应商（可多选）" style="width:220px;margin-left:10px" @change="processingTableRef?.clearSelection()"><el-option v-for="x in supplierOptions" :key="x" :label="x" :value="x"></el-option></el-select><el-input v-if="processingMode==='batch'" v-model="processingSearch.docId" clearable placeholder="搜索发货单号" style="width:200px;margin-left:10px" @input="processingTableRef?.clearSelection()"></el-input><el-button v-if="processingSearch.sku||processingSearch.docId||processingSearch.supplier.length" link type="primary" @click="resetProcessingSearch" style="margin-left:8px">清除筛选</el-button></div>
     <div class="processing-table-wrap">
       <el-table ref="processingTableRef" :data="filteredProcessingRows" row-key="id" border class="processing-table" max-height="460" @selection-change="onProcessingSelection" :span-method="processingSpanMethod">
         <el-table-column type="selection" width="52" fixed="left" reserve-selection :selectable="processingSelectable"></el-table-column>
         <el-table-column v-if="processingMode==='batch'" label="发货单号" width="195" fixed="left"><template #default="{row}"><span v-if="row.isParent" class="doc-no" style="cursor:default">{{row.docId}}</span></template></el-table-column>
         <el-table-column label="SKU" width="190" fixed="left"><template #default="{row}"><div v-if="row.isParent"><span>{{row.sku}}</span><el-popover trigger="click" placement="top-start" width="220" popper-class="combo-popover"><template #reference><el-tag size="small" type="primary" effect="plain" style="display:block;margin-top:4px;width:fit-content;cursor:pointer">组合</el-tag></template><div class="combo-popover-title">组合明细｜{{row.sku}}</div><el-table :data="comboParts(row.sku)" size="small" border><el-table-column prop="sku" label="子件 SKU"></el-table-column><el-table-column prop="ratio" label="组合数量" width="80" align="center"></el-table-column></el-table></el-popover></div></template></el-table-column>
         <el-table-column prop="subSku" label="子件 SKU" width="190"><template #default="{row}"><span v-if="!row.isParent" style="padding-left:8px;color:#666">└ {{row.subSku}}</span></template></el-table-column>
+        <el-table-column label="供应商信息" width="200"><template #default="{row}"><div class="nested-cell"><div>供应商 {{row.supplier||'—'}}</div><div>供应商编码 {{row.supplierCode||'—'}}</div><div>供应商料号 {{row.supplierPartNo||'—'}}</div></div></template></el-table-column>
         <el-table-column label="库存明细" width="190" align="right"><template #default="{row}"><div class="nested-cell"><div>在库量 {{row.stock}}</div><div>在库（待发）量 {{row.pendingStock}}</div><div>在途／在产量 {{row.transitQty}}</div><div class="nested-total">总量 {{row.total}}</div></div></template></el-table-column>
         <el-table-column prop="pickupQty" label="提货数量" width="110" align="right"></el-table-column>
         <el-table-column label="加工进度" width="140" align="right"><template #default="{row}"><div v-if="row.isParent" class="nested-cell"><div>已加工 {{row.processedQty}}</div><div :class="{pickupDone:row.processableQty===0}">可加工 {{row.processableQty}}</div></div><span v-else>—</span></template></el-table-column>
@@ -503,30 +504,28 @@
 
   <!-- 其他头程费用分摊 -->
   <el-dialog v-model="costApportionVisible" title="其他头程费用分摊" width="85vw" top="6vh" class="cost-apportion-dialog" :close-on-click-modal="false" destroy-on-close>
-    <div class="cost-apportion-summary">已选 <b>{{costApportionRows.length}}</b> 个批次 · 涉及 <b>{{costApportionSkuCount}}</b> 个 SKU · 共 <b>{{costApportionQtyTotal}}</b> 件 · 本次分摊合计 <b>{{costApportionTotal}}</b></div>
     <div class="cost-apportion-section">
-      <div class="cost-apportion-section-title">费用资料</div>
-      <el-form ref="costApportionFormRef" :model="costApportionForm" :rules="costApportionRules" label-position="top" size="default">
-        <div class="cost-apportion-form-grid">
-          <el-form-item label="费用类型" prop="type"><el-select v-model="costApportionForm.type" placeholder="请选择费用类型" style="width:100%"><el-option v-for="x in costApportionTypes" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-          <el-form-item label="费用金额" prop="amount"><el-input-number v-model="costApportionForm.amount" :min="0" :precision="2" :controls="false" placeholder="请输入费用金额" style="width:100%"></el-input-number></el-form-item>
-          <el-form-item label="费用周期" prop="period"><el-date-picker v-model="costApportionForm.period" type="daterange" value-format="YYYY-MM-DD" start-placeholder="开始日期" end-placeholder="结束日期" style="width:100%"></el-date-picker></el-form-item>
-          <el-form-item label="分摊规则" prop="rule"><el-select v-model="costApportionForm.rule" placeholder="请选择分摊规则" style="width:100%"><el-option v-for="x in costApportionRulesOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-          <el-form-item label="负责人" prop="owner"><el-select v-model="costApportionForm.owner" filterable placeholder="搜索用户名/账号" style="width:100%"><el-option v-for="x in costApportionOwners" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-          <el-form-item label="附件"><el-upload action="#" :auto-upload="false" :limit="3"><el-button type="primary" plain>上传附件</el-button></el-upload></el-form-item>
+      <div class="cost-apportion-section-title">分摊批次筛选</div>
+      <el-form label-position="top" size="default">
+        <div class="cost-apportion-query-grid">
+          <el-form-item label="发货单号"><div class="query-code-control"><el-select v-model="costApportionSearch.docType" class="code-type" filterable><el-option label="中台发货单号" value="middleDoc"></el-option><el-option label="ERP发货单号" value="erpDoc"></el-option></el-select><el-input v-model="costApportionSearch.docNo" clearable placeholder="请输入发货单号"></el-input></div></el-form-item>
+          <el-form-item label="团队"><el-select v-model="costApportionSearch.teams" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="全部团队" style="width:100%"><el-option v-for="x in teamOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="提货批次号"><el-input v-model="costApportionSearch.batchNo" clearable placeholder="请输入提货批次号"></el-input></el-form-item>
+          <el-form-item label="费用周期"><el-date-picker v-model="costApportionSearch.period" type="daterange" value-format="YYYY-MM-DD" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width:100%"></el-date-picker></el-form-item>
+          <div class="cost-apportion-query-actions"><el-button type="primary" @click="queryCostApportionBatch">查询</el-button><el-button @click="resetCostApportionSearch">重置</el-button></div>
         </div>
-        <el-form-item label="备注" class="cost-apportion-remark"><el-input v-model="costApportionForm.remark" type="textarea" :rows="2" placeholder="请输入备注"></el-input></el-form-item>
       </el-form>
     </div>
     <div class="cost-apportion-section">
-      <div class="cost-apportion-section-head"><span class="cost-apportion-section-title">分摊批次</span><el-button type="primary" link @click="openCostApportionBatch">＋ 按费用周期添加未分摊的提货批次</el-button></div>
-      <el-table :data="costApportionRows" border size="small" class="cost-apportion-table" max-height="360" @selection-change="onCostApportionSelection">
-        <el-table-column type="selection" width="46" align="center"></el-table-column>
+      <div class="cost-apportion-section-head"><span class="cost-apportion-section-title">分摊批次（勾选加入分摊）</span></div>
+      <el-table ref="costApportionBatchTableRef" :data="costApportionBatchRows" row-key="key" border size="small" class="cost-apportion-table" max-height="300" @selection-change="onCostApportionBatchSelection">
+        <el-table-column type="selection" width="46" align="center" reserve-selection></el-table-column>
         <el-table-column prop="batchNo" label="批次号" min-width="150"></el-table-column>
+        <el-table-column prop="date" label="费用周期" min-width="130"></el-table-column>
+        <el-table-column prop="docId" label="发货单号" min-width="175"></el-table-column>
         <el-table-column prop="planNo" label="计划号" min-width="155"></el-table-column>
         <el-table-column prop="sku" label="SKU" min-width="135"></el-table-column>
         <el-table-column prop="name" label="品名" min-width="180" show-overflow-tooltip></el-table-column>
-        <el-table-column prop="sellerSku" label="SellerSKU/Asin" min-width="140"></el-table-column>
         <el-table-column prop="team" label="团队" min-width="100"></el-table-column>
         <el-table-column prop="qty" label="提货数量" width="95" align="right"></el-table-column>
         <el-table-column prop="pickupRemark" label="提货备注" min-width="130" show-overflow-tooltip></el-table-column>
@@ -539,28 +538,25 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="apportionAmount" label="本次分摊金额" width="120" align="right"><template #default="{row}"><span class="cost-apportion-amount">{{row.apportionAmount}}</span></template></el-table-column>
-        <el-table-column label="操作" width="70" fixed="right" align="center"><template #default="{row}"><el-button link type="danger" @click="removeCostApportionRow(row)">删除</el-button></template></el-table-column>
+        <el-table-column prop="apportionAmount" label="本次分摊金额" width="120" align="right"><template #default="{row}"><span class="cost-apportion-amount">{{row.apportionAmount||'—'}}</span></template></el-table-column>
       </el-table>
-      <div v-if="!costApportionRows.length" class="cost-apportion-empty">暂无分摊批次，请点击上方按钮添加</div>
+      <div v-if="!costApportionBatchRows.length" class="cost-apportion-empty">未查询到符合条件的分摊批次，请调整筛选条件</div>
+      <div class="cost-apportion-summary">已选 <b>{{costApportionRows.length}}</b> 个批次 · 涉及 <b>{{costApportionSkuCount}}</b> 个 SKU · 共 <b>{{costApportionQtyTotal}}</b> 件 · 本次分摊合计 <b>{{costApportionTotal}}</b></div>
+    </div>
+    <div class="cost-apportion-section">
+      <div class="cost-apportion-section-title">费用信息</div>
+      <el-form ref="costApportionFormRef" :model="costApportionForm" :rules="costApportionRules" label-position="top" size="default">
+        <div class="cost-apportion-form-grid">
+          <el-form-item label="费用类型" prop="type"><el-select v-model="costApportionForm.type" placeholder="请选择费用类型" style="width:100%"><el-option v-for="x in costApportionTypes" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="费用金额" prop="amount"><el-input-number v-model="costApportionForm.amount" :min="0" :precision="2" :controls="false" placeholder="请输入费用金额" style="width:100%"></el-input-number></el-form-item>
+          <el-form-item label="分摊规则" prop="rule"><el-select v-model="costApportionForm.rule" placeholder="请选择分摊规则" style="width:100%"><el-option v-for="x in costApportionRulesOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="负责人" prop="owner"><el-select v-model="costApportionForm.owner" filterable placeholder="搜索用户名/账号" style="width:100%"><el-option v-for="x in costApportionOwners" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="附件"><el-upload action="#" :auto-upload="false" :limit="3"><el-button type="primary" plain>上传附件</el-button></el-upload></el-form-item>
+        </div>
+        <el-form-item label="备注" class="cost-apportion-remark"><el-input v-model="costApportionForm.remark" type="textarea" :rows="2" placeholder="请输入备注"></el-input></el-form-item>
+      </el-form>
     </div>
     <template #footer><div class="dialog-footer"><el-button type="primary" @click="submitCostApportion">提交</el-button><el-button @click="resetCostApportion">重置</el-button><el-button @click="costApportionVisible=false">取消</el-button></div></template>
-  </el-dialog>
-
-  <!-- 选择未分摊提货批次 -->
-  <el-dialog v-model="costApportionBatchVisible" title="选择未分摊提货批次" width="780px" top="10vh" class="cost-apportion-batch-dialog" append-to-body>
-    <div class="cost-apportion-batch-search"><el-input v-model="costApportionSearch" placeholder="搜索批次号 / SKU / 计划号" clearable style="width:320px"></el-input><el-button type="primary" @click="queryCostApportionBatch">查询</el-button><el-button @click="costApportionSearch='';queryCostApportionBatch()">重置</el-button></div>
-    <el-table ref="costApportionBatchTableRef" :data="costApportionBatchRows" border size="small" height="320" @selection-change="onCostApportionBatchSelection">
-      <el-table-column type="selection" width="46" align="center"></el-table-column>
-      <el-table-column prop="batchNo" label="批次号" min-width="150"></el-table-column>
-      <el-table-column prop="docNo" label="发货单号" min-width="145"></el-table-column>
-      <el-table-column prop="planNo" label="计划号" min-width="155"></el-table-column>
-      <el-table-column prop="sku" label="SKU" min-width="135"></el-table-column>
-      <el-table-column prop="name" label="品名" min-width="160" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="qty" label="提货数量" width="95" align="right"></el-table-column>
-      <el-table-column prop="date" label="提货时间" min-width="160"></el-table-column>
-    </el-table>
-    <template #footer><div class="dialog-footer"><el-button @click="costApportionBatchVisible=false">取消</el-button><el-button type="primary" @click="confirmCostApportionBatch">确认</el-button></div></template>
   </el-dialog>
   <!-- ERP 易仓详情 -->
   <el-dialog v-model="erpDetailVisible" :title="'易仓详情｜'+(erpDetailDoc?.id||'')" width="800px" append-to-body>
@@ -575,6 +571,6 @@
 </div>
 <script src="../../vendor/vue.global.prod.js"></script>
 <script src="../../vendor/element-plus.js"></script>
-<script src="app.js?v=1.7.13"></script>
+<script src="app.js?v=1.7.23"></script>
 </body>
 </html>
