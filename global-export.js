@@ -215,6 +215,7 @@
     if (!node || node.closest('.gx-dialog') || node.closest('.gx-entry')) return false;
     var target = node.closest('button, a, [role="button"], .el-button, .btn, .tool, [title]');
     if (!target) return false;
+    if (target.closest('.warehouse-sku-tool')) return false;
     var text = (target.textContent || '').replace(/\s/g, '').trim();
     var title = target.getAttribute('title') || target.getAttribute('aria-label') || '';
     if (text.indexOf('模板') >= 0 || title.indexOf('模板') >= 0) return false;
@@ -232,6 +233,54 @@
     entry.addEventListener('click', openWorkbench); updateBadge();
   }
 
+  function navigateToWorkbench() {
+    var message = { type: 'prototype:navigate', page: 'workbench' };
+    if (window.parent !== window) window.parent.postMessage(message, '*');
+    else window.location.href = '../../pages/workbench/index.html';
+  }
+
+  function navigateToBusinessPages() {
+    var message = { type: 'prototype:navigate', page: 'supplierInventory' };
+    if (window.parent !== window) window.parent.postMessage(message, '*');
+    else window.location.href = '../../pages/supplier-inventory/index.html';
+  }
+
+  function mountWorkbenchShortcut() {
+    var modules = document.querySelectorAll('.global-left .top-module');
+    var icons = document.querySelectorAll('.global-left .top-icon, .global-left .global-icon');
+    var firstTarget = modules[0] || icons[0];
+    var businessTarget = modules[2] || icons[2];
+    if (firstTarget && firstTarget.dataset.workbenchBound !== 'true') {
+      firstTarget.dataset.workbenchBound = 'true';
+      firstTarget.setAttribute('title', '工作台');
+      firstTarget.addEventListener('click', navigateToWorkbench);
+    }
+    if (businessTarget && businessTarget.dataset.businessBound !== 'true') {
+      businessTarget.dataset.businessBound = 'true';
+      businessTarget.setAttribute('title', '供应链中台');
+      businessTarget.addEventListener('click', navigateToBusinessPages);
+    }
+  }
+
+  function mountTopModuleLabels() {
+    var labels = ['工作台', '财务中台', '供应链中台', '运营中台', '产品资料', '企业工单'];
+    document.querySelectorAll('.global-left').forEach(function (container) {
+      var icons = Array.prototype.slice.call(container.children).filter(function (child) { return child.classList.contains('top-icon') || child.classList.contains('global-icon'); });
+      icons.slice(0, labels.length).forEach(function (icon, index) {
+        if (icon.parentElement.classList.contains('top-module')) return;
+        var module = document.createElement('span');
+        module.className = 'top-module';
+        module.setAttribute('title', labels[index]);
+        icon.parentNode.insertBefore(module, icon);
+        module.appendChild(icon);
+        var label = document.createElement('span');
+        label.className = 'top-module-label';
+        label.textContent = labels[index];
+        module.appendChild(label);
+      });
+    });
+  }
+
   document.addEventListener('click', function (event) {
     if (!isExportTrigger(event.target)) return;
     event.preventDefault(); event.stopImmediatePropagation();
@@ -241,5 +290,5 @@
 
   document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && state.open) closeWorkbench(); });
   window.GlobalExportWorkbench = { open: openWorkbench, close: closeWorkbench, createTask: createTask, getTasks: function () { return tasks.slice(); } };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountEntry); else mountEntry();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { mountTopModuleLabels(); mountEntry(); mountWorkbenchShortcut(); }); else { mountTopModuleLabels(); mountEntry(); mountWorkbenchShortcut(); }
 })();

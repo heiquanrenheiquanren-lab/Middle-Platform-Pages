@@ -507,8 +507,9 @@
   <el-dialog v-model="costApportionVisible" title="其他头程费用分摊" width="85vw" top="6vh" class="cost-apportion-dialog" :close-on-click-modal="false" destroy-on-close>
     <div class="cost-apportion-section">
       <div class="cost-apportion-section-title">分摊批次筛选</div>
-      <el-form label-position="top" size="default">
+      <el-form ref="costApportionTypeFormRef" :model="costApportionForm" :rules="costApportionTypeRules" label-position="top" size="default">
         <div class="cost-apportion-query-grid">
+          <el-form-item label="费用类型" prop="type"><el-select v-model="costApportionForm.type" placeholder="请选择费用类型" style="width:100%"><el-option v-for="x in costApportionTypes" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="发货单号"><div class="query-code-control"><el-select v-model="costApportionSearch.docType" class="code-type" filterable><el-option label="中台发货单号" value="middleDoc"></el-option><el-option label="ERP发货单号" value="erpDoc"></el-option></el-select><el-input v-model="costApportionSearch.docNo" clearable placeholder="请输入发货单号"></el-input></div></el-form-item>
           <el-form-item label="团队"><el-select v-model="costApportionSearch.teams" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="全部团队" style="width:100%"><el-option v-for="x in teamOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="提货批次号"><el-input v-model="costApportionSearch.batchNo" clearable placeholder="请输入提货批次号"></el-input></el-form-item>
@@ -548,7 +549,6 @@
       <div class="cost-apportion-section-title">费用信息</div>
       <el-form ref="costApportionFormRef" :model="costApportionForm" :rules="costApportionRules" label-position="top" size="default">
         <div class="cost-apportion-form-grid">
-          <el-form-item label="费用类型" prop="type"><el-select v-model="costApportionForm.type" placeholder="请选择费用类型" style="width:100%"><el-option v-for="x in costApportionTypes" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="费用金额" prop="amount"><el-input-number v-model="costApportionForm.amount" :min="0" :precision="2" :controls="false" placeholder="请输入费用金额" style="width:100%"></el-input-number></el-form-item>
           <el-form-item label="分摊规则" prop="rule"><el-select v-model="costApportionForm.rule" placeholder="请选择分摊规则" style="width:100%"><el-option v-for="x in costApportionRulesOptions" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="负责人" prop="owner"><el-select v-model="costApportionForm.owner" filterable placeholder="搜索用户名/账号" style="width:100%"><el-option v-for="x in costApportionOwners" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>

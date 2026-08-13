@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>工作台｜首页数据大屏</title>
+  <link rel="stylesheet" href="../../global-export.css?v=1.7.34">
+  <link rel="stylesheet" href="./styles.css?v=1.7.34">
+  <link rel="stylesheet" href="../supplier-list/styles.css?v=1.7.34">
+  <link rel="stylesheet" href="../warehouse-sku/styles.css?v=1.7.34">
+</head>
+<body>
+  <div class="workbench-page">
+    <header class="workbench-topbar">
+      <div class="global-left" aria-label="全局导航">
+        <span class="brand-shield" aria-label="品牌标识"></span>
+        <button class="top-icon active" type="button" aria-label="工作台">▱</button>
+        <button class="top-icon" type="button" aria-label="库存">▤</button>
+        <button class="top-icon" type="button" aria-label="供应链">⛓</button>
+        <button class="top-icon" type="button" aria-label="计划">▥</button>
+        <button class="top-icon" type="button" aria-label="采购">▣</button>
+        <button class="top-icon" type="button" aria-label="单据">▤</button>
+      </div>
+      <div class="workbench-global-right global-right">
+        <button class="refresh-button" type="button" aria-label="刷新">⟳</button>
+        <button class="platform-switch" type="button">数据中台⌄</button>
+        <button class="fullscreen-button" type="button" aria-label="全屏">⛶</button>
+        <span class="admin">Admin⌄</span>
+      </div>
+    </header>
+
+    <div class="workbench-body">
+      <aside class="workbench-sidebar" aria-label="工作台菜单">
+        <button class="workbench-nav-title active" type="button"><span class="nav-symbol">▱</span><span>工作台</span></button>
+        <section class="nav-section">
+          <button class="nav-section-title" type="button"><span class="nav-symbol">⚙</span><span>账号管理</span><span class="nav-chevron">⌃</span></button>
+          <button class="nav-item" type="button"><span class="nav-symbol">♙</span><span>账号管理</span></button>
+          <button class="nav-item" type="button"><span class="nav-symbol">♙</span><span>权限管理</span><span class="item-chevron">⌄</span></button>
+        </section>
+        <section class="nav-section">
+          <button class="nav-section-title" type="button"><span class="nav-symbol">▦</span><span>业务组织</span><span class="nav-chevron">⌃</span></button>
+          <button class="nav-item" type="button"><span class="nav-symbol">▤</span><span>平台管理</span></button>
+          <button class="nav-item" type="button"><span class="nav-symbol">♧</span><span>团队管理</span></button>
+          <button class="nav-item" type="button" data-page-nav="warehouseSku"><span class="nav-symbol">▱</span><span>仓库管理</span></button>
+          <button class="nav-item nav-subitem" type="button" data-page-nav="supplierList"><span class="nav-symbol">▤</span><span>供应商列表</span></button>
+        </section>
+        <section class="nav-section">
+          <button class="nav-section-title" type="button"><span class="nav-symbol">▥</span><span>公司组织</span><span class="nav-chevron">⌃</span></button>
+          <button class="nav-item" type="button"><span class="nav-symbol">♙</span><span>部门管理</span></button>
+          <button class="nav-item" type="button"><span class="nav-symbol">♙</span><span>岗位管理</span></button>
+        </section>
+        <section class="nav-section">
+          <button class="nav-section-title" type="button"><span class="nav-symbol">▧</span><span>素材管理</span><span class="nav-chevron">⌃</span></button>
+          <button class="nav-item" type="button"><span class="nav-symbol">◉</span><span>素材中心</span></button>
+        </section>
+        <button class="nav-item standalone" type="button"><span class="nav-symbol">▤</span><span>系统日志</span></button>
+      </aside>
+
+      <main class="workbench-content">
+        <section id="workbenchDashboard" class="workbench-dashboard">
+          <h1>首页数据大屏</h1>
+        </section>
+        <section id="workbenchSupplierView" class="workbench-supplier-view" hidden>
+          <section class="supplier-page-head"><div class="supplier-page-tab"><span>▤</span><span>供应商列表</span></div></section>
+          <section class="supplier-query-card" aria-label="供应商查询条件">
+            <div class="supplier-query-row">
+              <div class="supplier-query-item supplier-name-select">
+                <button class="supplier-select-trigger" id="supplierNameTrigger" type="button">供应商名称（可多选）</button>
+                <div class="supplier-select-dropdown" id="supplierNameDropdown"><input id="supplierNameKeyword" class="supplier-dropdown-search" placeholder="搜索供应商名称"><div id="supplierNameOptions"></div></div>
+              </div>
+              <div class="supplier-query-item supplier-code-item"><input id="supplierCodeInput" class="supplier-control" placeholder="供应商代码，支持多个，精确匹配"></div>
+              <div class="supplier-query-item supplier-status-item"><select id="supplierStatusInput" class="supplier-control"><option value="">合作状态（全部）</option><option value="合作中">合作中</option><option value="禁用">禁用</option></select></div>
+              <div class="supplier-query-actions"><button id="supplierSearchButton" class="supplier-button primary" type="button">查询</button><button id="supplierResetButton" class="supplier-button" type="button">重置</button></div>
+            </div>
+          </section>
+          <section class="supplier-table-card"><div class="supplier-table-toolbar"><div class="supplier-toolbar-left"><button id="supplierAddButton" class="supplier-button primary supplier-add-button" type="button">新增供应商</button><span>供应商列表</span><span id="supplierResultCount" class="supplier-count">共 0 条</span></div></div><div class="supplier-table-wrap"><table class="supplier-table"><thead><tr><th>供应商名称</th><th>供应商代码</th><th>合作状态</th><th>操作</th></tr></thead><tbody id="supplierTableBody"></tbody></table></div><div class="supplier-empty" id="supplierEmpty" hidden>暂无符合条件的供应商</div></section>
+        </section>
+        <section id="workbenchWarehouseSkuView" class="workbench-warehouse-sku-view" hidden>
+          <div class="warehouse-sku-tabs">
+            <button class="warehouse-sku-tab active" type="button" data-warehouse-tab="sku">仓库SKU管理</button>
+            <button class="warehouse-sku-tab" type="button" data-warehouse-tab="warehouse">仓库管理</button>
+          </div>
+          <div class="warehouse-sku-toolbar">
+            <button id="warehouseSkuAddButton" class="warehouse-sku-button primary" type="button">新增仓库SKU</button>
+            <div class="warehouse-sku-tools" aria-label="列表工具">
+              <button class="warehouse-sku-tool" type="button" data-tool="filter" aria-label="筛选">▽</button>
+              <button class="warehouse-sku-tool" type="button" data-tool="search" aria-label="搜索">⌕</button>
+              <button class="warehouse-sku-tool" type="button" data-tool="settings" aria-label="设置">⚙</button>
+              <button class="warehouse-sku-tool" type="button" data-tool="refresh" aria-label="刷新">⟳</button>
+              <button class="warehouse-sku-tool" type="button" data-tool="upload" aria-label="导入">↥</button>
+              <button class="warehouse-sku-tool" type="button" data-tool="download" aria-label="下载">↧</button>
+            </div>
+          </div>
+          <div id="warehouseSkuSearchPanel" class="warehouse-sku-search-panel" hidden>
+            <input id="warehouseSkuKeyword" class="warehouse-sku-control" placeholder="请输入仓库SKU，支持模糊搜索">
+            <select id="warehouseSkuStatus" class="warehouse-sku-control"><option value="">配对状态（全部）</option><option value="已配对">已配对</option><option value="未配对">未配对</option></select>
+            <button id="warehouseSkuSearchButton" class="warehouse-sku-button primary" type="button">查询</button>
+            <button id="warehouseSkuResetButton" class="warehouse-sku-button" type="button">重置</button>
+          </div>
+          <div id="warehouseSkuWarehousePanel" class="warehouse-management-panel" hidden>
+            <div class="warehouse-management-query" aria-label="仓库查询条件">
+              <div class="warehouse-filter-select warehouse-name-filter"><button id="warehouseNameTrigger" class="warehouse-filter-trigger" type="button">仓库名称（可多选）</button><div id="warehouseNameDropdown" class="warehouse-filter-dropdown warehouse-name-dropdown"><input id="warehouseNameKeyword" class="warehouse-dropdown-search" placeholder="搜索仓库名称"><div id="warehouseNameOptions"></div></div></div>
+              <div class="warehouse-filter-select"><button id="warehouseTypeFilter" class="warehouse-filter-trigger" type="button" data-filter-key="type">仓库类型（全部）</button><div class="warehouse-filter-dropdown"><button type="button" data-filter-select="type" data-filter-value="">仓库类型（全部）</button><button type="button" data-filter-select="type" data-filter-value="自营仓">自营仓</button><button type="button" data-filter-select="type" data-filter-value="供应商仓">供应商仓</button><button type="button" data-filter-select="type" data-filter-value="物流商仓">物流商仓</button><button type="button" data-filter-select="type" data-filter-value="物流中转仓">物流中转仓</button><button type="button" data-filter-select="type" data-filter-value="海外仓">海外仓</button><button type="button" data-filter-select="type" data-filter-value="平台仓">平台仓</button></div></div>
+              <div class="warehouse-filter-select"><button id="warehouseStatusFilter" class="warehouse-filter-trigger" type="button" data-filter-key="status">启用状态（全部）</button><div class="warehouse-filter-dropdown"><button type="button" data-filter-select="status" data-filter-value="">启用状态（全部）</button><button type="button" data-filter-select="status" data-filter-value="启用">启用</button><button type="button" data-filter-select="status" data-filter-value="停用">停用</button></div></div>
+              <div class="warehouse-filter-select"><button id="warehouseCountryFilter" class="warehouse-filter-trigger" type="button" data-filter-key="country">所在国家（全部）</button><div class="warehouse-filter-dropdown"><button type="button" data-filter-select="country" data-filter-value="">所在国家（全部）</button><button type="button" data-filter-select="country" data-filter-value="波兰">波兰</button><button type="button" data-filter-select="country" data-filter-value="法国">法国</button><button type="button" data-filter-select="country" data-filter-value="中国">中国</button><button type="button" data-filter-select="country" data-filter-value="美国">美国</button></div></div>
+              <div class="warehouse-filter-select"><button id="warehousePlatformFilter" class="warehouse-filter-trigger" type="button" data-filter-key="platform">关联平台（全部）</button><div class="warehouse-filter-dropdown"><button type="button" data-filter-select="platform" data-filter-value="">关联平台（全部）</button><button type="button" data-filter-select="platform" data-filter-value="AliExpress">AliExpress</button><button type="button" data-filter-select="platform" data-filter-value="Amazon">Amazon</button><button type="button" data-filter-select="platform" data-filter-value="Shopee">Shopee</button><button type="button" data-filter-select="platform" data-filter-value="Temu">Temu</button><button type="button" data-filter-select="platform" data-filter-value="—">—</button></div></div>
+              <button id="warehouseSearchButton" class="warehouse-sku-button primary" type="button">查询</button>
+              <button id="warehouseResetButton" class="warehouse-sku-button" type="button">重置</button>
+            </div>
+            <div class="warehouse-management-toolbar"><button id="warehouseAddButton" class="warehouse-sku-button primary" type="button">新增仓库</button></div>
+            <div class="warehouse-management-table-wrap">
+              <table class="warehouse-management-table"><thead><tr><th class="warehouse-index-col">序号</th><th class="warehouse-name-col">仓库</th><th>所在国家</th><th>仓库类型</th><th>关联平台</th><th>仓库状态</th><th class="warehouse-address-col">仓库地址</th><th>仓库负责人</th><th class="warehouse-action-col">操作</th></tr></thead><tbody id="warehouseManagementTableBody"></tbody></table>
+            </div>
+            <div class="warehouse-management-empty" id="warehouseManagementEmpty" hidden>暂无符合条件的仓库</div>
+            <div class="warehouse-management-pagination"><span id="warehouseManagementCount">共 0 条</span><select id="warehouseManagementPageSize"><option>20条/页</option><option>10条/页</option></select><button type="button" id="warehouseManagementPrev">‹</button><span class="warehouse-page-current">1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>…</span><span>12</span><button type="button" id="warehouseManagementNext">›</button><span>前往</span><input value="1" aria-label="仓库前往页码"><span>页</span></div>
+          </div>
+          <div id="warehouseSkuTablePanel" class="warehouse-sku-table-layout">
+            <aside class="warehouse-sku-tree" aria-label="仓库分组">
+              <div class="warehouse-sku-tree-title"><span>仓库分组</span><span class="warehouse-sku-tree-count">共 3 组</span></div>
+              <div id="warehouseSkuTree" class="warehouse-sku-tree-list"></div>
+            </aside>
+            <section class="warehouse-sku-table-card">
+              <div class="warehouse-sku-table-wrap">
+                <table class="warehouse-sku-table">
+                  <thead><tr><th class="wsku-provider-col">仓库服务商</th><th class="wsku-related-col">关联仓库</th><th class="wsku-sku-col">仓库SKU</th><th class="wsku-status-col">配对状态</th><th class="wsku-time-col">配对时间</th><th class="wsku-package-col">包装规格<br>（长cm）</th><th class="wsku-package-col">包装规格<br>（宽cm）</th><th class="wsku-package-col">包装规格<br>（高cm）</th><th class="wsku-weight-col">包装规格<br>（重kg）</th><th class="wsku-creator-col">创建人</th><th class="wsku-time-col">创建时间</th><th class="wsku-time-col">更新时间</th><th class="wsku-related-sku-col">关联SKU</th><th class="wsku-action-col">操作</th></tr></thead>
+                  <tbody id="warehouseSkuTableBody"></tbody>
+                </table>
+              </div>
+              <div class="warehouse-sku-empty" id="warehouseSkuEmpty" hidden>暂无符合条件的仓库 SKU</div>
+              <div class="warehouse-sku-pagination"><span id="warehouseSkuResultCount">共 0 条</span><select id="warehouseSkuPageSize"><option value="12">25条/页</option><option value="8">10条/页</option></select><button id="warehouseSkuPrev" type="button">‹</button><span class="warehouse-sku-page-current" id="warehouseSkuPageCurrent">1</span><span>2</span><span>3</span><span>4</span><span>…</span><span>71</span><button id="warehouseSkuNext" type="button">›</button><span>前往</span><input id="warehouseSkuGoPage" value="1" aria-label="前往页码"><span>页</span></div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="../supplier-list/app.js?v=1.7.34"></script>
+  <script src="../warehouse-sku/app.js?v=1.7.34"></script>
+  <script>
+    (() => {
+      const dashboard = document.querySelector('#workbenchDashboard');
+      const supplierView = document.querySelector('#workbenchSupplierView');
+      const warehouseSkuView = document.querySelector('#workbenchWarehouseSkuView');
+      const supplierMenu = document.querySelector('[data-page-nav="supplierList"]');
+      const warehouseSkuMenu = document.querySelector('[data-page-nav="warehouseSku"]');
+      const showSupplierList = () => {
+        dashboard.hidden = true;
+        supplierView.hidden = false;
+        warehouseSkuView.hidden = true;
+        supplierMenu.classList.add('active');
+        warehouseSkuMenu.classList.remove('active');
+        history.replaceState(null, '', '#supplierList');
+      };
+      const showWarehouseSku = () => {
+        dashboard.hidden = true;
+        supplierView.hidden = true;
+        warehouseSkuView.hidden = false;
+        supplierMenu.classList.remove('active');
+        warehouseSkuMenu.classList.add('active');
+        history.replaceState(null, '', '#warehouseSku');
+      };
+      const showDashboard = () => {
+        dashboard.hidden = false;
+        supplierView.hidden = true;
+        warehouseSkuView.hidden = true;
+        supplierMenu.classList.remove('active');
+        warehouseSkuMenu.classList.remove('active');
+        history.replaceState(null, '', '#workbench');
+      };
+      supplierMenu.addEventListener('click', showSupplierList);
+      warehouseSkuMenu.addEventListener('click', showWarehouseSku);
+      if (location.hash === '#supplierList') showSupplierList(); else if (location.hash === '#warehouseSku') showWarehouseSku(); else showDashboard();
+    })();
+  </script>
+  <script src="../../global-export.js?v=1.7.34"></script>
+</body>
+</html>

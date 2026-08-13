@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>供应商列表｜工作台</title>
+  <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
+  <link rel="stylesheet" href="./styles.css?v=1.0.0">
+</head>
+<body>
+  <div class="supplier-page">
+    <header class="supplier-topbar">
+      <div class="global-left" aria-label="全局导航">
+        <span class="brand-shield" aria-label="品牌标识"></span>
+        <button class="top-icon" type="button" aria-label="工作台">▱</button>
+        <button class="top-icon" type="button" aria-label="财务中台">▤</button>
+        <button class="top-icon active" type="button" aria-label="供应链中台">⛓</button>
+        <button class="top-icon" type="button" aria-label="运营中台">▥</button>
+        <button class="top-icon" type="button" aria-label="产品资料">▣</button>
+        <button class="top-icon" type="button" aria-label="企业工单">▤</button>
+      </div>
+      <div class="global-right">
+        <span class="icon">⟳</span>
+        <span class="icon">⛶</span>
+        <span class="admin">Admin⌄</span>
+      </div>
+    </header>
+
+    <div class="supplier-body">
+      <aside class="supplier-sidebar">
+        <div class="supplier-nav-title"><span>▱</span><span>工作台</span></div>
+        <div class="supplier-nav-section"><span>▦</span><span>业务组织</span><span class="nav-chevron">⌃</span></div>
+        <button class="supplier-nav-item" type="button"><span>▤</span><span>平台管理</span></button>
+        <button class="supplier-nav-item" type="button"><span>♧</span><span>团队管理</span></button>
+        <button class="supplier-nav-item" type="button"><span>▱</span><span>仓库管理</span></button>
+        <button class="supplier-nav-item active" type="button"><span>▤</span><span>供应商列表</span></button>
+      </aside>
+
+      <main class="supplier-main">
+        <section class="supplier-page-head"><div class="supplier-page-tab"><span>▤</span><span>供应商列表</span></div></section>
+        <section class="supplier-query-card" aria-label="供应商查询条件">
+          <div class="supplier-query-row">
+            <div class="supplier-query-item supplier-name-select">
+              <button class="supplier-select-trigger" id="supplierNameTrigger" type="button">供应商名称（可多选）</button>
+              <div class="supplier-select-dropdown" id="supplierNameDropdown">
+                <input id="supplierNameKeyword" class="supplier-dropdown-search" placeholder="搜索供应商名称">
+                <div id="supplierNameOptions"></div>
+              </div>
+            </div>
+            <div class="supplier-query-item supplier-code-item">
+              <input id="supplierCodeInput" class="supplier-control" placeholder="供应商代码，支持多个，精确匹配">
+            </div>
+            <div class="supplier-query-item supplier-status-item">
+              <select id="supplierStatusInput" class="supplier-control">
+                <option value="">合作状态（全部）</option>
+                <option value="合作中">合作中</option>
+                <option value="禁用">禁用</option>
+              </select>
+            </div>
+            <div class="supplier-query-actions">
+              <button id="supplierSearchButton" class="supplier-button primary" type="button">查询</button>
+              <button id="supplierResetButton" class="supplier-button" type="button">重置</button>
+            </div>
+          </div>
+        </section>
+        <section class="supplier-table-card">
+          <div class="supplier-table-toolbar"><div class="supplier-toolbar-left"><button id="supplierAddButton" class="supplier-button primary supplier-add-button" type="button">新增供应商</button><span>供应商列表</span><span id="supplierResultCount" class="supplier-count">共 0 条</span></div></div>
+          <div class="supplier-table-wrap">
+            <table class="supplier-table">
+              <thead><tr><th>供应商名称</th><th>供应商代码</th><th>合作状态</th><th>操作</th></tr></thead>
+              <tbody id="supplierTableBody"></tbody>
+            </table>
+          </div>
+          <div class="supplier-empty" id="supplierEmpty" hidden>暂无符合条件的供应商</div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="./app.js?v=1.0.0"></script>
+  <script src="../../global-export.js?v=1.0.0"></script>
+</body>
+</html>
