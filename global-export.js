@@ -268,6 +268,7 @@
       var icons = Array.prototype.slice.call(container.children).filter(function (child) { return child.classList.contains('top-icon') || child.classList.contains('global-icon'); });
       icons.slice(0, labels.length).forEach(function (icon, index) {
         if (icon.parentElement.classList.contains('top-module')) return;
+        if ((icon.textContent || '').trim()) return;
         var module = document.createElement('span');
         module.className = 'top-module';
         module.setAttribute('title', labels[index]);

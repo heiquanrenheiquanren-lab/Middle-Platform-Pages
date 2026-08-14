@@ -239,12 +239,13 @@
     }
   </style>
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.37">
 </head>
 <body>
   <div id="app">
     <div class="app-shell">
       <aside class="side-nav">
-        <div class="brand"><span class="brand-mark"></span><span>供应链中台</span></div>
+        <div class="brand"><span>工作台</span></div>
         <div class="nav-section"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
         <div class="nav-item"><span class="nav-icon">▤</span><span>团队库存</span></div>
         <div class="nav-item"><span class="nav-icon">▥</span><span>平台仓&海外仓</span></div>
@@ -263,11 +264,10 @@
 
       <main class="main-area">
         <header class="top-header">
-          <div class="header-title">计划管理 / {{ currentModule === 'forecast' ? '需求预测' : '备货计划' }}</div>
+          <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
           <div class="header-user">
-            <el-avatar :size="30">管</el-avatar>
-            <span>Admin</span>
-            <span class="muted">⌄</span>
+            <button class="refresh-button" type="button" aria-label="刷新">⟳</button>
+            <span class="admin">Admin⌄</span>
           </div>
         </header>
 
@@ -1350,6 +1350,6 @@
       }));
     })();
   </script>
-  <script src="../../global-export.js?v=1.0.0"></script>
+  <script src="../../global-export.js?v=1.7.37"></script>
 </body>
 </html>

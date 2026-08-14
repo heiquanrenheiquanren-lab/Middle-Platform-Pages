@@ -4,27 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>工作台｜首页数据大屏</title>
-  <link rel="stylesheet" href="../../global-export.css?v=1.7.34">
-  <link rel="stylesheet" href="./styles.css?v=1.7.34">
-  <link rel="stylesheet" href="../supplier-list/styles.css?v=1.7.34">
-  <link rel="stylesheet" href="../warehouse-sku/styles.css?v=1.7.34">
+  <link rel="stylesheet" href="../../global-export.css?v=1.7.35">
+  <link rel="stylesheet" href="./styles.css?v=1.7.35">
+  <link rel="stylesheet" href="../supplier-list/styles.css?v=1.7.35">
+  <link rel="stylesheet" href="../warehouse-sku/styles.css?v=1.7.35">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.37">
 </head>
 <body>
   <div class="workbench-page">
     <header class="workbench-topbar">
       <div class="global-left" aria-label="全局导航">
         <span class="brand-shield" aria-label="品牌标识"></span>
-        <button class="top-icon active" type="button" aria-label="工作台">▱</button>
-        <button class="top-icon" type="button" aria-label="库存">▤</button>
-        <button class="top-icon" type="button" aria-label="供应链">⛓</button>
-        <button class="top-icon" type="button" aria-label="计划">▥</button>
-        <button class="top-icon" type="button" aria-label="采购">▣</button>
-        <button class="top-icon" type="button" aria-label="单据">▤</button>
+        <button class="top-icon active" type="button" aria-label="工作台">工作台</button>
+        <button class="top-icon" type="button" aria-label="财务中台">财务中台</button>
+        <button class="top-icon" type="button" aria-label="供应链中台">供应链中台</button>
+        <button class="top-icon" type="button" aria-label="运营中台">运营中台</button>
+        <button class="top-icon" type="button" aria-label="产品资料">产品资料</button>
+        <button class="top-icon" type="button" aria-label="企业工单">企业工单</button>
       </div>
       <div class="workbench-global-right global-right">
         <button class="refresh-button" type="button" aria-label="刷新">⟳</button>
-        <button class="platform-switch" type="button">数据中台⌄</button>
-        <button class="fullscreen-button" type="button" aria-label="全屏">⛶</button>
         <span class="admin">Admin⌄</span>
       </div>
     </header>
@@ -42,7 +41,7 @@
           <button class="nav-item" type="button"><span class="nav-symbol">▤</span><span>平台管理</span></button>
           <button class="nav-item" type="button"><span class="nav-symbol">♧</span><span>团队管理</span></button>
           <button class="nav-item" type="button" data-page-nav="warehouseSku"><span class="nav-symbol">▱</span><span>仓库管理</span></button>
-          <button class="nav-item nav-subitem" type="button" data-page-nav="supplierList"><span class="nav-symbol">▤</span><span>供应商列表</span></button>
+          <button class="nav-item" type="button" data-page-nav="supplierList"><span class="nav-symbol">▤</span><span>供应商列表</span></button>
         </section>
         <section class="nav-section">
           <button class="nav-section-title" type="button"><span class="nav-symbol">▥</span><span>公司组织</span><span class="nav-chevron">⌃</span></button>
@@ -134,8 +133,8 @@
       </main>
     </div>
   </div>
-  <script src="../supplier-list/app.js?v=1.7.34"></script>
-  <script src="../warehouse-sku/app.js?v=1.7.34"></script>
+  <script src="../supplier-list/app.js?v=1.7.35"></script>
+  <script src="../warehouse-sku/app.js?v=1.7.35"></script>
   <script>
     (() => {
       const dashboard = document.querySelector('#workbenchDashboard');
@@ -172,6 +171,6 @@
       if (location.hash === '#supplierList') showSupplierList(); else if (location.hash === '#warehouseSku') showWarehouseSku(); else showDashboard();
     })();
   </script>
-  <script src="../../global-export.js?v=1.7.34"></script>
+  <script src="../../global-export.js?v=1.7.37"></script>
 </body>
 </html>
