@@ -42,7 +42,7 @@ createApp({setup(){
   const batchTypeMap={提货:'pickup',加工:'processing',发货:'shipment',收货:'receive','手动完结':'complete'};
   const batchSourceLabels={manual:'人工操作',import:'文件导入',api:'接口同步',system:'系统生成',demo:'系统记录'};
   const batchSourceLabel=source=>batchSourceLabels[source]||'系统记录';
-  docs.forEach(d=>{const m=d.id.match(/(\d{8})/);if(m)d.created=m[1].replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3');d.shipmentNo=d.shipmentNo||'—';d.referenceId=d.referenceId||'—';d.quantityAdjustments=d.quantityAdjustments||[];(d.batches||[]).forEach(batch=>{batch.quantityType=batch.quantityType||batchTypeMap[batch.type]||'';batch.source=batch.source||'demo';batch.adjustments=batch.adjustments||[]})});
+  docs.forEach(d=>{const m=d.id.match(/(\d{8})/);if(m)d.created=m[1].replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3');d.shipmentNo=d.shipmentNo||'—';d.referenceId=d.referenceId||'—';d.providerNo=d.providerNo||'—';d.quantityAdjustments=d.quantityAdjustments||[];(d.batches||[]).forEach(batch=>{batch.quantityType=batch.quantityType||batchTypeMap[batch.type]||'';batch.source=batch.source||'demo';batch.adjustments=batch.adjustments||[]})});
   const extraNoMap={'DN20260808001':{shipmentNo:'FBA20260808001',referenceId:'REF-US-001'},'DN20260808002':{shipmentNo:'FBA20260808002',referenceId:'REF-US-002'},'DN20260808003':{shipmentNo:'FBA20260808003',referenceId:'REF-US-003'},'DN20260806001':{shipmentNo:'FBA20260806001',referenceId:'REF-US-006'},'DN20260808009':{shipmentNo:'FBA20260808009',referenceId:'REF-US-009'},'DN20260805008':{shipmentNo:'FBA20260805008',referenceId:'REF-DE-008'},'DN20260720001':{shipmentNo:'FBA20260720001',referenceId:'REF-US-020'}};
   docs.forEach(d=>{if(extraNoMap[d.id]){d.shipmentNo=extraNoMap[d.id].shipmentNo;d.referenceId=extraNoMap[d.id].referenceId}});
   docs.forEach(d=>{['fee','actualFreight','customsFee','otherLogisticsFee','totalAccessoryCost','firstLegTotal'].forEach(key=>{if(d[key]&&typeof d[key]==='string'&&!/^¥/.test(d[key])&&d[key]!=='—'&&d[key]!=='-'){d[key]=d[key].replace(/^[$€]/,'¥')}})});
@@ -60,8 +60,8 @@ createApp({setup(){
     return logs;
   };
   docs.forEach(d=>{d.logs=buildLogs(d)});
-  const codeTypeOptions=[{label:'ERP发货单号',value:'erpNo'},{label:'发货单号',value:'shipmentNo'},{label:'关联货件单号',value:'shipmentLinkNo'},{label:'Reference ID',value:'referenceId'},{label:'计划单号',value:'planNo'},{label:'物流单号',value:'logisticsNo'}];
-  const skuTypeOptions=[{label:'SKU',value:'sku'},{label:'海外仓 SKU',value:'overseasSku'},{label:'FNSKU',value:'fnsku'}];
+  const codeTypeOptions=[{label:'ERP发货单号',value:'erpNo'},{label:'发货单号',value:'shipmentNo'},{label:'计划单号',value:'planNo'},{label:'物流单号',value:'logisticsNo'}/*,{label:'关联货件单号',value:'shipmentLinkNo'},{label:'Reference ID',value:'referenceId'}*/];
+  const skuTypeOptions=[{label:'SKU',value:'sku'},{label:'海外仓 SKU',value:'overseasSku'}/*,{label:'FNSKU',value:'fnsku'}*/];
   const storeOptions=['Amazon-US 旗舰店','Amazon-US 运动店','Amazon-US 户外店','Amazon-US 箱包店','Amazon-DE 家居店','Amazon-DE 厨房店','Walmart-US 家居店','Walmart-US 数码店'];
   const creatorOptions=['Admin','张敏','李晨','王磊'];
   const query=reactive({codeType:'erpNo',codeText:'',skuType:'sku',skuText:'',shipModes:[],froms:[],tos:[],channels:[],transports:[],platforms:[],stores:[],teams:[],creators:['Admin'],createdRange:[]}),appliedQuery=reactive({codeType:'erpNo',codeText:'',skuType:'sku',skuText:'',shipModes:[],froms:[],tos:[],channels:[],transports:[],platforms:[],stores:[],teams:[],creators:['Admin'],createdRange:[]}),statusTab=ref('全部'),queryExpanded=ref(false),queryOverflow=ref(false);
