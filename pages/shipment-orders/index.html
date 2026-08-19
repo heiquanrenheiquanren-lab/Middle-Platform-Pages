@@ -449,7 +449,7 @@
   </el-dialog>
 
   <el-dialog v-model="importVisible" :title="importTitle" width="680px" top="10vh" class="import-dialog" append-to-body :close-on-click-modal="false">
-    <el-steps :active="importStep" align-center finish-status="success" class="import-steps"><el-step title="下载模板"></el-step><el-step title="选择文件"></el-step><el-step title="校验文件"></el-step><el-step title="确认导入"></el-step></el-steps>
+    <el-steps :active="importStep" align-center finish-status="success" class="import-steps"><el-step title="下载模板"></el-step><el-step title="选择文件"></el-step><el-step title="确认导入"></el-step></el-steps>
     <div class="import-guide">
       <div class="import-guide-title">第一步：使用标准模板整理数据</div>
       <div class="muted">请勿修改模板表头。支持 .xlsx、.xls、.csv 文件，单次仅导入一个文件。</div>
@@ -460,11 +460,10 @@
       <el-upload ref="importUploadRef" drag :auto-upload="false" :limit="1" accept=".xlsx,.xls,.csv" :on-change="onImportFileChange" :on-remove="removeImportFile">
         <div style="font-size:34px;color:#a8abb2;line-height:1;margin-bottom:10px">⇧</div>
         <div class="el-upload__text">将 Excel 文件拖到此处，或<em>点击选择文件</em></div>
-        <template #tip><div class="el-upload__tip">选择文件后请先执行校验；校验通过才能确认导入。</div></template>
+        <template #tip><div class="el-upload__tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</div></template>
       </el-upload>
     </div>
-    <div v-if="importValidated" class="import-validated"><span>✓</span><span>文件校验通过：表头与数据格式符合要求，可确认导入。</span></div>
-    <template #footer><div class="import-footer"><span class="muted">{{importFile?`当前文件：${importFile.name}`:'尚未选择文件'}}</span><div class="import-footer-actions"><el-button @click="importVisible=false">取消</el-button><el-button :disabled="!importFile" @click="validateImportFile">校验文件</el-button><el-button type="primary" :disabled="!importValidated" @click="submitImport">确认导入</el-button></div></div></template>
+    <template #footer><div class="import-footer"><span class="muted">{{importFile?`当前文件：${importFile.name}`:'尚未选择文件'}}</span><div class="import-footer-actions"><el-button @click="importVisible=false">取消</el-button><el-button type="primary" :disabled="!importFile" @click="submitImport">确认导入</el-button></div></div></template>
   </el-dialog>
 
   <el-dialog v-model="batchVisible" title="新增履约批次" width="760px" append-to-body>
