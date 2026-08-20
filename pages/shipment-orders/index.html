@@ -33,6 +33,7 @@
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
           <div class="nav-item active" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
+          
           <div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
         </div>
         <div class="collapse">≡</div>
@@ -62,7 +63,7 @@
         <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button type="success" plain @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button @click="openCostApportion">其他头程费用分摊</el-button><el-dropdown @command="handleExportCommand" style="margin-left:0"><el-button>导出<el-icon style="margin-left:4px"><i class="el-icon--right">⌄</i></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="shipmentInfo">发货单信息</el-dropdown-item><el-dropdown-item command="skuDetail">发货 SKU 明细</el-dropdown-item></el-dropdown-menu></template></el-dropdown><el-button :loading="refreshLoading" @click="refreshData">刷新</el-button></div>
         <div class="card status-card"><el-tabs v-model="statusTab" class="status-tabs"><el-tab-pane v-for="s in statuses" :key="s" :name="s"><template #label><span>{{s}}<i class="tab-count">{{statusCount(s)}}</i></span></template></el-tab-pane></el-tabs></div>
         <div class="card list-card">
-          <div class="list-head"><b>发货单列表</b><span class="list-count">共 {{filteredDocs.length}} 张</span></div>
+          <div class="list-head"><b>发货单列表</b><span class="list-count">共 {{filteredDocs?.length}} 张</span></div>
           <el-table ref="mainTableRef" :data="filteredDocs" row-key="id" class="main-table" style="width:100%" @selection-change="onDocSelection">
             <el-table-column type="selection" width="46" fixed="left"></el-table-column>
             <el-table-column type="expand" width="46" fixed="left">
@@ -109,7 +110,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div v-if="filteredDocs.length" class="pagination"><el-pagination background layout="total, prev, pager, next" :total="filteredDocs.length" :page-size="10"></el-pagination></div>
+          <div v-if="filteredDocs?.length" class="pagination"><el-pagination background layout="total, prev, pager, next" :total="filteredDocs?.length||0" :page-size="10"></el-pagination></div>
           <el-empty v-else description="暂无符合条件的发货单" :image-size="80" style="padding:40px 0"></el-empty>
         </div>
       </section>
@@ -291,18 +292,31 @@
         </el-form>
       </div>
       <div class="pickup-table-wrap">
-        <el-table ref="pickupTableRef" :data="pickupRows" row-key="key" border class="pickup-table" max-height="390" @selection-change="onPickupSelection">
+        <el-table ref="pickupTableRef" :data="pickupRows" row-key="key" border class="pickup-table" max-height="390" :row-class-name="pickupRowClassName" @selection-change="onPickupSelection">
           <el-table-column type="selection" width="52" fixed="left" reserve-selection :selectable="pickupSelectable"></el-table-column>
-          <el-table-column prop="sku" label="SKU" width="145" fixed="left"></el-table-column>
-          <el-table-column label="产品信息" width="210" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="skuMeta(row.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
-          <el-table-column prop="plan" label="发货计划" width="150"></el-table-column>
-          <el-table-column label="库存/计划" width="145"><template #default="{row}"><div style="line-height:1.6"><div>在库数量 {{row.inStock}}</div><div>计划发货数量 {{row.planQty}}</div><!-- <div>申报数量 {{row.declare}}</div> --></div></template></el-table-column>
-          <el-table-column label="提货进度" width="145"><template #default="{row}"><div style="line-height:1.6"><div>累计 {{row.picked}}</div><div><span :class="{pickupDone:row.remain===0}">剩余 {{row.remain}}</span></div><div>提货差异<el-tooltip content="提货差异=计划发货数量 − 提货数量" placement="top"><span class="col-help-icon">?</span></el-tooltip> {{Number(row.planQty||0)-Number(row.pickupQty||0)}}</div></div></template></el-table-column>
-          <el-table-column label="提货仓" width="195"><template #header><span style="color:#f56c6c">*</span> 提货仓</template><template #default="{row}"><el-select v-model="row.pickupWarehouse" filterable clearable placeholder="请选择" :disabled="!isPickupSelected(row)"><el-option v-for="x in pickupWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></template></el-table-column>
-          <el-table-column label="提货数量" width="145"><template #header><span style="color:#f56c6c">*</span> 提货数量</template><template #default="{row}"><el-input-number v-model="row.pickupQty" :min="1" :max="row.remain" controls-position="right" :disabled="!isPickupSelected(row)"></el-input-number></template></el-table-column>
+          <el-table-column type="expand" width="40">
+            <template #default="{row}">
+              <div v-if="row.isCombo" style="padding:12px 18px;background:#f8fbff">
+                <div style="font-weight:600;margin-bottom:8px;font-size:13px">子件提货明细</div>
+                <div v-for="s in row.subDetails" :key="s.subSku" style="display:flex;gap:14px;align-items:center;padding:6px 0;font-size:13px">
+                  <span style="width:150px;color:#606266">{{s.subSku}} <el-tag size="small" type="info" style="margin-left:4px">子件</el-tag></span>
+                  <span style="width:110px;color:#909399">{{s.subName}}</span>
+                  <el-select v-model="s.pickupWarehouse" filterable placeholder="选择提货仓" size="small" style="width:220px" @change="onSubWarehouseChange(s)"><el-option v-for="x in pickupWarehouses" :key="x" :label="`${x}（在库 ${(comboSubStockByWarehouse[x]||{})[s.subSku]||0}）`" :value="x"></el-option></el-select>
+                  <span style="width:90px">在库数量 {{s.stock}}</span>
+                  <span style="color:#909399">本次提货</span>
+                  <el-input-number v-model="s.pickupQty" :min="0" :max="s.pickupMax" controls-position="right" size="small" style="width:110px"></el-input-number>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="产品信息" width="240" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="skuMeta(row.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><div style="min-width:0;line-height:1.5"><div>SKU：{{row.sku}}<el-tag v-if="row.isCombo" size="small" type="warning" style="margin-left:4px">组合</el-tag></div><div class="product-title">{{row.name||'—'}}</div><div style="color:#909399">发货计划：{{row.plan}}</div></div></div></template></el-table-column>
+          <el-table-column label="提货方式 / 提货仓" width="240"><template #header><span style="color:#f56c6c">*</span> 提货方式 / 提货仓</template><template #default="{row}"><template v-if="row.isCombo"><div style="font-size:13px;color:#409eff;font-weight:600">组合成品提货</div><div style="margin-top:6px"><el-select v-model="row.pickupWarehouse" filterable clearable placeholder="选择提货仓" @change="onFinishedWarehouseChange(row)"><el-option v-for="x in pickupWarehouses" :key="x" :label="`${x}（在库 ${(comboFinishedStockByWarehouse[x]||{})[row.sku]||0}）`" :value="x"></el-option></el-select></div><div style="margin-top:8px;font-size:13px"><span style="color:#409eff;font-weight:600">子件提货</span><span class="muted" style="margin-left:6px">需物流加工，见展开明细</span></div></template><template v-else><el-select v-if="row.skuType==='普通'" v-model="row.pickupWarehouse" filterable clearable placeholder="请选择" :disabled="!isPickupSelected(row)" @change="onPickupWarehouseChange(row)"><el-option v-for="x in pickupWarehouses" :key="x" :label="x" :value="x"></el-option></el-select><el-select v-else-if="row.skuType==='子件'" v-model="row.pickupWarehouse" filterable clearable placeholder="选择提货仓" @change="onPickupWarehouseChange(row)"><el-option v-for="x in pickupWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></template></template></el-table-column>
+          <el-table-column width="240"><template #header><div>库存<div style="color:#f56c6c;font-size:12px;font-weight:normal;line-height:1.3">由提货仓决定，选择提货仓后展示</div></div></template><template #default="{row}"><div v-if="row.isCombo" class="nested-cell"><div>在库数量 <b>{{row.finishedStock}}</b></div><div>计划发货数量 {{row.planQty}}</div><div class="muted">可提上限 {{row.pickupMax}}</div></div><div v-else-if="row.skuType==='子件'" class="nested-cell"><div>该仓在库 <b>{{row.stock}}</b></div><div class="muted">可提上限 {{row.pickupMax}}</div></div><div v-else class="nested-cell"><div>在库数量 {{row.inStock}}</div><div>计划发货数量 {{row.planQty}}</div><div class="muted">可提上限 {{row.pickupMax}}</div></div></template></el-table-column>
+          <el-table-column label="提货进度" width="145"><template #default="{row}"><div style="line-height:1.6"><div>累计 {{row.picked}}</div><div><span :class="{pickupDone:row.remain===0}">剩余 {{row.remain}}</span></div><div v-if="!row.isCombo">提货差异<el-tooltip content="提货差异=计划发货数量 − 提货数量" placement="top"><span class="col-help-icon">?</span></el-tooltip> {{Number(row.planQty||0)-Number(row.pickupQty||0)}}</div><div v-else class="muted">组合成品与子件分别提货</div></div></template></el-table-column>
+          <el-table-column label="提货数量" width="145"><template #header><span style="color:#f56c6c">*</span> 提货数量</template><template #default="{row}"><el-input-number v-model="row.pickupQty" :min="0" :max="row.pickupMax" controls-position="right" :disabled="!isPickupSelected(row)"></el-input-number><span v-if="row.isCombo" class="muted" style="display:block;font-size:12px">成品提货数量，子件见展开明细</span></template></el-table-column>
           <el-table-column label="服务商提货" width="145"><template #default="{row}"><el-switch v-model="row.providerPickup" active-text="是" inactive-text="否" :disabled="!isPickupSelected(row)"></el-switch></template></el-table-column>
           <el-table-column label="提货备注" width="230"><template #default="{row}"><el-input v-model="row.pickupRemark" clearable maxlength="200" placeholder="请输入备注" :disabled="!isPickupSelected(row)"></el-input></template></el-table-column>
-          <el-table-column label="差异原因" width="180"><template #header><span v-if="pickupUnresolvedDiff>0" style="color:#f56c6c">*</span> 差异原因</template><template #default="{row}"><el-select v-if="Number(row.pickupQty||0)>0&&Number(row.pickupQty||0)<row.remain&&isPickupSelected(row)" v-model="row.diffReason" placeholder="请选择" clearable :disabled="!isPickupSelected(row)"><el-option label="盘亏（实物少于系统）" value="盘亏"></el-option><el-option label="货物损坏" value="货物损坏"></el-option><el-option label="货物丢失" value="货物丢失"></el-option><el-option label="其他" value="其他"></el-option></el-select><span v-else class="muted">—</span></template></el-table-column>
+          <el-table-column label="差异原因" width="180"><template #header><span v-if="pickupUnresolvedDiff>0" style="color:#f56c6c">*</span> 差异原因</template><template #default="{row}"><el-select v-if="!row.isCombo&&Number(row.pickupQty||0)>0&&Number(row.pickupQty||0)<row.remain&&isPickupSelected(row)" v-model="row.diffReason" placeholder="请选择" clearable :disabled="!isPickupSelected(row)"><el-option label="盘亏（实物少于系统）" value="盘亏"></el-option><el-option label="货物损坏" value="货物损坏"></el-option><el-option label="货物丢失" value="货物丢失"></el-option><el-option label="子件库存不足" value="子件库存不足"></el-option><el-option label="其他" value="其他"></el-option></el-select><span v-else class="muted">—</span></template></el-table-column>
         </el-table>
       </div>
     </div>
@@ -422,7 +436,7 @@
 
   <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量组合加工':'组合加工｜'+processingDocId" width="74vw" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="processingMode==='batch'" class="processing-batch-summary">
-      <div class="batch-summary-info"><b>可加工发货单 {{processingBatchSummary.docCount}} 张</b><span class="muted">　·　组合 SKU {{processingBatchSummary.comboCount}} 个　·　提货合计 {{processingBatchSummary.totalPick}} 件　·　可加工合计 {{processingBatchSummary.totalProcessable}} 件</span></div>
+      <div class="batch-summary-info"><b>可加工发货单 {{processingBatchSummary?.docCount||0}} 张</b><span class="muted">　·　组合 SKU {{processingBatchSummary?.comboCount||0}} 个　·　提货合计 {{processingBatchSummary?.totalPick||0}} 件　·　可加工合计 {{processingBatchSummary?.totalProcessable||0}} 件</span></div>
       <div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键全部填充</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div>
     </div>
     <div v-else class="processing-single-hint"><div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键填满</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div></div>
@@ -480,7 +494,7 @@
         <el-table-column prop="operator" label="操作人" width="120" align="center"></el-table-column>
         <el-table-column prop="time" label="操作时间" width="170" align="center"></el-table-column>
       </el-table>
-      <div class="log-pagination"><el-pagination v-model:current-page="logPage" background layout="total, prev, pager, next" :total="logDoc.logs?.length||0" :page-size="logPageSize"></el-pagination></div>
+      <div class="log-pagination"><el-pagination v-model:current-page="logPage" background layout="total, prev, pager, next" :total="logDoc?.logs?.length||0" :page-size="logPageSize"></el-pagination></div>
     </div>
   </el-dialog>
 
@@ -572,7 +586,7 @@
 </div>
 <script src="../../vendor/vue.global.prod.js"></script>
 <script src="../../vendor/element-plus.js"></script>
-<script src="app.js?v=1.7.23"></script>
+<script src="app.js?v=1.7.27"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
 </body>
 </html>

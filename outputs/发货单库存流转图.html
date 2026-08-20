@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>发货单 · 库存流转图</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root { --line: #e5e7eb; --text: #1f2937; --muted: #6b7280; --blue: #2563eb; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px; background: #f6f7f9;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--text); line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 28px 20px; box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  }
+  .card h2 { font-size: 16px; margin: 0 0 16px; }
+  .mermaid { text-align: center; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f9fafb; font-weight: 600; }
+  .plus { color: #047857; font-weight: 600; }
+  .minus { color: #b91c1c; font-weight: 600; }
+  .note { margin-top: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #92400e; }
+  .note b { color: #78350f; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>发货单 · 库存流转图</h1>
+  <div class="sub">覆盖提货 → 组合加工 → 发货 → 收货全链路，说明每个环节库存的增减位置与对象。</div>
+
+  <div class="card">
+    <h2>库存流转主链路</h2>
+    <div class="mermaid">
+flowchart TD
+    A["① 提货仓<br/><b>供应商仓 / 发货仓</b><br/>提货时扣减该仓 SKU 库存"]
+    B["② 货代本地物流仓<br/><b>发货仓</b><br/>提货后库存增加；发货时库存扣减"]
+    C["③ 组合品库存<br/><b>组合 SKU</b><br/>子件在库量扣减，组合品增加"]
+    D["④ 头程在途<br/><b>在途在发</b><br/>发货增加；收货扣减"]
+    E["⑤ 团队库存<br/><b>目的仓</b><br/>收货后库存增加"]
+    F["⑥ 中台可售库存<br/>销售订单扣减，易仓同步校准"]
+
+    A -->|"① 提货"| B
+    B -->|"② 组合加工（组合SKU子件不足时）"| C
+    C -.->|"加工完成"| B
+    B -->|"③ 发货"| D
+    D -->|"④ 收货"| E
+    E -->|"⑤ 销售 / 校准"| F
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h2>组合 SKU · 提货与加工的库存变化</h2>
+    <div class="mermaid">
+flowchart TD
+    A["组合 SKU 需发 N 件"] --> B{"提货仓<br/>组合品在库够吗？"}
+    B -->|"够：组合品 ≥ N"| C["提货<br/>组合品在库 −N<br/>免加工"]
+    B -->|"不够：差 D = N − 组合品"| D["提货<br/>组合品在库清零<br/>子件待加工补足 D"]
+    C --> E["货代物流仓 +N"]
+    D --> F["物流加工<br/>子件在库 −D×BOM配比<br/>组合品库存 +D"]
+    F --> E
+    E --> G["待发货"]
+    </div>
+    <table>
+      <thead>
+        <tr><th style="width:60px;">环节</th><th style="width:200px;">对象</th><th>库存变化</th><th style="width:360px;">说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="3">提货</td><td>提货仓 · 组合品库存</td><td class="minus">− 提货量</td><td>优先消耗已组装好的组合品。</td></tr>
+        <tr><td>提货仓 · 子件库存</td><td class="minus">− 差额</td><td>组合品不足时扣减子件，差额进入加工补足。</td></tr>
+        <tr><td>货代物流仓（发货仓）</td><td class="plus">＋ 提货量</td><td>货物从提货仓转入货代本地物流仓。</td></tr>
+        <tr><td rowspan="2">加工</td><td>子件 SKU 在库量</td><td class="minus">− 加工量 × BOM配比</td><td>只扣「在库量」，不动「在库待发」「在途/在产」。</td></tr>
+        <tr><td>组合 SKU 库存</td><td class="plus">＋ 加工量</td><td>子件组装成组合品，形态从「子件」变为「组合品」。</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <b>组合 SKU 关键规则：</b><br/>
+      ① <b>木桶原理</b>：组合件可提货量 = min(各子件可提货量)，由库存最短板的子件决定。<br/>
+      ② <b>加工上限</b> = min(提货量 − 已加工量，各子件在库量 ÷ BOM配比)，超过即阻止。<br/>
+      ③ <b>免加工判定</b>：提货后组合品库存 ≥ 提货量 → 直接待发货；＜ 提货量 → 进入可加工补足。<br/>
+      ④ <b>子件库存三维</b>：在库量 / 在库待发量 / 在途在产量，加工只扣「在库量」。<br/>
+      ⑤ <b>多仓子件</b>：本期沿用单组合 SKU 对应单提货仓逻辑，不做子件分散多仓的特殊适配。
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h2>各环节库存影响</h2>
+    <table>
+      <thead>
+        <tr><th style="width:70px;">环节</th><th style="width:200px;">库存变化位置</th><th>增减方向</th><th style="width:340px;">说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>提货</td><td>提货仓（供应商仓 / 发货仓）</td><td class="minus">− 提货数量</td><td>按所选提货仓扣减对应 SKU 库存，不做供应商全局库存归集。</td></tr>
+        <tr><td>提货</td><td>货代本地物流仓（发货仓）</td><td class="plus">＋ 提货数量</td><td>提货完成后货物进入货代所属物流仓，形成发货仓可用库存。</td></tr>
+        <tr><td>组合加工</td><td>子 SKU 在库量</td><td class="minus">− 子件消耗</td><td>仅扣减子件「在库量」，不消耗「在库待发」「在途/在产」。</td></tr>
+        <tr><td>组合加工</td><td>组合品库存</td><td class="plus">＋ 加工数量</td><td>加工生成组合品，可加工上限 = min(提货−已加工, 各子件在库量÷BOM配比)。</td></tr>
+        <tr><td>发货</td><td>货代本地物流仓（发货仓）</td><td class="minus">− 发货数量</td><td>发货操作扣减发货仓库存。</td></tr>
+        <tr><td>发货</td><td>头程在途（在途在发）</td><td class="plus">＋ 发货数量</td><td>货物进入运输在途。</td></tr>
+        <tr><td>收货</td><td>头程在途（在途在发）</td><td class="minus">− 收货数量</td><td>目的仓收货后，在途数量相应扣减。</td></tr>
+        <tr><td>收货</td><td>团队库存（目的仓）</td><td class="plus">＋ 收货数量</td><td>按 SKU、团队、仓库维度写入团队库存。</td></tr>
+        <tr><td>销售</td><td>中台可售库存</td><td class="minus">− 销售出库</td><td>易仓销售订单扣减可售库存。</td></tr>
+        <tr><td>校准</td><td>中台可售库存</td><td>＝ 快照为准</td><td>易仓回传实际可售库存，以快照校准，避免重复扣减。</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <b>特殊处理：</b>① <b>手动完成</b>时，未收部分对应的在途库存须清掉——目的仓「在途」−未收数量、源头「在途在发」−未收数量；若源头仍有本单未提的在库（待发）数量，一并扣减释放，保证库存台账无挂账。<br/>
+      ② <b>草稿作废 / 待提货取消</b>：仅释放发货计划关联，不产生库存扣减（尚未发生实物履约）。<br/>
+      ③ <b>组合件提货</b>遵循木桶原理，按各子件可提货量的最小值核算可组装最大数量。
+    </div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: "default", flowchart: { curve: "basis" } });
+</script>
+</body>
+</html>
