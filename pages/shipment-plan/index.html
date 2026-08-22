@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>发货计划｜查询区域交互原型</title>
-  <link rel="stylesheet" href="./styles.css?v=2.2.0">
+  <link rel="stylesheet" href="./styles.css?v=2.3.1">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.37">
 </head>
@@ -59,9 +59,9 @@
           </div>
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
         </section>
-        <section class="action-strip"><div class="head-actions"><button class="btn primary">新建发货计划</button><button class="btn primary badge-button">发货计划管理清单<span class="badge">4</span></button></div></section>
+        <section class="action-strip"><div class="head-actions"><button class="btn primary">新建发货计划</button><button class="btn primary badge-button">发货计划管理清单<span class="badge">4</span></button><button class="btn" id="linkShipmentBtn" type="button">关联货件</button></div></section>
         <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><label class="compare"><input id="compareToggle" type="checkbox" checked>显示销量环比</label><span class="tool" title="筛选">▽</span><span class="tool" title="搜索">⌕</span><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="上传">↥</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
-        <section class="table-area" id="tableArea"><table class="stock-table"><thead><tr><th class="check"><input class="head-check" id="selectAll" type="checkbox"></th><th class="plan">计划号</th><th class="sku">SKU</th><th class="status-col">状态</th><th class="updated-col">更新时间</th><th class="creator-col">创建人</th><th class="remark-col">发货计划备注&nbsp; ✎</th><th class="delivery-col">预计发货日期&nbsp; ✎</th><th class="delivery-col">预计到货日期&nbsp; ✎</th><th class="box-col">箱数</th></tr></thead><tbody id="tableBody"></tbody></table></section>
+        <section class="table-area" id="tableArea"><table class="stock-table"><thead><tr><th class="check"><input class="head-check" id="selectAll" type="checkbox"></th><th class="plan">计划号</th><th class="sku">SKU</th><th class="status-col">状态</th><th class="updated-col">更新时间</th><th class="creator-col">创建人</th><th class="remark-col">发货计划备注&nbsp; ✎</th><th class="delivery-col">预计发货日期&nbsp; ✎</th><th class="delivery-col">预计到货日期&nbsp; ✎</th><th class="box-col">箱数</th><th class="plan-op-col">操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
         <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft">确认</button><button class="btn soft">加入计划管理清单</button><button class="btn soft">生成发货单</button><button class="btn soft">作废</button></div><div class="bottom-right"><span>共 <b id="totalCount">62</b> 条</span><select class="control page-size" id="pageSize"><option value="15">15条/页</option><option value="30">30条/页</option><option value="50">50条/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
         </div>
         <div class="module-view fba-view hidden" id="fbaShipmentView">
@@ -120,10 +120,19 @@
             </div>
           </div>
         </div>
+          <div class="plan-link-mask hidden" id="planLinkMask" onclick="document.getElementById('planLinkPopover').classList.add('hidden');this.classList.add('hidden')"></div>
+          <div class="plan-link-popover hidden" id="planLinkPopover" role="dialog" aria-label="关联 FBA 货件">
+            <div class="plan-link-head"><h3 id="planLinkTitle">关联 FBA 货件</h3><button class="plan-link-close" id="planLinkClose" type="button" aria-label="关闭" onclick="document.getElementById('planLinkPopover').classList.add('hidden');document.getElementById('planLinkMask').classList.add('hidden')">×</button></div>
+            <div class="plan-link-body">
+              <table class="plan-link-table"><thead><tr><th class="plan-link-plan-col">发货计划号</th><th class="plan-link-shipment-col">FBA 货件单号</th><th class="plan-link-del-col"></th></tr></thead><tbody id="planLinkRows"></tbody></table>
+              <button class="plan-link-add" id="planLinkAddRow" type="button" onclick="var t=document.getElementById('planLinkRows');t.insertAdjacentHTML('beforeend','<tr class=\'plan-link-row\' data-plan-id=\'\'><td class=\'plan-link-plan-fixed\'>待选计划</td><td><input class=\'plan-link-shipment-input control\' placeholder=\'请输入 FBA 货件单号\'></td><td class=\'plan-link-del-col\'><button class=\'plan-link-row-del\' type=\'button\' onclick=\'this.closest(\'plan-link-row\').remove()\'>×</button></td></tr>')">＋ 添加一行</button>
+            </div>
+            <div class="plan-link-footer"><button class="btn" id="planLinkClear" type="button" onclick="document.querySelectorAll('#planLinkRows .plan-link-shipment-input').forEach(function(i){i.value=''})">清空</button><button class="btn" id="planLinkCancel" type="button" onclick="document.getElementById('planLinkPopover').classList.add('hidden');document.getElementById('planLinkMask').classList.add('hidden')">取消</button><button class="btn primary" id="planLinkConfirm" type="button" onclick="(function(){var rows=document.getElementById('planLinkRows').children;for(var i=0;i<rows.length;i++){var input=rows[i].querySelector('.plan-link-shipment-input');if(!input||!input.value.trim()){alert('请填写 FBA 货件单号');return;}}document.getElementById('planLinkPopover').classList.add('hidden');document.getElementById('planLinkMask').classList.add('hidden');})()">确定关联</button></div>
+          </div>
       </main>
     </div>
   </div>
-  <script src="./app.js?v=2.2.0"></script>
+  <script src="./app-link.js?v=1.0.0"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
 </body>
 </html>

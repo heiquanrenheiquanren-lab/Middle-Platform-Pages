@@ -10,7 +10,7 @@ const stores=['ARCCAP','Lowes_ar','arccaptain','Amazon US 旗舰店','线下订�
 const teams=['亚马逊团队','Jasic团队','eBay团队','B端团队','公共库存'];
 const creators=['Admin','张敏','李晨','王磊','系统管理员'];
 const remarks=['旺季发货计划','客户项目急单','常规补货','海外仓安全库存补充','新品首批发货','等待物流商确认','测试计划，请勿操作',''];
-const statuses=['待确认','待发货','运输中','已完成','已作废'];
+const statuses=['待发货','待发货','待发货','待发货','待发货','待发货','待发货','待发货','待发货','待发货','待发货','待发货','待发货','待发货','待发货','待确认','待确认','待确认','待确认','待确认','待确认','待确认','待确认','待确认','待确认','待确认','待确认','待确认','运输中','运输中','运输中','运输中','运输中','运输中','运输中','运输中','运输中','运输中','运输中','运输中','运输中','已完成','已完成','已完成','已完成','已完成','已完成','已完成','已完成','已完成','已完成','已完成','已完成','已作废','已作废','已作废','已作废','已作废','已作废','已作废','已作废','已作废','已作废','已作废','已作废'];
 const baseSkus=['140US260008','42101000004','XX123456-1','DD123456','EE123456','FF123456','KK123456','fan-test-sku'];
 const icons=['🎒','🧰','▧','📦','🧯','🪖','🌺','🐹'];
 
@@ -23,7 +23,7 @@ const rows=Array.from({length:62},(_,i)=>{
     supplierCode:`SUP-${100000+i}`,lx:`LX${230000+i}`,seller:`SELLER-${baseSkus[i%baseSkus.length]}`,fnsku:`X00${800000+i}`,asin:`B0${900000+i}`,
     shipWarehouse:shipWarehouses[i%shipWarehouses.length],destinationWarehouse:destinationWarehouses[i%destinationWarehouses.length],destinationType:destinationTypes[i%destinationTypes.length],
     firstMile:firstMiles[i%firstMiles.length],channel:channels[i%channels.length],transport:transports[i%transports.length],platform:platforms[i%platforms.length],country:countries[i%countries.length],store:stores[i%stores.length],team:teams[i%teams.length],
-    purchaseNo:`PO2026${727000+i}`,shippingOrderNo:`SO2026${81000+i}`,shipmentNo:`FBA2026${52000+i}`
+    purchaseNo:`PO2026${727000+i}`,shippingOrderNo:`SO2026${81000+i}`,shipmentNo:`FBA2026${52000+i}`,linkedShipments:[]
   };
 });
 
@@ -75,10 +75,10 @@ function reset(){
 function renderTable(){
   const total=state.filtered.length,pages=Math.max(1,Math.ceil(total/state.pageSize)),start=(state.page-1)*state.pageSize,data=state.filtered.slice(start,start+state.pageSize);$('#totalCount').textContent=total;$('#jumpPage').value=state.page;$('#prevPage').disabled=state.page<=1;$('#nextPage').disabled=state.page>=pages;
   $('#pageButtons').innerHTML=Array.from({length:pages},(_,i)=>`<button class="page-btn ${state.page===i+1?'current':''}" data-page="${i+1}">${i+1}</button>`).join('');$$('[data-page]').forEach(button=>button.onclick=()=>{state.page=Number(button.dataset.page);renderTable();});
-  if(!data.length){$('#tableBody').innerHTML='<tr class="empty-row"><td colspan="10"><div class="empty-icon">◇</div>暂无符合条件的数据</td></tr>';syncSelection();return;}
-  $('#tableBody').innerHTML=data.map(row=>`<tr><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td>${row.plan}</td><td class="left"><span class="thumb">${row.icon}</span>${row.sku}</td><td>${row.status}</td><td>${row.updated}</td><td>${row.creator}</td><td><input class="inline-input row-remark" data-id="${row.id}" value="${row.remark}" placeholder="请输入备注"></td><td><input class="inline-input row-ship-date" data-id="${row.id}" type="date" value="${row.expectedShip}"></td><td><input class="inline-input row-arrival-date" data-id="${row.id}" type="date" value="${row.expectedArrival}"></td><td>${row.boxes}</td></tr>`).join('');
+  if(!data.length){$('#tableBody').innerHTML='<tr class="empty-row"><td colspan="11"><div class="empty-icon">◇</div>暂无符合条件的数据</td></tr>';syncSelection();return;}
+  $('#tableBody').innerHTML=data.map(row=>`<tr><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td>${row.plan}</td><td class="left"><span class="thumb">${row.icon}</span>${row.sku}</td><td>${row.status}</td><td>${row.updated}</td><td>${row.creator}</td><td><input class="inline-input row-remark" data-id="${row.id}" value="${row.remark}" placeholder="请输入备注"></td><td><input class="inline-input row-ship-date" data-id="${row.id}" type="date" value="${row.expectedShip}"></td><td><input class="inline-input row-arrival-date" data-id="${row.id}" type="date" value="${row.expectedArrival}"></td><td>${row.boxes}</td><td class="plan-op-cell">${row.status==='待发货'&&!row.linkedShipments.length?`<button class="plan-link-action" data-link-plan="${row.id}" type="button">关联货件</button>`:(row.linkedShipments.length?`<span class="plan-linked-tag">已关联货件</span>`:'')}</td></tr>`).join('');
   $$('.row-check').forEach(check=>check.onchange=()=>{const id=Number(check.dataset.id);check.checked?state.selected.add(id):state.selected.delete(id);syncSelection();});$$('.row-remark').forEach(input=>input.onchange=()=>{rows.find(r=>r.id===Number(input.dataset.id)).remark=input.value;toast('备注已保存');});
-  $$('.row-ship-date,.row-arrival-date').forEach(input=>input.onclick=()=>{if(typeof input.showPicker==='function'){try{input.showPicker();}catch{}}});syncSelection();
+  $$('.row-ship-date,.row-arrival-date').forEach(input=>input.onclick=()=>{if(typeof input.showPicker==='function'){try{input.showPicker();}catch{}}});syncSelection();$$('[data-link-plan]').forEach(btn=>btn.onclick=()=>openPlanLinkShipmentPopover([Number(btn.dataset.linkPlan)]));
 }
 function syncSelection(){const visible=$$('.row-check'),checked=visible.filter(x=>x.checked).length;$('#selectedCount').textContent=state.selected.size;$('#selectAll').checked=visible.length>0&&checked===visible.length;$('#selectAll').indeterminate=checked>0&&checked<visible.length;}
 $('#selectAll').onchange=e=>{$$('.row-check').forEach(check=>{check.checked=e.target.checked;const id=Number(check.dataset.id);e.target.checked?state.selected.add(id):state.selected.delete(id);});syncSelection();};
@@ -222,6 +222,63 @@ function openFbaPlanPopover(childIds){
   fbaState.activeChildIds=childIds;const contexts=childIds.map(id=>{for(const group of fbaGroups){const child=group.children.find(item=>item.id===id);if(child)return {group,child};}return null;}).filter(Boolean);const commonStore=contexts.length&&contexts.every(item=>item.group.seller===contexts[0].group.seller)?contexts[0].group.seller:'';const commonSellerSku=contexts.length&&contexts.every(item=>item.child.sellerSku===contexts[0].child.sellerSku)?contexts[0].child.sellerSku:'';const commonMappedSku=contexts.length&&contexts.every(item=>item.child.mappedSku===contexts[0].child.mappedSku)?contexts[0].child.mappedSku:'';const commonMappedLxSku=contexts.length&&contexts.every(item=>item.child.mappedLxSku===contexts[0].child.mappedLxSku)?contexts[0].child.mappedLxSku:'';fbaState.planPlatform='亚马逊';fbaState.planStore=commonStore;fbaState.planSellerSku=commonSellerSku;fbaState.planMappedSku=commonMappedSku;fbaState.planMappedLxSku=commonMappedLxSku;resetFbaPlanQuery();renderFbaPlanList();$('#fbaLinkModalMask').classList.remove('hidden');$('#fbaLinkPopover').classList.remove('hidden');
 }
 function closeFbaPlanPopover(){$('#fbaLinkModalMask').classList.add('hidden');$('#fbaLinkPopover').classList.add('hidden');fbaState.activeChildIds=[];}
+// ===== 计划侧关联货件（双向关联入口·新增）=====
+let planLinkPlanIds=[];
+function planLinkRowHtml(plan,canDelete){
+  return `<tr class="plan-link-row" data-plan-id="${plan.id}"><td class="plan-link-plan-fixed">${plan.plan}</td><td><input class="plan-link-shipment-input control" placeholder="请输入 FBA 货件单号"></td>${canDelete?'<td class="plan-link-del-col"><button class="plan-link-row-del" type="button" title="删除">×</button></td>':'<td class="plan-link-del-col">—</td>'}</tr>`;
+}
+function planLinkBindDel(){
+  $$('.plan-link-row-del').forEach(btn=>btn.onclick=()=>{
+    const row=btn.closest('.plan-link-row');row.remove();
+  });
+}
+function openPlanLinkShipmentPopover(planIds){
+  planLinkPlanIds=planIds||[];
+  const plans=planLinkPlanIds.map(id=>rows.find(r=>r.id===id)).filter(Boolean);
+  if(!plans.length){toast('未找到可关联的发货计划');return;}
+  const isBatch=plans.length>1;
+  $('#planLinkTitle').textContent=isBatch?`关联 FBA 货件（共 ${plans.length} 个发货计划）`:`关联 FBA 货件｜${plans[0].plan}`;
+  $('#planLinkAddRow').style.display='none';
+  const tbody=$('#planLinkRows');tbody.innerHTML=plans.map(plan=>planLinkRowHtml(plan,isBatch)).join('');planLinkBindDel();
+  $('#planLinkMask').classList.remove('hidden');$('#planLinkPopover').classList.remove('hidden');
+}
+function closePlanLinkShipmentPopover(){$('#planLinkMask').classList.add('hidden');$('#planLinkPopover').classList.add('hidden');planLinkPlanIds=[];}
+function confirmPlanLinkShipment(){
+  const trs=[...$('#planLinkRows').children];
+  if(!trs.length){toast('请先添加关联行');return;}
+  const pairs=[];
+  for(const tr of trs){
+    const planId=Number(tr.dataset.planId);
+    const shipment=tr.querySelector('.plan-link-shipment-input').value.trim();
+    if(!shipment){toast(`计划 ${rows.find(r=>r.id===planId).plan} 未填写 FBA 货件单号`);return;}
+    pairs.push({planId,shipment});
+  }
+  const seen={};
+  for(const p of pairs){if(seen[p.shipment]){toast(`货件号 ${p.shipment} 重复，不可关联两次`);return;}seen[p.shipment]=true;}
+  for(const p of pairs){
+    const conflict=rows.find(r=>r.id!==p.planId&&r.linkedShipments.includes(p.shipment));
+    if(conflict){toast(`货件号 ${p.shipment} 已关联计划 ${conflict.plan}，无法重复关联`);return;}
+  }
+  for(const p of pairs){
+    const row=rows.find(r=>r.id===p.planId);
+    if(row&&row.status==='待发货'){row.linkedShipments.push(p.shipment);row.status='已完成';}
+  }
+  closePlanLinkShipmentPopover();renderTable();toast('关联成功，发货计划已流转至「已完成」');
+}
+function initPlanLinkShipment(){
+  $('#linkShipmentBtn').onclick=()=>{
+    const selected=[...state.selected];
+    if(!selected.length){toast('请先勾选待发货的发货计划');return;}
+    const plans=selected.map(id=>rows.find(r=>r.id===id)).filter(r=>r&&r.status==='待发货'&&!r.linkedShipments.length);
+    if(!plans.length){toast('勾选中没有可关联的「待发货」计划');return;}
+    openPlanLinkShipmentPopover(plans.map(r=>r.id));
+  };
+  $('#planLinkClose').onclick=closePlanLinkShipmentPopover;
+  $('#planLinkMask').onclick=closePlanLinkShipmentPopover;
+  $('#planLinkCancel').onclick=closePlanLinkShipmentPopover;
+  $('#planLinkClear').onclick=()=>{$('#planLinkRows').querySelectorAll('.plan-link-shipment-input').forEach(input=>input.value='');};
+  $('#planLinkConfirm').onclick=confirmPlanLinkShipment;
+}
 function initFbaView(){
   initFbaMulti('#fbaStoreMulti',fbaStoreOptions,'stores','店铺（可多选）');initFbaMulti('#fbaCountryMulti',fbaCountryOptions,'countries','国家（可多选）');fbaStatusMenu();renderFbaTable();
   $('#shipmentPlanTab').onclick=()=>switchShipmentModule('plan');$('#fbaShipmentTab').onclick=()=>switchShipmentModule('fba');
@@ -233,4 +290,4 @@ function initFbaView(){
   document.addEventListener('click',event=>{if(!$('#fbaStatusFilter').contains(event.target))closeFbaStatusMenu();if(!event.target.closest('.fba-multi'))closeFbaMultiMenus();});
 }
 function switchShipmentModule(module){const isFba=module==='fba';$('#shipmentPlanView').classList.toggle('hidden',isFba);$('#fbaShipmentView').classList.toggle('hidden',!isFba);$('#shipmentPlanTab').classList.toggle('active',!isFba);$('#fbaShipmentTab').classList.toggle('active',isFba);if(!isFba)closeFbaPlanPopover();}
-initFbaView();
+initFbaView();initPlanLinkShipment();
