@@ -1,583 +1,6574 @@
-const {createApp,ref,reactive,computed,nextTick,watch}=Vue;
-createApp({setup(){
-  const statuses=['全部','草稿','待提货','待加工','待发货','待收货','部分收货','已完成','已作废','已取消'];
-  const warehouses=['深圳仓','东莞工厂','义乌仓'],pickupWarehouses=['深圳仓','东莞工厂','义乌仓','华南物流中转仓','美西集货仓'],destWarehouses=['美国西部仓','美国东部仓','德国仓','英国仓'];
-  const shipModes=['仓库发货','工厂直发','供应商直发'],providers=['马士基','DHL','顺丰国际'],transports=['海运','空运','快递'],channels=['标准海运','空派','国际快递'],countries=['中国 - CN','美国 - US','德国 - DE','英国 - GB'];
-  const platformOptions=['Amazon US','Amazon DE','Walmart'],teamOptions=['北美一组','北美二组','欧洲组'];
-  const docs=reactive([
-    {id:'DN20260808001',creator:'Admin',status:'待加工',logistics:'未发货',from:'深圳仓',to:'美国西部仓',plans:1,skus:1,declare:300,pick:300,ship:0,declarePickDiff:'0',pickShipDiff:'300',shipReceiveDiff:'0',declareReceiveDiff:'300',receive:0,processedQty:0,abnormal:0,eta:'2026-08-20',expectedPortDate:'2026-08-25',fee:'¥3,200',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260808001',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'单个组合品，尚未开始加工',expectedShipDate:'2026-08-12',expectedTransitDuration:'38天',logisticsNo:'—',receiveOrderNo:'RA20260808001',actualFreight:'¥2,700',customsFee:'¥500',otherLogisticsFee:'¥120',totalAccessoryCost:'¥80',firstLegTotal:'¥3,200',planQty:300,pendingReceive:0,items:[{sku:'SPU-2003',name:'智能运动手环｜标准套装',plan:'FP20260808011',declare:300,pick:300,ship:0,declarePickDiff:'0',pickShipDiff:'300',shipReceiveDiff:'0',declareReceiveDiff:'300',receive:0,processedQty:0,status:'待加工'}],batches:[{no:'SO260808001',type:'提货',date:'2026-08-08 10:30:00',skuCount:'1 个',qty:300,warehouse:'华南物流中转仓',operator:'运营用户',status:'已完成',details:[{sku:'SPU-2003',plan:'FP20260808011',warehouse:'华南物流中转仓',qty:300,remark:'—'}]}]},
-    {id:'DN20260808002',creator:'张敏',status:'待加工',logistics:'未发货',from:'东莞工厂',to:'美国东部仓',plans:2,skus:2,declare:500,pick:500,ship:0,declarePickDiff:'0',pickShipDiff:'500',shipReceiveDiff:'0',declareReceiveDiff:'500',receive:0,processedQty:100,abnormal:0,eta:'2026-08-22',expectedPortDate:'2026-08-17',fee:'$4,500',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260808002',lingxingNo:'—',shipMode:'工厂直发',channel:'UPS 快线',transport:'快递',provider:'DHL',country:'美国 - US',warehouseType:'海外仓',remark:'组合品+普通品混单，组合品部分加工',expectedShipDate:'2026-08-15',expectedTransitDuration:'7天',logisticsNo:'—',receiveOrderNo:'RA20260808002',actualFreight:'$3,800',customsFee:'$700',otherLogisticsFee:'$80',totalAccessoryCost:'$50',firstLegTotal:'$4,500',planQty:500,pendingReceive:0,items:[{sku:'SPU-9001',name:'户外露营套装',plan:'FP20260808021',declare:200,pick:200,ship:0,declarePickDiff:'0',pickShipDiff:'500',shipReceiveDiff:'0',declareReceiveDiff:'500',receive:0,processedQty:100,status:'待加工'},{sku:'SPU-3001',name:'便携榨汁杯｜旅行款',plan:'FP20260808022',declare:300,pick:300,ship:0,receive:0,processedQty:0,status:'待加工'}],batches:[{no:'SO260808002',type:'提货',date:'2026-08-07 14:20:00',skuCount:'2 个',qty:500,warehouse:'美西集货仓',operator:'运营用户',status:'已完成',details:[{sku:'SPU-9001',plan:'FP20260808021',warehouse:'美西集货仓',qty:200,remark:'—'},{sku:'SPU-3001',plan:'FP20260808022',warehouse:'美西集货仓',qty:300,remark:'—'}]}]},
-    {id:'DN20260808003',creator:'李晨',status:'待加工',logistics:'未发货',from:'深圳仓',to:'美国西部仓',plans:1,skus:1,declare:150,pick:150,ship:0,declarePickDiff:'0',pickShipDiff:'150',shipReceiveDiff:'0',declareReceiveDiff:'150',receive:0,processedQty:149,abnormal:0,eta:'2026-08-21',expectedPortDate:'2026-08-16',fee:'¥2,100',carrier:'待分配',innerTab:'sku',yicangNo:'—',lingxingNo:'LX20260808003',shipMode:'仓库发货',channel:'空派',transport:'空运',provider:'顺丰国际',country:'美国 - US',warehouseType:'海外仓',remark:'仅剩1件未加工，加工完即转待发货',expectedShipDate:'2026-08-13',expectedTransitDuration:'8天',logisticsNo:'—',receiveOrderNo:'RA20260808003',actualFreight:'¥1,800',customsFee:'¥300',otherLogisticsFee:'¥60',totalAccessoryCost:'¥40',firstLegTotal:'¥2,100',planQty:150,pendingReceive:0,items:[{sku:'SPU-9002',name:'户外折叠椅套装｜豪华款',plan:'FP20260808031',declare:150,pick:150,ship:0,declarePickDiff:'0',pickShipDiff:'150',shipReceiveDiff:'0',declareReceiveDiff:'150',receive:0,processedQty:149,status:'待加工'}],batches:[{no:'SO260808003',type:'提货',date:'2026-08-08 09:00:00',skuCount:'1 个',qty:150,warehouse:'深圳仓',operator:'运营用户',status:'已完成',details:[{sku:'SPU-9002',plan:'FP20260808031',warehouse:'深圳仓',qty:150,remark:'—'}]}]},
-    {id:'DN20260808004',creator:'王磊',status:'待加工',logistics:'未发货',from:'深圳仓',to:'美国西部仓',plans:3,skus:3,declare:300,pick:300,ship:0,declarePickDiff:'0',pickShipDiff:'300',shipReceiveDiff:'0',declareReceiveDiff:'300',receive:0,processedQty:170,abnormal:0,eta:'2026-08-25',expectedPortDate:'2026-08-28',fee:'¥4,800',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260808004',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'3个组合品进度不一：手环50%、露营0%、折叠椅已完成',expectedShipDate:'2026-08-16',expectedTransitDuration:'38天',logisticsNo:'—',receiveOrderNo:'RA20260808004',actualFreight:'¥4,100',customsFee:'¥700',otherLogisticsFee:'¥150',totalAccessoryCost:'¥100',firstLegTotal:'¥4,800',planQty:300,pendingReceive:0,items:[{sku:'SPU-2003',name:'智能运动手环｜标准套装',plan:'FP20260808041',declare:100,pick:100,ship:0,declarePickDiff:'0',pickShipDiff:'300',shipReceiveDiff:'0',declareReceiveDiff:'300',receive:0,processedQty:50,status:'待加工'},{sku:'SPU-9001',name:'户外露营套装',plan:'FP20260808042',declare:80,pick:80,ship:0,receive:0,processedQty:0,status:'待加工'},{sku:'SPU-9002',name:'户外折叠椅套装｜豪华款',plan:'FP20260808043',declare:120,pick:120,ship:0,receive:0,processedQty:120,status:'待加工'}],batches:[{no:'SO260808004',type:'提货',date:'2026-08-06 15:00:00',skuCount:'3 个',qty:300,warehouse:'华南物流中转仓',operator:'运营用户',status:'已完成',details:[{sku:'SPU-2003',plan:'FP20260808041',warehouse:'华南物流中转仓',qty:100,remark:'—'},{sku:'SPU-9001',plan:'FP20260808042',warehouse:'华南物流中转仓',qty:80,remark:'—'},{sku:'SPU-9002',plan:'FP20260808043',warehouse:'华南物流中转仓',qty:120,remark:'—'}]}]},
-    {id:'DN20260808006',creator:'Admin',status:'待加工',logistics:'未发货',from:'义乌仓',to:'德国仓',plans:1,skus:1,declare:200,pick:200,ship:0,declarePickDiff:'0',pickShipDiff:'200',shipReceiveDiff:'0',declareReceiveDiff:'200',receive:0,processedQty:0,abnormal:0,eta:'2026-08-28',expectedPortDate:'2026-08-23',fee:'€2,600',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260808006',lingxingNo:'—',shipMode:'仓库发货',channel:'DHL 标准',transport:'快递',provider:'DHL',country:'德国 - DE',warehouseType:'海外仓',remark:'欧洲站刀具组合品，待加工',expectedShipDate:'2026-08-18',expectedTransitDuration:'7天',logisticsNo:'—',receiveOrderNo:'RA20260808006',actualFreight:'€2,200',customsFee:'€400',otherLogisticsFee:'€60',totalAccessoryCost:'€40',firstLegTotal:'€2,600',planQty:200,pendingReceive:0,items:[{sku:'SPU-4001',name:'厨房刀具套装｜六件套',plan:'FP20260808061',declare:200,pick:200,ship:0,declarePickDiff:'0',pickShipDiff:'200',shipReceiveDiff:'0',declareReceiveDiff:'200',receive:0,processedQty:0,status:'待加工'}],batches:[{no:'SO260808006',type:'提货',date:'2026-08-08 11:00:00',skuCount:'1 个',qty:200,warehouse:'义乌仓',operator:'运营用户',status:'已完成',details:[{sku:'SPU-4001',plan:'FP20260808061',warehouse:'义乌仓',qty:200,remark:'—'}]}]},
-    {id:'DN20260806001',creator:'Admin',status:'待收货',logistics:'运输中',from:'深圳仓',to:'美国西部仓',plans:3,skus:3,declare:1200,pick:1200,ship:1200,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'1200',declareReceiveDiff:'1200',receive:0,abnormal:1,eta:'2026-08-18',expectedPortDate:'2026-08-10',fee:'¥12,680',carrier:'马士基 / MSKU123456',innerTab:'sku',yicangNo:'EC20260806001',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'北美仓常规补货',expectedShipDate:'2026-08-08',expectedTransitDuration:'38天',logisticsNo:'MSKU123456',receiveOrderNo:'RA20260806001',actualFreight:'¥10,800',customsFee:'¥1,880',otherLogisticsFee:'¥400',totalAccessoryCost:'¥300',firstLegTotal:'¥12,680',planQty:1200,pendingReceive:1200,items:[{sku:'SPU-1001-BL',name:'蓝牙耳机 Pro 黑',plan:'FP20260806011',declare:500,pick:500,ship:500,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'1200',declareReceiveDiff:'1200',receive:0,status:'待收货'},{sku:'SPU-1001-WH',name:'蓝牙耳机 Pro 白',plan:'FP20260806012',declare:400,pick:400,ship:400,receive:0,status:'待收货'},{sku:'SPU-2003',name:'运动手环',plan:'FP20260806013',declare:300,pick:300,ship:300,receive:0,status:'待收货'}],batches:[{no:'SO260806001',type:'提货',date:'2026-08-05 09:00:00',skuCount:'3 个',qty:1200,warehouse:'深圳仓',operator:'运营用户',status:'已完成'},{no:'SO260806002',type:'发货',date:'2026-08-06 16:00:00',skuCount:'3 个',qty:1200,warehouse:'深圳仓 → 美国西部仓',operator:'运营用户',status:'运输中'}],boxes:[{code:'BOX26080600019-01',skuCount:70,spec:'54 * 34.5 * 20(cm) 21 * 14 * 8(英寸)',volume:0.0373,volumeWeight:'6.21(kg) 35(lb)',netWeight:16.02,grossWeight:15.4,items:[{sku:'SPU-1001-BL',overseasSku:'OW-US-1001-BL',fnsku:'X003ABC1',logisticsAttr:'普货',qty:70}]},{code:'BOX26080600019-02',skuCount:50,spec:'54 * 34.5 * 46(cm) 21 * 14 * 18(英寸)',volume:0.0857,volumeWeight:'14.283(kg) 46(lb)',netWeight:21.02,grossWeight:19.8,items:[{sku:'SPU-1001-WH',overseasSku:'OW-US-1001-WH',fnsku:'X003ABC2',logisticsAttr:'普货',qty:30},{sku:'SPU-2003',overseasSku:'OW-US-2003',fnsku:'X003B2003',logisticsAttr:'普货',qty:20}]}]},
-    {id:'DN20260807004',creator:'张敏',status:'待收货',logistics:'运输中',from:'义乌仓',to:'德国仓',plans:2,skus:2,declare:560,pick:560,ship:560,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'560',declareReceiveDiff:'560',receive:0,abnormal:0,eta:'2026-08-20',expectedPortDate:'2026-08-15',fee:'€4,200',carrier:'DHL / 8891234',innerTab:'sku',yicangNo:'EC20260807004',lingxingNo:'—',shipMode:'仓库发货',channel:'DHL 标准',transport:'快递',provider:'DHL',country:'德国 - DE',warehouseType:'海外仓',remark:'欧洲站补货',expectedShipDate:'2026-08-07',expectedTransitDuration:'7天',logisticsNo:'8891234',receiveOrderNo:'RA20260807004',actualFreight:'€3,600',customsFee:'€600',otherLogisticsFee:'€120',totalAccessoryCost:'€80',firstLegTotal:'€4,200',planQty:560,pendingReceive:560,items:[{sku:'SPU-3001',name:'便携榨汁杯',plan:'FP20260807041',declare:300,pick:300,ship:300,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'560',declareReceiveDiff:'560',receive:0,status:'待收货'},{sku:'SPU-6001',name:'智能台灯',plan:'FP20260807042',declare:260,pick:260,ship:260,receive:0,status:'待收货'}],batches:[]},
-    {id:'DN20260808009',creator:'Admin',status:'待收货',logistics:'运输中',from:'深圳仓',to:'美国东部仓',plans:2,skus:2,declare:500,pick:500,ship:500,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'500',declareReceiveDiff:'500',receive:0,abnormal:0,eta:'2026-08-22',expectedPortDate:'2026-08-14',fee:'¥5,200',carrier:'马士基 / MSKU909090',innerTab:'sku',yicangNo:'EC20260808009',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'美东仓补货',expectedShipDate:'2026-08-09',expectedTransitDuration:'38天',logisticsNo:'MSKU909090',receiveOrderNo:'RA20260808009',actualFreight:'¥4,500',customsFee:'¥700',otherLogisticsFee:'¥150',totalAccessoryCost:'¥100',firstLegTotal:'¥5,200',planQty:500,pendingReceive:500,items:[{sku:'SPU-1001-BL',name:'蓝牙耳机 Pro 黑',plan:'FP20260808091',declare:300,pick:300,ship:300,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'500',declareReceiveDiff:'500',receive:0,status:'待收货'},{sku:'SPU-8003',name:'蓝牙音箱迷你版',plan:'FP20260808092',declare:200,pick:200,ship:200,receive:0,status:'待收货'}],batches:[]},
-    {id:'DN20260807006',creator:'Admin',status:'待收货',logistics:'运输中',from:'东莞工厂',to:'美国西部仓',plans:1,skus:1,declare:180,pick:180,ship:180,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'180',declareReceiveDiff:'180',receive:0,abnormal:0,eta:'2026-08-19',expectedPortDate:'2026-08-15',fee:'$1,600',carrier:'UPS / 1Z777888',innerTab:'sku',yicangNo:'EC20260807006',lingxingNo:'—',shipMode:'工厂直发',channel:'UPS 快线',transport:'快递',provider:'DHL',country:'美国 - US',warehouseType:'海外仓',remark:'Walmart渠道补货',expectedShipDate:'2026-08-08',expectedTransitDuration:'7天',logisticsNo:'1Z777888',receiveOrderNo:'RA20260807006',actualFreight:'$1,400',customsFee:'$200',otherLogisticsFee:'$40',totalAccessoryCost:'$30',firstLegTotal:'$1,600',planQty:180,pendingReceive:180,items:[{sku:'SPU-6001',name:'智能台灯｜可调色温版',plan:'FP20260807061',declare:180,pick:180,ship:180,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'180',declareReceiveDiff:'180',receive:0,status:'待收货'}],batches:[]},
-    {id:'DN20260805008',creator:'张敏',status:'待发货',logistics:'未发货',from:'东莞工厂',to:'德国仓',plans:2,skus:2,declare:680,pick:680,ship:0,declarePickDiff:'0',pickShipDiff:'680',shipReceiveDiff:'0',declareReceiveDiff:'680',receive:0,abnormal:0,eta:'2026-08-12',expectedPortDate:'2026-08-10',fee:'€3,420',carrier:'DHL / 7798123',innerTab:'sku',yicangNo:'EC20260805008',lingxingNo:'—',shipMode:'工厂直发',channel:'DHL 标准',transport:'快递',provider:'DHL',country:'德国 - DE',warehouseType:'海外仓',remark:'欧洲站加急补货',expectedShipDate:'2026-08-06',expectedTransitDuration:'7天',logisticsNo:'7798123',receiveOrderNo:'RA20260805008',actualFreight:'€2,980',customsFee:'€440',otherLogisticsFee:'€120',totalAccessoryCost:'€80',firstLegTotal:'€3,420',planQty:680,pendingReceive:0,items:[{sku:'SPU-3001',name:'便携榨汁杯',plan:'FP20260805021',declare:380,pick:380,ship:0,declarePickDiff:'0',pickShipDiff:'680',shipReceiveDiff:'0',declareReceiveDiff:'680',receive:0,status:'待发货'},{sku:'SPU-3002',name:'替换杯盖',plan:'FP20260805022',declare:300,pick:300,ship:0,receive:0,status:'待发货'}],batches:[]},
-    {id:'DN20260807003',creator:'Admin',status:'待发货',logistics:'未发货',from:'深圳仓',to:'美国西部仓',plans:1,skus:1,declare:200,pick:200,ship:0,declarePickDiff:'0',pickShipDiff:'200',shipReceiveDiff:'0',declareReceiveDiff:'200',receive:0,abnormal:0,eta:'2026-08-15',expectedPortDate:'2026-08-12',fee:'¥1,800',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260807003',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'常规补货',expectedShipDate:'2026-08-10',expectedTransitDuration:'38天',logisticsNo:'—',receiveOrderNo:'RA20260807003',actualFreight:'¥1,500',customsFee:'¥300',otherLogisticsFee:'¥80',totalAccessoryCost:'¥40',firstLegTotal:'¥1,800',planQty:200,pendingReceive:0,items:[{sku:'SPU-6001',name:'智能台灯',plan:'FP20260807031',declare:200,pick:200,ship:0,declarePickDiff:'0',pickShipDiff:'200',shipReceiveDiff:'0',declareReceiveDiff:'200',receive:0,status:'待发货'}],batches:[]},
-    {id:'DN20260808008',creator:'Admin',status:'待发货',logistics:'未发货',from:'深圳仓',to:'美国西部仓',plans:2,skus:2,declare:430,pick:430,ship:0,declarePickDiff:'0',pickShipDiff:'430',shipReceiveDiff:'0',declareReceiveDiff:'430',receive:0,abnormal:0,eta:'2026-08-18',expectedPortDate:'2026-08-14',fee:'¥3,900',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260808008',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'普通品已提货，待发货',expectedShipDate:'2026-08-11',expectedTransitDuration:'38天',logisticsNo:'—',receiveOrderNo:'RA20260808008',actualFreight:'¥3,400',customsFee:'¥500',otherLogisticsFee:'¥100',totalAccessoryCost:'¥60',firstLegTotal:'¥3,900',planQty:430,pendingReceive:0,items:[{sku:'SPU-1001-WH',name:'蓝牙耳机 Pro 白',plan:'FP20260808081',declare:250,pick:250,ship:0,declarePickDiff:'0',pickShipDiff:'430',shipReceiveDiff:'0',declareReceiveDiff:'430',receive:0,status:'待发货'},{sku:'SPU-5003',name:'旅行收纳袋六件套',plan:'FP20260808082',declare:180,pick:180,ship:0,receive:0,status:'待发货'}],batches:[]},
-    {id:'DN20260806002',creator:'张敏',status:'待发货',logistics:'未发货',from:'义乌仓',to:'德国仓',plans:2,skus:2,declare:350,pick:350,ship:0,declarePickDiff:'0',pickShipDiff:'350',shipReceiveDiff:'0',declareReceiveDiff:'350',receive:0,abnormal:0,eta:'2026-08-16',expectedPortDate:'2026-08-13',fee:'€2,800',carrier:'DHL / 6677889',innerTab:'sku',yicangNo:'EC20260806002',lingxingNo:'—',shipMode:'仓库发货',channel:'DHL 标准',transport:'快递',provider:'DHL',country:'德国 - DE',warehouseType:'海外仓',remark:'欧洲站家居品补货',expectedShipDate:'2026-08-09',expectedTransitDuration:'7天',logisticsNo:'6677889',receiveOrderNo:'RA20260806002',actualFreight:'€2,400',customsFee:'€400',otherLogisticsFee:'€80',totalAccessoryCost:'€50',firstLegTotal:'€2,800',planQty:350,pendingReceive:0,items:[{sku:'SPU-3001',name:'便携榨汁杯',plan:'FP20260806021',declare:200,pick:200,ship:0,declarePickDiff:'0',pickShipDiff:'350',shipReceiveDiff:'0',declareReceiveDiff:'350',receive:0,status:'待发货'},{sku:'SPU-3002',name:'替换杯盖',plan:'FP20260806022',declare:150,pick:150,ship:0,receive:0,status:'待发货'}],batches:[]},
-    {id:'DN20260728002',creator:'Admin',status:'待提货',logistics:'未发货',from:'深圳仓',to:'美国西部仓',plans:2,skus:2,declare:950,pick:0,ship:0,declarePickDiff:'950',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'950',receive:0,abnormal:0,eta:'2026-08-25',expectedPortDate:'2026-08-20',fee:'¥8,900',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260728002',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'待仓库安排提货',expectedShipDate:'2026-08-10',expectedTransitDuration:'38天',logisticsNo:'—',receiveOrderNo:'RA20260728002',actualFreight:'¥7,600',customsFee:'¥1,300',otherLogisticsFee:'¥250',totalAccessoryCost:'¥200',firstLegTotal:'¥8,900',planQty:950,pendingReceive:0,items:[{sku:'SPU-5001',name:'旅行背包',plan:'FP20260728021',declare:600,pick:0,ship:0,declarePickDiff:'950',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'950',receive:0,status:'待提货'},{sku:'SPU-5002',name:'背包防雨罩',plan:'FP20260728022',declare:350,pick:0,ship:0,receive:0,status:'待提货'}],batches:[]},
-    {id:'DN20260716002',creator:'Admin',status:'待提货',logistics:'未发货',from:'东莞工厂',to:'美国西部仓',plans:2,skus:2,declare:420,pick:0,ship:0,declarePickDiff:'420',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'420',receive:0,abnormal:0,eta:'2026-08-04',expectedPortDate:'2026-08-01',fee:'$2,100',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260716002',lingxingNo:'—',shipMode:'工厂直发',channel:'UPS 快线',transport:'快递',provider:'DHL',country:'美国 - US',warehouseType:'海外仓',remark:'工厂直发待提货',expectedShipDate:'2026-07-18',expectedTransitDuration:'7天',logisticsNo:'1Z900',receiveOrderNo:'RA20260716002',actualFreight:'$1,820',customsFee:'$280',otherLogisticsFee:'$60',totalAccessoryCost:'$40',firstLegTotal:'$2,100',planQty:420,pendingReceive:0,items:[{sku:'SPU-8001',name:'充电底座',plan:'FP20260716021',declare:220,pick:0,ship:0,declarePickDiff:'420',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'420',receive:0,status:'待提货'},{sku:'SPU-8002',name:'数据线',plan:'FP20260716022',declare:200,pick:0,ship:0,receive:0,status:'待提货'}],batches:[]},
-    {id:'DN20260808005',creator:'Admin',status:'待提货',logistics:'未发货',from:'义乌仓',to:'美国东部仓',plans:1,skus:1,declare:150,pick:0,ship:0,declarePickDiff:'150',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'150',receive:0,abnormal:0,eta:'2026-08-28',expectedPortDate:'2026-08-20',fee:'$1,200',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260808005',lingxingNo:'—',shipMode:'供应商直发',channel:'空派',transport:'空运',provider:'顺丰国际',country:'美国 - US',warehouseType:'海外仓',remark:'新品试销',expectedShipDate:'2026-08-15',expectedTransitDuration:'8天',logisticsNo:'—',receiveOrderNo:'RA20260808005',actualFreight:'$1,000',customsFee:'$200',otherLogisticsFee:'¥0',totalAccessoryCost:'¥0',firstLegTotal:'$1,200',planQty:150,pendingReceive:0,items:[{sku:'SPU-1001-BL',name:'蓝牙耳机 Pro 黑',plan:'FP20260808051',declare:150,pick:0,ship:0,declarePickDiff:'150',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'150',receive:0,status:'待提货'}],batches:[]},
-    {id:'DN20260808007',creator:'Admin',status:'待提货',logistics:'未发货',from:'深圳仓',to:'美国西部仓',plans:3,skus:3,declare:450,pick:0,ship:0,declarePickDiff:'450',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'450',receive:0,abnormal:0,eta:'2026-08-30',expectedPortDate:'2026-08-22',fee:'¥4,600',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260808007',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'含组合品：SPU-2003 子件库存不足(仅可提5)、SPU-9001 库存充足',expectedShipDate:'2026-08-17',expectedTransitDuration:'38天',logisticsNo:'—',receiveOrderNo:'RA20260808007',actualFreight:'¥4,000',customsFee:'¥600',otherLogisticsFee:'¥200',totalAccessoryCost:'¥150',firstLegTotal:'¥4,600',planQty:450,pendingReceive:0,items:[{sku:'SPU-2003',name:'智能运动手环｜标准套装',plan:'FP20260808071',declare:200,pick:0,ship:0,declarePickDiff:'450',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'450',receive:0,status:'待提货'},{sku:'SPU-9001',name:'户外露营套装',plan:'FP20260808072',declare:150,pick:0,ship:0,receive:0,status:'待提货'},{sku:'SPU-8003',name:'蓝牙音箱迷你版',plan:'FP20260808073',declare:100,pick:0,ship:0,receive:0,status:'待提货'},{sku:'SPU-2003-A',name:'运动手环主机（子件）',plan:'FP20260808074',declare:200,pick:0,ship:0,receive:0,status:'待提货'}],batches:[]},
-    {id:'DN20260807005',creator:'Admin',status:'待提货',logistics:'未发货',from:'东莞工厂',to:'美国西部仓',plans:2,skus:2,declare:400,pick:0,ship:0,declarePickDiff:'400',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'400',receive:0,abnormal:0,eta:'2026-08-24',expectedPortDate:'2026-08-18',fee:'$3,200',carrier:'待分配',innerTab:'sku',yicangNo:'EC20260807005',lingxingNo:'—',shipMode:'工厂直发',channel:'UPS 快线',transport:'快递',provider:'DHL',country:'美国 - US',warehouseType:'海外仓',remark:'Walmart渠道待提货',expectedShipDate:'2026-08-12',expectedTransitDuration:'7天',logisticsNo:'—',receiveOrderNo:'RA20260807005',actualFreight:'$2,800',customsFee:'$400',otherLogisticsFee:'$100',totalAccessoryCost:'$60',firstLegTotal:'$3,200',planQty:400,pendingReceive:0,items:[{sku:'SPU-1002',name:'无线充电器｜15W快充',plan:'FP20260807051',declare:300,pick:0,ship:0,declarePickDiff:'400',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'400',receive:0,status:'待提货'},{sku:'SPU-6001',name:'智能台灯｜可调色温版',plan:'FP20260807052',declare:100,pick:0,ship:0,receive:0,status:'待提货'}],batches:[]},
-    {id:'DN20260801003',creator:'Admin',status:'部分收货',logistics:'部分收货',from:'义乌仓',to:'美国东部仓',plans:1,skus:1,declare:200,pick:200,ship:200,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'10',declareReceiveDiff:'10',receive:190,abnormal:1,eta:'2026-08-05',expectedPortDate:'2026-08-03',fee:'$1,860',carrier:'UPS / 1Z889',innerTab:'sku',yicangNo:'EC20260801003',lingxingNo:'—',shipMode:'仓库发货',channel:'UPS 快线',transport:'快递',provider:'DHL',country:'美国 - US',warehouseType:'海外仓',remark:'部分收货，待继续入库',expectedShipDate:'2026-08-02',expectedTransitDuration:'7天',logisticsNo:'1Z889',receiveOrderNo:'RA20260801003',actualFreight:'$1,620',customsFee:'$240',otherLogisticsFee:'¥0',totalAccessoryCost:'¥0',firstLegTotal:'$1,860',planQty:200,pendingReceive:10,items:[{sku:'SPU-4002',name:'收纳盒套装',plan:'FP20260801031',declare:200,pick:200,ship:200,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'10',declareReceiveDiff:'10',receive:190,status:'部分收货'}],batches:[]},
-    {id:'DN20260725002',creator:'Admin',status:'部分收货',logistics:'部分收货',from:'深圳仓',to:'英国仓',plans:2,skus:2,declare:480,pick:480,ship:480,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'30',declareReceiveDiff:'30',receive:450,abnormal:1,eta:'2026-07-30',expectedPortDate:'2026-07-27',fee:'¥5,600',carrier:'马士基 / MSKU5678',innerTab:'sku',yicangNo:'EC20260725002',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'英国 - GB',warehouseType:'海外仓',remark:'少30件待补',expectedShipDate:'2026-07-20',expectedTransitDuration:'38天',logisticsNo:'MSKU5678',receiveOrderNo:'RA20260725002',actualFreight:'¥4,800',customsFee:'¥800',otherLogisticsFee:'¥150',totalAccessoryCost:'¥100',firstLegTotal:'¥5,600',planQty:480,pendingReceive:30,items:[{sku:'SPU-7001',name:'手机支架',plan:'FP20260725021',declare:280,pick:280,ship:280,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'30',declareReceiveDiff:'30',receive:260,status:'部分收货'},{sku:'SPU-7002',name:'支架配件',plan:'FP20260725022',declare:200,pick:200,ship:200,receive:190,status:'部分收货'}],batches:[]},
-    {id:'DN20260803001',creator:'Admin',status:'部分收货',logistics:'部分收货',from:'深圳仓',to:'美国西部仓',plans:3,skus:3,declare:450,pick:450,ship:450,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'35',declareReceiveDiff:'35',receive:415,abnormal:1,eta:'2026-08-10',expectedPortDate:'2026-08-07',fee:'¥4,300',carrier:'马士基 / MSKU303030',innerTab:'sku',yicangNo:'EC20260803001',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'3个SKU均有少量短少',expectedShipDate:'2026-08-01',expectedTransitDuration:'38天',logisticsNo:'MSKU303030',receiveOrderNo:'RA20260803001',actualFreight:'¥3,700',customsFee:'¥600',otherLogisticsFee:'¥180',totalAccessoryCost:'¥120',firstLegTotal:'¥4,300',planQty:450,pendingReceive:35,items:[{sku:'SPU-5003',name:'旅行收纳袋六件套',plan:'FP20260803011',declare:200,pick:200,ship:200,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'35',declareReceiveDiff:'35',receive:180,status:'部分收货'},{sku:'SPU-8003',name:'蓝牙音箱迷你版',plan:'FP20260803012',declare:150,pick:150,ship:150,receive:140,status:'部分收货'},{sku:'SPU-1001-BL',name:'蓝牙耳机 Pro 黑',plan:'FP20260803013',declare:100,pick:100,ship:100,receive:95,status:'部分收货'}],batches:[]},
-    {id:'DN20260728001',creator:'Admin',status:'部分收货',logistics:'部分收货',from:'义乌仓',to:'英国仓',plans:2,skus:2,declare:500,pick:500,ship:500,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'30',declareReceiveDiff:'30',receive:470,abnormal:1,eta:'2026-08-02',expectedPortDate:'2026-07-31',fee:'¥5,200',carrier:'DHL / 554433',innerTab:'sku',yicangNo:'EC20260728001',lingxingNo:'—',shipMode:'仓库发货',channel:'DHL 标准',transport:'快递',provider:'DHL',country:'英国 - GB',warehouseType:'海外仓',remark:'英国仓部分收货',expectedShipDate:'2026-07-28',expectedTransitDuration:'7天',logisticsNo:'554433',receiveOrderNo:'RA20260728001',actualFreight:'¥4,500',customsFee:'¥700',otherLogisticsFee:'€40',totalAccessoryCost:'€30',firstLegTotal:'¥5,200',planQty:500,pendingReceive:30,items:[{sku:'SPU-5001',name:'旅行背包',plan:'FP20260728011',declare:300,pick:300,ship:300,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'30',declareReceiveDiff:'30',receive:280,status:'部分收货'},{sku:'SPU-5002',name:'背包防雨罩',plan:'FP20260728012',declare:200,pick:200,ship:200,receive:190,status:'部分收货'}],batches:[]},
-    {id:'DN20260720001',creator:'Admin',status:'已完成',logistics:'已完成',from:'深圳仓',to:'美国西部仓',plans:2,skus:2,declare:800,pick:800,ship:800,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:800,abnormal:0,eta:'2026-07-20',expectedPortDate:'2026-07-17',fee:'¥9,200',carrier:'马士基 / MSKU1122',innerTab:'sku',yicangNo:'EC20260720001',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'已完成签收',expectedShipDate:'2026-07-10',expectedTransitDuration:'38天',logisticsNo:'MSKU1122',receiveOrderNo:'RA20260720001',actualFreight:'¥8,000',customsFee:'¥1,200',otherLogisticsFee:'¥0',totalAccessoryCost:'¥0',firstLegTotal:'¥9,200',planQty:800,pendingReceive:0,items:[{sku:'SPU-1001-BL',name:'蓝牙耳机 Pro 黑',plan:'FP20260720011',declare:500,pick:500,ship:500,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:500,status:'已完成'},{sku:'SPU-1001-WH',name:'蓝牙耳机 Pro 白',plan:'FP20260720012',declare:300,pick:300,ship:300,receive:300,status:'已完成'}],batches:[]},
-    {id:'DN20260715001',creator:'Admin',status:'已完成',logistics:'已完成',from:'东莞工厂',to:'德国仓',plans:1,skus:1,declare:150,pick:150,ship:150,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:150,abnormal:0,eta:'2026-07-15',expectedPortDate:'2026-07-12',fee:'€1,800',carrier:'DHL / 5566778',innerTab:'sku',yicangNo:'EC20260715001',lingxingNo:'—',shipMode:'工厂直发',channel:'DHL 标准',transport:'快递',provider:'DHL',country:'德国 - DE',warehouseType:'海外仓',remark:'已完成签收',expectedShipDate:'2026-07-05',expectedTransitDuration:'7天',logisticsNo:'5566778',receiveOrderNo:'RA20260715001',actualFreight:'€1,500',customsFee:'€300',otherLogisticsFee:'$0',totalAccessoryCost:'$0',firstLegTotal:'€1,800',planQty:150,pendingReceive:0,items:[{sku:'SPU-3001',name:'便携榨汁杯',plan:'FP20260715011',declare:150,pick:150,ship:150,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:150,status:'已完成'}],batches:[]},
-    {id:'DN20260710001',creator:'Admin',status:'已完成',logistics:'已完成',from:'深圳仓',to:'美国西部仓',plans:1,skus:1,declare:150,pick:150,ship:150,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:150,processedQty:150,abnormal:0,eta:'2026-07-10',expectedPortDate:'2026-07-08',fee:'¥2,400',carrier:'马士基 / MSKU778899',innerTab:'sku',yicangNo:'EC20260710001',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'组合品加工后发货，已完成签收',expectedShipDate:'2026-06-28',expectedTransitDuration:'38天',logisticsNo:'MSKU778899',receiveOrderNo:'RA20260710001',actualFreight:'¥2,100',customsFee:'¥300',otherLogisticsFee:'¥0',totalAccessoryCost:'¥0',firstLegTotal:'¥2,400',planQty:150,pendingReceive:0,items:[{sku:'SPU-9001',name:'户外露营套装',plan:'FP20260710011',declare:150,pick:150,ship:150,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:150,processedQty:150,status:'已完成'}],batches:[]},
-    {id:'DN20260705001',creator:'Admin',status:'已完成',logistics:'已完成',from:'东莞工厂',to:'美国西部仓',plans:3,skus:3,declare:900,pick:900,ship:900,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:900,abnormal:0,eta:'2026-07-05',expectedPortDate:'2026-07-03',fee:'$8,500',carrier:'UPS / 1Z100200',innerTab:'sku',yicangNo:'EC20260705001',lingxingNo:'—',shipMode:'工厂直发',channel:'UPS 快线',transport:'快递',provider:'DHL',country:'美国 - US',warehouseType:'海外仓',remark:'大批量多SKU已完成',expectedShipDate:'2026-06-25',expectedTransitDuration:'7天',logisticsNo:'1Z100200',receiveOrderNo:'RA20260705001',actualFreight:'$7,400',customsFee:'$1,100',otherLogisticsFee:'€0',totalAccessoryCost:'€0',firstLegTotal:'$8,500',planQty:900,pendingReceive:0,items:[{sku:'SPU-1002',name:'无线充电器｜15W快充',plan:'FP20260705011',declare:400,pick:400,ship:400,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:400,status:'已完成'},{sku:'SPU-6001',name:'智能台灯｜可调色温版',plan:'FP20260705012',declare:200,pick:200,ship:200,receive:200,status:'已完成'},{sku:'SPU-1001-BL',name:'蓝牙耳机 Pro 黑',plan:'FP20260705013',declare:300,pick:300,ship:300,receive:300,status:'已完成'}],batches:[]},
-    {id:'DN20260718001',creator:'Admin',status:'已作废',logistics:'已作废',from:'深圳仓',to:'英国仓',plans:1,skus:1,declare:160,pick:0,ship:0,declarePickDiff:'160',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'160',receive:0,abnormal:0,eta:'-',expectedPortDate:'—',fee:'¥0',carrier:'-',innerTab:'sku',yicangNo:'EC20260718001',lingxingNo:'—',shipMode:'仓库发货',channel:'—',transport:'海运',provider:'—',country:'英国 - GB',warehouseType:'海外仓',remark:'业务取消，发货单作废',expectedShipDate:'—',expectedTransitDuration:'—',logisticsNo:'—',receiveOrderNo:'—',actualFreight:'¥0',customsFee:'¥0',otherLogisticsFee:'—',totalAccessoryCost:'—',firstLegTotal:'¥0',planQty:160,pendingReceive:0,items:[{sku:'SPU-7001',name:'旧款支架',plan:'FP20260718011',declare:160,pick:0,ship:0,declarePickDiff:'160',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'160',receive:0,status:'已作废'}],batches:[]},
-    {id:'DN20260802001',creator:'Admin',status:'已作废',logistics:'已作废',from:'深圳仓',to:'美国西部仓',plans:2,skus:2,declare:300,pick:0,ship:0,declarePickDiff:'300',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'300',receive:0,abnormal:0,eta:'-',expectedPortDate:'—',fee:'¥0',carrier:'-',innerTab:'sku',yicangNo:'EC20260802001',lingxingNo:'—',shipMode:'仓库发货',channel:'—',transport:'海运',provider:'—',country:'美国 - US',warehouseType:'海外仓',remark:'需求变更，提货前作废',expectedShipDate:'—',expectedTransitDuration:'—',logisticsNo:'—',receiveOrderNo:'—',actualFreight:'¥0',customsFee:'¥0',otherLogisticsFee:'—',totalAccessoryCost:'—',firstLegTotal:'¥0',planQty:300,pendingReceive:0,items:[{sku:'SPU-1001-WH',name:'蓝牙耳机 Pro 白',plan:'FP20260802011',declare:200,pick:0,ship:0,declarePickDiff:'300',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'300',receive:0,status:'已作废'},{sku:'SPU-2003',name:'智能运动手环',plan:'FP20260802012',declare:100,pick:0,ship:0,receive:0,status:'已作废'}],batches:[]},
-    {id:'DN20260722001',creator:'Admin',status:'已作废',logistics:'已作废',from:'义乌仓',to:'德国仓',plans:1,skus:1,declare:120,pick:0,ship:0,declarePickDiff:'120',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'120',receive:0,abnormal:0,eta:'-',expectedPortDate:'—',fee:'€0',carrier:'-',innerTab:'sku',yicangNo:'EC20260722001',lingxingNo:'—',shipMode:'供应商直发',channel:'—',transport:'快递',provider:'—',country:'德国 - DE',warehouseType:'海外仓',remark:'供应商断货作废',expectedShipDate:'—',expectedTransitDuration:'—',logisticsNo:'—',receiveOrderNo:'—',actualFreight:'€0',customsFee:'€0',otherLogisticsFee:'—',totalAccessoryCost:'—',firstLegTotal:'€0',planQty:120,pendingReceive:0,items:[{sku:'SPU-7001',name:'手机支架',plan:'FP20260722011',declare:120,pick:0,ship:0,declarePickDiff:'120',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'120',receive:0,status:'已作废'}],batches:[]},
-    {id:'DRAFT20260807001',creator:'Admin',status:'草稿',logistics:'未提交',from:'未填写',to:'未填写',plans:0,skus:0,declare:0,pick:0,ship:0,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:0,abnormal:0,eta:'-',expectedPortDate:'—',fee:'-',carrier:'-',innerTab:'sku',yicangNo:'—',lingxingNo:'—',shipMode:'—',channel:'—',transport:'—',provider:'—',country:'—',warehouseType:'—',remark:'—',expectedShipDate:'—',expectedTransitDuration:'—',logisticsNo:'—',receiveOrderNo:'—',actualFreight:'—',customsFee:'—',otherLogisticsFee:'—',totalAccessoryCost:'—',firstLegTotal:'—',planQty:0,pendingReceive:0,items:[],batches:[]},
-    {id:'DRAFT20260808001',creator:'Admin',status:'草稿',logistics:'未提交',from:'未填写',to:'未填写',plans:0,skus:0,declare:0,pick:0,ship:0,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:0,abnormal:0,eta:'-',expectedPortDate:'—',fee:'-',carrier:'-',innerTab:'sku',yicangNo:'—',lingxingNo:'—',shipMode:'—',channel:'—',transport:'—',provider:'—',country:'—',warehouseType:'—',remark:'—',expectedShipDate:'—',expectedTransitDuration:'—',logisticsNo:'—',receiveOrderNo:'—',actualFreight:'—',customsFee:'—',otherLogisticsFee:'—',totalAccessoryCost:'—',firstLegTotal:'—',planQty:0,pendingReceive:0,items:[],batches:[]},
-    {id:'DRAFT20260808002',creator:'Admin',status:'草稿',logistics:'未提交',from:'深圳仓',to:'美国西部仓',plans:0,skus:0,declare:0,pick:0,ship:0,declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',receive:0,abnormal:0,eta:'-',expectedPortDate:'—',fee:'-',carrier:'-',innerTab:'sku',yicangNo:'—',lingxingNo:'—',shipMode:'仓库发货',channel:'标准海运',transport:'海运',provider:'马士基',country:'美国 - US',warehouseType:'海外仓',remark:'已填头程信息，尚未选择SKU',expectedShipDate:'—',expectedTransitDuration:'—',logisticsNo:'—',receiveOrderNo:'—',actualFreight:'—',customsFee:'—',otherLogisticsFee:'—',totalAccessoryCost:'—',firstLegTotal:'—',planQty:0,pendingReceive:0,items:[],batches:[]},
-    {id:'DRAFT20260808003',creator:'Admin',status:'草稿',logistics:'未提交',from:'义乌仓',to:'德国仓',plans:2,skus:2,declare:300,pick:0,ship:0,declarePickDiff:'300',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'300',receive:0,abnormal:0,eta:'-',expectedPortDate:'—',fee:'-',carrier:'-',innerTab:'sku',yicangNo:'—',lingxingNo:'—',shipMode:'仓库发货',channel:'DHL 标准',transport:'快递',provider:'DHL',country:'德国 - DE',warehouseType:'海外仓',remark:'已选SKU，待提交',expectedShipDate:'—',expectedTransitDuration:'—',logisticsNo:'—',receiveOrderNo:'—',actualFreight:'—',customsFee:'—',otherLogisticsFee:'—',totalAccessoryCost:'—',firstLegTotal:'—',planQty:300,pendingReceive:0,items:[{sku:'SPU-6001',name:'智能台灯｜可调色温版',plan:'FP20260808081',declare:200,pick:0,ship:0,declarePickDiff:'300',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'300',receive:0,status:'草稿'},{sku:'SPU-3002',name:'替换杯盖｜通用款',plan:'FP20260808082',declare:100,pick:0,ship:0,receive:0,status:'草稿'}],batches:[]}
-  ]);
-  const batchTypeMap={提货:'pickup',加工:'processing',发货:'shipment',收货:'receive','手动完结':'complete'};
-  const batchSourceLabels={manual:'人工操作',import:'文件导入',api:'接口同步',system:'系统生成',demo:'系统记录'};
-  const batchSourceLabel=source=>batchSourceLabels[source]||'系统记录';
-  docs.forEach(d=>{const m=d.id.match(/(\d{8})/);if(m)d.created=m[1].replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3');d.shipmentNo=d.shipmentNo||'—';d.referenceId=d.referenceId||'—';d.providerNo=d.providerNo||'—';d.quantityAdjustments=d.quantityAdjustments||[];(d.batches||[]).forEach(batch=>{batch.quantityType=batch.quantityType||batchTypeMap[batch.type]||'';batch.source=batch.source||'demo';batch.adjustments=batch.adjustments||[]})});
-  const extraNoMap={'DN20260808001':{shipmentNo:'FBA20260808001',referenceId:'REF-US-001'},'DN20260808002':{shipmentNo:'FBA20260808002',referenceId:'REF-US-002'},'DN20260808003':{shipmentNo:'FBA20260808003',referenceId:'REF-US-003'},'DN20260806001':{shipmentNo:'FBA20260806001',referenceId:'REF-US-006'},'DN20260808009':{shipmentNo:'FBA20260808009',referenceId:'REF-US-009'},'DN20260805008':{shipmentNo:'FBA20260805008',referenceId:'REF-DE-008'},'DN20260720001':{shipmentNo:'FBA20260720001',referenceId:'REF-US-020'}};
-  docs.forEach(d=>{if(extraNoMap[d.id]){d.shipmentNo=extraNoMap[d.id].shipmentNo;d.referenceId=extraNoMap[d.id].referenceId}});
-  docs.forEach(d=>{['fee','actualFreight','customsFee','otherLogisticsFee','totalAccessoryCost','firstLegTotal'].forEach(key=>{if(d[key]&&typeof d[key]==='string'&&!/^¥/.test(d[key])&&d[key]!=='—'&&d[key]!=='-'){d[key]=d[key].replace(/^[$€]/,'¥')}})});
-  const buildLogs=doc=>{
-    const date=doc.created||'2026-08-09';
-    const time=t=>`${date} ${t}`;
-    const logs=[{type:'新增',content:`创建发货单 ${doc.id}`,operator:doc.creator||'Admin',time:time('10:00:00')}];
-    if(doc.status!=='草稿'){logs.push({type:'编辑',content:'提交发货单，状态更新为待提货',operator:'运营用户',time:time('10:05:00')});}
-    if(['待加工','待发货','待收货','部分收货','已完成'].includes(doc.status)){logs.push({type:'出库',content:`出库成功，虚拟货位2A01-A0101，减少库存${doc.pick||doc.declare||0}个`,operator:'仓库用户',time:time('14:20:00')});}
-    if(['待发货','待收货','部分收货','已完成'].includes(doc.status)){logs.push({type:'编辑',content:'已获取物流预报的面单，更新发货单状态为待贴单据',operator:'运营用户',time:time('16:30:00')});}
-    if(['待收货','部分收货','已完成'].includes(doc.status)){logs.push({type:'发货',content:`确认发货 ${doc.ship||doc.declare||0} 件，物流单号 ${doc.logisticsNo||'—'}`,operator:'运营用户',time:time('09:15:00')});}
-    if(['部分收货','已完成'].includes(doc.status)){logs.push({type:'收货',content:`确认收货 ${doc.receive||0} 件`,operator:'仓库用户',time:time('11:20:00')});}
-    if(doc.status==='已完成'){logs.push({type:'编辑',content:'发货单已完成签收',operator:'系统',time:time('18:00:00')});}
-    if(doc.status==='已作废'){logs.push({type:'编辑',content:`发货单已作废，原因：${doc.remark||'业务取消'}`,operator:'运营用户',time:time('15:00:00')});}
-    return logs;
-  };
-  docs.forEach(d=>{d.logs=buildLogs(d)});
-  const codeTypeOptions=[{label:'ERP发货单号',value:'erpNo'},{label:'发货单号',value:'shipmentNo'},{label:'计划单号',value:'planNo'},{label:'物流单号',value:'logisticsNo'}/*,{label:'关联货件单号',value:'shipmentLinkNo'},{label:'Reference ID',value:'referenceId'}*/];
-  const skuTypeOptions=[{label:'SKU',value:'sku'},{label:'海外仓 SKU',value:'overseasSku'}/*,{label:'FNSKU',value:'fnsku'}*/];
-  const storeOptions=['Amazon-US 旗舰店','Amazon-US 运动店','Amazon-US 户外店','Amazon-US 箱包店','Amazon-DE 家居店','Amazon-DE 厨房店','Walmart-US 家居店','Walmart-US 数码店'];
-  const creatorOptions=['Admin','张敏','李晨','王磊'];
-  const query=reactive({codeType:'erpNo',codeText:'',skuType:'sku',skuText:'',shipModes:[],froms:[],tos:[],channels:[],transports:[],platforms:[],stores:[],teams:[],creators:['Admin'],createdRange:[]}),appliedQuery=reactive({codeType:'erpNo',codeText:'',skuType:'sku',skuText:'',shipModes:[],froms:[],tos:[],channels:[],transports:[],platforms:[],stores:[],teams:[],creators:['Admin'],createdRange:[]}),statusTab=ref('全部'),queryExpanded=ref(false),queryOverflow=ref(false);
-  const codeTypeLabel=computed(()=>codeTypeOptions.find(item=>item.value===query.codeType)?.label||'单号');
-  const skuTypeLabel=computed(()=>skuTypeOptions.find(item=>item.value===query.skuType)?.label||'SKU');
-  const splitQueryValues=value=>String(value||'').split(/[\s,，、;；]+/).map(item=>item.trim()).filter(Boolean);
-  const textMatch=(candidates,value)=>{const values=splitQueryValues(value).map(item=>item.toLowerCase());if(!values.length)return true;return candidates.some(candidate=>values.some(item=>String(candidate||'').toLowerCase().includes(item)))};
-  const selectMatch=(candidates,selected)=>!selected.length||candidates.some(candidate=>selected.includes(candidate));
-  const codeCandidates=(doc,type)=>({erpNo:[doc.yicangNo,doc.lingxingNo],shipmentNo:[doc.id],shipmentLinkNo:[doc.shipmentNo],referenceId:[doc.referenceId],planNo:(doc.items||[]).map(item=>item.plan),logisticsNo:[doc.logisticsNo]})[type]||[];
-  const skuCandidatesForDoc=(doc,type)=>(doc.items||[]).map(item=>type==='sku'?item.sku:skuMeta(item.sku)[type]||'');
-  const querySnapshot=()=>({...query,shipModes:[...query.shipModes],froms:[...query.froms],tos:[...query.tos],channels:[...query.channels],transports:[...query.transports],platforms:[...query.platforms],stores:[...query.stores],teams:[...query.teams],creators:[...query.creators],createdRange:[...query.createdRange]});
-  const layoutQuery=()=>{const grid=document.querySelector('.query-grid');if(!grid)return;const items=[...grid.querySelectorAll('.query-item:not(.query-action-item)')];items.forEach(item=>item.classList.remove('query-overflow-item'));const tops=[...new Set(items.map(item=>Math.round(item.getBoundingClientRect().top)))].sort((a,b)=>a-b);const overflowTop=tops[2];const overflowItems=overflowTop===undefined?[]:items.filter(item=>Math.round(item.getBoundingClientRect().top)>=overflowTop);overflowItems.forEach(item=>item.classList.add('query-overflow-item'));queryOverflow.value=overflowItems.length>0;if(!queryOverflow.value)queryExpanded.value=false};
-  nextTick(()=>{layoutQuery();let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(layoutQuery,80)})});
-  const filteredDocs=computed(()=>docs.filter(d=>{const tabMatch=statusTab.value==='全部'||d.status===statusTab.value;const [start,end]=appliedQuery.createdRange||[];return tabMatch&&textMatch(codeCandidates(d,appliedQuery.codeType),appliedQuery.codeText)&&textMatch(skuCandidatesForDoc(d,appliedQuery.skuType),appliedQuery.skuText)&&selectMatch([d.shipMode],appliedQuery.shipModes)&&selectMatch([d.from],appliedQuery.froms)&&selectMatch([d.to],appliedQuery.tos)&&selectMatch([d.channel],appliedQuery.channels)&&selectMatch([d.transport],appliedQuery.transports)&&selectMatch(d.items?.map(item=>skuMeta(item.sku).platform)||[],appliedQuery.platforms)&&selectMatch(d.items?.map(item=>skuMeta(item.sku).store)||[],appliedQuery.stores)&&selectMatch(d.items?.map(item=>skuMeta(item.sku).team)||[],appliedQuery.teams)&&selectMatch([d.creator],appliedQuery.creators)&&(!start||(d.created||'')>=start)&&(!end||(d.created||'')<=end)}));
-  const statusCount=s=>s==='全部'?docs.length:docs.filter(x=>x.status===s).length;
-  const applyQuery=()=>Object.assign(appliedQuery,querySnapshot());const resetQuery=()=>{Object.assign(query,{codeType:'erpNo',codeText:'',skuType:'sku',skuText:'',shipModes:[],froms:[],tos:[],channels:[],transports:[],platforms:[],stores:[],teams:[],creators:['Admin'],createdRange:[]});Object.assign(appliedQuery,querySnapshot());statusTab.value='全部';queryExpanded.value=false};
-  const tagType=s=>['已完成','已签收'].includes(s)?'success':['待收货','部分收货','待加工'].includes(s)?'warning':['已作废','待提货','未发货','草稿','未提交'].includes(s)?'info':'';
-  const createVisible=ref(false),createFormRef=ref(),editingDoc=ref(null);const emptyAddress=()=>({contact:'',phone:'',country:'',province:'',city:'',district:'',detail:'',zip:''});
-  const createForm=reactive({from:'',to:'',shipMode:'',provider:'',transport:'',channel:'',country:'',warehouseType:'',logisticsNo:'',fromAddress:emptyAddress(),toAddress:emptyAddress(),remark:''});
-  const createRules={from:[{required:true,message:'请选择发货仓',trigger:'change'}],to:[{required:true,message:'请选择目的仓',trigger:'change'}],shipMode:[{required:true,message:'请选择发货方式',trigger:'change'}],provider:[{required:true,message:'请选择头程服务商',trigger:'change'}],transport:[{required:true,message:'请选择运输方式',trigger:'change'}],channel:[{required:true,message:'请选择物流渠道',trigger:'change'}]};
-  const selectedSkus=ref([]),declareTotal=computed(()=>selectedSkus.value.reduce((n,x)=>n+Number(x.declareQty||0),0));
-  const canAddSku=computed(()=>['from','to','shipMode','provider','transport','channel'].every(key=>Boolean(createForm[key])));
-  const openCreate=()=>{editingDoc.value=null;selectedSkus.value=[];Object.assign(createForm,{from:'',to:'',shipMode:'',provider:'',transport:'',channel:'',country:'',warehouseType:'',logisticsNo:'',fromAddress:emptyAddress(),toAddress:emptyAddress(),remark:''});createVisible.value=true;nextTick(()=>createFormRef.value?.clearValidate())};
-  const openEdit=row=>{
-    editingDoc.value=row;
-    Object.assign(createForm,{
-      from:row.from==='未填写'?'':row.from,to:row.to==='未填写'?'':row.to,
-      shipMode:row.shipMode==='—'?'':row.shipMode,provider:row.provider==='—'?'':row.provider,
-      transport:row.transport==='—'?'':row.transport,channel:row.channel==='—'?'':row.channel,
-      country:row.country==='—'?'':row.country,warehouseType:row.warehouseType==='—'?'':row.warehouseType,
-      logisticsNo:row.logisticsNo==='—'?'':row.logisticsNo,remark:row.remark==='—'?'':row.remark,
-      fromAddress:{...row.fromAddress},toAddress:{...row.toAddress}
-    });
-    selectedSkus.value=(row.items||[]).map(item=>({...skuMeta(item.sku),sku:item.sku,planNo:item.plan,declareQty:item.declare,skuRemark:item.remark??skuMeta(item.sku).skuRemark??'',title:item.name||skuMeta(item.sku).title}));
-    createVisible.value=true;
-    nextTick(()=>createFormRef.value?.clearValidate());
-  };
-  const applyCreateFormToDoc=doc=>{
-    Object.assign(doc,{shipMode:createForm.shipMode||'—',from:createForm.from||'未填写',to:createForm.to||'未填写',channel:createForm.channel||'—',transport:createForm.transport||'—',provider:createForm.provider||'—',country:createForm.country||'—',warehouseType:createForm.warehouseType||'—',remark:createForm.remark||'—',logisticsNo:createForm.logisticsNo||'—',fromAddress:{...createForm.fromAddress},toAddress:{...createForm.toAddress},plans:selectedSkus.value.length,skus:selectedSkus.value.length,planQty:declareTotal.value,declare:declareTotal.value});
-    doc.items=selectedSkus.value.map(x=>{const old=doc.items.find(i=>i.sku===x.sku&&i.plan===x.planNo);return{sku:x.sku,name:x.title||x.sku,plan:x.planNo,remark:x.skuRemark||'',declare:x.declareQty,pick:old?.pick||0,ship:old?.ship||0,receive:old?.receive||0,processedQty:old?.processedQty||0,status:doc.status}});
-  };
-  const makeProductImage=(label,color)=>'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" rx="8" fill="${color}"/><rect x="17" y="14" width="46" height="50" rx="4" fill="#fff" opacity=".92"/><circle cx="40" cy="34" r="10" fill="${color}"/><path d="M25 56h30" stroke="${color}" stroke-width="4"/><text x="40" y="75" text-anchor="middle" font-size="8" fill="#334155">${label}</text></svg>`);
-  const placeholderProductImage=makeProductImage('商品','#e2e8f0');
-  const skuCandidates=reactive([
-    {sku:'SPU-1001-BL',title:'蓝牙耳机 Pro 黑色款｜降噪版',image:makeProductImage('耳机','#dbeafe'),planNo:'FP20260806011',overseasSku:'OW-US-1001-BL',fnsku:'X003ABC1',platform:'Amazon US',skuType:'普通',owner:'陈晓',team:'北美一组',store:'Amazon-US 旗舰店',boxes:25,planQty:500,declareQty:500,remain:500,weight:'0.02',length:'0.062',width:'0.07',height:'0.005',volume:'0.0000217',netWeight:'0.02',dimensions:'6.2 × 7.0 × 0.5',boxVolume:'0.0000217',grossWeight:'0.03',packageSpec:'42 × 38 × 32',boxWeight:'12.5',boxQty:20,packaging:'',skuRemark:''},
-    {sku:'SPU-1001-WH',title:'蓝牙耳机 Pro 白色款｜降噪版',image:makeProductImage('白耳机','#f1f5f9'),planNo:'FP20260806012',overseasSku:'OW-US-1001-WH',fnsku:'X003ABC2',platform:'Amazon US',skuType:'普通',owner:'陈晓',team:'北美一组',store:'Amazon-US 旗舰店',boxes:20,planQty:400,declareQty:400,remain:400,weight:'0.04',length:'0.062',width:'0.07',height:'0.005',volume:'0.0000217',netWeight:'0.04',dimensions:'6.2 × 7.0 × 0.5',boxVolume:'0.0000217',grossWeight:'0.05',packageSpec:'42 × 38 × 32',boxWeight:'13.0',boxQty:20,packaging:'',skuRemark:''},
-    {sku:'SPU-2003',title:'智能运动手环｜标准套装',image:makeProductImage('手环','#dcfce7'),planNo:'FP20260806013',overseasSku:'OW-US-2003',fnsku:'X003B2003',platform:'Amazon US',skuType:'组合',owner:'李敏',team:'北美二组',store:'Amazon-US 运动店',boxes:15,planQty:300,declareQty:300,remain:300,weight:'0.03',length:'0.085',width:'0.06',height:'0.04',volume:'0.000204',netWeight:'0.03',dimensions:'8.5 × 6.0 × 4.0',boxVolume:'0.000204',grossWeight:'0.04',packageSpec:'45 × 35 × 30',boxWeight:'8.8',boxQty:15,packaging:'',skuRemark:''},
-    {sku:'SPU-3001',title:'便携榨汁杯｜旅行款',image:makeProductImage('榨汁杯','#fef3c7'),planNo:'FP20260805021',overseasSku:'OW-DE-3001',fnsku:'X003C3001',platform:'Amazon DE',skuType:'普通',owner:'王蕾',team:'欧洲组',store:'Amazon-DE 家居店',boxes:19,planQty:380,declareQty:380,remain:380,weight:'0.12',length:'0.12',width:'0.09',height:'0.22',volume:'0.002376',netWeight:'0.12',dimensions:'12.0 × 9.0 × 22.0',boxVolume:'0.002376',grossWeight:'0.15',packageSpec:'50 × 40 × 48',boxWeight:'9.5',boxQty:19,packaging:'',skuRemark:''},
-    {sku:'SPU-6001',title:'智能台灯｜可调色温版',image:makeProductImage('台灯','#fce7f3'),planNo:'FP20260807001',overseasSku:'OW-US-6001',fnsku:'X003D6001',platform:'Walmart',skuType:'普通',owner:'赵凯',team:'北美二组',store:'Walmart-US 家居店',boxes:10,planQty:200,declareQty:200,remain:200,weight:'0.35',length:'0.18',width:'0.18',height:'0.36',volume:'0.011664',netWeight:'0.35',dimensions:'18.0 × 18.0 × 36.0',boxVolume:'0.011664',grossWeight:'0.45',packageSpec:'60 × 45 × 55',boxWeight:'12.0',boxQty:10,packaging:'',skuRemark:''},
-    {sku:'SPU-9001',title:'户外露营套装｜4件套',image:makeProductImage('露营','#d1fae5'),planNo:'FP20260808021',overseasSku:'OW-US-9001',fnsku:'X003E9001',platform:'Amazon US',skuType:'组合',owner:'李敏',team:'北美一组',store:'Amazon-US 户外店',boxes:12,planQty:200,declareQty:200,remain:200,weight:'1.2',length:'0.45',width:'0.35',height:'0.25',volume:'0.039375',netWeight:'1.2',dimensions:'45.0 × 35.0 × 25.0',boxVolume:'0.039375',grossWeight:'1.4',packageSpec:'80 × 60 × 45',boxWeight:'28.0',boxQty:12,packaging:'',skuRemark:''},
-    {sku:'SPU-9002',title:'户外折叠椅套装｜豪华款',image:makeProductImage('折叠椅','#a7f3d0'),planNo:'FP20260808031',overseasSku:'OW-US-9002',fnsku:'X003E9002',platform:'Amazon US',skuType:'组合',owner:'李敏',team:'北美一组',store:'Amazon-US 户外店',boxes:18,planQty:200,declareQty:200,remain:200,weight:'2.5',length:'0.50',width:'0.40',height:'0.10',volume:'0.020000',netWeight:'2.5',dimensions:'50.0 × 40.0 × 10.0',boxVolume:'0.020000',grossWeight:'2.8',packageSpec:'85 × 65 × 35',boxWeight:'45.0',boxQty:18,packaging:'',skuRemark:''},
-    {sku:'SPU-4001',title:'厨房刀具套装｜六件套',image:makeProductImage('刀具','#fde68a'),planNo:'FP20260808041',overseasSku:'OW-DE-4001',fnsku:'X003F4001',platform:'Amazon DE',skuType:'组合',owner:'王蕾',team:'欧洲组',store:'Amazon-DE 厨房店',boxes:8,planQty:250,declareQty:250,remain:250,weight:'1.8',length:'0.35',width:'0.25',height:'0.08',volume:'0.007000',netWeight:'1.8',dimensions:'35.0 × 25.0 × 8.0',boxVolume:'0.007000',grossWeight:'2.1',packageSpec:'55 × 40 × 25',boxWeight:'22.0',boxQty:8,packaging:'',skuRemark:''},
-    {sku:'SPU-1002',title:'无线充电器｜15W快充',image:makeProductImage('充电器','#e0e7ff'),planNo:'FP20260808051',overseasSku:'OW-US-1002',fnsku:'X003A1002',platform:'Walmart',skuType:'普通',owner:'赵凯',team:'北美二组',store:'Walmart-US 数码店',boxes:30,planQty:600,declareQty:600,remain:600,weight:'0.15',length:'0.10',width:'0.10',height:'0.02',volume:'0.000020',netWeight:'0.15',dimensions:'10.0 × 10.0 × 2.0',boxVolume:'0.000020',grossWeight:'0.20',packageSpec:'48 × 38 × 28',boxWeight:'14.0',boxQty:30,packaging:'',skuRemark:''},
-    {sku:'SPU-5003',title:'旅行收纳袋六件套',image:makeProductImage('收纳袋','#ccfbf1'),planNo:'FP20260808061',overseasSku:'OW-US-5003',fnsku:'X003G5003',platform:'Amazon US',skuType:'普通',owner:'陈晓',team:'北美一组',store:'Amazon-US 箱包店',boxes:22,planQty:440,declareQty:440,remain:440,weight:'0.30',length:'0.28',width:'0.20',height:'0.06',volume:'0.003360',netWeight:'0.30',dimensions:'28.0 × 20.0 × 6.0',boxVolume:'0.003360',grossWeight:'0.38',packageSpec:'55 × 42 × 35',boxWeight:'16.5',boxQty:22,packaging:'',skuRemark:''},
-    {sku:'SPU-8003',title:'蓝牙音箱迷你版',image:makeProductImage('音箱','#fce7f3'),planNo:'FP20260808071',overseasSku:'OW-US-8003',fnsku:'X003H8003',platform:'Amazon US',skuType:'普通',owner:'赵凯',team:'北美二组',store:'Amazon-US 数码店',boxes:16,planQty:320,declareQty:320,remain:320,weight:'0.25',length:'0.08',width:'0.08',height:'0.10',volume:'0.000640',netWeight:'0.25',dimensions:'8.0 × 8.0 × 10.0',boxVolume:'0.000640',grossWeight:'0.32',packageSpec:'45 × 38 × 36',boxWeight:'15.0',boxQty:16,packaging:'',skuRemark:''},
-    {sku:'SPU-3002',title:'替换杯盖｜通用款',image:makeProductImage('杯盖','#fef9c3'),planNo:'FP20260805022',overseasSku:'OW-DE-3002',fnsku:'X003C3002',platform:'Amazon DE',skuType:'普通',owner:'王蕾',team:'欧洲组',store:'Amazon-DE 家居店',boxes:25,planQty:500,declareQty:500,remain:500,weight:'0.05',length:'0.09',width:'0.09',height:'0.03',volume:'0.000243',netWeight:'0.05',dimensions:'9.0 × 9.0 × 3.0',boxVolume:'0.000243',grossWeight:'0.07',packageSpec:'42 × 38 × 30',boxWeight:'11.5',boxQty:25,packaging:'',skuRemark:''}
-  ]);
-  const shipmentPlanRemarks={FP20260806011:'美国站常规补货，优先安排海运',FP20260806012:'美国站常规补货，优先安排海运',FP20260806013:'运动手环补货，需完成组合加工后发运',FP20260805021:'德国站加急补货，优先安排 DHL',FP20260807001:'Walmart 家居品补货，按仓库预约入库',FP20260808021:'户外品秋季备货，注意组合品加工',FP20260808031:'户外品秋季备货，注意组合品加工',FP20260808041:'德国站厨房品补货，注意包装防护',FP20260808051:'Walmart 数码品补货，注意防震包装',FP20260808061:'美国站箱包品补货，按常规时效发运',FP20260808071:'美国站数码品补货，注意防震包装',FP20260805022:'德国站加急补货，优先安排 DHL'};
-  skuCandidates.forEach(item=>{item.planRemark=shipmentPlanRemarks[item.planNo]||'';item.skuRemark=item.skuRemark||item.planRemark;item.easSku=`ES-${item.sku.replace(/^[A-Z]+-/,'')}`});
-  const isAmazonOption=v=>String(v||'').includes('Amazon')||String(v||'').includes('亚马逊');
-  const isAmazonPlan=x=>isAmazonOption(x.platform)||isAmazonOption(x.store);
-  const comboBom={
-    'SPU-2003':[{sku:'SPU-2003-A',name:'运动手环主机',ratio:1},{sku:'SPU-2003-B',name:'手环表带',ratio:1}],
-    'SPU-9001':[{sku:'SPU-9001-A',name:'露营帐篷',ratio:1},{sku:'SPU-9001-B',name:'睡袋',ratio:1}],
-    'SPU-9002':[{sku:'SPU-9002-A',name:'折叠椅椅架',ratio:1},{sku:'SPU-9002-B',name:'折叠椅椅布',ratio:1},{sku:'SPU-9002-C',name:'收纳袋',ratio:1}],
-    'SPU-4001':[{sku:'SPU-4001-A',name:'主厨刀',ratio:1},{sku:'SPU-4001-B',name:'水果刀',ratio:1},{sku:'SPU-4001-C',name:'刀座',ratio:1}]
-  };
-  const comboParts=sku=>comboBom[sku]||[];
-  // 库内已加工好的组合品库存（按 SKU+供应商维度），用于判定提货后是否仍需物流加工
-  const comboFinishedStock={'SPU-2003':300,'SPU-9001':150,'SPU-9002':200,'SPU-4001':100};
-  // 组合品/子件对应的供应商主数据（原型占位，实际由中台 SKU 映射带出）
-  const supplierInfo={
-    'SPU-2003':{supplier:'深圳信联电子',supplierCode:'SUP-001',supplierPartNo:'XL-2003'},
-    'SPU-9001':{supplier:'东莞户外装备',supplierCode:'SUP-002',supplierPartNo:'HW-9001'},
-    'SPU-9002':{supplier:'东莞户外装备',supplierCode:'SUP-002',supplierPartNo:'HW-9002'},
-    'SPU-4001':{supplier:'阳江刀具厂',supplierCode:'SUP-003',supplierPartNo:'KD-4001'},
-    'SPU-2003-A':{supplier:'深圳信联电子',supplierCode:'SUP-001',supplierPartNo:'XL-2003A'},
-    'SPU-2003-B':{supplier:'东莞表带厂',supplierCode:'SUP-004',supplierPartNo:'BB-2003B'},
-    'SPU-9001-A':{supplier:'东莞户外装备',supplierCode:'SUP-002',supplierPartNo:'HW-9001A'},
-    'SPU-9001-B':{supplier:'东莞户外装备',supplierCode:'SUP-002',supplierPartNo:'HW-9001B'},
-    'SPU-9002-A':{supplier:'东莞户外装备',supplierCode:'SUP-002',supplierPartNo:'HW-9002A'},
-    'SPU-9002-B':{supplier:'东莞户外装备',supplierCode:'SUP-002',supplierPartNo:'HW-9002B'},
-    'SPU-9002-C':{supplier:'东莞收纳袋厂',supplierCode:'SUP-005',supplierPartNo:'SN-9002C'},
-    'SPU-4001-A':{supplier:'阳江刀具厂',supplierCode:'SUP-003',supplierPartNo:'KD-4001A'},
-    'SPU-4001-B':{supplier:'阳江刀具厂',supplierCode:'SUP-003',supplierPartNo:'KD-4001B'},
-    'SPU-4001-C':{supplier:'阳江刀座厂',supplierCode:'SUP-006',supplierPartNo:'DZ-4001C'}
-  };
-  const supplierOptions=[...new Set(Object.values(supplierInfo).map(x=>x.supplier).filter(Boolean))];
-  const comboSubStock={
-    'SPU-2003-A':{stock:280,pendingStock:30,transitQty:0},
-    'SPU-2003-B':{stock:310,pendingStock:20,transitQty:0},
-    'SPU-9001-A':{stock:180,pendingStock:10,transitQty:20},
-    'SPU-9001-B':{stock:195,pendingStock:5,transitQty:0},
-    'SPU-9002-A':{stock:160,pendingStock:0,transitQty:30},
-    'SPU-9002-B':{stock:180,pendingStock:10,transitQty:0},
-    'SPU-9002-C':{stock:200,pendingStock:0,transitQty:0},
-    'SPU-4001-A':{stock:250,pendingStock:50,transitQty:0},
-    'SPU-4001-B':{stock:280,pendingStock:0,transitQty:20},
-    'SPU-4001-C':{stock:220,pendingStock:30,transitQty:0}
-  };
-  const supplierWarehouse={
-    '深圳信联电子':'深圳仓',
-    '东莞户外装备':'东莞工厂',
-    '东莞表带厂':'东莞工厂',
-    '阳江刀具厂':'义乌仓',
-    '阳江刀座厂':'义乌仓',
-    '东莞收纳袋厂':'东莞工厂'
-  };
-  const defaultPickupWarehouse=sku=>supplierWarehouse[(supplierInfo[sku]||{}).supplier]||'深圳仓';
-  // 按供应商仓（提货仓）维度拆分的库存，用于提货弹窗「先选仓、再校验库存」
-  const comboFinishedStockByWarehouse={
-    '深圳仓':{'SPU-2003':0,'SPU-9001':150,'SPU-9002':200,'SPU-4001':100},
-    '东莞工厂':{'SPU-2003':80,'SPU-9001':0,'SPU-9002':0,'SPU-4001':0},
-    '义乌仓':{'SPU-2003':30,'SPU-9001':0,'SPU-9002':0,'SPU-4001':150}
-  };
-  const comboSubStockByWarehouse={
-    '深圳仓':{'SPU-2003-A':280,'SPU-2003-B':5,'SPU-9001-A':180,'SPU-9001-B':195,'SPU-9002-A':160,'SPU-9002-B':180,'SPU-9002-C':200,'SPU-4001-A':250,'SPU-4001-B':280,'SPU-4001-C':220},
-    '东莞工厂':{'SPU-2003-A':200,'SPU-2003-B':200,'SPU-9001-A':0,'SPU-9001-B':0,'SPU-9002-A':0,'SPU-9002-B':0,'SPU-9002-C':0,'SPU-4001-A':0,'SPU-4001-B':0,'SPU-4001-C':0},
-    '义乌仓':{'SPU-2003-A':100,'SPU-2003-B':100,'SPU-9001-A':0,'SPU-9001-B':0,'SPU-9002-A':0,'SPU-9002-B':0,'SPU-9002-C':0,'SPU-4001-A':0,'SPU-4001-B':0,'SPU-4001-C':0}
-  };
-  // 子件 → 父组合品反查（用于子件单独提货时算上限）
-  const subToCombo={};Object.keys(comboBom).forEach(comboSku=>{comboBom[comboSku].forEach(sub=>{subToCombo[sub.sku]={comboSku,ratio:sub.ratio||1}})});
-  // 发货仓（货代本地物流仓）库存：提货后增加、发货后扣减
-  const warehouseStock={'华南物流中转仓':{},'美西集货仓':{},'华东物流中转仓':{}};
-  const ordinaryStockByWarehouse={'深圳仓':{'SPU-8003':200,'SPU-3001':380,'SPU-6001':200},'东莞工厂':{'SPU-8003':120,'SPU-3001':0,'SPU-6001':0},'义乌仓':{'SPU-8003':80,'SPU-3001':120,'SPU-6001':150}};
-  const skuMeta=sku=>skuCandidates.find(x=>x.sku===sku)||{};
-  docs.forEach(d=>{
-    if(d.status!=='待加工')return;
-    const warehouse=warehouseStock[d.from]||(warehouseStock[d.from]={});
-    d.items.filter(item=>skuMeta(item.sku).skuType==='组合'&&comboBom[item.sku]).forEach(item=>{
-      comboBom[item.sku].forEach(sub=>{
-        warehouse[sub.sku]=Number(warehouse[sub.sku]||0)+Math.max(Number(item.pick||0)-Number(item.processedQty||0),0)*(sub.ratio||1);
+const { createApp, ref, reactive, computed, nextTick, watch } = Vue;
+createApp({
+  setup() {
+    const statuses = ['全部', '草稿', '待提货', '待加工', '待发货', '待收货', '部分收货', '已完成', '已作废', '已取消'];
+    const warehouses = ['深圳仓', '东莞工厂', '义乌仓'],
+      pickupWarehouses = ['深圳仓', '东莞工厂', '义乌仓', '华南物流中转仓', '美西集货仓'],
+      destWarehouses = ['美国西部仓', '美国东部仓', '德国仓', '英国仓'];
+    const shipModes = ['仓库发货', '工厂直发', '供应商直发'],
+      providers = ['马士基', 'DHL', '顺丰国际'],
+      transports = ['海运', '空运', '快递'],
+      channels = ['标准海运', '空派', '国际快递'],
+      countries = ['中国 - CN', '美国 - US', '德国 - DE', '英国 - GB'];
+    const platformOptions = ['Amazon US', 'Amazon DE', 'Walmart'],
+      teamOptions = ['北美一组', '北美二组', '欧洲组'];
+    const docs = reactive([
+      {
+        id: 'DN20260808001',
+        creator: 'Admin',
+        status: '待加工',
+        logistics: '未发货',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 1,
+        skus: 1,
+        declare: 300,
+        pick: 300,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '300',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '300',
+        receive: 0,
+        processedQty: 0,
+        abnormal: 0,
+        eta: '2026-08-20',
+        expectedPortDate: '2026-08-25',
+        fee: '¥3,200',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260808001',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '单个组合品，尚未开始加工',
+        expectedShipDate: '2026-08-12',
+        expectedTransitDuration: '38天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260808001',
+        actualFreight: '¥2,700',
+        customsFee: '¥500',
+        otherLogisticsFee: '¥120',
+        totalAccessoryCost: '¥80',
+        firstLegTotal: '¥3,200',
+        planQty: 300,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-2003',
+            name: '智能运动手环｜标准套装',
+            plan: 'FP20260808011',
+            declare: 300,
+            pick: 300,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '300',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '300',
+            receive: 0,
+            processedQty: 0,
+            status: '待加工',
+          },
+        ],
+        batches: [
+          {
+            no: 'SO260808001',
+            type: '提货',
+            date: '2026-08-08 10:30:00',
+            skuCount: '1 个',
+            qty: 300,
+            warehouse: '华南物流中转仓',
+            operator: '运营用户',
+            status: '已完成',
+            details: [{ sku: 'SPU-2003', plan: 'FP20260808011', warehouse: '华南物流中转仓', qty: 300, remark: '—' }],
+          },
+        ],
+      },
+      {
+        id: 'DN20260808002',
+        creator: '张敏',
+        status: '待加工',
+        logistics: '未发货',
+        from: '东莞工厂',
+        to: '美国东部仓',
+        plans: 2,
+        skus: 2,
+        declare: 500,
+        pick: 500,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '500',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '500',
+        receive: 0,
+        processedQty: 100,
+        abnormal: 0,
+        eta: '2026-08-22',
+        expectedPortDate: '2026-08-17',
+        fee: '$4,500',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260808002',
+        lingxingNo: '—',
+        shipMode: '工厂直发',
+        channel: 'UPS 快线',
+        transport: '快递',
+        provider: 'DHL',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '组合品+普通品混单，组合品部分加工',
+        expectedShipDate: '2026-08-15',
+        expectedTransitDuration: '7天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260808002',
+        actualFreight: '$3,800',
+        customsFee: '$700',
+        otherLogisticsFee: '$80',
+        totalAccessoryCost: '$50',
+        firstLegTotal: '$4,500',
+        planQty: 500,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-9001',
+            name: '户外露营套装',
+            plan: 'FP20260808021',
+            declare: 200,
+            pick: 200,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '500',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '500',
+            receive: 0,
+            processedQty: 100,
+            status: '待加工',
+          },
+          {
+            sku: 'SPU-3001',
+            name: '便携榨汁杯｜旅行款',
+            plan: 'FP20260808022',
+            declare: 300,
+            pick: 300,
+            ship: 0,
+            receive: 0,
+            processedQty: 0,
+            status: '待加工',
+          },
+        ],
+        batches: [
+          {
+            no: 'SO260808002',
+            type: '提货',
+            date: '2026-08-07 14:20:00',
+            skuCount: '2 个',
+            qty: 500,
+            warehouse: '美西集货仓',
+            operator: '运营用户',
+            status: '已完成',
+            details: [
+              { sku: 'SPU-9001', plan: 'FP20260808021', warehouse: '美西集货仓', qty: 200, remark: '—' },
+              { sku: 'SPU-3001', plan: 'FP20260808022', warehouse: '美西集货仓', qty: 300, remark: '—' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'DN20260808003',
+        creator: '李晨',
+        status: '待加工',
+        logistics: '未发货',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 1,
+        skus: 1,
+        declare: 150,
+        pick: 150,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '150',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '150',
+        receive: 0,
+        processedQty: 149,
+        abnormal: 0,
+        eta: '2026-08-21',
+        expectedPortDate: '2026-08-16',
+        fee: '¥2,100',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: '—',
+        lingxingNo: 'LX20260808003',
+        shipMode: '仓库发货',
+        channel: '空派',
+        transport: '空运',
+        provider: '顺丰国际',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '仅剩1件未加工，加工完即转待发货',
+        expectedShipDate: '2026-08-13',
+        expectedTransitDuration: '8天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260808003',
+        actualFreight: '¥1,800',
+        customsFee: '¥300',
+        otherLogisticsFee: '¥60',
+        totalAccessoryCost: '¥40',
+        firstLegTotal: '¥2,100',
+        planQty: 150,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-9002',
+            name: '户外折叠椅套装｜豪华款',
+            plan: 'FP20260808031',
+            declare: 150,
+            pick: 150,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '150',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '150',
+            receive: 0,
+            processedQty: 149,
+            status: '待加工',
+          },
+        ],
+        batches: [
+          {
+            no: 'SO260808003',
+            type: '提货',
+            date: '2026-08-08 09:00:00',
+            skuCount: '1 个',
+            qty: 150,
+            warehouse: '深圳仓',
+            operator: '运营用户',
+            status: '已完成',
+            details: [{ sku: 'SPU-9002', plan: 'FP20260808031', warehouse: '深圳仓', qty: 150, remark: '—' }],
+          },
+        ],
+      },
+      {
+        id: 'DN20260808004',
+        creator: '王磊',
+        status: '待加工',
+        logistics: '未发货',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 3,
+        skus: 3,
+        declare: 300,
+        pick: 300,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '300',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '300',
+        receive: 0,
+        processedQty: 170,
+        abnormal: 0,
+        eta: '2026-08-25',
+        expectedPortDate: '2026-08-28',
+        fee: '¥4,800',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260808004',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '3个组合品进度不一：手环50%、露营0%、折叠椅已完成',
+        expectedShipDate: '2026-08-16',
+        expectedTransitDuration: '38天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260808004',
+        actualFreight: '¥4,100',
+        customsFee: '¥700',
+        otherLogisticsFee: '¥150',
+        totalAccessoryCost: '¥100',
+        firstLegTotal: '¥4,800',
+        planQty: 300,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-2003',
+            name: '智能运动手环｜标准套装',
+            plan: 'FP20260808041',
+            declare: 100,
+            pick: 100,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '300',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '300',
+            receive: 0,
+            processedQty: 50,
+            status: '待加工',
+          },
+          {
+            sku: 'SPU-9001',
+            name: '户外露营套装',
+            plan: 'FP20260808042',
+            declare: 80,
+            pick: 80,
+            ship: 0,
+            receive: 0,
+            processedQty: 0,
+            status: '待加工',
+          },
+          {
+            sku: 'SPU-9002',
+            name: '户外折叠椅套装｜豪华款',
+            plan: 'FP20260808043',
+            declare: 120,
+            pick: 120,
+            ship: 0,
+            receive: 0,
+            processedQty: 120,
+            status: '待加工',
+          },
+        ],
+        batches: [
+          {
+            no: 'SO260808004',
+            type: '提货',
+            date: '2026-08-06 15:00:00',
+            skuCount: '3 个',
+            qty: 300,
+            warehouse: '华南物流中转仓',
+            operator: '运营用户',
+            status: '已完成',
+            details: [
+              { sku: 'SPU-2003', plan: 'FP20260808041', warehouse: '华南物流中转仓', qty: 100, remark: '—' },
+              { sku: 'SPU-9001', plan: 'FP20260808042', warehouse: '华南物流中转仓', qty: 80, remark: '—' },
+              { sku: 'SPU-9002', plan: 'FP20260808043', warehouse: '华南物流中转仓', qty: 120, remark: '—' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'DN20260808006',
+        creator: 'Admin',
+        status: '待加工',
+        logistics: '未发货',
+        from: '义乌仓',
+        to: '德国仓',
+        plans: 1,
+        skus: 1,
+        declare: 200,
+        pick: 200,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '200',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '200',
+        receive: 0,
+        processedQty: 0,
+        abnormal: 0,
+        eta: '2026-08-28',
+        expectedPortDate: '2026-08-23',
+        fee: '€2,600',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260808006',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: 'DHL 标准',
+        transport: '快递',
+        provider: 'DHL',
+        country: '德国 - DE',
+        warehouseType: '海外仓',
+        remark: '欧洲站刀具组合品，待加工',
+        expectedShipDate: '2026-08-18',
+        expectedTransitDuration: '7天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260808006',
+        actualFreight: '€2,200',
+        customsFee: '€400',
+        otherLogisticsFee: '€60',
+        totalAccessoryCost: '€40',
+        firstLegTotal: '€2,600',
+        planQty: 200,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-4001',
+            name: '厨房刀具套装｜六件套',
+            plan: 'FP20260808061',
+            declare: 200,
+            pick: 200,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '200',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '200',
+            receive: 0,
+            processedQty: 0,
+            status: '待加工',
+          },
+        ],
+        batches: [
+          {
+            no: 'SO260808006',
+            type: '提货',
+            date: '2026-08-08 11:00:00',
+            skuCount: '1 个',
+            qty: 200,
+            warehouse: '义乌仓',
+            operator: '运营用户',
+            status: '已完成',
+            details: [{ sku: 'SPU-4001', plan: 'FP20260808061', warehouse: '义乌仓', qty: 200, remark: '—' }],
+          },
+        ],
+      },
+      {
+        id: 'DN20260806001',
+        creator: 'Admin',
+        status: '待收货',
+        logistics: '运输中',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 3,
+        skus: 3,
+        declare: 1200,
+        pick: 1200,
+        ship: 1200,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '1200',
+        declareReceiveDiff: '1200',
+        receive: 0,
+        abnormal: 1,
+        eta: '2026-08-18',
+        expectedPortDate: '2026-08-10',
+        fee: '¥12,680',
+        carrier: '马士基 / MSKU123456',
+        innerTab: 'sku',
+        yicangNo: 'EC20260806001',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '北美仓常规补货',
+        expectedShipDate: '2026-08-08',
+        expectedTransitDuration: '38天',
+        logisticsNo: 'MSKU123456',
+        receiveOrderNo: 'RA20260806001',
+        actualFreight: '¥10,800',
+        customsFee: '¥1,880',
+        otherLogisticsFee: '¥400',
+        totalAccessoryCost: '¥300',
+        firstLegTotal: '¥12,680',
+        planQty: 1200,
+        pendingReceive: 1200,
+        items: [
+          {
+            sku: 'SPU-1001-BL',
+            name: '蓝牙耳机 Pro 黑',
+            plan: 'FP20260806011',
+            declare: 500,
+            pick: 500,
+            ship: 500,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '1200',
+            declareReceiveDiff: '1200',
+            receive: 0,
+            status: '待收货',
+          },
+          {
+            sku: 'SPU-1001-WH',
+            name: '蓝牙耳机 Pro 白',
+            plan: 'FP20260806012',
+            declare: 400,
+            pick: 400,
+            ship: 400,
+            receive: 0,
+            status: '待收货',
+          },
+          {
+            sku: 'SPU-2003',
+            name: '运动手环',
+            plan: 'FP20260806013',
+            declare: 300,
+            pick: 300,
+            ship: 300,
+            receive: 0,
+            status: '待收货',
+          },
+        ],
+        batches: [
+          {
+            no: 'SO260806001',
+            type: '提货',
+            date: '2026-08-05 09:00:00',
+            skuCount: '3 个',
+            qty: 1200,
+            warehouse: '深圳仓',
+            operator: '运营用户',
+            status: '已完成',
+          },
+          {
+            no: 'SO260806002',
+            type: '发货',
+            date: '2026-08-06 16:00:00',
+            skuCount: '3 个',
+            qty: 1200,
+            warehouse: '深圳仓 → 美国西部仓',
+            operator: '运营用户',
+            status: '运输中',
+          },
+        ],
+        boxes: [
+          {
+            code: 'BOX26080600019-01',
+            skuCount: 70,
+            spec: '54 * 34.5 * 20(cm) 21 * 14 * 8(英寸)',
+            volume: 0.0373,
+            volumeWeight: '6.21(kg) 35(lb)',
+            netWeight: 16.02,
+            grossWeight: 15.4,
+            items: [
+              { sku: 'SPU-1001-BL', overseasSku: 'OW-US-1001-BL', fnsku: 'X003ABC1', logisticsAttr: '普货', qty: 70 },
+            ],
+          },
+          {
+            code: 'BOX26080600019-02',
+            skuCount: 50,
+            spec: '54 * 34.5 * 46(cm) 21 * 14 * 18(英寸)',
+            volume: 0.0857,
+            volumeWeight: '14.283(kg) 46(lb)',
+            netWeight: 21.02,
+            grossWeight: 19.8,
+            items: [
+              { sku: 'SPU-1001-WH', overseasSku: 'OW-US-1001-WH', fnsku: 'X003ABC2', logisticsAttr: '普货', qty: 30 },
+              { sku: 'SPU-2003', overseasSku: 'OW-US-2003', fnsku: 'X003B2003', logisticsAttr: '普货', qty: 20 },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'DN20260807004',
+        creator: '张敏',
+        status: '待收货',
+        logistics: '运输中',
+        from: '义乌仓',
+        to: '德国仓',
+        plans: 2,
+        skus: 2,
+        declare: 560,
+        pick: 560,
+        ship: 560,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '560',
+        declareReceiveDiff: '560',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-20',
+        expectedPortDate: '2026-08-15',
+        fee: '€4,200',
+        carrier: 'DHL / 8891234',
+        innerTab: 'sku',
+        yicangNo: 'EC20260807004',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: 'DHL 标准',
+        transport: '快递',
+        provider: 'DHL',
+        country: '德国 - DE',
+        warehouseType: '海外仓',
+        remark: '欧洲站补货',
+        expectedShipDate: '2026-08-07',
+        expectedTransitDuration: '7天',
+        logisticsNo: '8891234',
+        receiveOrderNo: 'RA20260807004',
+        actualFreight: '€3,600',
+        customsFee: '€600',
+        otherLogisticsFee: '€120',
+        totalAccessoryCost: '€80',
+        firstLegTotal: '€4,200',
+        planQty: 560,
+        pendingReceive: 560,
+        items: [
+          {
+            sku: 'SPU-3001',
+            name: '便携榨汁杯',
+            plan: 'FP20260807041',
+            declare: 300,
+            pick: 300,
+            ship: 300,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '560',
+            declareReceiveDiff: '560',
+            receive: 0,
+            status: '待收货',
+          },
+          {
+            sku: 'SPU-6001',
+            name: '智能台灯',
+            plan: 'FP20260807042',
+            declare: 260,
+            pick: 260,
+            ship: 260,
+            receive: 0,
+            status: '待收货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260808009',
+        creator: 'Admin',
+        status: '待收货',
+        logistics: '运输中',
+        from: '深圳仓',
+        to: '美国东部仓',
+        plans: 2,
+        skus: 2,
+        declare: 500,
+        pick: 500,
+        ship: 500,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '500',
+        declareReceiveDiff: '500',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-22',
+        expectedPortDate: '2026-08-14',
+        fee: '¥5,200',
+        carrier: '马士基 / MSKU909090',
+        innerTab: 'sku',
+        yicangNo: 'EC20260808009',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '美东仓补货',
+        expectedShipDate: '2026-08-09',
+        expectedTransitDuration: '38天',
+        logisticsNo: 'MSKU909090',
+        receiveOrderNo: 'RA20260808009',
+        actualFreight: '¥4,500',
+        customsFee: '¥700',
+        otherLogisticsFee: '¥150',
+        totalAccessoryCost: '¥100',
+        firstLegTotal: '¥5,200',
+        planQty: 500,
+        pendingReceive: 500,
+        items: [
+          {
+            sku: 'SPU-1001-BL',
+            name: '蓝牙耳机 Pro 黑',
+            plan: 'FP20260808091',
+            declare: 300,
+            pick: 300,
+            ship: 300,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '500',
+            declareReceiveDiff: '500',
+            receive: 0,
+            status: '待收货',
+          },
+          {
+            sku: 'SPU-8003',
+            name: '蓝牙音箱迷你版',
+            plan: 'FP20260808092',
+            declare: 200,
+            pick: 200,
+            ship: 200,
+            receive: 0,
+            status: '待收货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260807006',
+        creator: 'Admin',
+        status: '待收货',
+        logistics: '运输中',
+        from: '东莞工厂',
+        to: '美国西部仓',
+        plans: 1,
+        skus: 1,
+        declare: 180,
+        pick: 180,
+        ship: 180,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '180',
+        declareReceiveDiff: '180',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-19',
+        expectedPortDate: '2026-08-15',
+        fee: '$1,600',
+        carrier: 'UPS / 1Z777888',
+        innerTab: 'sku',
+        yicangNo: 'EC20260807006',
+        lingxingNo: '—',
+        shipMode: '工厂直发',
+        channel: 'UPS 快线',
+        transport: '快递',
+        provider: 'DHL',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: 'Walmart渠道补货',
+        expectedShipDate: '2026-08-08',
+        expectedTransitDuration: '7天',
+        logisticsNo: '1Z777888',
+        receiveOrderNo: 'RA20260807006',
+        actualFreight: '$1,400',
+        customsFee: '$200',
+        otherLogisticsFee: '$40',
+        totalAccessoryCost: '$30',
+        firstLegTotal: '$1,600',
+        planQty: 180,
+        pendingReceive: 180,
+        items: [
+          {
+            sku: 'SPU-6001',
+            name: '智能台灯｜可调色温版',
+            plan: 'FP20260807061',
+            declare: 180,
+            pick: 180,
+            ship: 180,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '180',
+            declareReceiveDiff: '180',
+            receive: 0,
+            status: '待收货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260805008',
+        creator: '张敏',
+        status: '待发货',
+        logistics: '未发货',
+        from: '东莞工厂',
+        to: '德国仓',
+        plans: 2,
+        skus: 2,
+        declare: 680,
+        pick: 680,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '680',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '680',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-12',
+        expectedPortDate: '2026-08-10',
+        fee: '€3,420',
+        carrier: 'DHL / 7798123',
+        innerTab: 'sku',
+        yicangNo: 'EC20260805008',
+        lingxingNo: '—',
+        shipMode: '工厂直发',
+        channel: 'DHL 标准',
+        transport: '快递',
+        provider: 'DHL',
+        country: '德国 - DE',
+        warehouseType: '海外仓',
+        remark: '欧洲站加急补货',
+        expectedShipDate: '2026-08-06',
+        expectedTransitDuration: '7天',
+        logisticsNo: '7798123',
+        receiveOrderNo: 'RA20260805008',
+        actualFreight: '€2,980',
+        customsFee: '€440',
+        otherLogisticsFee: '€120',
+        totalAccessoryCost: '€80',
+        firstLegTotal: '€3,420',
+        planQty: 680,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-3001',
+            name: '便携榨汁杯',
+            plan: 'FP20260805021',
+            declare: 380,
+            pick: 380,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '680',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '680',
+            receive: 0,
+            status: '待发货',
+          },
+          {
+            sku: 'SPU-3002',
+            name: '替换杯盖',
+            plan: 'FP20260805022',
+            declare: 300,
+            pick: 300,
+            ship: 0,
+            receive: 0,
+            status: '待发货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260807003',
+        creator: 'Admin',
+        status: '待发货',
+        logistics: '未发货',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 1,
+        skus: 1,
+        declare: 200,
+        pick: 200,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '200',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '200',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-15',
+        expectedPortDate: '2026-08-12',
+        fee: '¥1,800',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260807003',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '常规补货',
+        expectedShipDate: '2026-08-10',
+        expectedTransitDuration: '38天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260807003',
+        actualFreight: '¥1,500',
+        customsFee: '¥300',
+        otherLogisticsFee: '¥80',
+        totalAccessoryCost: '¥40',
+        firstLegTotal: '¥1,800',
+        planQty: 200,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-6001',
+            name: '智能台灯',
+            plan: 'FP20260807031',
+            declare: 200,
+            pick: 200,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '200',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '200',
+            receive: 0,
+            status: '待发货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260808008',
+        creator: 'Admin',
+        status: '待发货',
+        logistics: '未发货',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 2,
+        skus: 2,
+        declare: 430,
+        pick: 430,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '430',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '430',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-18',
+        expectedPortDate: '2026-08-14',
+        fee: '¥3,900',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260808008',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '普通品已提货，待发货',
+        expectedShipDate: '2026-08-11',
+        expectedTransitDuration: '38天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260808008',
+        actualFreight: '¥3,400',
+        customsFee: '¥500',
+        otherLogisticsFee: '¥100',
+        totalAccessoryCost: '¥60',
+        firstLegTotal: '¥3,900',
+        planQty: 430,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-1001-WH',
+            name: '蓝牙耳机 Pro 白',
+            plan: 'FP20260808081',
+            declare: 250,
+            pick: 250,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '430',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '430',
+            receive: 0,
+            status: '待发货',
+          },
+          {
+            sku: 'SPU-5003',
+            name: '旅行收纳袋六件套',
+            plan: 'FP20260808082',
+            declare: 180,
+            pick: 180,
+            ship: 0,
+            receive: 0,
+            status: '待发货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260806002',
+        creator: '张敏',
+        status: '待发货',
+        logistics: '未发货',
+        from: '义乌仓',
+        to: '德国仓',
+        plans: 2,
+        skus: 2,
+        declare: 350,
+        pick: 350,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '350',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '350',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-16',
+        expectedPortDate: '2026-08-13',
+        fee: '€2,800',
+        carrier: 'DHL / 6677889',
+        innerTab: 'sku',
+        yicangNo: 'EC20260806002',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: 'DHL 标准',
+        transport: '快递',
+        provider: 'DHL',
+        country: '德国 - DE',
+        warehouseType: '海外仓',
+        remark: '欧洲站家居品补货',
+        expectedShipDate: '2026-08-09',
+        expectedTransitDuration: '7天',
+        logisticsNo: '6677889',
+        receiveOrderNo: 'RA20260806002',
+        actualFreight: '€2,400',
+        customsFee: '€400',
+        otherLogisticsFee: '€80',
+        totalAccessoryCost: '€50',
+        firstLegTotal: '€2,800',
+        planQty: 350,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-3001',
+            name: '便携榨汁杯',
+            plan: 'FP20260806021',
+            declare: 200,
+            pick: 200,
+            ship: 0,
+            declarePickDiff: '0',
+            pickShipDiff: '350',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '350',
+            receive: 0,
+            status: '待发货',
+          },
+          {
+            sku: 'SPU-3002',
+            name: '替换杯盖',
+            plan: 'FP20260806022',
+            declare: 150,
+            pick: 150,
+            ship: 0,
+            receive: 0,
+            status: '待发货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260728002',
+        creator: 'Admin',
+        status: '待提货',
+        logistics: '未发货',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 2,
+        skus: 2,
+        declare: 950,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '950',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '950',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-25',
+        expectedPortDate: '2026-08-20',
+        fee: '¥8,900',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260728002',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '待仓库安排提货',
+        expectedShipDate: '2026-08-10',
+        expectedTransitDuration: '38天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260728002',
+        actualFreight: '¥7,600',
+        customsFee: '¥1,300',
+        otherLogisticsFee: '¥250',
+        totalAccessoryCost: '¥200',
+        firstLegTotal: '¥8,900',
+        planQty: 950,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-5001',
+            name: '旅行背包',
+            plan: 'FP20260728021',
+            declare: 600,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '950',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '950',
+            receive: 0,
+            status: '待提货',
+          },
+          {
+            sku: 'SPU-5002',
+            name: '背包防雨罩',
+            plan: 'FP20260728022',
+            declare: 350,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '待提货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260716002',
+        creator: 'Admin',
+        status: '待提货',
+        logistics: '未发货',
+        from: '东莞工厂',
+        to: '美国西部仓',
+        plans: 2,
+        skus: 2,
+        declare: 420,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '420',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '420',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-04',
+        expectedPortDate: '2026-08-01',
+        fee: '$2,100',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260716002',
+        lingxingNo: '—',
+        shipMode: '工厂直发',
+        channel: 'UPS 快线',
+        transport: '快递',
+        provider: 'DHL',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '工厂直发待提货',
+        expectedShipDate: '2026-07-18',
+        expectedTransitDuration: '7天',
+        logisticsNo: '1Z900',
+        receiveOrderNo: 'RA20260716002',
+        actualFreight: '$1,820',
+        customsFee: '$280',
+        otherLogisticsFee: '$60',
+        totalAccessoryCost: '$40',
+        firstLegTotal: '$2,100',
+        planQty: 420,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-8001',
+            name: '充电底座',
+            plan: 'FP20260716021',
+            declare: 220,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '420',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '420',
+            receive: 0,
+            status: '待提货',
+          },
+          {
+            sku: 'SPU-8002',
+            name: '数据线',
+            plan: 'FP20260716022',
+            declare: 200,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '待提货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260808005',
+        creator: 'Admin',
+        status: '待提货',
+        logistics: '未发货',
+        from: '义乌仓',
+        to: '美国东部仓',
+        plans: 1,
+        skus: 1,
+        declare: 150,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '150',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '150',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-28',
+        expectedPortDate: '2026-08-20',
+        fee: '$1,200',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260808005',
+        lingxingNo: '—',
+        shipMode: '供应商直发',
+        channel: '空派',
+        transport: '空运',
+        provider: '顺丰国际',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '新品试销',
+        expectedShipDate: '2026-08-15',
+        expectedTransitDuration: '8天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260808005',
+        actualFreight: '$1,000',
+        customsFee: '$200',
+        otherLogisticsFee: '¥0',
+        totalAccessoryCost: '¥0',
+        firstLegTotal: '$1,200',
+        planQty: 150,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-1001-BL',
+            name: '蓝牙耳机 Pro 黑',
+            plan: 'FP20260808051',
+            declare: 150,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '150',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '150',
+            receive: 0,
+            status: '待提货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260808007',
+        creator: 'Admin',
+        status: '待提货',
+        logistics: '未发货',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 3,
+        skus: 3,
+        declare: 450,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '450',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '450',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-30',
+        expectedPortDate: '2026-08-22',
+        fee: '¥4,600',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260808007',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '含组合品：SPU-2003 子件库存不足(仅可提5)、SPU-9001 库存充足',
+        expectedShipDate: '2026-08-17',
+        expectedTransitDuration: '38天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260808007',
+        actualFreight: '¥4,000',
+        customsFee: '¥600',
+        otherLogisticsFee: '¥200',
+        totalAccessoryCost: '¥150',
+        firstLegTotal: '¥4,600',
+        planQty: 450,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-2003',
+            name: '智能运动手环｜标准套装',
+            plan: 'FP20260808071',
+            declare: 200,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '450',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '450',
+            receive: 0,
+            status: '待提货',
+          },
+          {
+            sku: 'SPU-9001',
+            name: '户外露营套装',
+            plan: 'FP20260808072',
+            declare: 150,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '待提货',
+          },
+          {
+            sku: 'SPU-8003',
+            name: '蓝牙音箱迷你版',
+            plan: 'FP20260808073',
+            declare: 100,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '待提货',
+          },
+          {
+            sku: 'SPU-2003-A',
+            name: '运动手环主机（子件）',
+            plan: 'FP20260808074',
+            declare: 200,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '待提货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260807005',
+        creator: 'Admin',
+        status: '待提货',
+        logistics: '未发货',
+        from: '东莞工厂',
+        to: '美国西部仓',
+        plans: 2,
+        skus: 2,
+        declare: 400,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '400',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '400',
+        receive: 0,
+        abnormal: 0,
+        eta: '2026-08-24',
+        expectedPortDate: '2026-08-18',
+        fee: '$3,200',
+        carrier: '待分配',
+        innerTab: 'sku',
+        yicangNo: 'EC20260807005',
+        lingxingNo: '—',
+        shipMode: '工厂直发',
+        channel: 'UPS 快线',
+        transport: '快递',
+        provider: 'DHL',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: 'Walmart渠道待提货',
+        expectedShipDate: '2026-08-12',
+        expectedTransitDuration: '7天',
+        logisticsNo: '—',
+        receiveOrderNo: 'RA20260807005',
+        actualFreight: '$2,800',
+        customsFee: '$400',
+        otherLogisticsFee: '$100',
+        totalAccessoryCost: '$60',
+        firstLegTotal: '$3,200',
+        planQty: 400,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-1002',
+            name: '无线充电器｜15W快充',
+            plan: 'FP20260807051',
+            declare: 300,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '400',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '400',
+            receive: 0,
+            status: '待提货',
+          },
+          {
+            sku: 'SPU-6001',
+            name: '智能台灯｜可调色温版',
+            plan: 'FP20260807052',
+            declare: 100,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '待提货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260801003',
+        creator: 'Admin',
+        status: '部分收货',
+        logistics: '部分收货',
+        from: '义乌仓',
+        to: '美国东部仓',
+        plans: 1,
+        skus: 1,
+        declare: 200,
+        pick: 200,
+        ship: 200,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '10',
+        declareReceiveDiff: '10',
+        receive: 190,
+        abnormal: 1,
+        eta: '2026-08-05',
+        expectedPortDate: '2026-08-03',
+        fee: '$1,860',
+        carrier: 'UPS / 1Z889',
+        innerTab: 'sku',
+        yicangNo: 'EC20260801003',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: 'UPS 快线',
+        transport: '快递',
+        provider: 'DHL',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '部分收货，待继续入库',
+        expectedShipDate: '2026-08-02',
+        expectedTransitDuration: '7天',
+        logisticsNo: '1Z889',
+        receiveOrderNo: 'RA20260801003',
+        actualFreight: '$1,620',
+        customsFee: '$240',
+        otherLogisticsFee: '¥0',
+        totalAccessoryCost: '¥0',
+        firstLegTotal: '$1,860',
+        planQty: 200,
+        pendingReceive: 10,
+        items: [
+          {
+            sku: 'SPU-4002',
+            name: '收纳盒套装',
+            plan: 'FP20260801031',
+            declare: 200,
+            pick: 200,
+            ship: 200,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '10',
+            declareReceiveDiff: '10',
+            receive: 190,
+            status: '部分收货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260725002',
+        creator: 'Admin',
+        status: '部分收货',
+        logistics: '部分收货',
+        from: '深圳仓',
+        to: '英国仓',
+        plans: 2,
+        skus: 2,
+        declare: 480,
+        pick: 480,
+        ship: 480,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '30',
+        declareReceiveDiff: '30',
+        receive: 450,
+        abnormal: 1,
+        eta: '2026-07-30',
+        expectedPortDate: '2026-07-27',
+        fee: '¥5,600',
+        carrier: '马士基 / MSKU5678',
+        innerTab: 'sku',
+        yicangNo: 'EC20260725002',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '英国 - GB',
+        warehouseType: '海外仓',
+        remark: '少30件待补',
+        expectedShipDate: '2026-07-20',
+        expectedTransitDuration: '38天',
+        logisticsNo: 'MSKU5678',
+        receiveOrderNo: 'RA20260725002',
+        actualFreight: '¥4,800',
+        customsFee: '¥800',
+        otherLogisticsFee: '¥150',
+        totalAccessoryCost: '¥100',
+        firstLegTotal: '¥5,600',
+        planQty: 480,
+        pendingReceive: 30,
+        items: [
+          {
+            sku: 'SPU-7001',
+            name: '手机支架',
+            plan: 'FP20260725021',
+            declare: 280,
+            pick: 280,
+            ship: 280,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '30',
+            declareReceiveDiff: '30',
+            receive: 260,
+            status: '部分收货',
+          },
+          {
+            sku: 'SPU-7002',
+            name: '支架配件',
+            plan: 'FP20260725022',
+            declare: 200,
+            pick: 200,
+            ship: 200,
+            receive: 190,
+            status: '部分收货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260803001',
+        creator: 'Admin',
+        status: '部分收货',
+        logistics: '部分收货',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 3,
+        skus: 3,
+        declare: 450,
+        pick: 450,
+        ship: 450,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '35',
+        declareReceiveDiff: '35',
+        receive: 415,
+        abnormal: 1,
+        eta: '2026-08-10',
+        expectedPortDate: '2026-08-07',
+        fee: '¥4,300',
+        carrier: '马士基 / MSKU303030',
+        innerTab: 'sku',
+        yicangNo: 'EC20260803001',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '3个SKU均有少量短少',
+        expectedShipDate: '2026-08-01',
+        expectedTransitDuration: '38天',
+        logisticsNo: 'MSKU303030',
+        receiveOrderNo: 'RA20260803001',
+        actualFreight: '¥3,700',
+        customsFee: '¥600',
+        otherLogisticsFee: '¥180',
+        totalAccessoryCost: '¥120',
+        firstLegTotal: '¥4,300',
+        planQty: 450,
+        pendingReceive: 35,
+        items: [
+          {
+            sku: 'SPU-5003',
+            name: '旅行收纳袋六件套',
+            plan: 'FP20260803011',
+            declare: 200,
+            pick: 200,
+            ship: 200,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '35',
+            declareReceiveDiff: '35',
+            receive: 180,
+            status: '部分收货',
+          },
+          {
+            sku: 'SPU-8003',
+            name: '蓝牙音箱迷你版',
+            plan: 'FP20260803012',
+            declare: 150,
+            pick: 150,
+            ship: 150,
+            receive: 140,
+            status: '部分收货',
+          },
+          {
+            sku: 'SPU-1001-BL',
+            name: '蓝牙耳机 Pro 黑',
+            plan: 'FP20260803013',
+            declare: 100,
+            pick: 100,
+            ship: 100,
+            receive: 95,
+            status: '部分收货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260728001',
+        creator: 'Admin',
+        status: '部分收货',
+        logistics: '部分收货',
+        from: '义乌仓',
+        to: '英国仓',
+        plans: 2,
+        skus: 2,
+        declare: 500,
+        pick: 500,
+        ship: 500,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '30',
+        declareReceiveDiff: '30',
+        receive: 470,
+        abnormal: 1,
+        eta: '2026-08-02',
+        expectedPortDate: '2026-07-31',
+        fee: '¥5,200',
+        carrier: 'DHL / 554433',
+        innerTab: 'sku',
+        yicangNo: 'EC20260728001',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: 'DHL 标准',
+        transport: '快递',
+        provider: 'DHL',
+        country: '英国 - GB',
+        warehouseType: '海外仓',
+        remark: '英国仓部分收货',
+        expectedShipDate: '2026-07-28',
+        expectedTransitDuration: '7天',
+        logisticsNo: '554433',
+        receiveOrderNo: 'RA20260728001',
+        actualFreight: '¥4,500',
+        customsFee: '¥700',
+        otherLogisticsFee: '€40',
+        totalAccessoryCost: '€30',
+        firstLegTotal: '¥5,200',
+        planQty: 500,
+        pendingReceive: 30,
+        items: [
+          {
+            sku: 'SPU-5001',
+            name: '旅行背包',
+            plan: 'FP20260728011',
+            declare: 300,
+            pick: 300,
+            ship: 300,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '30',
+            declareReceiveDiff: '30',
+            receive: 280,
+            status: '部分收货',
+          },
+          {
+            sku: 'SPU-5002',
+            name: '背包防雨罩',
+            plan: 'FP20260728012',
+            declare: 200,
+            pick: 200,
+            ship: 200,
+            receive: 190,
+            status: '部分收货',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260720001',
+        creator: 'Admin',
+        status: '已完成',
+        logistics: '已完成',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 2,
+        skus: 2,
+        declare: 800,
+        pick: 800,
+        ship: 800,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '0',
+        receive: 800,
+        abnormal: 0,
+        eta: '2026-07-20',
+        expectedPortDate: '2026-07-17',
+        fee: '¥9,200',
+        carrier: '马士基 / MSKU1122',
+        innerTab: 'sku',
+        yicangNo: 'EC20260720001',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '已完成签收',
+        expectedShipDate: '2026-07-10',
+        expectedTransitDuration: '38天',
+        logisticsNo: 'MSKU1122',
+        receiveOrderNo: 'RA20260720001',
+        actualFreight: '¥8,000',
+        customsFee: '¥1,200',
+        otherLogisticsFee: '¥0',
+        totalAccessoryCost: '¥0',
+        firstLegTotal: '¥9,200',
+        planQty: 800,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-1001-BL',
+            name: '蓝牙耳机 Pro 黑',
+            plan: 'FP20260720011',
+            declare: 500,
+            pick: 500,
+            ship: 500,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '0',
+            receive: 500,
+            status: '已完成',
+          },
+          {
+            sku: 'SPU-1001-WH',
+            name: '蓝牙耳机 Pro 白',
+            plan: 'FP20260720012',
+            declare: 300,
+            pick: 300,
+            ship: 300,
+            receive: 300,
+            status: '已完成',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260715001',
+        creator: 'Admin',
+        status: '已完成',
+        logistics: '已完成',
+        from: '东莞工厂',
+        to: '德国仓',
+        plans: 1,
+        skus: 1,
+        declare: 150,
+        pick: 150,
+        ship: 150,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '0',
+        receive: 150,
+        abnormal: 0,
+        eta: '2026-07-15',
+        expectedPortDate: '2026-07-12',
+        fee: '€1,800',
+        carrier: 'DHL / 5566778',
+        innerTab: 'sku',
+        yicangNo: 'EC20260715001',
+        lingxingNo: '—',
+        shipMode: '工厂直发',
+        channel: 'DHL 标准',
+        transport: '快递',
+        provider: 'DHL',
+        country: '德国 - DE',
+        warehouseType: '海外仓',
+        remark: '已完成签收',
+        expectedShipDate: '2026-07-05',
+        expectedTransitDuration: '7天',
+        logisticsNo: '5566778',
+        receiveOrderNo: 'RA20260715001',
+        actualFreight: '€1,500',
+        customsFee: '€300',
+        otherLogisticsFee: '$0',
+        totalAccessoryCost: '$0',
+        firstLegTotal: '€1,800',
+        planQty: 150,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-3001',
+            name: '便携榨汁杯',
+            plan: 'FP20260715011',
+            declare: 150,
+            pick: 150,
+            ship: 150,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '0',
+            receive: 150,
+            status: '已完成',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260710001',
+        creator: 'Admin',
+        status: '已完成',
+        logistics: '已完成',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 1,
+        skus: 1,
+        declare: 150,
+        pick: 150,
+        ship: 150,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '0',
+        receive: 150,
+        processedQty: 150,
+        abnormal: 0,
+        eta: '2026-07-10',
+        expectedPortDate: '2026-07-08',
+        fee: '¥2,400',
+        carrier: '马士基 / MSKU778899',
+        innerTab: 'sku',
+        yicangNo: 'EC20260710001',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '组合品加工后发货，已完成签收',
+        expectedShipDate: '2026-06-28',
+        expectedTransitDuration: '38天',
+        logisticsNo: 'MSKU778899',
+        receiveOrderNo: 'RA20260710001',
+        actualFreight: '¥2,100',
+        customsFee: '¥300',
+        otherLogisticsFee: '¥0',
+        totalAccessoryCost: '¥0',
+        firstLegTotal: '¥2,400',
+        planQty: 150,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-9001',
+            name: '户外露营套装',
+            plan: 'FP20260710011',
+            declare: 150,
+            pick: 150,
+            ship: 150,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '0',
+            receive: 150,
+            processedQty: 150,
+            status: '已完成',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260705001',
+        creator: 'Admin',
+        status: '已完成',
+        logistics: '已完成',
+        from: '东莞工厂',
+        to: '美国西部仓',
+        plans: 3,
+        skus: 3,
+        declare: 900,
+        pick: 900,
+        ship: 900,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '0',
+        receive: 900,
+        abnormal: 0,
+        eta: '2026-07-05',
+        expectedPortDate: '2026-07-03',
+        fee: '$8,500',
+        carrier: 'UPS / 1Z100200',
+        innerTab: 'sku',
+        yicangNo: 'EC20260705001',
+        lingxingNo: '—',
+        shipMode: '工厂直发',
+        channel: 'UPS 快线',
+        transport: '快递',
+        provider: 'DHL',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '大批量多SKU已完成',
+        expectedShipDate: '2026-06-25',
+        expectedTransitDuration: '7天',
+        logisticsNo: '1Z100200',
+        receiveOrderNo: 'RA20260705001',
+        actualFreight: '$7,400',
+        customsFee: '$1,100',
+        otherLogisticsFee: '€0',
+        totalAccessoryCost: '€0',
+        firstLegTotal: '$8,500',
+        planQty: 900,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-1002',
+            name: '无线充电器｜15W快充',
+            plan: 'FP20260705011',
+            declare: 400,
+            pick: 400,
+            ship: 400,
+            declarePickDiff: '0',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '0',
+            receive: 400,
+            status: '已完成',
+          },
+          {
+            sku: 'SPU-6001',
+            name: '智能台灯｜可调色温版',
+            plan: 'FP20260705012',
+            declare: 200,
+            pick: 200,
+            ship: 200,
+            receive: 200,
+            status: '已完成',
+          },
+          {
+            sku: 'SPU-1001-BL',
+            name: '蓝牙耳机 Pro 黑',
+            plan: 'FP20260705013',
+            declare: 300,
+            pick: 300,
+            ship: 300,
+            receive: 300,
+            status: '已完成',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260718001',
+        creator: 'Admin',
+        status: '已作废',
+        logistics: '已作废',
+        from: '深圳仓',
+        to: '英国仓',
+        plans: 1,
+        skus: 1,
+        declare: 160,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '160',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '160',
+        receive: 0,
+        abnormal: 0,
+        eta: '-',
+        expectedPortDate: '—',
+        fee: '¥0',
+        carrier: '-',
+        innerTab: 'sku',
+        yicangNo: 'EC20260718001',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '—',
+        transport: '海运',
+        provider: '—',
+        country: '英国 - GB',
+        warehouseType: '海外仓',
+        remark: '业务取消，发货单作废',
+        expectedShipDate: '—',
+        expectedTransitDuration: '—',
+        logisticsNo: '—',
+        receiveOrderNo: '—',
+        actualFreight: '¥0',
+        customsFee: '¥0',
+        otherLogisticsFee: '—',
+        totalAccessoryCost: '—',
+        firstLegTotal: '¥0',
+        planQty: 160,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-7001',
+            name: '旧款支架',
+            plan: 'FP20260718011',
+            declare: 160,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '160',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '160',
+            receive: 0,
+            status: '已作废',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260802001',
+        creator: 'Admin',
+        status: '已作废',
+        logistics: '已作废',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 2,
+        skus: 2,
+        declare: 300,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '300',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '300',
+        receive: 0,
+        abnormal: 0,
+        eta: '-',
+        expectedPortDate: '—',
+        fee: '¥0',
+        carrier: '-',
+        innerTab: 'sku',
+        yicangNo: 'EC20260802001',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '—',
+        transport: '海运',
+        provider: '—',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '需求变更，提货前作废',
+        expectedShipDate: '—',
+        expectedTransitDuration: '—',
+        logisticsNo: '—',
+        receiveOrderNo: '—',
+        actualFreight: '¥0',
+        customsFee: '¥0',
+        otherLogisticsFee: '—',
+        totalAccessoryCost: '—',
+        firstLegTotal: '¥0',
+        planQty: 300,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-1001-WH',
+            name: '蓝牙耳机 Pro 白',
+            plan: 'FP20260802011',
+            declare: 200,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '300',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '300',
+            receive: 0,
+            status: '已作废',
+          },
+          {
+            sku: 'SPU-2003',
+            name: '智能运动手环',
+            plan: 'FP20260802012',
+            declare: 100,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '已作废',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DN20260722001',
+        creator: 'Admin',
+        status: '已作废',
+        logistics: '已作废',
+        from: '义乌仓',
+        to: '德国仓',
+        plans: 1,
+        skus: 1,
+        declare: 120,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '120',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '120',
+        receive: 0,
+        abnormal: 0,
+        eta: '-',
+        expectedPortDate: '—',
+        fee: '€0',
+        carrier: '-',
+        innerTab: 'sku',
+        yicangNo: 'EC20260722001',
+        lingxingNo: '—',
+        shipMode: '供应商直发',
+        channel: '—',
+        transport: '快递',
+        provider: '—',
+        country: '德国 - DE',
+        warehouseType: '海外仓',
+        remark: '供应商断货作废',
+        expectedShipDate: '—',
+        expectedTransitDuration: '—',
+        logisticsNo: '—',
+        receiveOrderNo: '—',
+        actualFreight: '€0',
+        customsFee: '€0',
+        otherLogisticsFee: '—',
+        totalAccessoryCost: '—',
+        firstLegTotal: '€0',
+        planQty: 120,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-7001',
+            name: '手机支架',
+            plan: 'FP20260722011',
+            declare: 120,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '120',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '120',
+            receive: 0,
+            status: '已作废',
+          },
+        ],
+        batches: [],
+      },
+      {
+        id: 'DRAFT20260807001',
+        creator: 'Admin',
+        status: '草稿',
+        logistics: '未提交',
+        from: '未填写',
+        to: '未填写',
+        plans: 0,
+        skus: 0,
+        declare: 0,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '0',
+        receive: 0,
+        abnormal: 0,
+        eta: '-',
+        expectedPortDate: '—',
+        fee: '-',
+        carrier: '-',
+        innerTab: 'sku',
+        yicangNo: '—',
+        lingxingNo: '—',
+        shipMode: '—',
+        channel: '—',
+        transport: '—',
+        provider: '—',
+        country: '—',
+        warehouseType: '—',
+        remark: '—',
+        expectedShipDate: '—',
+        expectedTransitDuration: '—',
+        logisticsNo: '—',
+        receiveOrderNo: '—',
+        actualFreight: '—',
+        customsFee: '—',
+        otherLogisticsFee: '—',
+        totalAccessoryCost: '—',
+        firstLegTotal: '—',
+        planQty: 0,
+        pendingReceive: 0,
+        items: [],
+        batches: [],
+      },
+      {
+        id: 'DRAFT20260808001',
+        creator: 'Admin',
+        status: '草稿',
+        logistics: '未提交',
+        from: '未填写',
+        to: '未填写',
+        plans: 0,
+        skus: 0,
+        declare: 0,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '0',
+        receive: 0,
+        abnormal: 0,
+        eta: '-',
+        expectedPortDate: '—',
+        fee: '-',
+        carrier: '-',
+        innerTab: 'sku',
+        yicangNo: '—',
+        lingxingNo: '—',
+        shipMode: '—',
+        channel: '—',
+        transport: '—',
+        provider: '—',
+        country: '—',
+        warehouseType: '—',
+        remark: '—',
+        expectedShipDate: '—',
+        expectedTransitDuration: '—',
+        logisticsNo: '—',
+        receiveOrderNo: '—',
+        actualFreight: '—',
+        customsFee: '—',
+        otherLogisticsFee: '—',
+        totalAccessoryCost: '—',
+        firstLegTotal: '—',
+        planQty: 0,
+        pendingReceive: 0,
+        items: [],
+        batches: [],
+      },
+      {
+        id: 'DRAFT20260808002',
+        creator: 'Admin',
+        status: '草稿',
+        logistics: '未提交',
+        from: '深圳仓',
+        to: '美国西部仓',
+        plans: 0,
+        skus: 0,
+        declare: 0,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '0',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '0',
+        receive: 0,
+        abnormal: 0,
+        eta: '-',
+        expectedPortDate: '—',
+        fee: '-',
+        carrier: '-',
+        innerTab: 'sku',
+        yicangNo: '—',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: '标准海运',
+        transport: '海运',
+        provider: '马士基',
+        country: '美国 - US',
+        warehouseType: '海外仓',
+        remark: '已填头程信息，尚未选择SKU',
+        expectedShipDate: '—',
+        expectedTransitDuration: '—',
+        logisticsNo: '—',
+        receiveOrderNo: '—',
+        actualFreight: '—',
+        customsFee: '—',
+        otherLogisticsFee: '—',
+        totalAccessoryCost: '—',
+        firstLegTotal: '—',
+        planQty: 0,
+        pendingReceive: 0,
+        items: [],
+        batches: [],
+      },
+      {
+        id: 'DRAFT20260808003',
+        creator: 'Admin',
+        status: '草稿',
+        logistics: '未提交',
+        from: '义乌仓',
+        to: '德国仓',
+        plans: 2,
+        skus: 2,
+        declare: 300,
+        pick: 0,
+        ship: 0,
+        declarePickDiff: '300',
+        pickShipDiff: '0',
+        shipReceiveDiff: '0',
+        declareReceiveDiff: '300',
+        receive: 0,
+        abnormal: 0,
+        eta: '-',
+        expectedPortDate: '—',
+        fee: '-',
+        carrier: '-',
+        innerTab: 'sku',
+        yicangNo: '—',
+        lingxingNo: '—',
+        shipMode: '仓库发货',
+        channel: 'DHL 标准',
+        transport: '快递',
+        provider: 'DHL',
+        country: '德国 - DE',
+        warehouseType: '海外仓',
+        remark: '已选SKU，待提交',
+        expectedShipDate: '—',
+        expectedTransitDuration: '—',
+        logisticsNo: '—',
+        receiveOrderNo: '—',
+        actualFreight: '—',
+        customsFee: '—',
+        otherLogisticsFee: '—',
+        totalAccessoryCost: '—',
+        firstLegTotal: '—',
+        planQty: 300,
+        pendingReceive: 0,
+        items: [
+          {
+            sku: 'SPU-6001',
+            name: '智能台灯｜可调色温版',
+            plan: 'FP20260808081',
+            declare: 200,
+            pick: 0,
+            ship: 0,
+            declarePickDiff: '300',
+            pickShipDiff: '0',
+            shipReceiveDiff: '0',
+            declareReceiveDiff: '300',
+            receive: 0,
+            status: '草稿',
+          },
+          {
+            sku: 'SPU-3002',
+            name: '替换杯盖｜通用款',
+            plan: 'FP20260808082',
+            declare: 100,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '草稿',
+          },
+        ],
+        batches: [],
+      },
+    ]);
+    const batchTypeMap = {
+      提货: 'pickup',
+      加工: 'processing',
+      发货: 'shipment',
+      收货: 'receive',
+      手动完结: 'complete',
+    };
+    const batchSourceLabels = {
+      manual: '人工操作',
+      import: '文件导入',
+      api: '接口同步',
+      system: '系统生成',
+      demo: '系统记录',
+    };
+    const batchSourceLabel = (source) => batchSourceLabels[source] || '系统记录';
+    docs.forEach((d) => {
+      const m = d.id.match(/(\d{8})/);
+      if (m) d.created = m[1].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+      d.shipmentNo = d.shipmentNo || '—';
+      d.referenceId = d.referenceId || '—';
+      d.providerNo = d.providerNo || '—';
+      d.quantityAdjustments = d.quantityAdjustments || [];
+      (d.batches || []).forEach((batch) => {
+        batch.quantityType = batch.quantityType || batchTypeMap[batch.type] || '';
+        batch.source = batch.source || 'demo';
+        batch.adjustments = batch.adjustments || [];
       });
     });
-  });
-  docs.forEach(d=>{
-    (d.batches||[]).filter(b=>b.type==='提货').forEach(b=>{
-      (b.details||[]).forEach(item=>{
-        if(item.providerPickup===undefined)item.providerPickup=false;
-        if(item.freight===undefined)item.freight='¥'+(Number(item.qty||0)*1.2).toFixed(2);
-        if(item.otherOutboundFee===undefined)item.otherOutboundFee='¥'+(Number(item.qty||0)*0.3).toFixed(2);
-        if(item.processingFee===undefined)item.processingFee=skuMeta(item.sku).skuType==='组合'?'¥'+(Number(item.qty||0)*0.8).toFixed(2):'—';
-      });
-    });
-  });
-  const skuVisible=ref(false),skuTableRef=ref(),skuSearch=reactive({planNos:'',skus:'',platforms:[],stores:[],teams:[]}),skuApplied=reactive({planNos:'',skus:'',platforms:[],stores:[],teams:[]}),skuSelection=ref([]);
-  const multiTerms=v=>v.split(/[\s,，;；]+/).map(x=>x.trim()).filter(Boolean);
-  const filteredSkuCandidates=computed(()=>{const ps=multiTerms(skuApplied.planNos),ss=multiTerms(skuApplied.skus);return skuCandidates.filter(x=>!isAmazonPlan(x)&&(!ps.length||ps.some(v=>x.planNo.includes(v)))&&(!ss.length||ss.some(v=>x.sku.includes(v)))&&(!skuApplied.platforms.length||skuApplied.platforms.includes(x.platform))&&(!skuApplied.stores.length||skuApplied.stores.includes(x.store))&&(!skuApplied.teams.length||skuApplied.teams.includes(x.team)))});
-  const openSkuDialog=()=>{if(!canAddSku.value){ElementPlus.ElMessage.warning('请先填写顶部必填字段');return}Object.assign(skuSearch,{planNos:'',skus:'',platforms:[],stores:[],teams:[]});Object.assign(skuApplied,skuSearch);skuSelection.value=[];skuVisible.value=true;nextTick(()=>{skuTableRef.value?.clearSelection();selectedSkus.value.forEach(s=>{const row=skuCandidates.find(x=>x.sku===s.sku);if(row){row.skuRemark=s.skuRemark??row.planRemark;skuTableRef.value?.toggleRowSelection(row,true)}})})};
-  const runSkuQuery=()=>Object.assign(skuApplied,{planNos:skuSearch.planNos,skus:skuSearch.skus,platforms:[...skuSearch.platforms],stores:[...skuSearch.stores],teams:[...skuSearch.teams]});const resetSkuQuery=()=>{Object.assign(skuSearch,{planNos:'',skus:'',platforms:[],stores:[],teams:[]});runSkuQuery()};
-  const onSkuSelection=rows=>skuSelection.value=rows;
-  const confirmSkuSelection=()=>{if(!skuSelection.value.length){ElementPlus.ElMessage.warning('请至少选择一个 SKU');return}if(skuSelection.value.some(x=>!x.declareQty||x.declareQty>x.remain)){ElementPlus.ElMessage.error('申报量必填，且不能超过发货计划剩余数量');return}const hasAmazon=skuSelection.value.some(x=>x.platform&&x.platform.includes('Amazon'));const hasNonAmazon=skuSelection.value.some(x=>!x.platform||!x.platform.includes('Amazon'));if(hasAmazon&&hasNonAmazon){ElementPlus.ElMessage.error('FBA 专属仓与非亚马逊团队货物不可合并至同一发货单（刚性规则）');return}selectedSkus.value=skuSelection.value.map(x=>({...x,skuRemark:x.skuRemark??x.planRemark??''}));skuVisible.value=false;ElementPlus.ElMessage.success(`已选择 ${selectedSkus.value.length} 个 SKU`)};
-  const removeSku=row=>selectedSkus.value=selectedSkus.value.filter(x=>x.sku!==row.sku);
-  const buildDraftDoc=()=>({id:`DRAFT${Date.now()}`,creator:'Admin',created:formatOperationTime().slice(0,10),yicangNo:'—',lingxingNo:'—',status:'草稿',logistics:'未提交',processable:false,shipMode:createForm.shipMode||'—',from:createForm.from||'未填写',to:createForm.to||'未填写',channel:createForm.channel||'—',transport:createForm.transport||'—',provider:createForm.provider||'—',country:createForm.country||'—',warehouseType:createForm.warehouseType||'—',remark:createForm.remark||'—',referenceId:'—',receiveOrderNo:'—',totalBoxes:0,fromAddress:{...createForm.fromAddress},toAddress:{...createForm.toAddress},plans:selectedSkus.value.length,skus:selectedSkus.value.length,planQty:declareTotal.value,declare:declareTotal.value,pick:0,ship:0,receive:0,pendingReceive:0,abnormal:0,expectedShipDate:'—',eta:'—',logisticsNo:createForm.logisticsNo||'—',actualFreight:'—',customsFee:'—',otherLogisticsFee:'—',totalAccessoryCost:'—',firstLegTotal:'—',declarePickDiff:'0',pickShipDiff:'0',shipReceiveDiff:'0',declareReceiveDiff:'0',fee:'—',carrier:'—',innerTab:'sku',items:selectedSkus.value.map(x=>({sku:x.sku,name:x.title,plan:x.planNo,remark:x.skuRemark||'',declare:x.declareQty,pick:0,ship:0,receive:0,status:'草稿'})),batches:[]});
-  const saveDraft=()=>{
-    if(editingDoc.value){applyCreateFormToDoc(editingDoc.value);const restored=editingDoc.value.status==='已作废';if(restored){editingDoc.value.status='草稿';editingDoc.value.logistics='未提交';editingDoc.value.items?.forEach(item=>{item.status='草稿'});}createVisible.value=false;ElementPlus.ElMessage.success(restored?'已保存为草稿，可重新提交':'发货单已保存')}
-    else{docs.unshift(buildDraftDoc());createVisible.value=false;statusTab.value='草稿';ElementPlus.ElMessage.success('草稿已保存，已关联发货计划（状态：已完成）')}
-  };
-  const submitCreate=async()=>{
-    try{await createFormRef.value.validate()}catch{return}
-    if(!selectedSkus.value.length){ElementPlus.ElMessage.warning('尚未选择 SKU，至少选择一个 SKU');return}
-    if(editingDoc.value){
-      const doc=editingDoc.value;
-      applyCreateFormToDoc(doc);
-      doc.status='待提货';doc.logistics='未发货';doc.items.forEach(item=>{item.status='待提货'});
-      createVisible.value=false;statusTab.value='待提货';ElementPlus.ElMessage.success('发货单已提交，进入待提货');return;
-    }
-    const doc=buildDraftDoc();doc.id=`DN${Date.now()}`;doc.status='待提货';doc.logistics='未发货';doc.items.forEach(item=>{item.status='待提货'});docs.unshift(doc);createVisible.value=false;statusTab.value='待提货';ElementPlus.ElMessage.success('发货单已提交，进入待提货')
-  };
-  const updateDocDiffs=row=>{row.declarePickDiff=String(Number(row.declare||0)-(row.pick||0));row.pickShipDiff=String((row.ship||0)-(row.pick||0));row.shipReceiveDiff=String((row.receive||0)-(row.ship||0));row.declareReceiveDiff=String((row.receive||0)-Number(row.declare||0));};
-  docs.forEach(updateDocDiffs);
-  const transitionStatus=(row,next,action)=>{const previous=row.status;if(previous===next){ElementPlus.ElMessage.success(`${action}已记录，当前仍为${next}`);return}row.status=next;row.items?.forEach(item=>{item.status=next});if(next==='待发货'){row.pick=row.planQty||row.declare;row.items?.forEach(item=>{item.pick=item.declare})}if(next==='待收货'){row.logistics='已发货';row.ship=row.planQty||row.declare;row.items?.forEach(item=>{item.ship=item.declare});row.pendingReceive=Math.max(row.ship-(row.receive||0),0)}if(next==='部分收货'){row.receive=Math.min(row.ship||row.declare,Math.max(1,Math.floor((row.ship||row.declare)*0.5)));row.pendingReceive=Math.max((row.ship||row.declare)-row.receive,0);row.logistics='部分收货'}if(next==='已完成'){row.receive=row.ship||row.declare;row.pendingReceive=0;row.logistics='已完成';row.items?.forEach(item=>{item.receive=item.ship||item.declare})}updateDocDiffs(row);ElementPlus.ElMessage.success(`${action}成功，状态已更新为${next}`)};
-  const completeVisible=ref(false),completeDoc=ref(null),completeFormRef=ref(),completeSubmitting=ref(false);
-  const completeDocs=ref([]),completeForm=reactive({reason:'',remark:''});
-  const logVisible=ref(false),logDoc=ref(null),logPage=ref(1),logPageSize=ref(10);
-  const logRows=computed(()=>{const logs=logDoc.value?.logs||[];const start=(logPage.value-1)*logPageSize.value;return logs.slice(start,start+logPageSize.value)});
-  const openLog=row=>{if(!row.logs)row.logs=buildLogs(row);logDoc.value=row;logPage.value=1;logVisible.value=true};
-  const diffDetailVisible=ref(false),diffDetailDoc=ref(null),diffDetailRows=ref([]);
-  const openDiffDetail=(row,mode='difference')=>{row.diffDetailTitle=mode==='received'?'已收货数量明细':mode==='pending'?'待收货数量明细':'差异明细';diffDetailDoc.value=row;diffDetailRows.value=(row.items||[]).map(item=>{const isCombo=skuMeta(item.sku).skuType==='组合'||item.finishedPickedQty!==undefined||item.subSetPickedQty!==undefined;const picked=Number(item.pick||0),finishedPickedQty=Number(item.finishedPickedQty??(isCombo?picked:0)),subSetPickedQty=Number(item.subSetPickedQty||0);return{sku:item.sku,name:item.name,isCombo,planQty:item.planQty??item.declare??0,declare:Number(item.declare||0),pick:picked,finishedPickedQty,subSetPickedQty,ship:Number(item.ship||0),receive:Number(item.receive||0),pendingReceive:Math.max(Number(item.ship||0)-Number(item.receive||0),0),declarePickDiff:String(Number(item.declare||0)-picked),pickShipDiff:String(Number(item.ship||0)-picked),shipReceiveDiff:String(Number(item.receive||0)-Number(item.ship||0)),declareReceiveDiff:String(Number(item.receive||0)-Number(item.declare||0)),pickupDiff:String(Math.max(Number(item.planQty??item.declare??0)-picked,0))}});diffDetailVisible.value=true};
-  const completeReasonOptions=['货物丢失','货物损坏','业务取消','其他'];
-  const completeFormRules={reason:[{required:true,message:'请选择完结原因',trigger:'change'}]};
-  const selectedDocs=ref([]),mainTableRef=ref();
-  const onDocSelection=rows=>{selectedDocs.value=rows};
-  const openComplete=(row)=>{if(row){if(!['待收货','部分收货'].includes(row.status)){ElementPlus.ElMessage.warning('当前状态不允许手动完结');return}completeDocs.value=[row]}else{const eligible=selectedDocs.value.filter(d=>['待收货','部分收货'].includes(d.status));if(!eligible.length){ElementPlus.ElMessage.warning('请先勾选待收货或部分收货状态的发货单');return}completeDocs.value=eligible}completeDoc.value=completeDocs.value[0];completeForm.reason='';completeForm.remark='';completeVisible.value=true;nextTick(()=>completeFormRef.value?.clearValidate())};
-  const submitComplete=async()=>{try{await completeFormRef.value.validate()}catch{return}const docs=completeDocs.value;const totalUnreceived=docs.reduce((s,d)=>s+Math.max((d.ship||0)-(d.receive||0),0),0);const confirmMsg=docs.length===1?`确认手动完结发货单 ${docs[0].id} 吗？未收数量 ${totalUnreceived} 件将不再补收。`:`确认批量手动完结 ${docs.length} 张发货单吗？合计未收 ${totalUnreceived} 件将不再补收。`;try{await ElementPlus.ElMessageBox.confirm(confirmMsg,'手动完结确认',{type:'warning',confirmButtonText:'确认完结',cancelButtonText:'取消'})}catch{return}completeSubmitting.value=true;docs.forEach(doc=>{const unreceived=Math.max((doc.ship||0)-(doc.receive||0),0);doc.status='已完成';doc.logistics='已完成';doc.pendingReceive=0;doc.items?.forEach(item=>{item.status='已完成'});updateDocDiffs(doc);doc.batches.unshift({no:`SO${String(Date.now()).slice(-10)}`,type:'手动完结',quantityType:'complete',source:'manual',date:formatOperationTime(),skuCount:`${doc.skus} 个`,qty:unreceived,operator:'运营用户',status:'已完成',details:[{reason:completeForm.reason,remark:completeForm.remark||'—',unreceived}]})});completeSubmitting.value=false;completeVisible.value=false;selectedDocs.value=[];nextTick(()=>mainTableRef.value?.clearSelection());ElementPlus.ElMessage.success(docs.length===1?`发货单 ${docs[0].id} 已手动完结`:`${docs.length} 张发货单已手动完结`)};
-  const voidDocument=async row=>{if(!['草稿','待提货'].includes(row.status))return;try{await ElementPlus.ElMessageBox.confirm(`确认作废发货单 ${row.id} 吗？作废后关联发货计划将同步作废。`,'作废确认',{type:'warning',confirmButtonText:'确认作废',cancelButtonText:'取消'});row.status='已作废';row.logistics='已作废';row.items?.forEach(item=>{item.status='已作废'});if(!row.logs)row.logs=[];row.logs.unshift({type:'作废',content:'发货单作废，关联发货计划已同步作废',operator:'Admin',time:formatOperationTime()});ElementPlus.ElMessage.success('发货单已作废，关联发货计划已同步作废')}catch{}};
-  const cancelVisible=ref(false),cancelDoc=ref(null),cancelRemark=ref(''),cancelSubmitting=ref(false);
-  const cancelShip=row=>{if(row.status!=='待提货'){ElementPlus.ElMessage.warning('仅待提货状态允许取消发货');return}cancelDoc.value=row;cancelRemark.value='';cancelVisible.value=true};
-  const submitCancelShip=()=>{const row=cancelDoc.value;if(!row)return;cancelSubmitting.value=true;const remark=cancelRemark.value.trim();row.status='已取消';row.logistics='已取消';row.cancelRemark=remark;row.items?.forEach(item=>{item.status='已取消'});if(!row.logs)row.logs=[];row.logs.unshift({type:'取消发货',content:`取消发货单，关联发货计划已同步作废${remark?`，取消原因：${remark}`:'（未填写取消原因）'}`,operator:'Admin',time:formatOperationTime()});cancelSubmitting.value=false;cancelVisible.value=false;ElementPlus.ElMessage.success('发货单已取消，关联发货计划已同步作废')};
-  const quantityAdjustVisible=ref(false),quantityAdjustDoc=ref(null),quantityAdjustType=ref(''),quantityAdjustRows=ref([]),quantityAdjustReason=ref(''),quantityAdjustRemark=ref(''),quantityAdjustSubmitting=ref(false);
-  const quantityAdjustReasonOptions=['录入错误','仓库复核后数量不一致','物流反馈数量不一致','接口同步数据修正','少收已确认','其他'];
-  const quantityAdjustTypeOptions=computed(()=>{const doc=quantityAdjustDoc.value;if(!doc)return[];const options=[];if(['待加工','待发货'].includes(doc.status)&&Number(doc.pick||0)>0)options.push({value:'pickup',label:'提货数量'});if(doc.status==='待收货'&&Number(doc.ship||0)>0)options.push({value:'shipment',label:'发货数量'});if(['待收货','部分收货'].includes(doc.status)&&Number(doc.receive||0)>0)options.push({value:'receive',label:'收货数量'});return options});
-  const quantityAdjustTypeLabel=computed(()=>quantityAdjustTypeOptions.value.find(x=>x.value===quantityAdjustType.value)?.label||'数量');
-  const quantityAdjustField=type=>({pickup:'pick',shipment:'ship',receive:'receive'}[type]);
-  const quantityAdjustDownstream=({type,item})=>type==='pickup'?Math.max(Number(item.processedQty||0),Number(item.ship||0)):type==='shipment'?Number(item.receive||0):0;
-  const buildQuantityAdjustRows=type=>{const doc=quantityAdjustDoc.value;if(!doc)return[];const field=quantityAdjustField(type);return(doc.items||[]).map((item,index)=>{const current=Number(item[field]||0),planQty=Number(skuMeta(item.sku).planQty??item.planQty??item.declare??0);return{...item,key:`${item.sku}-${item.plan}-${index}`,planQty,currentQty:current,targetQty:current,downstreamUsed:quantityAdjustDownstream({type,item}),upperLimit:type==='pickup'?planQty:type==='shipment'?Number(item.pick||0):Number(item.ship||0)}})};
-  const changeQuantityAdjustType=type=>{quantityAdjustType.value=type;quantityAdjustRows.value=buildQuantityAdjustRows(type)};
-  const quantityAdjustRowError=row=>{const value=Number(row.targetQty);if(!Number.isInteger(value)||value<0)return'请输入不小于 0 的整数';if(value>Number(row.upperLimit||0))return`不能超过上限数量 ${row.upperLimit}`;if((quantityAdjustType.value==='pickup'||quantityAdjustType.value==='shipment')&&value<Number(row.downstreamUsed||0))return`不能低于下游已使用数量 ${row.downstreamUsed}`;if(quantityAdjustType.value==='receive'&&value<Number(row.downstreamUsed||0))return`不能低于下游已使用数量 ${row.downstreamUsed}`;return''};
-  const quantityAdjustChanged=computed(()=>quantityAdjustRows.value.some(row=>Number(row.targetQty)!==Number(row.currentQty)));
-  const refreshStatusAfterQuantityAdjust=doc=>{if(doc.pick<=0){doc.status='待提货';doc.logistics='未发货'}else if(doc.ship<=0){const hasCombo=doc.items?.some(item=>skuMeta(item.sku).skuType==='组合');const allComboProcessed=!hasCombo||doc.items.filter(item=>skuMeta(item.sku).skuType==='组合').every(item=>Number(item.processedQty||0)>=Number(item.subSetPickedQty||0));doc.status=hasCombo&&!allComboProcessed?'待加工':'待发货';doc.logistics='未发货'}else if(doc.receive>=doc.ship){doc.status='已完成';doc.logistics='已完成'}else if(doc.receive>0){doc.status='部分收货';doc.logistics='部分收货'}else{doc.status='待收货';doc.logistics='已发货'}doc.pendingReceive=Math.max(Number(doc.ship||0)-Number(doc.receive||0),0);doc.items?.forEach(item=>{item.status=doc.status})};
-  const openQuantityAdjust=row=>{if(!['待加工','待发货','待收货','部分收货'].includes(row.status)){ElementPlus.ElMessage.warning('当前状态不允许数量调整');return}quantityAdjustDoc.value=row;quantityAdjustReason.value='';quantityAdjustRemark.value='';const options=quantityAdjustTypeOptions.value;if(!options.length){ElementPlus.ElMessage.warning('当前单据暂无可调整的业务数量');return}quantityAdjustType.value=options[0].value;quantityAdjustRows.value=buildQuantityAdjustRows(quantityAdjustType.value);quantityAdjustVisible.value=true};
-  const submitQuantityAdjust=async()=>{if(!quantityAdjustDoc.value)return;const invalid=quantityAdjustRows.value.find(row=>quantityAdjustRowError(row));if(invalid){ElementPlus.ElMessage.error(`SKU ${invalid.sku}：${quantityAdjustRowError(invalid)}`);return}if(!quantityAdjustChanged.value){ElementPlus.ElMessage.warning('请至少调整一个 SKU 的数量');return}if(!quantityAdjustReason.value){ElementPlus.ElMessage.warning('请选择数量调整原因');return}if(quantityAdjustReason.value==='其他'&&!quantityAdjustRemark.value.trim()){ElementPlus.ElMessage.warning('选择“其他”时请填写备注');return}const doc=quantityAdjustDoc.value,changedRows=quantityAdjustRows.value.filter(row=>Number(row.targetQty)!==Number(row.currentQty)),field=quantityAdjustField(quantityAdjustType.value),typeLabel=quantityAdjustTypeLabel.value;try{await ElementPlus.ElMessageBox.confirm(`确认调整${typeLabel}吗？本次将调整 ${changedRows.length} 个 SKU。`,'确认数量调整',{type:'warning',confirmButtonText:'确认调整',cancelButtonText:'取消'})}catch{return}quantityAdjustSubmitting.value=true;const logDetails=[];changedRows.forEach(row=>{const item=doc.items.find(x=>x.sku===row.sku&&x.plan===row.plan);if(!item)return;const before=Number(item[field]||0),after=Number(row.targetQty||0),delta=after-before;item[field]=after;logDetails.push(`${row.sku} ${before}→${after}（${delta>0?'+':''}${delta}）`)});doc.pick=doc.items.reduce((sum,item)=>sum+Number(item.pick||0),0);doc.ship=doc.items.reduce((sum,item)=>sum+Number(item.ship||0),0);doc.receive=doc.items.reduce((sum,item)=>sum+Number(item.receive||0),0);updateDocDiffs(doc);refreshStatusAfterQuantityAdjust(doc);if(!doc.logs)doc.logs=buildLogs(doc);doc.logs.unshift({type:'数量调整',content:`调整${typeLabel}：${logDetails.join('；')}。原因：${quantityAdjustReason.value}${quantityAdjustRemark.value.trim()?`，备注：${quantityAdjustRemark.value.trim()}`:''}`,operator:'Admin',time:formatOperationTime()});quantityAdjustSubmitting.value=false;quantityAdjustVisible.value=false;ElementPlus.ElMessage.success('数量调整成功，差异和单据状态已重新计算')};
-  const pickupVisible=ref(false),pickupDoc=ref(null),pickupTableRef=ref(),pickupRows=ref([]),pickupSubmitting=ref(false);
-  const pickupRowClassName=({row})=>row.isSubDetail?'pickup-sub-row':row.isCombo?'pickup-combo-row':'pickup-no-expand-row';
-  const visiblePickupRows=computed(()=>pickupRows.value.flatMap(row=>row.isCombo&&row.pickupSub?[row,...(row.subDetails||[]).map(sub=>({key:`${row.key}-${sub.subSku}`,isSubDetail:true,parent:row,subDetail:sub,sku:sub.subSku,name:sub.subName,plan:row.plan,skuType:'子件'}))]:[row]));
-  const pickupSpanMethod=({row,columnIndex})=>{if(!row.isSubDetail||columnIndex!==4)return[1,1];const siblings=visiblePickupRows.value.filter(x=>x.isSubDetail&&x.parent.key===row.parent.key),first=siblings[0];return row.key===first.key?[siblings.length,1]:[0,0]};
-  const pickupRemainingTotal=computed(()=>pickupRows.value.reduce((sum,row)=>sum+Number(row.remain||0),0));
-  const pickupRowQty=row=>row.isCombo?Number(row.pickupQty||0)+Number(row.subSetQty||0):Number(row.pickupQty||0);
-  const comboPickupTotal=row=>Number(row.pickupQty||0)+Number(row.subSetQty||0);
-  const pickupRowDiff=row=>Math.max(Number(row.planQty||0)-Number(row.picked||0)-pickupRowQty(row),0);
-  const pickupQtyTotal=computed(()=>pickupRows.value.reduce((sum,row)=>sum+pickupRowQty(row),0));
-  const pickupAfterRemaining=computed(()=>Math.max(pickupRemainingTotal.value-pickupQtyTotal.value,0));
-  const pickupDiffTotal=computed(()=>pickupRows.value.filter(row=>row.diffReason).reduce((sum,row)=>sum+pickupRowDiff(row),0));
-  const pickupUnresolvedDiff=computed(()=>pickupRows.value.filter(row=>!row.isSubDetail&&pickupRowDiff(row)>0&&!row.diffReason).length);
-  const pickupNextStatus=computed(()=>{if(pickupQtyTotal.value<=0)return'—';if(pickupUnresolvedDiff.value>0)return'待提货';return pickupRows.value.some(row=>row.isCombo&&Number(row.subSetQty||0)>0)?'待加工':'待发货'});
-  const pickupAvailable=row=>Math.max(Number(row.planQty||0)-Number(row.picked||0),0);
-  const refreshSubSetMax=row=>{const available=Math.max(pickupAvailable(row)-Number(row.pickupQty||0),0);row.subSetMaxQty=Math.min(...(row.subDetails||[]).map(s=>Number(s.maxSetQty||0)),available)};
-  const onSubWarehouseChange=subRow=>{const w=subRow.pickupWarehouse;subRow.stock=w?(comboSubStockByWarehouse[w]||{})[subRow.subSku]||0:0;const parentAvailable=subRow.parent?Math.max(pickupAvailable(subRow.parent)-Number(subRow.parent.pickupQty||0),0):Number(subRow.parentRemain||0);subRow.maxSetQty=Math.min(parentAvailable,Math.floor(subRow.stock/(Number(subRow.ratio)||1)));subRow.pickupMax=subRow.maxSetQty*(Number(subRow.ratio)||1);if(subRow.parent)refreshSubSetMax(subRow.parent)};
-  const onSubSetQtyChange=row=>{refreshSubSetMax(row);row.subSetQty=Math.max(0,Math.min(Number(row.subSetQty||0),row.subSetMaxQty));(row.subDetails||[]).forEach(s=>{s.pickupQty=row.subSetQty*(Number(s.ratio)||1)})};
-  const onSubDetailQtyChange=sub=>{const parent=sub.parent;const details=parent?.subDetails||[];const setQty=details.length?Math.min(...details.map(s=>Math.floor(Number(s.pickupQty||0)/(Number(s.ratio)||1)))):0;parent.subSetQty=Math.max(0,Math.min(setQty,Math.max(pickupAvailable(parent)-Number(parent.pickupQty||0),0)))};
-  const initPickupWarehouse=row=>{row.pickupWarehouse=defaultPickupWarehouse(row.sku);if(row.isCombo){row.pickupFinished=true;onFinishedWarehouseChange(row)}else{onPickupWarehouseChange(row);row.pickupQty=row.pickupMax}};
-  const initSubWarehouse=subRow=>{subRow.pickupWarehouse=defaultPickupWarehouse(subRow.subSku);onSubWarehouseChange(subRow)};
-  const onPickupWarehouseChange=row=>{const w=row.pickupWarehouse;let stock=0;if(row.skuType==='子件'){stock=w?(comboSubStockByWarehouse[w]||{})[row.sku]||0:0}else{const mapped=(ordinaryStockByWarehouse[w]||{})[row.sku];stock=mapped!==undefined?mapped:(w===defaultPickupWarehouse(row.sku)?Number(row.planQty||0)+100:0)}row.stock=stock;row.pickupMax=Math.min(row.subLimit||row.remain,row.stock);row.inStock=row.stock};
-  const onFulfillmentModeChange=row=>{if(row.isCombo){row.pickupFinished=Boolean(row.pickupFinished);row.pickupSub=Boolean(row.pickupSub);row.fulfillmentMode=row.pickupSub?(row.pickupFinished?'parallel':'sub_parts'):'finished_product'}};
-  const togglePickupMode=(row,mode,checked)=>{if(!row.isCombo)return;if(mode==='finished')row.pickupFinished=checked;if(mode==='sub')row.pickupSub=checked;onFulfillmentModeChange(row);if(mode==='finished'&&checked)onFinishedWarehouseChange(row)};
-  const onFinishedWarehouseChange=row=>{const w=row.pickupWarehouse;row.finishedStock=w?(comboFinishedStockByWarehouse[w]||{})[row.sku]||0:0;row.pickupMax=Math.min(row.remain,row.finishedStock);if(row.pickupFinished)row.pickupQty=row.pickupMax};
-  const openPickup=row=>{if(row.status!=='待提货'){ElementPlus.ElMessage.warning('当前状态不允许提货');return}pickupDoc.value=row;const rows=[];row.items.forEach((item,index)=>{const meta=skuMeta(item.sku),picked=meta.skuType==='组合'?Number(item.finishedPickedQty??0)+Number(item.subSetPickedQty??(item.finishedPickedQty===undefined?item.pick:0)):Number(item.pick||0),declared=Number(item.declare||0),planQty=Number(meta.planQty??item.planQty??declared),remain=Math.max(planQty-picked,0),isCombo=meta.skuType==='组合'&&comboBom[item.sku],parentId=`${item.sku}-${item.plan}-${index}`;if(isCombo){const bom=comboBom[item.sku];const subDetails=bom.map(sub=>{const detail={subSku:sub.sku,subName:sub.name,ratio:sub.ratio||1,pickupWarehouse:'',stock:0,parentRemain:remain,maxSetQty:remain,pickupMax:remain*(sub.ratio||1),pickupQty:0};initSubWarehouse(detail);return detail});const comboRow={...item,key:parentId,isCombo:true,skuType:'组合',planQty,picked,remain,fulfillmentMode:'finished_product',pickupWarehouse:'',finishedStock:0,pickupMax:remain,pickupQty:null,subSetQty:0,pickupFinished:false,pickupSub:false,subDetails,pickupRemark:'',providerPickup:item.providerPickup??null,diffReason:''};subDetails.forEach(detail=>{detail.parent=comboRow});initPickupWarehouse(comboRow);rows.push(comboRow)}else if(!subToCombo[item.sku]){const normalRow={...item,key:parentId,isCombo:false,skuType:'普通',planQty,picked,remain,pickupMax:remain,inStock:0,pickupWarehouse:'',pickupQty:null,pickupRemark:'',providerPickup:item.providerPickup??null,diffReason:''};initPickupWarehouse(normalRow);rows.push(normalRow)}});pickupRows.value=rows;pickupVisible.value=true};
-  const formatOperationTime=()=>{const d=new Date(),pad=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`};
-  const createPickupBatchNo=(reserved=[])=>{const used=new Set([...docs.flatMap(doc=>(doc.batches||[]).map(batch=>batch.no)),...reserved]);let no=`SO${String(Date.now()).slice(-10)}`;let seq=1;while(used.has(no)){no=`SO${String(Date.now()).slice(-10)}${String(seq++).padStart(2,'0')}`}return no};
-  const submitPickup=async()=>{if(!pickupRows.value.length){ElementPlus.ElMessage.warning('当前没有可提货的 SKU');return}for(const row of pickupRows.value){if(!row.isCombo){if(!row.pickupWarehouse){ElementPlus.ElMessage.error(`SKU ${row.sku} 未选择提货仓`);return}const q=Number(row.pickupQty);if(!Number.isInteger(q)||q<0||q>row.pickupMax){ElementPlus.ElMessage.error(`SKU ${row.sku} 的本次提货数量必须为正整数，且不能超过可提上限 ${row.pickupMax}`);return}}else if(row.fulfillmentMode==='finished_product'){if(!row.pickupWarehouse){ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 未选择提货仓`);return}const q=Number(row.pickupQty);if(!Number.isInteger(q)||q<0||q>row.pickupMax){ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 的本次提货数量必须为不小于 0 的整数，且不能超过可提上限 ${row.pickupMax}`);return}}else{const finishedQty=Number(row.pickupQty||0),subSetQty=Number(row.subSetQty||0);if(!Number.isInteger(finishedQty)||finishedQty<0||finishedQty>row.pickupMax){ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 成品提货数量必须为不小于 0 的整数，且不能超过可提上限 ${row.pickupMax}`);return}const available=pickupAvailable(row);if(!Number.isInteger(subSetQty)||subSetQty<0||finishedQty+subSetQty>available){ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 成品提货和子件套装提货合计不能超过可提套数 ${available}`);return}for(const s of row.subDetails||[]){const q=subSetQty*(Number(s.ratio)||1);if(q>0&&!s.pickupWarehouse){ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 的子件「${s.subSku}」未选择提货仓`);return}if(q>s.pickupMax){ElementPlus.ElMessage.error(`子件 ${s.subSku} 的本次提货数量不能超过可提上限 ${s.pickupMax}`);return}}if(finishedQty<=0&&subSetQty<=0){ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 至少填写成品或子件提货数量`);return}}}const providerPickupMissing=pickupRows.value.find(row=>!row.isSubDetail&&pickupRowQty(row)>0&&(row.providerPickup===null||row.providerPickup===undefined));if(providerPickupMissing){ElementPlus.ElMessage.error(`SKU ${providerPickupMissing.sku} 必须选择“服务商包提货”`);return}const diffMissing=pickupRows.value.find(row=>!row.isSubDetail&&pickupRowDiff(row)>0&&!row.diffReason);if(diffMissing){ElementPlus.ElMessage.error(`SKU ${diffMissing.sku} 累计提货后仍小于发货数量，请选择差异原因`);return}const otherReasonMissing=pickupRows.value.find(row=>row.diffReason==='其他'&&!String(row.pickupRemark||'').trim());if(otherReasonMissing){ElementPlus.ElMessage.error(`SKU ${otherReasonMissing.sku} 选择“其他”时必须填写提货备注`);return}if(pickupRows.value.some(row=>row.providerPickup)&&(!pickupDoc.value.provider||pickupDoc.value.provider==='—')){ElementPlus.ElMessage.error('已选择服务商包提货，但发货单未设置头程服务商');return}const nextStatus=pickupNextStatus.value;const flowLines=[];pickupRows.value.forEach(row=>{if(!row.isCombo){flowLines.push(`${row.sku} 从 ${row.pickupWarehouse} 扣减 ${row.pickupQty}，提货完成后增加到发货仓「${pickupDoc.value.from}」`)}else{const fq=Number(row.pickupQty||0);if(fq>0)flowLines.push(`${row.sku}（成品）从 ${row.pickupWarehouse} 扣减 ${fq}，提货完成后增加到发货仓「${pickupDoc.value.from}」`);(row.subDetails||[]).forEach(s=>{const sq=Number(s.pickupQty||0);if(sq>0)flowLines.push(`${s.subSku}（子件）从 ${s.pickupWarehouse} 扣减 ${sq}，提货完成后增加到发货仓「${pickupDoc.value.from}」`)})}});const confirmMsg=`本次库存流转：\n· ${flowLines.join('\n· ')}\n\n提交后状态为「${nextStatus}」。`;try{await ElementPlus.ElMessageBox.confirm(confirmMsg,'确认提货',{type:'warning',confirmButtonText:'确认提货',cancelButtonText:'取消'})}catch{return}pickupSubmitting.value=true;const details=[],reservedBatchNos=[];pickupRows.value.forEach(row=>{if(!row.isCombo){const qty=Number(row.pickupQty);details.push({sku:row.sku,plan:row.plan,warehouse:row.pickupWarehouse,qty,skuType:row.skuType,isCombo:false,providerPickup:row.providerPickup,remark:row.pickupRemark||'—',diffReason:row.diffReason||''});const item=pickupDoc.value.items.find(x=>x.sku===row.sku&&x.plan===row.plan);if(item){item.pick=Number(item.pick||0)+qty;item.lastPickupWarehouse=row.pickupWarehouse;item.providerPickup=row.providerPickup;item.pickupRemark=row.pickupRemark;item.diffReason=row.diffReason}if(row.skuType==='子件'){const wh=comboSubStockByWarehouse[row.pickupWarehouse]||{};wh[row.sku]=Math.max((wh[row.sku]||0)-qty,0)}const fromWh=warehouseStock[pickupDoc.value.from];if(fromWh)fromWh[row.sku]=(fromWh[row.sku]||0)+qty}else if(row.fulfillmentMode==='finished_product'){const qty=Number(row.pickupQty);details.push({sku:row.sku,plan:row.plan,isCombo:true,fulfillmentMode:'finished_product',warehouse:row.pickupWarehouse,qty,finishedQty:qty,providerPickup:row.providerPickup,remark:row.pickupRemark||'—',diffReason:row.diffReason||''});const item=pickupDoc.value.items.find(x=>x.sku===row.sku&&x.plan===row.plan);if(item){item.finishedPickedQty=Number(item.finishedPickedQty??item.pick??0)+qty;item.subSetPickedQty=Number(item.subSetPickedQty||0);item.pick=item.finishedPickedQty+item.subSetPickedQty;item.lastPickupWarehouse=row.pickupWarehouse;item.providerPickup=row.providerPickup;item.pickupRemark=row.pickupRemark;item.diffReason=row.diffReason}const wh=comboFinishedStockByWarehouse[row.pickupWarehouse]||{};wh[row.sku]=Math.max((wh[row.sku]||0)-qty,0);const fromWh=warehouseStock[pickupDoc.value.from];if(fromWh)fromWh[row.sku]=(fromWh[row.sku]||0)+qty}else{const finishedQty=Number(row.pickupQty||0),finishedDetail=finishedQty>0?{sku:row.sku,name:row.name,warehouse:row.pickupWarehouse,qty:finishedQty,actualQty:finishedQty,skuType:'组合',pickupMode:'finished',fulfillmentMode:'finished_product'}:null,subSetQty=Number(row.subSetQty||0),subDetails=(row.subDetails||[]).map(s=>{const actualQty=subSetQty*(Number(s.ratio)||1);return{subSku:s.subSku,subName:s.subName,warehouse:s.pickupWarehouse,qty:actualQty,actualQty,bomRatio:Number(s.ratio)||1,sku:s.subSku,skuType:'子件',pickupMode:'sub',fulfillmentMode:'sub_parts',parentComboSku:row.sku,parentComboPlan:row.plan,diffReason:'—'}}).filter(s=>s.qty>0);details.push({sku:row.sku,plan:row.plan,isCombo:true,fulfillmentMode:row.fulfillmentMode,qty:finishedQty+subSetQty,finishedQty,subSetQty,warehouse:row.pickupWarehouse,finishedDetail,subDetails,providerPickup:row.providerPickup,remark:row.pickupRemark||'—',diffReason:row.diffReason||''});const item=pickupDoc.value.items.find(x=>x.sku===row.sku&&x.plan===row.plan);if(item){item.finishedPickedQty=Number(item.finishedPickedQty??item.pick??0)+finishedQty;item.subSetPickedQty=Number(item.subSetPickedQty||0)+Number(row.subSetQty||0);item.pick=item.finishedPickedQty+item.subSetPickedQty;item.providerPickup=row.providerPickup;item.pickupRemark=row.pickupRemark;item.diffReason=row.diffReason}if(finishedQty>0){const wh=comboFinishedStockByWarehouse[row.pickupWarehouse]||{};wh[row.sku]=Math.max((wh[row.sku]||0)-finishedQty,0);const fromWh=warehouseStock[pickupDoc.value.from];if(fromWh)fromWh[row.sku]=(fromWh[row.sku]||0)+finishedQty}subDetails.forEach(s=>{const wh=comboSubStockByWarehouse[s.warehouse]||{};wh[s.subSku]=Math.max((wh[s.subSku]||0)-s.qty,0);const fromWh=warehouseStock[pickupDoc.value.from];if(fromWh)fromWh[s.subSku]=(fromWh[s.subSku]||0)+s.qty})}});pickupDoc.value.pick=pickupDoc.value.items.reduce((sum,item)=>sum+Number(item.pick||0),0);pickupDoc.value.pickDiff=pickupDoc.value.items.reduce((sum,item)=>sum+Number(item.pickDiff||0),0);const remaining=pickupDoc.value.items.reduce((sum,item)=>{const planQty=Number(skuMeta(item.sku).planQty??item.planQty??item.declare??0),picked=Number(item.pick||0),diff=Math.max(planQty-picked,0);return sum+(diff&&!item.diffReason?diff:0)},0);if(remaining===0){const hasSplit=pickupDoc.value.items.some(item=>skuMeta(item.sku).skuType==='组合'&&Number(item.subSetPickedQty||0)>0);pickupDoc.value.status=hasSplit?'待加工':'待发货';pickupDoc.value.processable=hasSplit}else{pickupDoc.value.status='待提货';pickupDoc.value.processable=false}pickupDoc.value.logistics='未发货';pickupDoc.value.items.forEach(item=>{item.status=pickupDoc.value.status});updateDocDiffs(pickupDoc.value);const parentBatchNo=createPickupBatchNo(reservedBatchNos),operationTime=formatOperationTime();const batchRecords=[];details.forEach((item,index)=>{const parentNo=parentBatchNo;const makeBatch=(detail,no)=>{const pickupMode=detail.pickupMode||(detail.fulfillmentMode==='finished_product'?'finished':detail.fulfillmentMode==='sub_parts'||detail.fulfillmentMode==='sub'?'sub':detail.isCombo?'finished':'normal');return{no,type:'提货',quantityType:'pickup',source:'manual',date:operationTime,skuCount:'1 个',qty:Number(detail.qty||0),warehouse:detail.warehouse||'—',operator:'运营用户',status:'已完成',details:[{...detail,batchNo:no,parentBatchNo:parentNo,shipmentOrderNo:pickupDoc.value.id,actualQty:Number(detail.actualQty??detail.qty??0),pickupMode,skuType:detail.skuType||(pickupMode==='sub'?'子件':detail.isCombo?'组合':'普通'),diffReason:pickupMode==='sub'?'—':detail.diffReason||'—'}],parentBatchNo:parentNo}};if(item.isCombo&&item.subDetails?.length){if(item.finishedDetail){const no=createPickupBatchNo([...reservedBatchNos,parentNo,...batchRecords.map(x=>x.no)]);reservedBatchNos.push(no);batchRecords.push(makeBatch({...item,finishedDetail:undefined,subDetails:undefined,sku:item.sku,qty:item.finishedQty,finishedQty:item.finishedQty,warehouse:item.finishedDetail.warehouse},no))}item.subDetails.filter(s=>Number(s.qty||0)>0).forEach(sub=>{const no=createPickupBatchNo([...reservedBatchNos,parentNo,...batchRecords.map(x=>x.no)]);reservedBatchNos.push(no);batchRecords.push(makeBatch({sku:sub.subSku,subSku:sub.subSku,name:sub.subName,plan:item.plan,qty:sub.qty,actualQty:sub.actualQty??sub.qty,warehouse:sub.warehouse,isCombo:true,skuType:'子件',pickupMode:'sub',fulfillmentMode:'sub_parts',bomRatio:Number(sub.bomRatio??sub.ratio??1),parentComboSku:item.sku,parentComboPlan:item.plan,providerPickup:item.providerPickup,remark:item.remark,diffReason:'—'},no))})}else{const no=createPickupBatchNo([...reservedBatchNos,parentNo,...batchRecords.map(x=>x.no)]);reservedBatchNos.push(no);batchRecords.push(makeBatch(item,no))}});pickupDoc.value.batches.unshift(...batchRecords);pickupSubmitting.value=false;pickupVisible.value=false;ElementPlus.ElMessage.success(`提货成功，发货单已进入${pickupDoc.value.status}`)};
-  const shipDocument=async row=>{if(row.status!=='待发货'){ElementPlus.ElMessage.warning('当前状态不允许发货');return}const shipQty=row.items.reduce((sum,item)=>sum+Number(item.pick||0),0);if(shipQty<=0){ElementPlus.ElMessage.error('当前发货单没有可发货数量');return}try{await ElementPlus.ElMessageBox.confirm(`确认发货单 ${row.id} 全部发货吗？本次发货 ${shipQty} 件，确认后将进入“待收货”。`,'发货确认',{type:'warning',confirmButtonText:'确认发货',cancelButtonText:'取消'})}catch{return}const details=row.items.map(item=>({sku:item.sku,plan:item.plan,qty:Number(item.pick||0),from:row.from,to:row.to}));row.items.forEach(item=>{item.ship=Number(item.pick||0);item.status='待收货'});row.ship=details.reduce((sum,item)=>sum+item.qty,0);row.pendingReceive=Math.max(row.ship-Number(row.receive||0),0);row.status='待收货';row.logistics='已发货';row.actualShipDate=formatOperationTime().slice(0,10);row.batches.unshift({no:`SO${String(Date.now()).slice(-10)}`,type:'发货',quantityType:'shipment',source:'manual',date:formatOperationTime(),skuCount:`${details.length} 个`,qty:row.ship,warehouse:`${row.from} → ${row.to}`,operator:'运营用户',status:'已完成',details});ElementPlus.ElMessage.success('发货成功，发货单已进入待收货')};
-  const shipVisible=ref(false),shipDoc=ref(null),shipTableRef=ref(),shipRows=ref([]),shipSelection=ref([]),shipSubmitting=ref(false);
-  const diffReasonOptions=['货物丢失','货物损坏','物流扣货','其他'];
-  const shipSelectable=row=>row.remain>0;
-  const isShipSelected=row=>shipSelection.value.some(x=>x.key===row.key);
-  const shipRemainingTotal=computed(()=>shipRows.value.reduce((sum,row)=>sum+Number(row.remain||0),0));
-  const shipQtyTotal=computed(()=>shipSelection.value.reduce((sum,row)=>sum+Number(row.shipQty||0),0));
-  const shipAfterRemaining=computed(()=>Math.max(shipRemainingTotal.value-shipQtyTotal.value,0));
-  const openShip=row=>{if(row.status!=='待发货'){ElementPlus.ElMessage.warning('当前状态不允许发货');return}shipDoc.value=row;shipRows.value=row.items.map((item,index)=>{const picked=Number(item.pick||0),shipped=Number(item.ship||0),declared=Number(item.declare||0);return{...item,key:`${item.sku}-${item.plan}-${index}`,picked,shipped,declared,remain:Math.max(picked-shipped,0),shipQty:null,shipRemark:'',diffReason:''}});shipSelection.value=[];shipVisible.value=true;nextTick(()=>{shipTableRef.value?.clearSelection();shipRows.value.filter(shipSelectable).forEach(item=>shipTableRef.value?.toggleRowSelection(item,true))})};
-  const onShipSelection=rows=>shipSelection.value=rows;
-  const fillShipRemaining=()=>{if(!shipSelection.value.length){ElementPlus.ElMessage.warning('请先勾选需要发货的 SKU');return}shipSelection.value.forEach(row=>{row.shipQty=row.remain});ElementPlus.ElMessage.success('已按剩余可发数量填充')};
-  const submitShip=async()=>{if(!shipSelection.value.length){ElementPlus.ElMessage.warning('请至少选择一个 SKU');return}const qtyInvalid=shipSelection.value.find(row=>!Number.isInteger(Number(row.shipQty))||Number(row.shipQty)<=0||Number(row.shipQty)>row.remain);if(qtyInvalid){ElementPlus.ElMessage.error(`SKU ${qtyInvalid.sku} 的本次发货数量必须为正整数，且不能超过剩余可发数量`);return}const diffMissing=shipSelection.value.find(row=>{const cumulativeShip=Number(row.shipped||0)+Number(row.shipQty||0);const tfDiff=cumulativeShip-Number(row.picked||0);return tfDiff<0&&!row.diffReason});if(diffMissing){ElementPlus.ElMessage.error(`SKU ${diffMissing.sku} 提发差异为负数，请选择少发原因`);return}try{await ElementPlus.ElMessageBox.confirm(`本次共发货 ${shipQtyTotal.value} 件，提交后状态为“待收货”，确认提交吗？`,'确认发货',{type:'warning',confirmButtonText:'确认发货',cancelButtonText:'取消'})}catch{return}shipSubmitting.value=true;const details=shipSelection.value.map(row=>{const cumulativeShip=Number(row.shipped||0)+Number(row.shipQty||0);return{sku:row.sku,plan:row.plan,qty:Number(row.shipQty),shipRemark:row.shipRemark||'',diffReason:row.diffReason||'',declareDiff:cumulativeShip-Number(row.declared||0),pickupShipDiff:cumulativeShip-Number(row.picked||0)}});details.forEach(detail=>{const item=shipDoc.value.items.find(x=>x.sku===detail.sku&&x.plan===detail.plan);if(item){item.ship=Number(item.ship||0)+detail.qty;item.shipRemark=detail.shipRemark;if(detail.diffReason)item.shipDiffReason=detail.diffReason}});shipDoc.value.ship=shipDoc.value.items.reduce((sum,item)=>sum+Number(item.ship||0),0);shipDoc.value.pendingReceive=Math.max(shipDoc.value.ship-Number(shipDoc.value.receive||0),0);shipDoc.value.status='待收货';shipDoc.value.logistics='已发货';shipDoc.value.actualShipDate=formatOperationTime().slice(0,10);shipDoc.value.items.forEach(item=>{item.status='待收货'});updateDocDiffs(shipDoc.value);shipDoc.value.batches.unshift({no:`SO${String(Date.now()).slice(-10)}`,type:'发货',quantityType:'shipment',source:'manual',date:formatOperationTime(),skuCount:`${details.length} 个`,qty:details.reduce((sum,x)=>sum+x.qty,0),warehouse:`${shipDoc.value.from} → ${shipDoc.value.to}`,operator:'运营用户',status:'已完成',details});shipSubmitting.value=false;shipVisible.value=false;ElementPlus.ElMessage.success(`发货成功，发货单已进入待收货`);};
-  const receiveVisible=ref(false),receiveDoc=ref(null),receiveTableRef=ref(),receiveRows=ref([]),receiveSelection=ref([]),receiveSubmitting=ref(false);
-  const receiveSelectable=row=>row.remain>0;
-  const isReceiveSelected=row=>receiveSelection.value.some(x=>x.key===row.key);
-  const receiveRemainingTotal=computed(()=>receiveRows.value.reduce((sum,row)=>sum+Number(row.remain||0),0));
-  const receiveQtyTotal=computed(()=>receiveSelection.value.reduce((sum,row)=>sum+Number(row.receiveQty||0),0));
-  const receiveAfterRemaining=computed(()=>Math.max(receiveRemainingTotal.value-receiveQtyTotal.value,0));
-  const receiveNextStatus=computed(()=>receiveQtyTotal.value<=0?'—':receiveAfterRemaining.value===0?'已完成':'部分收货');
-  const openReceive=row=>{if(!['待收货','部分收货'].includes(row.status)){ElementPlus.ElMessage.warning('当前状态不允许收货');return}receiveDoc.value=row;receiveRows.value=row.items.map((item,index)=>{const shipped=Number(item.ship||0),received=Number(item.receive||0);return{...item,key:`${item.sku}-${item.plan}-${index}`,shipped,received,remain:Math.max(shipped-received,0),receiveQty:null}});receiveSelection.value=[];receiveVisible.value=true;nextTick(()=>{receiveTableRef.value?.clearSelection();receiveRows.value.filter(receiveSelectable).forEach(item=>receiveTableRef.value?.toggleRowSelection(item,true))})};
-  const onReceiveSelection=rows=>receiveSelection.value=rows;
-  const fillReceiveRemaining=()=>{if(!receiveSelection.value.length){ElementPlus.ElMessage.warning('请先勾选需要收货的 SKU');return}receiveSelection.value.forEach(row=>{row.receiveQty=row.remain});ElementPlus.ElMessage.success('已按剩余可收数量填充')};
-  const submitReceive=async()=>{if(!receiveSelection.value.length){ElementPlus.ElMessage.warning('请至少选择一个 SKU');return}const qtyInvalid=receiveSelection.value.find(row=>!Number.isInteger(Number(row.receiveQty))||Number(row.receiveQty)<=0||Number(row.receiveQty)>row.remain);if(qtyInvalid){ElementPlus.ElMessage.error(`SKU ${qtyInvalid.sku} 的本次收货数量必须为正整数，且不能超过剩余可收数量`);return}const nextStatus=receiveAfterRemaining.value===0?'已完成':'部分收货';try{await ElementPlus.ElMessageBox.confirm(`本次共收货 ${receiveQtyTotal.value} 件，提交后状态为“${nextStatus}”，确认提交吗？`,'确认收货',{type:'warning',confirmButtonText:'确认收货',cancelButtonText:'取消'})}catch{return}receiveSubmitting.value=true;const details=receiveSelection.value.map(row=>({sku:row.sku,plan:row.plan,qty:Number(row.receiveQty),shipped:row.shipped,received:row.received,diff:Number(row.received||0)+Number(row.receiveQty||0)-Number(row.shipped||0),diffReason:''}));details.forEach(detail=>{const item=receiveDoc.value.items.find(x=>x.sku===detail.sku&&x.plan===detail.plan);if(item)item.receive=Number(item.receive||0)+detail.qty});receiveDoc.value.receive=receiveDoc.value.items.reduce((sum,item)=>sum+Number(item.receive||0),0);const remaining=receiveDoc.value.items.reduce((sum,item)=>sum+Math.max(Number(item.ship||0)-Number(item.receive||0),0),0);receiveDoc.value.pendingReceive=remaining;receiveDoc.value.status=remaining===0?'已完成':'部分收货';receiveDoc.value.logistics=remaining===0?'已完成':'部分收货';if(remaining===0)receiveDoc.value.actualReceiveDate=formatOperationTime().slice(0,10);receiveDoc.value.items.forEach(item=>{item.status=receiveDoc.value.status});updateDocDiffs(receiveDoc.value);receiveDoc.value.batches.unshift({no:`SO${String(Date.now()).slice(-10)}`,type:'收货',quantityType:'receive',source:'manual',date:formatOperationTime(),skuCount:`${details.length} 个`,qty:details.reduce((sum,x)=>sum+x.qty,0),operator:'运营用户',status:'已完成',details});receiveSubmitting.value=false;receiveVisible.value=false;ElementPlus.ElMessage.success(`收货成功，发货单已进入${receiveDoc.value.status}`)};
-  const processingVisible=ref(false),processingSubmitting=ref(false),processingDocId=ref('');
-  const processingRows=ref([]),processingMode=ref('single');
-  const processingSearch=reactive({sku:'',docId:''});
-  const buildProcessingRows=(docId)=>{
-    const targetDocs=docs.filter(d=>d.status==='待加工'&&(!docId||d.id===docId));
-    // 按发货单号排序，批量模式同单的组合品靠在一起
-    targetDocs.sort((a,b)=>a.id.localeCompare(b.id));
-    const rows=[];
-    targetDocs.forEach(doc=>{
-      doc.items.forEach(item=>{
-        const meta=skuMeta(item.sku);
-        if(meta.skuType!=='组合'||!comboBom[item.sku])return;
-        const picked=Number(item.subSetPickedQty ?? item.pick ?? 0),processed=Number(item.processedQty||0);
-        const bom=comboBom[item.sku];
-        const warehouseStockMap=warehouseStock[doc.from]||{};
-        const subData=bom.map(sub=>{
-          const ratio=sub.ratio||1;
-          const stock=Number(warehouseStockMap[sub.sku]||0);
-          return{...sub,stock,ratio,pickupQty:picked*ratio};
-        });
-        const stockLimited=Math.min(...subData.map(s=>Math.floor(s.stock/s.ratio)));
-        const processableQty=Math.max(0,Math.min(picked-processed,stockLimited));
-        const comboKey=`${doc.id}-${item.sku}-${item.plan}`;
-        const processingRoute={provider:doc.provider||'—',channel:doc.channel||'—',warehouse:doc.from||'—'};
-        subData.forEach((sub,idx)=>{
-          rows.push({id:`${comboKey}-C${idx+1}`,comboKey,comboFirst:idx===0,comboRowSpan:idx===0?subData.length:0,docId:doc.id,comboSku:item.sku,comboPlanNo:item.plan,comboLingxingSku:meta.overseasSku||'—',comboName:item.name,subSku:sub.sku,subName:sub.name,ratio:sub.ratio||1,stock:sub.stock,pickupQty:sub.pickupQty,processedQty:processed,processableQty,processQty:idx===0?processableQty:null,...processingRoute});
-        });
-      });
-    });
-    return rows;
-  };
-  const filteredProcessingRows=computed(()=>{
-    if(!processingRows.value.length)return[];
-    const s=processingSearch.sku.trim().toLowerCase(),d=processingSearch.docId.trim().toLowerCase();
-    if(!s&&!d)return processingRows.value;
-    const keepGroups=new Set();
-    processingRows.value.forEach(row=>{const match=(!s||row.comboSku.toLowerCase().includes(s)||row.subSku.toLowerCase().includes(s))&&(!d||row.docId.toLowerCase().includes(d));if(match)keepGroups.add(row.comboKey)});
-    return processingRows.value.filter(row=>keepGroups.has(row.comboKey));
-  });
-  const processingSpanMethod=({row,columnIndex})=>{
-    const batch=processingMode.value==='batch';
-    const comboCols=batch?[0,1,5,6]:[0,4,5];
-    if(comboCols.includes(columnIndex))return row.comboFirst?[row.comboRowSpan,1]:[0,1];
-    return[1,1];
-  };
-  const resetProcessingSearch=()=>{processingSearch.sku='';processingSearch.docId=''};
-  const removeProcessingGroup=comboKey=>{
-    processingRows.value=processingRows.value.filter(row=>row.comboKey!==comboKey);
-    ElementPlus.ElMessage.success('已移除该组合 SKU');
-  };
-  const processingGroups=computed(()=>{const groups=new Map();processingRows.value.forEach(row=>{if(!groups.has(row.comboKey))groups.set(row.comboKey,row)});return[...groups.values()]});
-  const processingQtyTotal=computed(()=>processingGroups.value.reduce((sum,row)=>sum+Number(row.processQty||0),0));
-  const processingBatchSummary=computed(()=>{if(processingMode.value!=='batch'||!filteredProcessingRows.value.length)return null;const groups=processingGroups.value;const docIds=[...new Set(groups.map(r=>r.docId))];const totalPick=groups.reduce((s,r)=>s+r.pickupQty,0);const totalProcessable=groups.reduce((s,r)=>s+r.processableQty,0);return{docCount:docIds.length,comboCount:groups.length,totalPick,totalProcessable}});
-  const fillAllProcessingQty=()=>{const groups=processingGroups.value.filter(r=>r.processableQty>0);groups.forEach(r=>{r.processQty=r.processableQty});ElementPlus.ElMessage.success(`已填满 ${groups.length} 个组合 SKU 的可加工数量`)};
-  const clearAllProcessingQty=()=>{processingRows.value.forEach(r=>{if(r.comboFirst)r.processQty=null});ElementPlus.ElMessage.success('已清空所有加工数量')};
-  const openProcessing=(row)=>{processingMode.value='single';processingDocId.value=row?.id||'';processingRows.value=buildProcessingRows(processingDocId.value);resetProcessingSearch();processingVisible.value=true};
-  const openBatchProcessing=()=>{processingMode.value='batch';processingDocId.value='';processingRows.value=buildProcessingRows('');resetProcessingSearch();processingVisible.value=true};
-  const submitProcessing=async()=>{
-    const groups=processingGroups.value;
-    if(!groups.length){ElementPlus.ElMessage.warning('请至少保留一个组合 SKU');return}
-    const filled=groups.filter(row=>row.processQty!==null&&row.processQty!==undefined&&row.processQty!=='');
-    if(!filled.length){ElementPlus.ElMessage.error('请填写弹窗内所有组合 SKU 的加工数量');return}
-    if(filled.length!==groups.length){ElementPlus.ElMessage.error('请填写弹窗内所有组合 SKU 的加工数量');return}
-    const invalid=filled.find(row=>!Number.isInteger(Number(row.processQty))||Number(row.processQty)<=0||Number(row.processQty)>row.processableQty);
-    if(invalid){ElementPlus.ElMessage.error(`组合 SKU ${invalid.comboSku} 的本次加工数量必须为正整数，且不能超过可加工数量`);return}
-    const stockCheck={};for(const parent of filled){const stockMap=warehouseStock[parent.warehouse]||{};const children=processingRows.value.filter(row=>row.comboKey===parent.comboKey);for(const child of children){const key=`${parent.warehouse}-${child.subSku}`,available=stockCheck[key]??Number(stockMap[child.subSku]||0),needed=Number(parent.processQty)*Number(child.ratio||1);if(needed>available){ElementPlus.ElMessage.error(`组合 SKU ${parent.comboSku} 的子件 ${child.subSku} 在发货仓库存不足`);return}stockCheck[key]=available-needed}}
-    const total=processingQtyTotal.value;
-    const docsInvolved=[...new Set(filled.map(r=>r.docId))];
-    const confirmMsg=processingMode.value==='batch'?`涉及 ${docsInvolved.length} 张发货单，共加工 ${total} 套组合 SKU。确认后将扣减子 SKU 库存，是否继续？`:`共加工 ${total} 套组合 SKU。确认后将扣减子 SKU 库存，是否继续？`;
-    try{await ElementPlus.ElMessageBox.confirm(confirmMsg,'确认物流加工',{type:'warning',confirmButtonText:'确认加工',cancelButtonText:'取消'})}catch{return}
-    processingSubmitting.value=true;
-    const detailsByDoc={};
-    filled.forEach(parent=>{
-      const qty=Number(parent.processQty);
-      const children=processingRows.value.filter(row=>row.comboKey===parent.comboKey);
-      const warehouseStockMap=warehouseStock[parent.warehouse]||{};
-      const subConsumed=[];
-      children.forEach(child=>{const consumedQty=qty*Number(child.ratio||1);const stockBefore=Number(warehouseStockMap[child.subSku]||0);const stockAfter=stockBefore-consumedQty;child.stock=Math.max(stockAfter,0);warehouseStockMap[child.subSku]=Math.max(stockAfter,0);subConsumed.push({sku:child.subSku,name:child.subName,ratio:Number(child.ratio||1),qty:consumedQty,warehouse:parent.warehouse,stockBefore,stockAfter})});
-      warehouseStockMap[parent.comboSku]=Number(warehouseStockMap[parent.comboSku]||0)+qty;
-      const relatedDoc=docs.find(doc=>doc.id===parent.docId);
-      if(relatedDoc){
-        const item=relatedDoc.items.find(x=>x.sku===parent.comboSku&&x.plan===parent.comboPlanNo);
-        if(item)item.processedQty=Number(item.processedQty||0)+qty;
-        relatedDoc.processedQty=relatedDoc.items.reduce((s,x)=>s+Number(x.processedQty||0),0);
-        if(!detailsByDoc[parent.docId])detailsByDoc[parent.docId]={doc:relatedDoc,items:[]};
-        detailsByDoc[parent.docId].items.push({sku:parent.comboSku,plan:item?.plan||'—',qty,warehouse:parent.warehouse,finishedQty:qty,subConsumed});
+    const extraNoMap = {
+      DN20260808001: { shipmentNo: 'FBA20260808001', referenceId: 'REF-US-001' },
+      DN20260808002: { shipmentNo: 'FBA20260808002', referenceId: 'REF-US-002' },
+      DN20260808003: { shipmentNo: 'FBA20260808003', referenceId: 'REF-US-003' },
+      DN20260806001: { shipmentNo: 'FBA20260806001', referenceId: 'REF-US-006' },
+      DN20260808009: { shipmentNo: 'FBA20260808009', referenceId: 'REF-US-009' },
+      DN20260805008: { shipmentNo: 'FBA20260805008', referenceId: 'REF-DE-008' },
+      DN20260720001: { shipmentNo: 'FBA20260720001', referenceId: 'REF-US-020' },
+    };
+    docs.forEach((d) => {
+      if (extraNoMap[d.id]) {
+        d.shipmentNo = extraNoMap[d.id].shipmentNo;
+        d.referenceId = extraNoMap[d.id].referenceId;
       }
     });
-    Object.values(detailsByDoc).forEach(({doc,items})=>{
-      const batchQty=items.reduce((s,x)=>s+x.qty,0);
-      doc.batches.unshift({no:`SO${String(Date.now()).slice(-10)}`,type:'加工',quantityType:'processing',source:'manual',date:formatOperationTime(),skuCount:`${items.length} 个`,qty:batchQty,operator:'运营用户',status:'已完成',details:items});
-      const comboItems=doc.items.filter(x=>skuMeta(x.sku).skuType==='组合'&&comboBom[x.sku]);
-      const allComboProcessed=comboItems.every(x=>Number(x.processedQty||0)>=Number(x.subSetPickedQty||0));
-      if(allComboProcessed&&doc.status==='待加工'){doc.status='待发货';doc.logistics='未发货';doc.items.forEach(x=>{x.status='待发货'})}
+    docs.forEach((d) => {
+      ['fee', 'actualFreight', 'customsFee', 'otherLogisticsFee', 'totalAccessoryCost', 'firstLegTotal'].forEach(
+        (key) => {
+          if (d[key] && typeof d[key] === 'string' && !/^¥/.test(d[key]) && d[key] !== '—' && d[key] !== '-') {
+            d[key] = d[key].replace(/^[$€]/, '¥');
+          }
+        },
+      );
     });
-    processingSubmitting.value=false;processingVisible.value=false;
-    ElementPlus.ElMessage.success(`物流加工完成，共加工 ${total} 件组合 SKU`);
-  };
-  const importVisible=ref(false),importUploadRef=ref(),importType=ref('fee'),importFile=ref(null),importTemplateDownloaded=ref(false);
-  const feeImportFields=['发货单号','箱规重量（kg）','箱规体积（m³）','体积重（kg）','计费重（kg）','预计单价（CNY/kg）','预计物流费用（CNY）','实际重量（kg）','实际体积（m³）','实际体积重（kg）','实际计费重（kg）','实际单价（CNY）','头程物流费（CNY）','清关税费（CNY）','其他物流费用（CNY）','费用备注','总辅料成本（CNY）','头程费用合计（CNY）'];
-  const feeRequiredFields=['发货单号','头程物流费（CNY）','清关税费（CNY）','其他物流费用（CNY）','总辅料成本（CNY）','头程费用合计（CNY）'];
-  const trackImportFields=['中台发货单号','物流状态','物流单号','下单日期','预计发货日期','实际发货日期','预计开船日期','实际开船日期','预计到港日期','实际到港日期','预计到货日期','实际到货日期','预计物流时长（整数）','实际物流时长（整数）','承运商'];
-  const trackRequiredFields=['中台发货单号'];
-  const trackDateFields=['下单日期','预计发货日期','实际发货日期','预计开船日期','实际开船日期','预计到港日期','实际到港日期','预计到货日期','实际到货日期'];
-  const trackIntFields=['预计物流时长（整数）','实际物流时长（整数）'];
-  const feeImportHints=['必填，填写中台发货单号','数字，如 3','数字，如 0.0001','数字，如 0.02','数字，如 3','数字，如 15','数字，如 45','数字，如 3','数字，如 0.0001','数字','数字','数字，如 15','必填，数字，如 100','必填，数字，如 20','必填，数字，如 10','选填，文本说明','必填，数字，如 5','必填，数字，如 135'];
-  const trackImportHints=['必填，填写中台发货单号','文本，如 运输中','文本，物流跟踪单号','日期，格式 YYYY/MM/DD，如 2026/06/30','日期，格式 YYYY/MM/DD','日期，格式 YYYY/MM/DD','日期，格式 YYYY/MM/DD','日期，格式 YYYY/MM/DD','日期，格式 YYYY/MM/DD','日期，格式 YYYY/MM/DD','日期，格式 YYYY/MM/DD','日期，格式 YYYY/MM/DD','整数，如 30','整数，如 32','格式：承运商名称：上网单号：备注；示例：美国邮政：YD467897：港口到旧金山；'];
-  const importTitle=computed(()=>importType.value==='fee'?'导入物流费用':'导入轨迹信息');
-  const importFields=computed(()=>importType.value==='fee'?feeImportFields:trackImportFields);
-  const importStep=computed(()=>importFile.value?2:importTemplateDownloaded.value?1:0);
-  const openImport=type=>{importType.value=type;importFile.value=null;importTemplateDownloaded.value=false;importVisible.value=true;nextTick(()=>importUploadRef.value?.clearFiles())};
-  const onImportFileChange=file=>{importFile.value=file};
-  const removeImportFile=()=>{importFile.value=null};
-  const parseCsvLine=line=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(q){if(c==='"'){if(line[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;}else{if(c==='"')q=true;else if(c===','){out.push(cur);cur='';}else cur+=c;}}out.push(cur);return out};
-  const downloadImportTemplate=()=>{const fields=importType.value==='fee'?feeImportFields:trackImportFields;const required=importType.value==='fee'?feeRequiredFields:trackRequiredFields;const hints=importType.value==='fee'?feeImportHints:trackImportHints;const headers=fields.map(f=>required.includes(f)?`*${f}`:f);const csv='\ufeff'+headers.map(field=>`"${field}"`).join(',')+'\n'+hints.map(h=>`"${h}"`).join(',')+'\n';const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`${importTitle.value}模板.csv`;document.body.appendChild(link);link.click();document.body.removeChild(link);URL.revokeObjectURL(url);importTemplateDownloaded.value=true;ElementPlus.ElMessage.success('模板已下载，请按模板填写后导入')};
-  const checkImportFile=(onSuccess)=>{if(!importFile.value){ElementPlus.ElMessage.warning('请先选择需要导入的文件');return}const name=(importFile.value.name||'').toLowerCase();if(!['.xlsx','.xls','.csv'].some(ext=>name.endsWith(ext))){ElementPlus.ElMessage.error('文件格式不正确，请上传 .xlsx、.xls 或 .csv 文件');return}if(!name.endsWith('.csv')){onSuccess();return}const file=importFile.value.raw||importFile.value;const reader=new FileReader();reader.onload=()=>{const text=String(reader.result||'').replace(/^\ufeff/,'');const lines=text.split(/\r?\n/).filter(l=>l.trim());if(!lines.length){ElementPlus.ElMessage.error('文件内容为空，导入失败');return}const header=parseCsvLine(lines[0]).map(h=>h.trim().replace(/^\*/,''));const required=importType.value==='fee'?feeRequiredFields:trackRequiredFields;const missing=required.filter(f=>!header.includes(f));if(missing.length){ElementPlus.ElMessage.error(`导入失败：模板表头缺少必填字段 ${missing.join('、')}`);return}const errors=[];lines.slice(2).forEach((line,i)=>{const cells=parseCsvLine(line);required.forEach(f=>{const idx=header.indexOf(f);const v=(cells[idx]||'').trim();if(!v)errors.push(`第${i+3}行「${f}」为空`);});if(importType.value==='track'){trackDateFields.forEach(f=>{const idx=header.indexOf(f);if(idx>-1){const v=(cells[idx]||'').trim();if(v&&!/^\d{4}\/\d{2}\/\d{2}$/.test(v))errors.push(`第${i+3}行「${f}」格式应为 YYYY/MM/DD`);}});trackIntFields.forEach(f=>{const idx=header.indexOf(f);if(idx>-1){const v=(cells[idx]||'').trim();if(v&&!/^\d+$/.test(v))errors.push(`第${i+3}行「${f}」应为整数`);}});}});if(errors.length){ElementPlus.ElMessage.error(`导入失败：${errors.slice(0,5).join('；')}${errors.length>5?` 等共 ${errors.length} 处`:''}`);return}onSuccess()};reader.onerror=()=>{ElementPlus.ElMessage.error('文件读取失败，请重试')};reader.readAsText(file)};
-  const submitImport=()=>{checkImportFile(()=>{const title=importTitle.value;importVisible.value=false;ElementPlus.ElMessage.success(`${title}成功，系统将按发货单号更新对应数据`)})};
-
-  const costApportionVisible=ref(false),costApportionTypeFormRef=ref(),costApportionFormRef=ref(),costApportionBatchTableRef=ref();
-  const costApportionTypes=['提货运费','其他出库费','加工费（物流加工）'],costApportionRulesOptions=['按数量分摊','按金额分摊'],costApportionOwners=['willTest5','willTest1','yepei12345','yepei666','willTest4','willTest3','willTest2'];
-  const costApportionForm=reactive({type:'',amount:undefined,rule:'',owner:'',remark:''});
-  const costApportionRules={type:[{required:true,message:'请选择费用类型',trigger:'change'}],amount:[{required:true,message:'请输入费用金额',trigger:'blur'}],rule:[{required:true,message:'请选择分摊规则',trigger:'change'}],owner:[{required:true,message:'请选择负责人',trigger:'change'}]};
-  const costApportionTypeRules={type:costApportionRules.type};
-  const costApportionSearch=reactive({docType:'middleDoc',docNo:'',teams:[],batchNo:'',period:[]});
-  const costApportionRows=reactive([]);const costApportionSelection=reactive([]);const costApportionBatchRows=reactive([]);const costApportionBatchSelection=reactive([]);
-  const allPickBatches=reactive([]);
-  const parseDate=str=>{if(!str)return null;const d=new Date(str);return isNaN(d)?null:d};
-  const inPeriod=(dateStr,period)=>{if(!period||!period[0]||!period[1]||!dateStr)return false;const d=parseDate(dateStr),s=parseDate(period[0]),e=parseDate(period[1]);if(!d||!s||!e)return false;return d>=new Date(s.setHours(0,0,0,0))&&d<=new Date(e.setHours(23,59,59,999))};
-  const parseFee=str=>{if(!str||str==='—')return 0;const n=Number(String(str).replace(/[^0-9.-]/g,''));return isNaN(n)?0:n};
-  const openCostApportion=()=>{Object.assign(costApportionForm,{type:'',amount:undefined,rule:'',owner:'',remark:''});Object.assign(costApportionSearch,{docType:'middleDoc',docNo:'',teams:[],batchNo:'',period:[]});costApportionRows.splice(0,costApportionRows.length);costApportionBatchSelection.splice(0,costApportionBatchSelection.length);costApportionVisible.value=true;buildAllPickBatches();nextTick(()=>{queryCostApportionBatch();costApportionBatchTableRef.value?.clearSelection()})};
-  const normalizeBatchDetails=(batch,doc)=>{if(batch.details?.length)return batch.details.flatMap((item,index)=>{const rows=[];if(item.finishedDetail)rows.push({...item.finishedDetail,sku:item.sku,plan:item.plan,qty:item.finishedQty??item.finishedDetail.qty,isCombo:true,fulfillmentMode:'finished',parentBatchNo:item.parentBatchNo});if(item.subDetails?.length)item.subDetails.filter(s=>Number(s.qty||s.pickupQty||0)>0).forEach((s,subIndex)=>rows.push({sku:s.subSku||s.sku, name:s.subName||s.name, plan:item.plan, qty:s.qty??s.pickupQty, warehouse:s.warehouse||item.warehouse, isCombo:true, fulfillmentMode:'sub', batchNo:s.batchNo, parentBatchNo:item.parentBatchNo, remark:s.remark||item.remark, freight:s.freight??item.freight, otherOutboundFee:s.otherOutboundFee??item.otherOutboundFee, processingFee:s.processingFee??item.processingFee, sourceIndex:index, subIndex}));if(!rows.length)rows.push({...item});return rows});const sku=batch.sku||batch.itemSku||batch.detail?.sku||doc?.items?.[0]?.sku||'—';return[{sku,plan:batch.plan||batch.planNo||'—',qty:batch.qty??batch.quantity??batch.finishedQty??batch.processedQty??0,warehouse:batch.warehouse||doc?.from||'—',remark:batch.remark||'—'}]};
-  const buildAllPickBatches=()=>{allPickBatches.splice(0,allPickBatches.length);docs.forEach(doc=>{(doc.batches||[]).filter(b=>b.type==='提货'&&b.status==='已完成').forEach(batch=>{normalizeBatchDetails(batch,doc).forEach(item=>{if(item.apportioned)return;const key=`${doc.id}-${item.batchNo||batch.no}-${item.sku}-${item.pickupMode||item.fulfillmentMode||''}-${item.warehouse||''}`;allPickBatches.push({docId:doc.id,batchNo:item.batchNo||batch.no,planNo:item.plan||'—',sku:item.sku,name:item.name||skuMeta(item.sku).title||item.sku,sellerSku:skuMeta(item.sku).sellerSku||'—',team:skuMeta(item.sku).team||'—',qty:item.actualQty??item.qty??0,date:batch.date,pickupRemark:item.remark||'—',freight:item.freight??batch.freight??'—',otherOutboundFee:item.otherOutboundFee??batch.otherOutboundFee??'—',processingFee:item.processingFee??batch.processingFee??'—',apportioned:Boolean(item.apportioned),key})})})})};
-  const costApportionSkuCount=computed(()=>new Set(costApportionRows.map(r=>r.sku)).size);
-  const costApportionQtyTotal=computed(()=>costApportionRows.reduce((sum,r)=>sum+(Number(r.qty)||0),0));
-  const recalcApportionAmount=()=>{const total=Number(costApportionForm.amount)||0;if(!total||!costApportionRows.length){costApportionRows.forEach(r=>r.apportionAmount='¥0.00');return}const baseKey=costApportionForm.type==='提货运费'?'freight':costApportionForm.type==='其他出库费'?'otherOutboundFee':'processingFee';const bases=costApportionForm.rule==='按数量分摊'?costApportionRows.map(r=>Number(r.qty)||0):costApportionForm.rule==='按金额分摊'?costApportionRows.map(r=>parseFee(r[baseKey])):[];const baseTotal=bases.reduce((sum,value)=>sum+value,0);if(!baseTotal){costApportionRows.forEach(r=>r.apportionAmount='¥0.00');return}let allocated=0;costApportionRows.forEach((row,index)=>{const amount=index===costApportionRows.length-1?total-allocated:Number((total*bases[index]/baseTotal).toFixed(2));allocated+=amount;row.apportionAmount=`¥${amount.toFixed(2)}`})};
-  const costApportionTotal=computed(()=>{const total=costApportionRows.reduce((sum,r)=>sum+parseFee(r.apportionAmount),0);return '¥'+total.toFixed(2)});
-  watch(()=>[costApportionForm.amount,costApportionForm.rule,costApportionForm.type],recalcApportionAmount,{deep:true});
-  const queryCostApportionBatch=()=>{costApportionBatchRows.splice(0,costApportionBatchRows.length);const docNo=costApportionSearch.docNo.trim(),batchNo=costApportionSearch.batchNo.trim();allPickBatches.filter(b=>{const doc=docs.find(d=>d.id===b.docId);const matchDoc=!docNo||(costApportionSearch.docType==='middleDoc'?(doc?String(doc.id||'').includes(docNo):false):(doc?((doc.yicangNo||'').includes(docNo)||(doc.lingxingNo||'').includes(docNo)):false));const matchTeam=!costApportionSearch.teams.length||costApportionSearch.teams.includes(b.team);const matchBatch=!batchNo||String(b.batchNo||'').includes(batchNo);const matchPeriod=inPeriod(b.date,costApportionSearch.period);return matchDoc&&matchTeam&&matchBatch&&matchPeriod}).forEach(b=>costApportionBatchRows.push(b));nextTick(()=>{costApportionBatchTableRef.value?.clearSelection();costApportionBatchRows.forEach(b=>{if(costApportionRows.some(r=>r.key===b.key))costApportionBatchTableRef.value?.toggleRowSelection(b,true)})})};
-  const resetCostApportionSearch=()=>{Object.assign(costApportionSearch,{docType:'middleDoc',docNo:'',teams:[],batchNo:'',period:[]});queryCostApportionBatch()};
-  const onCostApportionBatchSelection=rows=>{const keys=new Set(rows.map(r=>r.key));costApportionBatchSelection.splice(0,costApportionBatchSelection.length,...rows);for(let i=costApportionRows.length-1;i>=0;i--){const row=costApportionRows[i];if(costApportionBatchRows.some(b=>b.key===row.key)&&!keys.has(row.key))costApportionRows.splice(i,1)}rows.forEach(r=>{if(!costApportionRows.some(x=>x.key===r.key))costApportionRows.push({...r})});recalcApportionAmount()};
-  const onCostApportionSelection=rows=>{costApportionSelection.splice(0,costApportionSelection.length,...rows)};
-  const removeCostApportionRow=row=>{const idx=costApportionRows.findIndex(r=>r.key===row.key);if(idx>-1){costApportionRows.splice(idx,1);const b=costApportionBatchRows.find(x=>x.key===row.key);if(b)costApportionBatchTableRef.value?.toggleRowSelection(b,false);recalcApportionAmount()}};
-  const submitCostApportion=async()=>{try{await costApportionTypeFormRef.value.validate();await costApportionFormRef.value.validate()}catch{return}if(!costApportionRows.length){ElementPlus.ElMessage.warning('请至少勾选一个分摊批次');return}const feeKey=costApportionForm.type==='提货运费'?'freight':costApportionForm.type==='其他出库费'?'otherOutboundFee':'processingFee';costApportionRows.forEach(row=>{const doc=docs.find(d=>d.id===row.docId),batch=doc?.batches?.find(b=>b.no===row.batchNo);if(!doc||!batch)return;let item=(batch.details||[]).find(detail=>detail.sku===row.sku&&detail.plan===row.planNo);if(!item){const parent=(batch.details||[]).find(detail=>(detail.subDetails||[]).some(sub=>(sub.subSku||sub.sku)===row.sku));const sub=parent?.subDetails?.find(s=>(s.subSku||s.sku)===row.sku);if(sub){item=sub;item.sku=item.sku||item.subSku}}item=item||batch.details?.[0]||batch;const amount=parseFee(row.apportionAmount),record={type:costApportionForm.type,amount,rule:costApportionForm.rule,owner:costApportionForm.owner,remark:costApportionForm.remark||'',date:formatOperationTime()};item[feeKey]=`¥${(parseFee(item[feeKey])+amount).toFixed(2)}`;item.costApportionments=item.costApportionments||[];item.costApportionments.push(record);item.apportioned=true});buildAllPickBatches();ElementPlus.ElMessage.success(`费用分摊成功，共 ${costApportionRows.length} 个批次，合计 ${costApportionTotal.value}`);costApportionVisible.value=false};
-  const resetCostApportion=()=>{Object.assign(costApportionForm,{type:'',amount:undefined,rule:'',owner:'',remark:''});Object.assign(costApportionSearch,{docType:'middleDoc',docNo:'',teams:[],batchNo:'',period:[]});costApportionRows.splice(0,costApportionRows.length);costApportionBatchSelection.splice(0,costApportionBatchSelection.length);nextTick(()=>costApportionBatchTableRef.value?.clearSelection());queryCostApportionBatch();recalcApportionAmount()};
-
-  const processingDetailRows=computed(()=>{const doc=currentDoc.value;if(!doc)return[];return(doc.batches||[]).filter(batch=>batch.type==='加工').flatMap(batch=>normalizeBatchDetails(batch,doc).map(item=>({batchNo:item.batchNo||batch.no,date:batch.date,sku:item.sku||'—',plan:item.plan||item.planNo||'—',docId:doc.id,qty:item.qty??item.processedQty??item.finishedQty??batch.qty??0,warehouse:item.warehouse||doc.from||'—',finishedQty:item.finishedQty??item.qty??item.processedQty??0,subDetails:(item.subConsumed||item.subDetails||batch.subConsumed||batch.subDetails||[]).map(s=>`${s.sku||s.subSku||s} ×${s.qty||s.pickupQty||''}${s.ratio?`（配比${s.ratio}）`:''}`).join(' / '),operator:batch.operator||'—',sourceLabel:batchSourceLabel(batch.source)})))});
-  const detailNavItems=[{id:'detail-info',creator:'Admin',label:'发货单信息'},{id:'detail-sku',creator:'Admin',label:'SKU 明细'},{id:'detail-box',creator:'Admin',label:'SKU 箱信息'},{id:'detail-pickup',creator:'Admin',label:'提货明细'},{id:'detail-processing',creator:'Admin',label:'加工明细'},{id:'detail-receive',creator:'Admin',label:'收货明细'},{id:'detail-fee',creator:'Admin',label:'物流费用'},{id:'detail-track',creator:'Admin',label:'轨迹信息'},{id:'detail-boxes',creator:'Admin',label:'装箱明细'}];
-  const detailVisible=ref(false),currentDoc=ref(null),detailActive=ref('detail-info'),detailScrollRef=ref();
-  const parseMoney=str=>{if(!str)return 0;const n=Number(String(str).replace(/[^0-9.-]/g,''));return isNaN(n)?0:n};
-  const formatMoney=(n,symbol='¥')=>`${symbol}${n.toLocaleString('en-US')}`;
-  const editingFee=ref(false),editingTrack=ref(false);const canEditFeeTrack=computed(()=>{const s=currentDoc.value?.status;return Boolean(s)&&!['草稿','已作废','已取消'].includes(s)});
-  const extractNumber=str=>{if(!str||str==='—')return '';const n=String(str).replace(/[^0-9.-]/g,'');return n};
-  const formatAddress=addr=>{if(!addr)return '—';const parts=[addr.contact,addr.phone,addr.country,addr.province,addr.city,addr.district,addr.detail,addr.zip].filter(v=>v&&v!=='—');return parts.length?parts.join(' '):'—'};
-  const feeMoneyKeys=['actualFreight','customsFee','otherLogisticsFee','totalAccessoryCost','firstLegTotal'];
-  const feeUnitPriceKeys=['actualUnitPrice'];
-  const feeUnits={boxWeight:'kg',boxVolume:'m³',volumeWeight:'kg',chargeWeight:'kg',estimatedUnitPrice:'CNY/kg',estimatedLogisticsFee:'CNY',actualWeight:'kg',actualVolume:'m³',actualVolumeWeight:'kg',actualChargeWeight:'kg',actualUnitPrice:'CNY',actualFreight:'CNY',customsFee:'CNY',otherLogisticsFee:'CNY',totalAccessoryCost:'CNY',firstLegTotal:'CNY'};
-  const feeForm=reactive({boxWeight:'',boxVolume:'',volumeWeight:'',chargeWeight:'',estimatedUnitPrice:'',estimatedLogisticsFee:'',actualWeight:'',actualVolume:'',actualVolumeWeight:'',actualChargeWeight:'',actualUnitPrice:'',actualFreight:'',customsFee:'',otherLogisticsFee:'',feeShareMethod:'',feeRemark:'',totalAccessoryCost:'',firstLegTotal:''});
-  const trackForm=reactive({logistics:'',logisticsNo:'',orderDate:'',expectedShipDate:'',actualShipDate:'',expectedSailDate:'',actualSailDate:'',expectedPortDate:'',actualPortDate:'',eta:'',actualReceiveDate:'',expectedTransitDuration:'',actualTransitDuration:'',providerNo:'',carrier:''});
-  const initFeeForm=doc=>{if(!doc)return;feeForm.boxWeight=extractNumber(doc.boxWeight)||'3';feeForm.boxVolume=extractNumber(doc.boxVolume)||'0.0001';feeForm.volumeWeight=extractNumber(doc.volumeWeight)||'0.0200';feeForm.chargeWeight=extractNumber(doc.chargeWeight)||'3';feeForm.estimatedUnitPrice=extractNumber(doc.estimatedUnitPrice)||'0';feeForm.estimatedLogisticsFee=extractNumber(doc.estimatedLogisticsFee)||'0';feeForm.actualWeight=extractNumber(doc.actualWeight)||'0';feeForm.actualVolume=extractNumber(doc.actualVolume)||'0';feeForm.actualVolumeWeight=extractNumber(doc.actualVolumeWeight)||'';feeForm.actualChargeWeight=extractNumber(doc.actualChargeWeight)||'';feeForm.actualUnitPrice=extractNumber(doc.actualUnitPrice)||'0';feeForm.actualFreight=extractNumber(doc.actualFreight)||'0';feeForm.customsFee=extractNumber(doc.customsFee)||'0';feeForm.otherLogisticsFee=extractNumber(doc.otherLogisticsFee)||'0';feeForm.feeShareMethod=doc.feeShareMethod||'按计费重';feeForm.feeRemark=doc.feeRemark==='—'?'':(doc.feeRemark||'');feeForm.totalAccessoryCost=extractNumber(doc.totalAccessoryCost)||'0';feeForm.firstLegTotal=extractNumber(doc.firstLegTotal)||'0'};
-  const initTrackForm=doc=>{if(!doc)return;trackForm.logistics=doc.logistics||'—';trackForm.logisticsNo=doc.logisticsNo||'—';trackForm.orderDate=doc.orderDate||doc.expectedShipDate||'';trackForm.expectedShipDate=doc.expectedShipDate||'';trackForm.actualShipDate=doc.actualShipDate||'';trackForm.expectedSailDate=doc.expectedSailDate||'';trackForm.actualSailDate=doc.actualSailDate||'';trackForm.expectedPortDate=doc.expectedPortDate||'';trackForm.actualPortDate=doc.actualPortDate||'';trackForm.eta=doc.eta||'';trackForm.actualReceiveDate=doc.actualReceiveDate||'';trackForm.expectedTransitDuration=doc.expectedTransitDuration||'';trackForm.actualTransitDuration=doc.actualTransitDuration||'—';trackForm.providerNo=doc.providerNo||'—';trackForm.carrier=doc.carrier||'—'};
-  const editFee=()=>{if(!currentDoc.value)return;if(!canEditFeeTrack.value){ElementPlus.ElMessage.warning('草稿/已作废/已取消状态不支持编辑物流费用');return}initFeeForm(currentDoc.value);editingFee.value=true};
-  const saveFee=()=>{if(!currentDoc.value)return;const d=currentDoc.value;d.boxWeight=`${feeForm.boxWeight} kg`;d.boxVolume=`${feeForm.boxVolume} m³`;d.volumeWeight=`${feeForm.volumeWeight} kg`;d.chargeWeight=`${feeForm.chargeWeight} kg`;d.estimatedUnitPrice=`${feeForm.estimatedUnitPrice} CNY/kg`;d.estimatedLogisticsFee=`${feeForm.estimatedLogisticsFee} CNY`;d.actualWeight=`${feeForm.actualWeight} kg`;d.actualVolume=`${feeForm.actualVolume} m³`;d.actualVolumeWeight=feeForm.actualVolumeWeight?`${feeForm.actualVolumeWeight} kg`:'—';d.actualChargeWeight=feeForm.actualChargeWeight?`${feeForm.actualChargeWeight} kg`:'—';d.actualUnitPrice=`${feeForm.actualUnitPrice} CNY`;d.actualFreight=formatMoney(Number(feeForm.actualFreight||0));d.customsFee=formatMoney(Number(feeForm.customsFee||0));d.otherLogisticsFee=formatMoney(Number(feeForm.otherLogisticsFee||0));d.feeShareMethod=feeForm.feeShareMethod;d.feeRemark=feeForm.feeRemark||'—';d.totalAccessoryCost=formatMoney(Number(feeForm.totalAccessoryCost||0));d.firstLegTotal=formatMoney(Number(feeForm.firstLegTotal||0));editingFee.value=false;ElementPlus.ElMessage.success('物流费用保存成功')};
-  const cancelFee=()=>{editingFee.value=false};
-  const editTrack=()=>{if(!currentDoc.value)return;if(!canEditFeeTrack.value){ElementPlus.ElMessage.warning('草稿/已作废/已取消状态不支持编辑轨迹信息');return}initTrackForm(currentDoc.value);editingTrack.value=true};
-  const saveTrack=()=>{if(!currentDoc.value)return;const d=currentDoc.value;d.logistics=trackForm.logistics;d.logisticsNo=trackForm.logisticsNo;d.orderDate=trackForm.orderDate;d.expectedShipDate=trackForm.expectedShipDate;d.actualShipDate=trackForm.actualShipDate;d.expectedSailDate=trackForm.expectedSailDate;d.actualSailDate=trackForm.actualSailDate;d.expectedPortDate=trackForm.expectedPortDate;d.actualPortDate=trackForm.actualPortDate;d.eta=trackForm.eta;d.actualReceiveDate=trackForm.actualReceiveDate;d.expectedTransitDuration=trackForm.expectedTransitDuration;d.actualTransitDuration=trackForm.actualTransitDuration;d.providerNo=trackForm.providerNo;d.carrier=trackForm.carrier;editingTrack.value=false;ElementPlus.ElMessage.success('轨迹信息保存成功')};
-  const cancelTrack=()=>{editingTrack.value=false};
-  const pickupDetailRows=computed(()=>{const doc=currentDoc.value;if(!doc)return[];return(doc.batches||[]).filter(batch=>batch.type==='提货').flatMap(batch=>normalizeBatchDetails(batch,doc).map(item=>{const sourceItem=(doc.items||[]).find(x=>x.sku===item.sku&&x.plan===item.plan),meta=skuMeta(item.sku),isCombo=Boolean(item.isCombo||item.skuType==='组合'||item.skuType==='子件'||item.pickupMode==='finished'||item.pickupMode==='sub'),pickupMode=item.pickupMode||(item.fulfillmentMode==='finished_product'?'finished':item.fulfillmentMode==='sub_parts'||item.fulfillmentMode==='sub'?'sub':isCombo?'finished':'normal'),qty=Number(item.qty||0);return{batchNo:item.batchNo||batch.no,parentBatchNo:item.parentBatchNo||batch.parentBatchNo||'—',date:batch.date,sku:item.sku||'—',plan:item.plan||'—',warehouse:item.warehouse||batch.warehouse||'—',fromWarehouse:doc.from||'—',qty,isCombo,pickupMode,pickDiff:pickupMode==='sub'?'—':Math.max(Number(meta.planQty??sourceItem?.planQty??sourceItem?.declare??0)-Number(sourceItem?.pick||qty),0),diffReason:item.diffReason||'—',remark:item.remark||item.pickupRemark||'—',operator:batch.operator||'—',providerPickup:item.providerPickup||false,freight:item.freight??batch.freight??'—',otherOutboundFee:item.otherOutboundFee??batch.otherOutboundFee??'—',processingFee:item.processingFee??batch.processingFee??'—',sourceLabel:batchSourceLabel(batch.source),quantityType:batch.quantityType||'pickup'}}))});
-  const receiveDetailRows=computed(()=>{const doc=currentDoc.value;if(!doc)return[];return(doc.batches||[]).filter(batch=>batch.type==='收货').flatMap(batch=>normalizeBatchDetails(batch,doc).map(item=>({batchNo:item.batchNo||batch.no,date:batch.date,sku:item.sku||'—',qty:item.qty??item.receivedQty??batch.qty??0,diff:item.diff!==undefined?item.diff:(item.received!==undefined&&item.shipped!==undefined?Number(item.received)+Number(item.qty||0)-Number(item.shipped):0),diffReason:item.diffReason||batch.diffReason||'—',operator:batch.operator||'—',sourceLabel:batchSourceLabel(batch.source),quantityType:batch.quantityType||'receive'})))});
-  const logisticsFeeFields=computed(()=>{
-    const d=currentDoc.value||{};
-    const isEdit=editingFee.value;
-    const getVal=(key,def='0')=>isEdit?(feeForm[key]??def):(extractNumber(d[key])??def);
-    const formatVal=(key,val)=>{
-      if(val===''||val===null||val===undefined)return '—';
-      if(feeMoneyKeys.includes(key))return `¥${Number(val).toLocaleString('en-US')}`;
-      if(feeUnitPriceKeys.includes(key))return `${val} CNY`;
-      return `${val} ${feeUnits[key]}`;
+    const buildLogs = (doc) => {
+      const date = doc.created || '2026-08-09';
+      const time = (t) => `${date} ${t}`;
+      const logs = [
+        { type: '新增', content: `创建发货单 ${doc.id}`, operator: doc.creator || 'Admin', time: time('10:00:00') },
+      ];
+      if (doc.status !== '草稿') {
+        logs.push({
+          type: '编辑',
+          content: '提交发货单，状态更新为待提货',
+          operator: '运营用户',
+          time: time('10:05:00'),
+        });
+      }
+      if (['待加工', '待发货', '待收货', '部分收货', '已完成'].includes(doc.status)) {
+        logs.push({
+          type: '出库',
+          content: `出库成功，虚拟货位2A01-A0101，减少库存${doc.pick || doc.declare || 0}个`,
+          operator: '仓库用户',
+          time: time('14:20:00'),
+        });
+      }
+      if (['待发货', '待收货', '部分收货', '已完成'].includes(doc.status)) {
+        logs.push({
+          type: '编辑',
+          content: '已获取物流预报的面单，更新发货单状态为待贴单据',
+          operator: '运营用户',
+          time: time('16:30:00'),
+        });
+      }
+      if (['待收货', '部分收货', '已完成'].includes(doc.status)) {
+        logs.push({
+          type: '发货',
+          content: `确认发货 ${doc.ship || doc.declare || 0} 件，物流单号 ${doc.logisticsNo || '—'}`,
+          operator: '运营用户',
+          time: time('09:15:00'),
+        });
+      }
+      if (['部分收货', '已完成'].includes(doc.status)) {
+        logs.push({
+          type: '收货',
+          content: `确认收货 ${doc.receive || 0} 件`,
+          operator: '仓库用户',
+          time: time('11:20:00'),
+        });
+      }
+      if (doc.status === '已完成') {
+        logs.push({ type: '编辑', content: '发货单已完成签收', operator: '系统', time: time('18:00:00') });
+      }
+      if (doc.status === '已作废') {
+        logs.push({
+          type: '编辑',
+          content: `发货单已作废，原因：${doc.remark || '业务取消'}`,
+          operator: '运营用户',
+          time: time('15:00:00'),
+        });
+      }
+      return logs;
     };
-    return[
-      {label:'箱规重量（kg）',key:'boxWeight',value:isEdit?getVal('boxWeight','3'):formatVal('boxWeight',getVal('boxWeight','3')),editable:true,type:'input'},
-      {label:'箱规体积（m³）',key:'boxVolume',value:isEdit?getVal('boxVolume','0.0001'):formatVal('boxVolume',getVal('boxVolume','0.0001')),editable:true,type:'input'},
-      {label:'体积重（kg）',key:'volumeWeight',value:isEdit?getVal('volumeWeight','0.0200'):formatVal('volumeWeight',getVal('volumeWeight','0.0200')),editable:true,type:'input'},
-      {label:'计费重（kg）',key:'chargeWeight',value:isEdit?getVal('chargeWeight','3'):formatVal('chargeWeight',getVal('chargeWeight','3')),editable:true,type:'input'},
-      {label:'预计单价（CNY/kg）',key:'estimatedUnitPrice',value:isEdit?getVal('estimatedUnitPrice','0'):formatVal('estimatedUnitPrice',getVal('estimatedUnitPrice','0')),editable:true,type:'input'},
-      {label:'预计物流费用（CNY）',key:'estimatedLogisticsFee',value:isEdit?getVal('estimatedLogisticsFee','0'):formatVal('estimatedLogisticsFee',getVal('estimatedLogisticsFee','0')),editable:true,type:'input'},
-      {label:'实际重量（kg）',key:'actualWeight',value:isEdit?getVal('actualWeight','0'):formatVal('actualWeight',getVal('actualWeight','0')),editable:true,type:'input'},
-      {label:'实际体积（m³）',key:'actualVolume',value:isEdit?getVal('actualVolume','0'):formatVal('actualVolume',getVal('actualVolume','0')),editable:true,type:'input'},
-      {label:'实际体积重（kg）',key:'actualVolumeWeight',value:isEdit?getVal('actualVolumeWeight',''):formatVal('actualVolumeWeight',getVal('actualVolumeWeight','')),editable:true,type:'input'},
-      {label:'实际计费重（kg）',key:'actualChargeWeight',value:isEdit?getVal('actualChargeWeight',''):formatVal('actualChargeWeight',getVal('actualChargeWeight','')),editable:true,type:'input'},
-      {label:'实际单价（CNY）',key:'actualUnitPrice',value:isEdit?getVal('actualUnitPrice','0'):formatVal('actualUnitPrice',getVal('actualUnitPrice','0')),editable:true,type:'input'},
-      {label:'头程物流费（CNY）',key:'actualFreight',value:isEdit?getVal('actualFreight','0'):formatVal('actualFreight',getVal('actualFreight','0')),editable:true,type:'input'},
-      {label:'清关税费（CNY）',key:'customsFee',value:isEdit?getVal('customsFee','0'):formatVal('customsFee',getVal('customsFee','0')),editable:true,type:'input'},
-      {label:'其他物流费用（CNY）',key:'otherLogisticsFee',value:isEdit?getVal('otherLogisticsFee','0'):formatVal('otherLogisticsFee',getVal('otherLogisticsFee','0')),editable:true,type:'input'},
-      {label:'费用分摊方式',key:'feeShareMethod',value:isEdit?feeForm.feeShareMethod:(d.feeShareMethod||'按计费重'),editable:true,type:'select',options:['按计费重']},
-      {label:'费用备注',key:'feeRemark',value:isEdit?feeForm.feeRemark:(d.feeRemark||'—'),editable:true,type:'input'},
-      {label:'总辅料成本（CNY）',key:'totalAccessoryCost',value:isEdit?getVal('totalAccessoryCost','0'):formatVal('totalAccessoryCost',getVal('totalAccessoryCost','0')),editable:true,type:'input'},
-      {label:'头程费用合计（CNY）',key:'firstLegTotal',value:isEdit?getVal('firstLegTotal','0'):formatVal('firstLegTotal',getVal('firstLegTotal','0')),editable:true,type:'input'}
+    docs.forEach((d) => {
+      d.logs = buildLogs(d);
+    });
+    const codeTypeOptions = [
+      { label: 'ERP发货单号', value: 'erpNo' },
+      { label: '发货单号', value: 'shipmentNo' },
+      { label: '计划单号', value: 'planNo' },
+      {
+        label: '物流单号',
+        value: 'logisticsNo',
+      } /*,{label:'关联货件单号',value:'shipmentLinkNo'},{label:'Reference ID',value:'referenceId'}*/,
     ];
-  });
-  const trackingFields=computed(()=>{
-    const d=currentDoc.value||{};
-    const isEdit=editingTrack.value;
-    const getVal=(key,def='—')=>isEdit?(trackForm[key]??def):(d[key]??def);
-    return[
-      {label:'物流状态',key:'logistics',value:isEdit?trackForm.logistics:(d.logistics||'—'),editable:true,type:'select',options:['已提货','已出运','已起运','已到港','已清关','已提取','已签收','异常']},
-      {label:'物流单号',key:'logisticsNo',value:isEdit?trackForm.logisticsNo:(d.logisticsNo||'—'),editable:true,type:'input'},
-      {label:'下单日期',key:'orderDate',value:getVal('orderDate',d.expectedShipDate||'—'),editable:true,type:'date'},
-      {label:'预计发货日期',key:'expectedShipDate',value:getVal('expectedShipDate','—'),editable:true,type:'date'},
-      {label:'实际发货日期',key:'actualShipDate',value:getVal('actualShipDate','—'),editable:true,type:'date'},
-      {label:'预计开船日期',key:'expectedSailDate',value:getVal('expectedSailDate','—'),editable:true,type:'date'},
-      {label:'实际开船日期',key:'actualSailDate',value:getVal('actualSailDate','—'),editable:true,type:'date'},
-      {label:'预计到港日期',key:'expectedPortDate',value:getVal('expectedPortDate','—'),editable:true,type:'date'},
-      {label:'实际到港日期',key:'actualPortDate',value:getVal('actualPortDate','—'),editable:true,type:'date'},
-      {label:'预计到货日期',key:'eta',value:getVal('eta','—'),editable:true,type:'date'},
-      {label:'实际到货日期',key:'actualReceiveDate',value:getVal('actualReceiveDate','—'),editable:true,type:'date'},
-      {label:'预计物流时长',key:'expectedTransitDuration',value:getVal('expectedTransitDuration','—'),editable:true,type:'input'},
-      {label:'实际物流时长',key:'actualTransitDuration',value:getVal('actualTransitDuration','—'),editable:true,type:'input'},
-      {label:'物流服务商单号',key:'providerNo',value:isEdit?trackForm.providerNo:(d.providerNo||'—'),editable:true,type:'input'},
-      {label:'承运商',key:'carrier',value:isEdit?trackForm.carrier:(d.carrier||'—'),editable:true,type:'input'}
+    const skuTypeOptions = [
+      { label: 'SKU', value: 'sku' },
+      { label: '海外仓 SKU', value: 'overseasSku' } /*,{label:'FNSKU',value:'fnsku'}*/,
     ];
-  });
-  const boxList=computed(()=>{const doc=currentDoc.value;if(!doc)return[];return(doc.boxes||[]).map((box,idx)=>({...box,index:idx+1,items:box.items||[]}));});
+    const storeOptions = [
+      'Amazon-US 旗舰店',
+      'Amazon-US 运动店',
+      'Amazon-US 户外店',
+      'Amazon-US 箱包店',
+      'Amazon-DE 家居店',
+      'Amazon-DE 厨房店',
+      'Walmart-US 家居店',
+      'Walmart-US 数码店',
+    ];
+    const creatorOptions = ['Admin', '张敏', '李晨', '王磊'];
+    const query = reactive({
+        codeType: 'erpNo',
+        codeText: '',
+        skuType: 'sku',
+        skuText: '',
+        shipModes: [],
+        froms: [],
+        tos: [],
+        channels: [],
+        transports: [],
+        platforms: [],
+        stores: [],
+        teams: [],
+        creators: ['Admin'],
+        createdRange: [],
+      }),
+      appliedQuery = reactive({
+        codeType: 'erpNo',
+        codeText: '',
+        skuType: 'sku',
+        skuText: '',
+        shipModes: [],
+        froms: [],
+        tos: [],
+        channels: [],
+        transports: [],
+        platforms: [],
+        stores: [],
+        teams: [],
+        creators: ['Admin'],
+        createdRange: [],
+      }),
+      statusTab = ref('全部'),
+      queryExpanded = ref(false),
+      queryOverflow = ref(false);
+    const codeTypeLabel = computed(
+      () => codeTypeOptions.find((item) => item.value === query.codeType)?.label || '单号',
+    );
+    const skuTypeLabel = computed(() => skuTypeOptions.find((item) => item.value === query.skuType)?.label || 'SKU');
+    const splitQueryValues = (value) =>
+      String(value || '')
+        .split(/[\s,，、;；]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    const textMatch = (candidates, value) => {
+      const values = splitQueryValues(value).map((item) => item.toLowerCase());
+      if (!values.length) return true;
+      return candidates.some((candidate) =>
+        values.some((item) =>
+          String(candidate || '')
+            .toLowerCase()
+            .includes(item),
+        ),
+      );
+    };
+    const selectMatch = (candidates, selected) =>
+      !selected.length || candidates.some((candidate) => selected.includes(candidate));
+    const codeCandidates = (doc, type) =>
+      ({
+        erpNo: [doc.yicangNo, doc.lingxingNo],
+        shipmentNo: [doc.id],
+        shipmentLinkNo: [doc.shipmentNo],
+        referenceId: [doc.referenceId],
+        planNo: (doc.items || []).map((item) => item.plan),
+        logisticsNo: [doc.logisticsNo],
+      })[type] || [];
+    const skuCandidatesForDoc = (doc, type) =>
+      (doc.items || []).map((item) => (type === 'sku' ? item.sku : skuMeta(item.sku)[type] || ''));
+    const querySnapshot = () => ({
+      ...query,
+      shipModes: [...query.shipModes],
+      froms: [...query.froms],
+      tos: [...query.tos],
+      channels: [...query.channels],
+      transports: [...query.transports],
+      platforms: [...query.platforms],
+      stores: [...query.stores],
+      teams: [...query.teams],
+      creators: [...query.creators],
+      createdRange: [...query.createdRange],
+    });
+    const layoutQuery = () => {
+      const grid = document.querySelector('.query-grid');
+      if (!grid) return;
+      const items = [...grid.querySelectorAll('.query-item:not(.query-action-item)')];
+      items.forEach((item) => item.classList.remove('query-overflow-item'));
+      const tops = [...new Set(items.map((item) => Math.round(item.getBoundingClientRect().top)))].sort(
+        (a, b) => a - b,
+      );
+      const overflowTop = tops[2];
+      const overflowItems =
+        overflowTop === undefined
+          ? []
+          : items.filter((item) => Math.round(item.getBoundingClientRect().top) >= overflowTop);
+      overflowItems.forEach((item) => item.classList.add('query-overflow-item'));
+      queryOverflow.value = overflowItems.length > 0;
+      if (!queryOverflow.value) queryExpanded.value = false;
+    };
+    nextTick(() => {
+      layoutQuery();
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(layoutQuery, 80);
+      });
+    });
+    const filteredDocs = computed(() =>
+      docs.filter((d) => {
+        const tabMatch = statusTab.value === '全部' || d.status === statusTab.value;
+        const [start, end] = appliedQuery.createdRange || [];
+        return (
+          tabMatch &&
+          textMatch(codeCandidates(d, appliedQuery.codeType), appliedQuery.codeText) &&
+          textMatch(skuCandidatesForDoc(d, appliedQuery.skuType), appliedQuery.skuText) &&
+          selectMatch([d.shipMode], appliedQuery.shipModes) &&
+          selectMatch([d.from], appliedQuery.froms) &&
+          selectMatch([d.to], appliedQuery.tos) &&
+          selectMatch([d.channel], appliedQuery.channels) &&
+          selectMatch([d.transport], appliedQuery.transports) &&
+          selectMatch(d.items?.map((item) => skuMeta(item.sku).platform) || [], appliedQuery.platforms) &&
+          selectMatch(d.items?.map((item) => skuMeta(item.sku).store) || [], appliedQuery.stores) &&
+          selectMatch(d.items?.map((item) => skuMeta(item.sku).team) || [], appliedQuery.teams) &&
+          selectMatch([d.creator], appliedQuery.creators) &&
+          (!start || (d.created || '') >= start) &&
+          (!end || (d.created || '') <= end)
+        );
+      }),
+    );
+    const statusCount = (s) => (s === '全部' ? docs.length : docs.filter((x) => x.status === s).length);
+    const applyQuery = () => Object.assign(appliedQuery, querySnapshot());
+    const resetQuery = () => {
+      Object.assign(query, {
+        codeType: 'erpNo',
+        codeText: '',
+        skuType: 'sku',
+        skuText: '',
+        shipModes: [],
+        froms: [],
+        tos: [],
+        channels: [],
+        transports: [],
+        platforms: [],
+        stores: [],
+        teams: [],
+        creators: ['Admin'],
+        createdRange: [],
+      });
+      Object.assign(appliedQuery, querySnapshot());
+      statusTab.value = '全部';
+      queryExpanded.value = false;
+    };
+    const tagType = (s) =>
+      ['已完成', '已签收'].includes(s)
+        ? 'success'
+        : ['待收货', '部分收货', '待加工'].includes(s)
+          ? 'warning'
+          : ['已作废', '待提货', '未发货', '草稿', '未提交'].includes(s)
+            ? 'info'
+            : '';
+    const createVisible = ref(false),
+      createFormRef = ref(),
+      editingDoc = ref(null);
+    const emptyAddress = () => ({
+      contact: '',
+      phone: '',
+      country: '',
+      province: '',
+      city: '',
+      district: '',
+      detail: '',
+      zip: '',
+    });
+    const createForm = reactive({
+      from: '',
+      to: '',
+      shipMode: '',
+      provider: '',
+      transport: '',
+      channel: '',
+      country: '',
+      warehouseType: '',
+      logisticsNo: '',
+      fromAddress: emptyAddress(),
+      toAddress: emptyAddress(),
+      remark: '',
+    });
+    const createRules = {
+      from: [{ required: true, message: '请选择发货仓', trigger: 'change' }],
+      to: [{ required: true, message: '请选择目的仓', trigger: 'change' }],
+      shipMode: [{ required: true, message: '请选择发货方式', trigger: 'change' }],
+      provider: [{ required: true, message: '请选择头程服务商', trigger: 'change' }],
+      transport: [{ required: true, message: '请选择运输方式', trigger: 'change' }],
+      channel: [{ required: true, message: '请选择物流渠道', trigger: 'change' }],
+    };
+    const selectedSkus = ref([]),
+      declareTotal = computed(() => selectedSkus.value.reduce((n, x) => n + Number(x.declareQty || 0), 0));
+    const canAddSku = computed(() =>
+      ['from', 'to', 'shipMode', 'provider', 'transport', 'channel'].every((key) => Boolean(createForm[key])),
+    );
+    const openCreate = () => {
+      editingDoc.value = null;
+      selectedSkus.value = [];
+      Object.assign(createForm, {
+        from: '',
+        to: '',
+        shipMode: '',
+        provider: '',
+        transport: '',
+        channel: '',
+        country: '',
+        warehouseType: '',
+        logisticsNo: '',
+        fromAddress: emptyAddress(),
+        toAddress: emptyAddress(),
+        remark: '',
+      });
+      createVisible.value = true;
+      nextTick(() => createFormRef.value?.clearValidate());
+    };
+    const openEdit = (row) => {
+      editingDoc.value = row;
+      Object.assign(createForm, {
+        from: row.from === '未填写' ? '' : row.from,
+        to: row.to === '未填写' ? '' : row.to,
+        shipMode: row.shipMode === '—' ? '' : row.shipMode,
+        provider: row.provider === '—' ? '' : row.provider,
+        transport: row.transport === '—' ? '' : row.transport,
+        channel: row.channel === '—' ? '' : row.channel,
+        country: row.country === '—' ? '' : row.country,
+        warehouseType: row.warehouseType === '—' ? '' : row.warehouseType,
+        logisticsNo: row.logisticsNo === '—' ? '' : row.logisticsNo,
+        remark: row.remark === '—' ? '' : row.remark,
+        fromAddress: { ...row.fromAddress },
+        toAddress: { ...row.toAddress },
+      });
+      selectedSkus.value = (row.items || []).map((item) => ({
+        ...skuMeta(item.sku),
+        sku: item.sku,
+        planNo: item.plan,
+        declareQty: item.declare,
+        skuRemark: item.remark ?? skuMeta(item.sku).skuRemark ?? '',
+        title: item.name || skuMeta(item.sku).title,
+      }));
+      createVisible.value = true;
+      nextTick(() => createFormRef.value?.clearValidate());
+    };
+    const applyCreateFormToDoc = (doc) => {
+      Object.assign(doc, {
+        shipMode: createForm.shipMode || '—',
+        from: createForm.from || '未填写',
+        to: createForm.to || '未填写',
+        channel: createForm.channel || '—',
+        transport: createForm.transport || '—',
+        provider: createForm.provider || '—',
+        country: createForm.country || '—',
+        warehouseType: createForm.warehouseType || '—',
+        remark: createForm.remark || '—',
+        logisticsNo: createForm.logisticsNo || '—',
+        fromAddress: { ...createForm.fromAddress },
+        toAddress: { ...createForm.toAddress },
+        plans: selectedSkus.value.length,
+        skus: selectedSkus.value.length,
+        planQty: declareTotal.value,
+        declare: declareTotal.value,
+      });
+      doc.items = selectedSkus.value.map((x) => {
+        const old = doc.items.find((i) => i.sku === x.sku && i.plan === x.planNo);
+        return {
+          sku: x.sku,
+          name: x.title || x.sku,
+          plan: x.planNo,
+          remark: x.skuRemark || '',
+          declare: x.declareQty,
+          pick: old?.pick || 0,
+          ship: old?.ship || 0,
+          receive: old?.receive || 0,
+          processedQty: old?.processedQty || 0,
+          status: doc.status,
+        };
+      });
+    };
+    const makeProductImage = (label, color) =>
+      'data:image/svg+xml;charset=UTF-8,' +
+      encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" rx="8" fill="${color}"/><rect x="17" y="14" width="46" height="50" rx="4" fill="#fff" opacity=".92"/><circle cx="40" cy="34" r="10" fill="${color}"/><path d="M25 56h30" stroke="${color}" stroke-width="4"/><text x="40" y="75" text-anchor="middle" font-size="8" fill="#334155">${label}</text></svg>`,
+      );
+    const placeholderProductImage = makeProductImage('商品', '#e2e8f0');
+    const skuCandidates = reactive([
+      {
+        sku: 'SPU-1001-BL',
+        title: '蓝牙耳机 Pro 黑色款｜降噪版',
+        image: makeProductImage('耳机', '#dbeafe'),
+        planNo: 'FP20260806011',
+        overseasSku: 'OW-US-1001-BL',
+        fnsku: 'X003ABC1',
+        platform: 'Amazon US',
+        skuType: '普通',
+        owner: '陈晓',
+        team: '北美一组',
+        store: 'Amazon-US 旗舰店',
+        boxes: 25,
+        planQty: 500,
+        declareQty: 500,
+        remain: 500,
+        weight: '0.02',
+        length: '0.062',
+        width: '0.07',
+        height: '0.005',
+        volume: '0.0000217',
+        netWeight: '0.02',
+        dimensions: '6.2 × 7.0 × 0.5',
+        boxVolume: '0.0000217',
+        grossWeight: '0.03',
+        packageSpec: '42 × 38 × 32',
+        boxWeight: '12.5',
+        boxQty: 20,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-1001-WH',
+        title: '蓝牙耳机 Pro 白色款｜降噪版',
+        image: makeProductImage('白耳机', '#f1f5f9'),
+        planNo: 'FP20260806012',
+        overseasSku: 'OW-US-1001-WH',
+        fnsku: 'X003ABC2',
+        platform: 'Amazon US',
+        skuType: '普通',
+        owner: '陈晓',
+        team: '北美一组',
+        store: 'Amazon-US 旗舰店',
+        boxes: 20,
+        planQty: 400,
+        declareQty: 400,
+        remain: 400,
+        weight: '0.04',
+        length: '0.062',
+        width: '0.07',
+        height: '0.005',
+        volume: '0.0000217',
+        netWeight: '0.04',
+        dimensions: '6.2 × 7.0 × 0.5',
+        boxVolume: '0.0000217',
+        grossWeight: '0.05',
+        packageSpec: '42 × 38 × 32',
+        boxWeight: '13.0',
+        boxQty: 20,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-2003',
+        title: '智能运动手环｜标准套装',
+        image: makeProductImage('手环', '#dcfce7'),
+        planNo: 'FP20260806013',
+        overseasSku: 'OW-US-2003',
+        fnsku: 'X003B2003',
+        platform: 'Amazon US',
+        skuType: '组合',
+        owner: '李敏',
+        team: '北美二组',
+        store: 'Amazon-US 运动店',
+        boxes: 15,
+        planQty: 300,
+        declareQty: 300,
+        remain: 300,
+        weight: '0.03',
+        length: '0.085',
+        width: '0.06',
+        height: '0.04',
+        volume: '0.000204',
+        netWeight: '0.03',
+        dimensions: '8.5 × 6.0 × 4.0',
+        boxVolume: '0.000204',
+        grossWeight: '0.04',
+        packageSpec: '45 × 35 × 30',
+        boxWeight: '8.8',
+        boxQty: 15,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-3001',
+        title: '便携榨汁杯｜旅行款',
+        image: makeProductImage('榨汁杯', '#fef3c7'),
+        planNo: 'FP20260805021',
+        overseasSku: 'OW-DE-3001',
+        fnsku: 'X003C3001',
+        platform: 'Amazon DE',
+        skuType: '普通',
+        owner: '王蕾',
+        team: '欧洲组',
+        store: 'Amazon-DE 家居店',
+        boxes: 19,
+        planQty: 380,
+        declareQty: 380,
+        remain: 380,
+        weight: '0.12',
+        length: '0.12',
+        width: '0.09',
+        height: '0.22',
+        volume: '0.002376',
+        netWeight: '0.12',
+        dimensions: '12.0 × 9.0 × 22.0',
+        boxVolume: '0.002376',
+        grossWeight: '0.15',
+        packageSpec: '50 × 40 × 48',
+        boxWeight: '9.5',
+        boxQty: 19,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-6001',
+        title: '智能台灯｜可调色温版',
+        image: makeProductImage('台灯', '#fce7f3'),
+        planNo: 'FP20260807001',
+        overseasSku: 'OW-US-6001',
+        fnsku: 'X003D6001',
+        platform: 'Walmart',
+        skuType: '普通',
+        owner: '赵凯',
+        team: '北美二组',
+        store: 'Walmart-US 家居店',
+        boxes: 10,
+        planQty: 200,
+        declareQty: 200,
+        remain: 200,
+        weight: '0.35',
+        length: '0.18',
+        width: '0.18',
+        height: '0.36',
+        volume: '0.011664',
+        netWeight: '0.35',
+        dimensions: '18.0 × 18.0 × 36.0',
+        boxVolume: '0.011664',
+        grossWeight: '0.45',
+        packageSpec: '60 × 45 × 55',
+        boxWeight: '12.0',
+        boxQty: 10,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-9001',
+        title: '户外露营套装｜4件套',
+        image: makeProductImage('露营', '#d1fae5'),
+        planNo: 'FP20260808021',
+        overseasSku: 'OW-US-9001',
+        fnsku: 'X003E9001',
+        platform: 'Amazon US',
+        skuType: '组合',
+        owner: '李敏',
+        team: '北美一组',
+        store: 'Amazon-US 户外店',
+        boxes: 12,
+        planQty: 200,
+        declareQty: 200,
+        remain: 200,
+        weight: '1.2',
+        length: '0.45',
+        width: '0.35',
+        height: '0.25',
+        volume: '0.039375',
+        netWeight: '1.2',
+        dimensions: '45.0 × 35.0 × 25.0',
+        boxVolume: '0.039375',
+        grossWeight: '1.4',
+        packageSpec: '80 × 60 × 45',
+        boxWeight: '28.0',
+        boxQty: 12,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-9002',
+        title: '户外折叠椅套装｜豪华款',
+        image: makeProductImage('折叠椅', '#a7f3d0'),
+        planNo: 'FP20260808031',
+        overseasSku: 'OW-US-9002',
+        fnsku: 'X003E9002',
+        platform: 'Amazon US',
+        skuType: '组合',
+        owner: '李敏',
+        team: '北美一组',
+        store: 'Amazon-US 户外店',
+        boxes: 18,
+        planQty: 200,
+        declareQty: 200,
+        remain: 200,
+        weight: '2.5',
+        length: '0.50',
+        width: '0.40',
+        height: '0.10',
+        volume: '0.020000',
+        netWeight: '2.5',
+        dimensions: '50.0 × 40.0 × 10.0',
+        boxVolume: '0.020000',
+        grossWeight: '2.8',
+        packageSpec: '85 × 65 × 35',
+        boxWeight: '45.0',
+        boxQty: 18,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-4001',
+        title: '厨房刀具套装｜六件套',
+        image: makeProductImage('刀具', '#fde68a'),
+        planNo: 'FP20260808041',
+        overseasSku: 'OW-DE-4001',
+        fnsku: 'X003F4001',
+        platform: 'Amazon DE',
+        skuType: '组合',
+        owner: '王蕾',
+        team: '欧洲组',
+        store: 'Amazon-DE 厨房店',
+        boxes: 8,
+        planQty: 250,
+        declareQty: 250,
+        remain: 250,
+        weight: '1.8',
+        length: '0.35',
+        width: '0.25',
+        height: '0.08',
+        volume: '0.007000',
+        netWeight: '1.8',
+        dimensions: '35.0 × 25.0 × 8.0',
+        boxVolume: '0.007000',
+        grossWeight: '2.1',
+        packageSpec: '55 × 40 × 25',
+        boxWeight: '22.0',
+        boxQty: 8,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-1002',
+        title: '无线充电器｜15W快充',
+        image: makeProductImage('充电器', '#e0e7ff'),
+        planNo: 'FP20260808051',
+        overseasSku: 'OW-US-1002',
+        fnsku: 'X003A1002',
+        platform: 'Walmart',
+        skuType: '普通',
+        owner: '赵凯',
+        team: '北美二组',
+        store: 'Walmart-US 数码店',
+        boxes: 30,
+        planQty: 600,
+        declareQty: 600,
+        remain: 600,
+        weight: '0.15',
+        length: '0.10',
+        width: '0.10',
+        height: '0.02',
+        volume: '0.000020',
+        netWeight: '0.15',
+        dimensions: '10.0 × 10.0 × 2.0',
+        boxVolume: '0.000020',
+        grossWeight: '0.20',
+        packageSpec: '48 × 38 × 28',
+        boxWeight: '14.0',
+        boxQty: 30,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-5003',
+        title: '旅行收纳袋六件套',
+        image: makeProductImage('收纳袋', '#ccfbf1'),
+        planNo: 'FP20260808061',
+        overseasSku: 'OW-US-5003',
+        fnsku: 'X003G5003',
+        platform: 'Amazon US',
+        skuType: '普通',
+        owner: '陈晓',
+        team: '北美一组',
+        store: 'Amazon-US 箱包店',
+        boxes: 22,
+        planQty: 440,
+        declareQty: 440,
+        remain: 440,
+        weight: '0.30',
+        length: '0.28',
+        width: '0.20',
+        height: '0.06',
+        volume: '0.003360',
+        netWeight: '0.30',
+        dimensions: '28.0 × 20.0 × 6.0',
+        boxVolume: '0.003360',
+        grossWeight: '0.38',
+        packageSpec: '55 × 42 × 35',
+        boxWeight: '16.5',
+        boxQty: 22,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-8003',
+        title: '蓝牙音箱迷你版',
+        image: makeProductImage('音箱', '#fce7f3'),
+        planNo: 'FP20260808071',
+        overseasSku: 'OW-US-8003',
+        fnsku: 'X003H8003',
+        platform: 'Amazon US',
+        skuType: '普通',
+        owner: '赵凯',
+        team: '北美二组',
+        store: 'Amazon-US 数码店',
+        boxes: 16,
+        planQty: 320,
+        declareQty: 320,
+        remain: 320,
+        weight: '0.25',
+        length: '0.08',
+        width: '0.08',
+        height: '0.10',
+        volume: '0.000640',
+        netWeight: '0.25',
+        dimensions: '8.0 × 8.0 × 10.0',
+        boxVolume: '0.000640',
+        grossWeight: '0.32',
+        packageSpec: '45 × 38 × 36',
+        boxWeight: '15.0',
+        boxQty: 16,
+        packaging: '',
+        skuRemark: '',
+      },
+      {
+        sku: 'SPU-3002',
+        title: '替换杯盖｜通用款',
+        image: makeProductImage('杯盖', '#fef9c3'),
+        planNo: 'FP20260805022',
+        overseasSku: 'OW-DE-3002',
+        fnsku: 'X003C3002',
+        platform: 'Amazon DE',
+        skuType: '普通',
+        owner: '王蕾',
+        team: '欧洲组',
+        store: 'Amazon-DE 家居店',
+        boxes: 25,
+        planQty: 500,
+        declareQty: 500,
+        remain: 500,
+        weight: '0.05',
+        length: '0.09',
+        width: '0.09',
+        height: '0.03',
+        volume: '0.000243',
+        netWeight: '0.05',
+        dimensions: '9.0 × 9.0 × 3.0',
+        boxVolume: '0.000243',
+        grossWeight: '0.07',
+        packageSpec: '42 × 38 × 30',
+        boxWeight: '11.5',
+        boxQty: 25,
+        packaging: '',
+        skuRemark: '',
+      },
+    ]);
+    const shipmentPlanRemarks = {
+      FP20260806011: '美国站常规补货，优先安排海运',
+      FP20260806012: '美国站常规补货，优先安排海运',
+      FP20260806013: '运动手环补货，需完成组合加工后发运',
+      FP20260805021: '德国站加急补货，优先安排 DHL',
+      FP20260807001: 'Walmart 家居品补货，按仓库预约入库',
+      FP20260808021: '户外品秋季备货，注意组合品加工',
+      FP20260808031: '户外品秋季备货，注意组合品加工',
+      FP20260808041: '德国站厨房品补货，注意包装防护',
+      FP20260808051: 'Walmart 数码品补货，注意防震包装',
+      FP20260808061: '美国站箱包品补货，按常规时效发运',
+      FP20260808071: '美国站数码品补货，注意防震包装',
+      FP20260805022: '德国站加急补货，优先安排 DHL',
+    };
+    skuCandidates.forEach((item) => {
+      item.planRemark = shipmentPlanRemarks[item.planNo] || '';
+      item.skuRemark = item.skuRemark || item.planRemark;
+      item.easSku = `ES-${item.sku.replace(/^[A-Z]+-/, '')}`;
+    });
+    const isAmazonOption = (v) => String(v || '').includes('Amazon') || String(v || '').includes('亚马逊');
+    const isAmazonPlan = (x) => isAmazonOption(x.platform) || isAmazonOption(x.store);
+    const comboBom = {
+      'SPU-2003': [
+        { sku: 'SPU-2003-A', name: '运动手环主机', ratio: 1 },
+        { sku: 'SPU-2003-B', name: '手环表带', ratio: 1 },
+      ],
+      'SPU-9001': [
+        { sku: 'SPU-9001-A', name: '露营帐篷', ratio: 1 },
+        { sku: 'SPU-9001-B', name: '睡袋', ratio: 1 },
+      ],
+      'SPU-9002': [
+        { sku: 'SPU-9002-A', name: '折叠椅椅架', ratio: 1 },
+        { sku: 'SPU-9002-B', name: '折叠椅椅布', ratio: 1 },
+        { sku: 'SPU-9002-C', name: '收纳袋', ratio: 1 },
+      ],
+      'SPU-4001': [
+        { sku: 'SPU-4001-A', name: '主厨刀', ratio: 1 },
+        { sku: 'SPU-4001-B', name: '水果刀', ratio: 1 },
+        { sku: 'SPU-4001-C', name: '刀座', ratio: 1 },
+      ],
+    };
+    const comboParts = (sku) => comboBom[sku] || [];
+    // 库内已加工好的组合品库存（按 SKU+供应商维度），用于判定提货后是否仍需物流加工
+    const comboFinishedStock = { 'SPU-2003': 300, 'SPU-9001': 150, 'SPU-9002': 200, 'SPU-4001': 100 };
+    // 组合品/子件对应的供应商主数据（原型占位，实际由中台 SKU 映射带出）
+    const supplierInfo = {
+      'SPU-2003': { supplier: '深圳信联电子', supplierCode: 'SUP-001', supplierPartNo: 'XL-2003' },
+      'SPU-9001': { supplier: '东莞户外装备', supplierCode: 'SUP-002', supplierPartNo: 'HW-9001' },
+      'SPU-9002': { supplier: '东莞户外装备', supplierCode: 'SUP-002', supplierPartNo: 'HW-9002' },
+      'SPU-4001': { supplier: '阳江刀具厂', supplierCode: 'SUP-003', supplierPartNo: 'KD-4001' },
+      'SPU-2003-A': { supplier: '深圳信联电子', supplierCode: 'SUP-001', supplierPartNo: 'XL-2003A' },
+      'SPU-2003-B': { supplier: '东莞表带厂', supplierCode: 'SUP-004', supplierPartNo: 'BB-2003B' },
+      'SPU-9001-A': { supplier: '东莞户外装备', supplierCode: 'SUP-002', supplierPartNo: 'HW-9001A' },
+      'SPU-9001-B': { supplier: '东莞户外装备', supplierCode: 'SUP-002', supplierPartNo: 'HW-9001B' },
+      'SPU-9002-A': { supplier: '东莞户外装备', supplierCode: 'SUP-002', supplierPartNo: 'HW-9002A' },
+      'SPU-9002-B': { supplier: '东莞户外装备', supplierCode: 'SUP-002', supplierPartNo: 'HW-9002B' },
+      'SPU-9002-C': { supplier: '东莞收纳袋厂', supplierCode: 'SUP-005', supplierPartNo: 'SN-9002C' },
+      'SPU-4001-A': { supplier: '阳江刀具厂', supplierCode: 'SUP-003', supplierPartNo: 'KD-4001A' },
+      'SPU-4001-B': { supplier: '阳江刀具厂', supplierCode: 'SUP-003', supplierPartNo: 'KD-4001B' },
+      'SPU-4001-C': { supplier: '阳江刀座厂', supplierCode: 'SUP-006', supplierPartNo: 'DZ-4001C' },
+    };
+    const supplierOptions = [
+      ...new Set(
+        Object.values(supplierInfo)
+          .map((x) => x.supplier)
+          .filter(Boolean),
+      ),
+    ];
+    const comboSubStock = {
+      'SPU-2003-A': { stock: 280, pendingStock: 30, transitQty: 0 },
+      'SPU-2003-B': { stock: 310, pendingStock: 20, transitQty: 0 },
+      'SPU-9001-A': { stock: 180, pendingStock: 10, transitQty: 20 },
+      'SPU-9001-B': { stock: 195, pendingStock: 5, transitQty: 0 },
+      'SPU-9002-A': { stock: 160, pendingStock: 0, transitQty: 30 },
+      'SPU-9002-B': { stock: 180, pendingStock: 10, transitQty: 0 },
+      'SPU-9002-C': { stock: 200, pendingStock: 0, transitQty: 0 },
+      'SPU-4001-A': { stock: 250, pendingStock: 50, transitQty: 0 },
+      'SPU-4001-B': { stock: 280, pendingStock: 0, transitQty: 20 },
+      'SPU-4001-C': { stock: 220, pendingStock: 30, transitQty: 0 },
+    };
+    const supplierWarehouse = {
+      深圳信联电子: '深圳仓',
+      东莞户外装备: '东莞工厂',
+      东莞表带厂: '东莞工厂',
+      阳江刀具厂: '义乌仓',
+      阳江刀座厂: '义乌仓',
+      东莞收纳袋厂: '东莞工厂',
+    };
+    const defaultPickupWarehouse = (sku) => supplierWarehouse[(supplierInfo[sku] || {}).supplier] || '深圳仓';
+    // 按供应商仓（提货仓）维度拆分的库存，用于提货弹窗「先选仓、再校验库存」
+    const comboFinishedStockByWarehouse = {
+      深圳仓: { 'SPU-2003': 0, 'SPU-9001': 150, 'SPU-9002': 200, 'SPU-4001': 100 },
+      东莞工厂: { 'SPU-2003': 80, 'SPU-9001': 0, 'SPU-9002': 0, 'SPU-4001': 0 },
+      义乌仓: { 'SPU-2003': 30, 'SPU-9001': 0, 'SPU-9002': 0, 'SPU-4001': 150 },
+    };
+    const comboSubStockByWarehouse = {
+      深圳仓: {
+        'SPU-2003-A': 280,
+        'SPU-2003-B': 5,
+        'SPU-9001-A': 180,
+        'SPU-9001-B': 195,
+        'SPU-9002-A': 160,
+        'SPU-9002-B': 180,
+        'SPU-9002-C': 200,
+        'SPU-4001-A': 250,
+        'SPU-4001-B': 280,
+        'SPU-4001-C': 220,
+      },
+      东莞工厂: {
+        'SPU-2003-A': 200,
+        'SPU-2003-B': 200,
+        'SPU-9001-A': 0,
+        'SPU-9001-B': 0,
+        'SPU-9002-A': 0,
+        'SPU-9002-B': 0,
+        'SPU-9002-C': 0,
+        'SPU-4001-A': 0,
+        'SPU-4001-B': 0,
+        'SPU-4001-C': 0,
+      },
+      义乌仓: {
+        'SPU-2003-A': 100,
+        'SPU-2003-B': 100,
+        'SPU-9001-A': 0,
+        'SPU-9001-B': 0,
+        'SPU-9002-A': 0,
+        'SPU-9002-B': 0,
+        'SPU-9002-C': 0,
+        'SPU-4001-A': 0,
+        'SPU-4001-B': 0,
+        'SPU-4001-C': 0,
+      },
+    };
+    // 子件 → 父组合品反查（用于子件单独提货时算上限）
+    const subToCombo = {};
+    Object.keys(comboBom).forEach((comboSku) => {
+      comboBom[comboSku].forEach((sub) => {
+        subToCombo[sub.sku] = { comboSku, ratio: sub.ratio || 1 };
+      });
+    });
+    // 发货仓（货代本地物流仓）库存：提货后增加、发货后扣减
+    const warehouseStock = { 华南物流中转仓: {}, 美西集货仓: {}, 华东物流中转仓: {} };
+    const ordinaryStockByWarehouse = {
+      深圳仓: { 'SPU-8003': 200, 'SPU-3001': 380, 'SPU-6001': 200 },
+      东莞工厂: { 'SPU-8003': 120, 'SPU-3001': 0, 'SPU-6001': 0 },
+      义乌仓: { 'SPU-8003': 80, 'SPU-3001': 120, 'SPU-6001': 150 },
+    };
+    const skuMeta = (sku) => skuCandidates.find((x) => x.sku === sku) || {};
+    docs.forEach((d) => {
+      if (d.status !== '待加工') return;
+      const warehouse = warehouseStock[d.from] || (warehouseStock[d.from] = {});
+      d.items
+        .filter((item) => skuMeta(item.sku).skuType === '组合' && comboBom[item.sku])
+        .forEach((item) => {
+          comboBom[item.sku].forEach((sub) => {
+            warehouse[sub.sku] =
+              Number(warehouse[sub.sku] || 0) +
+              Math.max(Number(item.pick || 0) - Number(item.processedQty || 0), 0) * (sub.ratio || 1);
+          });
+        });
+    });
+    docs.forEach((d) => {
+      (d.batches || [])
+        .filter((b) => b.type === '提货')
+        .forEach((b) => {
+          (b.details || []).forEach((item) => {
+            if (item.providerPickup === undefined) item.providerPickup = false;
+            if (item.freight === undefined) item.freight = '¥' + (Number(item.qty || 0) * 1.2).toFixed(2);
+            if (item.otherOutboundFee === undefined)
+              item.otherOutboundFee = '¥' + (Number(item.qty || 0) * 0.3).toFixed(2);
+            if (item.processingFee === undefined)
+              item.processingFee =
+                skuMeta(item.sku).skuType === '组合' ? '¥' + (Number(item.qty || 0) * 0.8).toFixed(2) : '—';
+          });
+        });
+    });
+    const skuVisible = ref(false),
+      skuTableRef = ref(),
+      skuSearch = reactive({ planNos: '', skus: '', platforms: [], stores: [], teams: [] }),
+      skuApplied = reactive({ planNos: '', skus: '', platforms: [], stores: [], teams: [] }),
+      skuSelection = ref([]);
+    const multiTerms = (v) =>
+      v
+        .split(/[\s,，;；]+/)
+        .map((x) => x.trim())
+        .filter(Boolean);
+    const filteredSkuCandidates = computed(() => {
+      const ps = multiTerms(skuApplied.planNos),
+        ss = multiTerms(skuApplied.skus);
+      return skuCandidates.filter(
+        (x) =>
+          !isAmazonPlan(x) &&
+          (!ps.length || ps.some((v) => x.planNo.includes(v))) &&
+          (!ss.length || ss.some((v) => x.sku.includes(v))) &&
+          (!skuApplied.platforms.length || skuApplied.platforms.includes(x.platform)) &&
+          (!skuApplied.stores.length || skuApplied.stores.includes(x.store)) &&
+          (!skuApplied.teams.length || skuApplied.teams.includes(x.team)),
+      );
+    });
+    const openSkuDialog = () => {
+      if (!canAddSku.value) {
+        ElementPlus.ElMessage.warning('请先填写顶部必填字段');
+        return;
+      }
+      Object.assign(skuSearch, { planNos: '', skus: '', platforms: [], stores: [], teams: [] });
+      Object.assign(skuApplied, skuSearch);
+      skuSelection.value = [];
+      skuVisible.value = true;
+      nextTick(() => {
+        skuTableRef.value?.clearSelection();
+        selectedSkus.value.forEach((s) => {
+          const row = skuCandidates.find((x) => x.sku === s.sku);
+          if (row) {
+            row.skuRemark = s.skuRemark ?? row.planRemark;
+            skuTableRef.value?.toggleRowSelection(row, true);
+          }
+        });
+      });
+    };
+    const runSkuQuery = () =>
+      Object.assign(skuApplied, {
+        planNos: skuSearch.planNos,
+        skus: skuSearch.skus,
+        platforms: [...skuSearch.platforms],
+        stores: [...skuSearch.stores],
+        teams: [...skuSearch.teams],
+      });
+    const resetSkuQuery = () => {
+      Object.assign(skuSearch, { planNos: '', skus: '', platforms: [], stores: [], teams: [] });
+      runSkuQuery();
+    };
+    const onSkuSelection = (rows) => (skuSelection.value = rows);
+    const confirmSkuSelection = () => {
+      if (!skuSelection.value.length) {
+        ElementPlus.ElMessage.warning('请至少选择一个 SKU');
+        return;
+      }
+      if (skuSelection.value.some((x) => !x.declareQty || x.declareQty > x.remain)) {
+        ElementPlus.ElMessage.error('申报量必填，且不能超过发货计划剩余数量');
+        return;
+      }
+      const hasAmazon = skuSelection.value.some((x) => x.platform && x.platform.includes('Amazon'));
+      const hasNonAmazon = skuSelection.value.some((x) => !x.platform || !x.platform.includes('Amazon'));
+      if (hasAmazon && hasNonAmazon) {
+        ElementPlus.ElMessage.error('FBA 专属仓与非亚马逊团队货物不可合并至同一发货单（刚性规则）');
+        return;
+      }
+      selectedSkus.value = skuSelection.value.map((x) => ({ ...x, skuRemark: x.skuRemark ?? x.planRemark ?? '' }));
+      skuVisible.value = false;
+      ElementPlus.ElMessage.success(`已选择 ${selectedSkus.value.length} 个 SKU`);
+    };
+    const removeSku = (row) => (selectedSkus.value = selectedSkus.value.filter((x) => x.sku !== row.sku));
+    const buildDraftDoc = () => ({
+      id: `DRAFT${Date.now()}`,
+      creator: 'Admin',
+      created: formatOperationTime().slice(0, 10),
+      yicangNo: '—',
+      lingxingNo: '—',
+      status: '草稿',
+      logistics: '未提交',
+      processable: false,
+      shipMode: createForm.shipMode || '—',
+      from: createForm.from || '未填写',
+      to: createForm.to || '未填写',
+      channel: createForm.channel || '—',
+      transport: createForm.transport || '—',
+      provider: createForm.provider || '—',
+      country: createForm.country || '—',
+      warehouseType: createForm.warehouseType || '—',
+      remark: createForm.remark || '—',
+      referenceId: '—',
+      receiveOrderNo: '—',
+      totalBoxes: 0,
+      fromAddress: { ...createForm.fromAddress },
+      toAddress: { ...createForm.toAddress },
+      plans: selectedSkus.value.length,
+      skus: selectedSkus.value.length,
+      planQty: declareTotal.value,
+      declare: declareTotal.value,
+      pick: 0,
+      ship: 0,
+      receive: 0,
+      pendingReceive: 0,
+      abnormal: 0,
+      expectedShipDate: '—',
+      eta: '—',
+      logisticsNo: createForm.logisticsNo || '—',
+      actualFreight: '—',
+      customsFee: '—',
+      otherLogisticsFee: '—',
+      totalAccessoryCost: '—',
+      firstLegTotal: '—',
+      declarePickDiff: '0',
+      pickShipDiff: '0',
+      shipReceiveDiff: '0',
+      declareReceiveDiff: '0',
+      fee: '—',
+      carrier: '—',
+      innerTab: 'sku',
+      items: selectedSkus.value.map((x) => ({
+        sku: x.sku,
+        name: x.title,
+        plan: x.planNo,
+        remark: x.skuRemark || '',
+        declare: x.declareQty,
+        pick: 0,
+        ship: 0,
+        receive: 0,
+        status: '草稿',
+      })),
+      batches: [],
+    });
+    const saveDraft = () => {
+      if (editingDoc.value) {
+        applyCreateFormToDoc(editingDoc.value);
+        const restored = editingDoc.value.status === '已作废';
+        if (restored) {
+          editingDoc.value.status = '草稿';
+          editingDoc.value.logistics = '未提交';
+          editingDoc.value.items?.forEach((item) => {
+            item.status = '草稿';
+          });
+        }
+        createVisible.value = false;
+        ElementPlus.ElMessage.success(restored ? '已保存为草稿，可重新提交' : '发货单已保存');
+      } else {
+        docs.unshift(buildDraftDoc());
+        createVisible.value = false;
+        statusTab.value = '草稿';
+        ElementPlus.ElMessage.success('草稿已保存，已关联发货计划（状态：已完成）');
+      }
+    };
+    const submitCreate = async () => {
+      try {
+        await createFormRef.value.validate();
+      } catch {
+        return;
+      }
+      if (!selectedSkus.value.length) {
+        ElementPlus.ElMessage.warning('尚未选择 SKU，至少选择一个 SKU');
+        return;
+      }
+      if (editingDoc.value) {
+        const doc = editingDoc.value;
+        applyCreateFormToDoc(doc);
+        doc.status = '待提货';
+        doc.logistics = '未发货';
+        doc.items.forEach((item) => {
+          item.status = '待提货';
+        });
+        createVisible.value = false;
+        statusTab.value = '待提货';
+        ElementPlus.ElMessage.success('发货单已提交，进入待提货');
+        return;
+      }
+      const doc = buildDraftDoc();
+      doc.id = `DN${Date.now()}`;
+      doc.status = '待提货';
+      doc.logistics = '未发货';
+      doc.items.forEach((item) => {
+        item.status = '待提货';
+      });
+      docs.unshift(doc);
+      createVisible.value = false;
+      statusTab.value = '待提货';
+      ElementPlus.ElMessage.success('发货单已提交，进入待提货');
+    };
+    const updateDocDiffs = (row) => {
+      row.declarePickDiff = String(Number(row.declare || 0) - (row.pick || 0));
+      row.pickShipDiff = String((row.ship || 0) - (row.pick || 0));
+      row.shipReceiveDiff = String((row.receive || 0) - (row.ship || 0));
+      row.declareReceiveDiff = String((row.receive || 0) - Number(row.declare || 0));
+    };
+    docs.forEach(updateDocDiffs);
+    const transitionStatus = (row, next, action) => {
+      const previous = row.status;
+      if (previous === next) {
+        ElementPlus.ElMessage.success(`${action}已记录，当前仍为${next}`);
+        return;
+      }
+      row.status = next;
+      row.items?.forEach((item) => {
+        item.status = next;
+      });
+      if (next === '待发货') {
+        row.pick = row.planQty || row.declare;
+        row.items?.forEach((item) => {
+          item.pick = item.declare;
+        });
+      }
+      if (next === '待收货') {
+        row.logistics = '已发货';
+        row.ship = row.planQty || row.declare;
+        row.items?.forEach((item) => {
+          item.ship = item.declare;
+        });
+        row.pendingReceive = Math.max(row.ship - (row.receive || 0), 0);
+      }
+      if (next === '部分收货') {
+        row.receive = Math.min(row.ship || row.declare, Math.max(1, Math.floor((row.ship || row.declare) * 0.5)));
+        row.pendingReceive = Math.max((row.ship || row.declare) - row.receive, 0);
+        row.logistics = '部分收货';
+      }
+      if (next === '已完成') {
+        row.receive = row.ship || row.declare;
+        row.pendingReceive = 0;
+        row.logistics = '已完成';
+        row.items?.forEach((item) => {
+          item.receive = item.ship || item.declare;
+        });
+      }
+      updateDocDiffs(row);
+      ElementPlus.ElMessage.success(`${action}成功，状态已更新为${next}`);
+    };
+    const completeVisible = ref(false),
+      completeDoc = ref(null),
+      completeFormRef = ref(),
+      completeSubmitting = ref(false);
+    const completeDocs = ref([]),
+      completeForm = reactive({ reason: '', remark: '' });
+    const logVisible = ref(false),
+      logDoc = ref(null),
+      logPage = ref(1),
+      logPageSize = ref(10);
+    const logRows = computed(() => {
+      const logs = logDoc.value?.logs || [];
+      const start = (logPage.value - 1) * logPageSize.value;
+      return logs.slice(start, start + logPageSize.value);
+    });
+    const openLog = (row) => {
+      if (!row.logs) row.logs = buildLogs(row);
+      logDoc.value = row;
+      logPage.value = 1;
+      logVisible.value = true;
+    };
+    const diffDetailVisible = ref(false),
+      diffDetailDoc = ref(null),
+      diffDetailRows = ref([]);
+    const openDiffDetail = (row, mode = 'difference') => {
+      row.diffDetailTitle = mode === 'received' ? '已收货数量明细' : mode === 'pending' ? '待收货数量明细' : '差异明细';
+      diffDetailDoc.value = row;
+      diffDetailRows.value = (row.items || []).map((item) => {
+        const isCombo =
+          skuMeta(item.sku).skuType === '组合' ||
+          item.finishedPickedQty !== undefined ||
+          item.subSetPickedQty !== undefined;
+        const picked = Number(item.pick || 0),
+          finishedPickedQty = Number(item.finishedPickedQty ?? (isCombo ? picked : 0)),
+          subSetPickedQty = Number(item.subSetPickedQty || 0);
+        return {
+          sku: item.sku,
+          name: item.name,
+          isCombo,
+          planQty: item.planQty ?? item.declare ?? 0,
+          declare: Number(item.declare || 0),
+          pick: picked,
+          finishedPickedQty,
+          subSetPickedQty,
+          ship: Number(item.ship || 0),
+          receive: Number(item.receive || 0),
+          pendingReceive: Math.max(Number(item.ship || 0) - Number(item.receive || 0), 0),
+          declarePickDiff: String(Number(item.declare || 0) - picked),
+          pickShipDiff: String(Number(item.ship || 0) - picked),
+          shipReceiveDiff: String(Number(item.receive || 0) - Number(item.ship || 0)),
+          declareReceiveDiff: String(Number(item.receive || 0) - Number(item.declare || 0)),
+          pickupDiff: String(Math.max(Number(item.planQty ?? item.declare ?? 0) - picked, 0)),
+        };
+      });
+      diffDetailVisible.value = true;
+    };
+    const completeReasonOptions = ['货物丢失', '货物损坏', '业务取消', '其他'];
+    const completeFormRules = { reason: [{ required: true, message: '请选择完结原因', trigger: 'change' }] };
+    const selectedDocs = ref([]),
+      mainTableRef = ref();
+    const onDocSelection = (rows) => {
+      selectedDocs.value = rows;
+    };
+    const openComplete = (row) => {
+      if (row) {
+        if (!['待收货', '部分收货'].includes(row.status)) {
+          ElementPlus.ElMessage.warning('当前状态不允许手动完结');
+          return;
+        }
+        completeDocs.value = [row];
+      } else {
+        const eligible = selectedDocs.value.filter((d) => ['待收货', '部分收货'].includes(d.status));
+        if (!eligible.length) {
+          ElementPlus.ElMessage.warning('请先勾选待收货或部分收货状态的发货单');
+          return;
+        }
+        completeDocs.value = eligible;
+      }
+      completeDoc.value = completeDocs.value[0];
+      completeForm.reason = '';
+      completeForm.remark = '';
+      completeVisible.value = true;
+      nextTick(() => completeFormRef.value?.clearValidate());
+    };
+    const submitComplete = async () => {
+      try {
+        await completeFormRef.value.validate();
+      } catch {
+        return;
+      }
+      const docs = completeDocs.value;
+      const totalUnreceived = docs.reduce((s, d) => s + Math.max((d.ship || 0) - (d.receive || 0), 0), 0);
+      const confirmMsg =
+        docs.length === 1
+          ? `确认手动完结发货单 ${docs[0].id} 吗？未收数量 ${totalUnreceived} 件将不再补收。`
+          : `确认批量手动完结 ${docs.length} 张发货单吗？合计未收 ${totalUnreceived} 件将不再补收。`;
+      try {
+        await ElementPlus.ElMessageBox.confirm(confirmMsg, '手动完结确认', {
+          type: 'warning',
+          confirmButtonText: '确认完结',
+          cancelButtonText: '取消',
+        });
+      } catch {
+        return;
+      }
+      completeSubmitting.value = true;
+      docs.forEach((doc) => {
+        const unreceived = Math.max((doc.ship || 0) - (doc.receive || 0), 0);
+        doc.status = '已完成';
+        doc.logistics = '已完成';
+        doc.pendingReceive = 0;
+        doc.items?.forEach((item) => {
+          item.status = '已完成';
+        });
+        updateDocDiffs(doc);
+        doc.batches.unshift({
+          no: `SO${String(Date.now()).slice(-10)}`,
+          type: '手动完结',
+          quantityType: 'complete',
+          source: 'manual',
+          date: formatOperationTime(),
+          skuCount: `${doc.skus} 个`,
+          qty: unreceived,
+          operator: '运营用户',
+          status: '已完成',
+          details: [{ reason: completeForm.reason, remark: completeForm.remark || '—', unreceived }],
+        });
+      });
+      completeSubmitting.value = false;
+      completeVisible.value = false;
+      selectedDocs.value = [];
+      nextTick(() => mainTableRef.value?.clearSelection());
+      ElementPlus.ElMessage.success(
+        docs.length === 1 ? `发货单 ${docs[0].id} 已手动完结` : `${docs.length} 张发货单已手动完结`,
+      );
+    };
+    const voidDocument = async (row) => {
+      if (!['草稿', '待提货'].includes(row.status)) return;
+      try {
+        await ElementPlus.ElMessageBox.confirm(
+          `确认作废发货单 ${row.id} 吗？作废后关联发货计划将同步作废。`,
+          '作废确认',
+          { type: 'warning', confirmButtonText: '确认作废', cancelButtonText: '取消' },
+        );
+        row.status = '已作废';
+        row.logistics = '已作废';
+        row.items?.forEach((item) => {
+          item.status = '已作废';
+        });
+        if (!row.logs) row.logs = [];
+        row.logs.unshift({
+          type: '作废',
+          content: '发货单作废，关联发货计划已同步作废',
+          operator: 'Admin',
+          time: formatOperationTime(),
+        });
+        ElementPlus.ElMessage.success('发货单已作废，关联发货计划已同步作废');
+      } catch {}
+    };
+    const cancelVisible = ref(false),
+      cancelDoc = ref(null),
+      cancelRemark = ref(''),
+      cancelSubmitting = ref(false);
+    const cancelShip = (row) => {
+      if (row.status !== '待提货') {
+        ElementPlus.ElMessage.warning('仅待提货状态允许取消发货');
+        return;
+      }
+      cancelDoc.value = row;
+      cancelRemark.value = '';
+      cancelVisible.value = true;
+    };
+    const submitCancelShip = () => {
+      const row = cancelDoc.value;
+      if (!row) return;
+      cancelSubmitting.value = true;
+      const remark = cancelRemark.value.trim();
+      row.status = '已取消';
+      row.logistics = '已取消';
+      row.cancelRemark = remark;
+      row.items?.forEach((item) => {
+        item.status = '已取消';
+      });
+      if (!row.logs) row.logs = [];
+      row.logs.unshift({
+        type: '取消发货',
+        content: `取消发货单，关联发货计划已同步作废${remark ? `，取消原因：${remark}` : '（未填写取消原因）'}`,
+        operator: 'Admin',
+        time: formatOperationTime(),
+      });
+      cancelSubmitting.value = false;
+      cancelVisible.value = false;
+      ElementPlus.ElMessage.success('发货单已取消，关联发货计划已同步作废');
+    };
+    const quantityAdjustVisible = ref(false),
+      quantityAdjustDoc = ref(null),
+      quantityAdjustType = ref(''),
+      quantityAdjustRows = ref([]),
+      quantityAdjustReason = ref(''),
+      quantityAdjustRemark = ref(''),
+      quantityAdjustSubmitting = ref(false);
+    const quantityAdjustReasonOptions = [
+      '录入错误',
+      '仓库复核后数量不一致',
+      '物流反馈数量不一致',
+      '接口同步数据修正',
+      '少收已确认',
+      '其他',
+    ];
+    const quantityAdjustTypeOptions = computed(() => {
+      const doc = quantityAdjustDoc.value;
+      if (!doc) return [];
+      const options = [];
+      if (['待加工', '待发货'].includes(doc.status) && Number(doc.pick || 0) > 0)
+        options.push({ value: 'pickup', label: '提货数量' });
+      if (doc.status === '待收货' && Number(doc.ship || 0) > 0) options.push({ value: 'shipment', label: '发货数量' });
+      if (['待收货', '部分收货'].includes(doc.status) && Number(doc.receive || 0) > 0)
+        options.push({ value: 'receive', label: '收货数量' });
+      return options;
+    });
+    const quantityAdjustTypeLabel = computed(
+      () => quantityAdjustTypeOptions.value.find((x) => x.value === quantityAdjustType.value)?.label || '数量',
+    );
+    const quantityAdjustField = (type) => ({ pickup: 'pick', shipment: 'ship', receive: 'receive' })[type];
+    const quantityAdjustDownstream = ({ type, item }) =>
+      type === 'pickup'
+        ? Math.max(Number(item.processedQty || 0), Number(item.ship || 0))
+        : type === 'shipment'
+          ? Number(item.receive || 0)
+          : 0;
+    const buildQuantityAdjustRows = (type) => {
+      const doc = quantityAdjustDoc.value;
+      if (!doc) return [];
+      const field = quantityAdjustField(type);
+      return (doc.items || []).map((item, index) => {
+        const current = Number(item[field] || 0),
+          planQty = Number(skuMeta(item.sku).planQty ?? item.planQty ?? item.declare ?? 0);
+        const meta = skuMeta(item.sku);
+        const isCombo = meta && meta.skuType === '组合' && comboBom[item.sku];
+        const processedQty = Number(item.processedQty || 0);
+        const subSetPickedQty = Number(item.subSetPickedQty || 0);
+        const subPartsProcessed = isCombo && subSetPickedQty > 0 && processedQty >= subSetPickedQty;
+        return {
+          ...item,
+          key: `${item.sku}-${item.plan}-${index}`,
+          planQty,
+          currentQty: current,
+          targetQty: current,
+          downstreamUsed: quantityAdjustDownstream({ type, item }),
+          upperLimit:
+            type === 'pickup' ? planQty : type === 'shipment' ? Number(item.pick || 0) : Number(item.ship || 0),
+          locked: type === 'pickup' && subPartsProcessed,
+        };
+      });
+    };
+    const changeQuantityAdjustType = (type) => {
+      quantityAdjustType.value = type;
+      quantityAdjustRows.value = buildQuantityAdjustRows(type);
+    };
+    const quantityAdjustRowError = (row) => {
+      const value = Number(row.targetQty);
+      if (!Number.isInteger(value) || value < 0) return '请输入不小于 0 的整数';
+      if (value > Number(row.upperLimit || 0)) return `不能超过上限数量 ${row.upperLimit}`;
+      if (value < Number(row.downstreamUsed || 0)) return `不能低于下游已使用数量 ${row.downstreamUsed}`;
+      return '';
+    };
+    const quantityAdjustChanged = computed(() =>
+      quantityAdjustRows.value.some((row) => !row.locked && Number(row.targetQty) !== Number(row.currentQty)),
+    );
+    const refreshStatusAfterQuantityAdjust = (doc) => {
+      if (doc.pick <= 0) {
+        doc.status = '待提货';
+        doc.logistics = '未发货';
+      } else if (doc.ship <= 0) {
+        const hasCombo = doc.items?.some((item) => skuMeta(item.sku).skuType === '组合');
+        const allComboProcessed =
+          !hasCombo ||
+          doc.items
+            .filter((item) => skuMeta(item.sku).skuType === '组合')
+            .every((item) => Number(item.processedQty || 0) >= Number(item.subSetPickedQty || 0));
+        doc.status = hasCombo && !allComboProcessed ? '待加工' : '待发货';
+        doc.logistics = '未发货';
+      } else if (doc.receive >= doc.ship) {
+        doc.status = '已完成';
+        doc.logistics = '已完成';
+      } else if (doc.receive > 0) {
+        doc.status = '部分收货';
+        doc.logistics = '部分收货';
+      } else {
+        doc.status = '待收货';
+        doc.logistics = '已发货';
+      }
+      doc.pendingReceive = Math.max(Number(doc.ship || 0) - Number(doc.receive || 0), 0);
+      doc.items?.forEach((item) => {
+        item.status = doc.status;
+      });
+    };
+    const openQuantityAdjust = (row) => {
+      if (!['待加工', '待发货', '待收货', '部分收货'].includes(row.status)) {
+        ElementPlus.ElMessage.warning('当前状态不允许数量调整');
+        return;
+      }
+      quantityAdjustDoc.value = row;
+      quantityAdjustReason.value = '';
+      quantityAdjustRemark.value = '';
+      const options = quantityAdjustTypeOptions.value;
+      if (!options.length) {
+        ElementPlus.ElMessage.warning('当前单据暂无可调整的业务数量');
+        return;
+      }
+      quantityAdjustType.value = options[0].value;
+      quantityAdjustRows.value = buildQuantityAdjustRows(quantityAdjustType.value);
+      quantityAdjustVisible.value = true;
+    };
+    const submitQuantityAdjust = async () => {
+      if (!quantityAdjustDoc.value) return;
+      const invalid = quantityAdjustRows.value.find((row) => !row.locked && quantityAdjustRowError(row));
+      if (invalid) {
+        ElementPlus.ElMessage.error(`SKU ${invalid.sku}：${quantityAdjustRowError(invalid)}`);
+        return;
+      }
+      if (!quantityAdjustChanged.value) {
+        ElementPlus.ElMessage.warning('请至少调整一个 SKU 的数量');
+        return;
+      }
+      if (!quantityAdjustReason.value) {
+        ElementPlus.ElMessage.warning('请选择数量调整原因');
+        return;
+      }
+      if (quantityAdjustReason.value === '其他' && !quantityAdjustRemark.value.trim()) {
+        ElementPlus.ElMessage.warning('选择“其他”时请填写备注');
+        return;
+      }
+      const doc = quantityAdjustDoc.value,
+        changedRows = quantityAdjustRows.value.filter(
+          (row) => !row.locked && Number(row.targetQty) !== Number(row.currentQty),
+        ),
+        field = quantityAdjustField(quantityAdjustType.value),
+        typeLabel = quantityAdjustTypeLabel.value;
+      try {
+        await ElementPlus.ElMessageBox.confirm(
+          `确认调整${typeLabel}吗？本次将调整 ${changedRows.length} 个 SKU。`,
+          '确认数量调整',
+          { type: 'warning', confirmButtonText: '确认调整', cancelButtonText: '取消' },
+        );
+      } catch {
+        return;
+      }
+      quantityAdjustSubmitting.value = true;
+      const logDetails = [];
+      changedRows.forEach((row) => {
+        const item = doc.items.find((x) => x.sku === row.sku && x.plan === row.plan);
+        if (!item) return;
+        const before = Number(item[field] || 0),
+          after = Number(row.targetQty || 0),
+          delta = after - before;
+        item[field] = after;
+        logDetails.push(`${row.sku} ${before}→${after}（${delta > 0 ? '+' : ''}${delta}）`);
+      });
+      doc.pick = doc.items.reduce((sum, item) => sum + Number(item.pick || 0), 0);
+      doc.ship = doc.items.reduce((sum, item) => sum + Number(item.ship || 0), 0);
+      doc.receive = doc.items.reduce((sum, item) => sum + Number(item.receive || 0), 0);
+      updateDocDiffs(doc);
+      refreshStatusAfterQuantityAdjust(doc);
+      if (!doc.logs) doc.logs = buildLogs(doc);
+      doc.logs.unshift({
+        type: '数量调整',
+        content: `调整${typeLabel}：${logDetails.join('；')}。原因：${quantityAdjustReason.value}${quantityAdjustRemark.value.trim() ? `，备注：${quantityAdjustRemark.value.trim()}` : ''}`,
+        operator: 'Admin',
+        time: formatOperationTime(),
+      });
+      quantityAdjustSubmitting.value = false;
+      quantityAdjustVisible.value = false;
+      ElementPlus.ElMessage.success('数量调整成功，差异和单据状态已重新计算');
+    };
+    const pickupVisible = ref(false),
+      pickupDoc = ref(null),
+      pickupTableRef = ref(),
+      pickupRows = ref([]),
+      pickupSubmitting = ref(false);
+    const pickupRowClassName = ({ row }) =>
+      row.isSubDetail ? 'pickup-sub-row' : row.isCombo ? 'pickup-combo-row' : 'pickup-no-expand-row';
+    const visiblePickupRows = computed(() =>
+      pickupRows.value.flatMap((row) =>
+        row.isCombo && row.pickupSub
+          ? [
+              row,
+              ...(row.subDetails || []).map((sub) => ({
+                key: `${row.key}-${sub.subSku}`,
+                isSubDetail: true,
+                parent: row,
+                subDetail: sub,
+                sku: sub.subSku,
+                name: sub.subName,
+                plan: row.plan,
+                skuType: '子件',
+              })),
+            ]
+          : [row],
+      ),
+    );
+    const pickupSpanMethod = ({ row, columnIndex }) => {
+      if (!row.isSubDetail || columnIndex !== 4) return [1, 1];
+      const siblings = visiblePickupRows.value.filter((x) => x.isSubDetail && x.parent.key === row.parent.key),
+        first = siblings[0];
+      return row.key === first.key ? [siblings.length, 1] : [0, 0];
+    };
+    const pickupRemainingTotal = computed(() =>
+      pickupRows.value.reduce((sum, row) => sum + Number(row.remain || 0), 0),
+    );
+    const pickupRowQty = (row) =>
+      row.isCombo ? Number(row.pickupQty || 0) + Number(row.subSetQty || 0) : Number(row.pickupQty || 0);
+    const comboPickupTotal = (row) => Number(row.pickupQty || 0) + Number(row.subSetQty || 0);
+    const pickupRowDiff = (row) => Math.max(Number(row.planQty || 0) - Number(row.picked || 0) - pickupRowQty(row), 0);
+    const pickupQtyTotal = computed(() => pickupRows.value.reduce((sum, row) => sum + pickupRowQty(row), 0));
+    const pickupAfterRemaining = computed(() => Math.max(pickupRemainingTotal.value - pickupQtyTotal.value, 0));
+    const pickupDiffTotal = computed(() =>
+      pickupRows.value.filter((row) => row.diffReason).reduce((sum, row) => sum + pickupRowDiff(row), 0),
+    );
+    const pickupUnresolvedDiff = computed(
+      () => pickupRows.value.filter((row) => !row.isSubDetail && pickupRowDiff(row) > 0 && !row.diffReason).length,
+    );
+    const pickupNextStatus = computed(() => {
+      if (pickupQtyTotal.value <= 0) return '—';
+      if (pickupUnresolvedDiff.value > 0) return '待提货';
+      return pickupRows.value.some((row) => row.isCombo && Number(row.subSetQty || 0) > 0) ? '待加工' : '待发货';
+    });
+    const pickupAvailable = (row) => Math.max(Number(row.planQty || 0) - Number(row.picked || 0), 0);
+    const refreshSubSetMax = (row) => {
+      const available = Math.max(pickupAvailable(row) - Number(row.pickupQty || 0), 0);
+      row.subSetMaxQty = Math.min(...(row.subDetails || []).map((s) => Number(s.maxSetQty || 0)), available);
+    };
+    const onSubWarehouseChange = (subRow) => {
+      const w = subRow.pickupWarehouse;
+      subRow.stock = w ? (comboSubStockByWarehouse[w] || {})[subRow.subSku] || 0 : 0;
+      const parentAvailable = subRow.parent
+        ? Math.max(pickupAvailable(subRow.parent) - Number(subRow.parent.pickupQty || 0), 0)
+        : Number(subRow.parentRemain || 0);
+      subRow.maxSetQty = Math.min(parentAvailable, Math.floor(subRow.stock / (Number(subRow.ratio) || 1)));
+      subRow.pickupMax = subRow.maxSetQty * (Number(subRow.ratio) || 1);
+      if (subRow.parent) refreshSubSetMax(subRow.parent);
+    };
+    const onSubSetQtyChange = (row) => {
+      refreshSubSetMax(row);
+      row.subSetQty = Math.max(0, Math.min(Number(row.subSetQty || 0), row.subSetMaxQty));
+      (row.subDetails || []).forEach((s) => {
+        s.pickupQty = row.subSetQty * (Number(s.ratio) || 1);
+      });
+    };
+    const onSubDetailQtyChange = (sub) => {
+      const parent = sub.parent;
+      const details = parent?.subDetails || [];
+      const setQty = details.length
+        ? Math.min(...details.map((s) => Math.floor(Number(s.pickupQty || 0) / (Number(s.ratio) || 1))))
+        : 0;
+      parent.subSetQty = Math.max(
+        0,
+        Math.min(setQty, Math.max(pickupAvailable(parent) - Number(parent.pickupQty || 0), 0)),
+      );
+    };
+    const initPickupWarehouse = (row) => {
+      row.pickupWarehouse = defaultPickupWarehouse(row.sku);
+      if (row.isCombo) {
+        row.pickupFinished = true;
+        onFinishedWarehouseChange(row);
+      } else {
+        onPickupWarehouseChange(row);
+        row.pickupQty = row.pickupMax;
+      }
+    };
+    const initSubWarehouse = (subRow) => {
+      subRow.pickupWarehouse = defaultPickupWarehouse(subRow.subSku);
+      onSubWarehouseChange(subRow);
+    };
+    const onPickupWarehouseChange = (row) => {
+      const w = row.pickupWarehouse;
+      let stock = 0;
+      if (row.skuType === '子件') {
+        stock = w ? (comboSubStockByWarehouse[w] || {})[row.sku] || 0 : 0;
+      } else {
+        const mapped = (ordinaryStockByWarehouse[w] || {})[row.sku];
+        stock =
+          mapped !== undefined ? mapped : w === defaultPickupWarehouse(row.sku) ? Number(row.planQty || 0) + 100 : 0;
+      }
+      row.stock = stock;
+      row.pickupMax = Math.min(row.subLimit || row.remain, row.stock);
+      row.inStock = row.stock;
+    };
+    const onFulfillmentModeChange = (row) => {
+      if (row.isCombo) {
+        row.pickupFinished = Boolean(row.pickupFinished);
+        row.pickupSub = Boolean(row.pickupSub);
+        row.fulfillmentMode = row.pickupSub ? (row.pickupFinished ? 'parallel' : 'sub_parts') : 'finished_product';
+      }
+    };
+    const togglePickupMode = (row, mode, checked) => {
+      if (!row.isCombo) return;
+      if (mode === 'finished') row.pickupFinished = checked;
+      if (mode === 'sub') row.pickupSub = checked;
+      onFulfillmentModeChange(row);
+      if (mode === 'finished' && checked) onFinishedWarehouseChange(row);
+    };
+    const onFinishedWarehouseChange = (row) => {
+      const w = row.pickupWarehouse;
+      row.finishedStock = w ? (comboFinishedStockByWarehouse[w] || {})[row.sku] || 0 : 0;
+      row.pickupMax = Math.min(row.remain, row.finishedStock);
+      if (row.pickupFinished) row.pickupQty = row.pickupMax;
+    };
+    const openPickup = (row) => {
+      if (row.status !== '待提货') {
+        ElementPlus.ElMessage.warning('当前状态不允许提货');
+        return;
+      }
+      pickupDoc.value = row;
+      const rows = [];
+      row.items.forEach((item, index) => {
+        const meta = skuMeta(item.sku),
+          picked =
+            meta.skuType === '组合'
+              ? Number(item.finishedPickedQty ?? 0) +
+                Number(item.subSetPickedQty ?? (item.finishedPickedQty === undefined ? item.pick : 0))
+              : Number(item.pick || 0),
+          declared = Number(item.declare || 0),
+          planQty = Number(meta.planQty ?? item.planQty ?? declared),
+          remain = Math.max(planQty - picked, 0),
+          isCombo = meta.skuType === '组合' && comboBom[item.sku],
+          parentId = `${item.sku}-${item.plan}-${index}`;
+        if (isCombo) {
+          const bom = comboBom[item.sku];
+          const subDetails = bom.map((sub) => {
+            const detail = {
+              subSku: sub.sku,
+              subName: sub.name,
+              ratio: sub.ratio || 1,
+              pickupWarehouse: '',
+              stock: 0,
+              parentRemain: remain,
+              maxSetQty: remain,
+              pickupMax: remain * (sub.ratio || 1),
+              pickupQty: 0,
+            };
+            initSubWarehouse(detail);
+            return detail;
+          });
+          const comboRow = {
+            ...item,
+            key: parentId,
+            isCombo: true,
+            skuType: '组合',
+            planQty,
+            picked,
+            remain,
+            fulfillmentMode: 'finished_product',
+            pickupWarehouse: '',
+            finishedStock: 0,
+            pickupMax: remain,
+            pickupQty: null,
+            subSetQty: 0,
+            pickupFinished: false,
+            pickupSub: false,
+            subDetails,
+            pickupRemark: '',
+            providerPickup: item.providerPickup ?? null,
+            diffReason: '',
+          };
+          subDetails.forEach((detail) => {
+            detail.parent = comboRow;
+          });
+          initPickupWarehouse(comboRow);
+          rows.push(comboRow);
+        } else if (!subToCombo[item.sku]) {
+          const normalRow = {
+            ...item,
+            key: parentId,
+            isCombo: false,
+            skuType: '普通',
+            planQty,
+            picked,
+            remain,
+            pickupMax: remain,
+            inStock: 0,
+            pickupWarehouse: '',
+            pickupQty: null,
+            pickupRemark: '',
+            providerPickup: item.providerPickup ?? null,
+            diffReason: '',
+          };
+          initPickupWarehouse(normalRow);
+          rows.push(normalRow);
+        }
+      });
+      pickupRows.value = rows;
+      pickupVisible.value = true;
+    };
+    const formatOperationTime = () => {
+      const d = new Date(),
+        pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    };
+    const createPickupBatchNo = (reserved = []) => {
+      const used = new Set([...docs.flatMap((doc) => (doc.batches || []).map((batch) => batch.no)), ...reserved]);
+      let no = `SO${String(Date.now()).slice(-10)}`;
+      let seq = 1;
+      while (used.has(no)) {
+        no = `SO${String(Date.now()).slice(-10)}${String(seq++).padStart(2, '0')}`;
+      }
+      return no;
+    };
+    const submitPickup = async () => {
+      if (!pickupRows.value.length) {
+        ElementPlus.ElMessage.warning('当前没有可提货的 SKU');
+        return;
+      }
+      for (const row of pickupRows.value) {
+        if (!row.isCombo) {
+          if (!row.pickupWarehouse) {
+            ElementPlus.ElMessage.error(`SKU ${row.sku} 未选择提货仓`);
+            return;
+          }
+          const q = Number(row.pickupQty);
+          if (!Number.isInteger(q) || q < 0 || q > row.pickupMax) {
+            ElementPlus.ElMessage.error(
+              `SKU ${row.sku} 的本次提货数量必须为正整数，且不能超过可提上限 ${row.pickupMax}`,
+            );
+            return;
+          }
+        } else if (row.fulfillmentMode === 'finished_product') {
+          if (!row.pickupWarehouse) {
+            ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 未选择提货仓`);
+            return;
+          }
+          const q = Number(row.pickupQty);
+          if (!Number.isInteger(q) || q < 0 || q > row.pickupMax) {
+            ElementPlus.ElMessage.error(
+              `组合 SKU ${row.sku} 的本次提货数量必须为不小于 0 的整数，且不能超过可提上限 ${row.pickupMax}`,
+            );
+            return;
+          }
+        } else {
+          const finishedQty = Number(row.pickupQty || 0),
+            subSetQty = Number(row.subSetQty || 0);
+          if (!Number.isInteger(finishedQty) || finishedQty < 0 || finishedQty > row.pickupMax) {
+            ElementPlus.ElMessage.error(
+              `组合 SKU ${row.sku} 成品提货数量必须为不小于 0 的整数，且不能超过可提上限 ${row.pickupMax}`,
+            );
+            return;
+          }
+          const available = pickupAvailable(row);
+          if (!Number.isInteger(subSetQty) || subSetQty < 0 || finishedQty + subSetQty > available) {
+            ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 成品提货和子件套装提货合计不能超过可提套数 ${available}`);
+            return;
+          }
+          for (const s of row.subDetails || []) {
+            const q = subSetQty * (Number(s.ratio) || 1);
+            if (q > 0 && !s.pickupWarehouse) {
+              ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 的子件「${s.subSku}」未选择提货仓`);
+              return;
+            }
+            if (q > s.pickupMax) {
+              ElementPlus.ElMessage.error(`子件 ${s.subSku} 的本次提货数量不能超过可提上限 ${s.pickupMax}`);
+              return;
+            }
+          }
+          if (finishedQty <= 0 && subSetQty <= 0) {
+            ElementPlus.ElMessage.error(`组合 SKU ${row.sku} 至少填写成品或子件提货数量`);
+            return;
+          }
+        }
+      }
+      const providerPickupMissing = pickupRows.value.find(
+        (row) =>
+          !row.isSubDetail &&
+          pickupRowQty(row) > 0 &&
+          (row.providerPickup === null || row.providerPickup === undefined),
+      );
+      if (providerPickupMissing) {
+        ElementPlus.ElMessage.error(`SKU ${providerPickupMissing.sku} 必须选择“服务商包提货”`);
+        return;
+      }
+      const diffMissing = pickupRows.value.find((row) => !row.isSubDetail && pickupRowDiff(row) > 0 && !row.diffReason);
+      if (diffMissing) {
+        ElementPlus.ElMessage.error(`SKU ${diffMissing.sku} 累计提货后仍小于发货数量，请选择差异原因`);
+        return;
+      }
+      const otherReasonMissing = pickupRows.value.find(
+        (row) => row.diffReason === '其他' && !String(row.pickupRemark || '').trim(),
+      );
+      if (otherReasonMissing) {
+        ElementPlus.ElMessage.error(`SKU ${otherReasonMissing.sku} 选择“其他”时必须填写提货备注`);
+        return;
+      }
+      if (
+        pickupRows.value.some((row) => row.providerPickup) &&
+        (!pickupDoc.value.provider || pickupDoc.value.provider === '—')
+      ) {
+        ElementPlus.ElMessage.error('已选择服务商包提货，但发货单未设置头程服务商');
+        return;
+      }
+      const nextStatus = pickupNextStatus.value;
+      const flowLines = [];
+      pickupRows.value.forEach((row) => {
+        if (!row.isCombo) {
+          flowLines.push(
+            `${row.sku} 从 ${row.pickupWarehouse} 扣减 ${row.pickupQty}，提货完成后增加到发货仓「${pickupDoc.value.from}」`,
+          );
+        } else {
+          const fq = Number(row.pickupQty || 0);
+          if (fq > 0)
+            flowLines.push(
+              `${row.sku}（成品）从 ${row.pickupWarehouse} 扣减 ${fq}，提货完成后增加到发货仓「${pickupDoc.value.from}」`,
+            );
+          (row.subDetails || []).forEach((s) => {
+            const sq = Number(s.pickupQty || 0);
+            if (sq > 0)
+              flowLines.push(
+                `${s.subSku}（子件）从 ${s.pickupWarehouse} 扣减 ${sq}，提货完成后增加到发货仓「${pickupDoc.value.from}」`,
+              );
+          });
+        }
+      });
+      const confirmMsg = `本次库存流转：\n· ${flowLines.join('\n· ')}\n\n提交后状态为「${nextStatus}」。`;
+      try {
+        await ElementPlus.ElMessageBox.confirm(confirmMsg, '确认提货', {
+          type: 'warning',
+          confirmButtonText: '确认提货',
+          cancelButtonText: '取消',
+        });
+      } catch {
+        return;
+      }
+      pickupSubmitting.value = true;
+      const details = [],
+        reservedBatchNos = [];
+      pickupRows.value.forEach((row) => {
+        if (!row.isCombo) {
+          const qty = Number(row.pickupQty);
+          details.push({
+            sku: row.sku,
+            plan: row.plan,
+            warehouse: row.pickupWarehouse,
+            qty,
+            skuType: row.skuType,
+            isCombo: false,
+            providerPickup: row.providerPickup,
+            remark: row.pickupRemark || '—',
+            diffReason: row.diffReason || '',
+          });
+          const item = pickupDoc.value.items.find((x) => x.sku === row.sku && x.plan === row.plan);
+          if (item) {
+            item.pick = Number(item.pick || 0) + qty;
+            item.lastPickupWarehouse = row.pickupWarehouse;
+            item.providerPickup = row.providerPickup;
+            item.pickupRemark = row.pickupRemark;
+            item.diffReason = row.diffReason;
+          }
+          if (row.skuType === '子件') {
+            const wh = comboSubStockByWarehouse[row.pickupWarehouse] || {};
+            wh[row.sku] = Math.max((wh[row.sku] || 0) - qty, 0);
+          }
+          const fromWh = warehouseStock[pickupDoc.value.from];
+          if (fromWh) fromWh[row.sku] = (fromWh[row.sku] || 0) + qty;
+        } else if (row.fulfillmentMode === 'finished_product') {
+          const qty = Number(row.pickupQty);
+          details.push({
+            sku: row.sku,
+            plan: row.plan,
+            isCombo: true,
+            fulfillmentMode: 'finished_product',
+            warehouse: row.pickupWarehouse,
+            qty,
+            finishedQty: qty,
+            providerPickup: row.providerPickup,
+            remark: row.pickupRemark || '—',
+            diffReason: row.diffReason || '',
+          });
+          const item = pickupDoc.value.items.find((x) => x.sku === row.sku && x.plan === row.plan);
+          if (item) {
+            item.finishedPickedQty = Number(item.finishedPickedQty ?? item.pick ?? 0) + qty;
+            item.subSetPickedQty = Number(item.subSetPickedQty || 0);
+            item.pick = item.finishedPickedQty + item.subSetPickedQty;
+            item.lastPickupWarehouse = row.pickupWarehouse;
+            item.providerPickup = row.providerPickup;
+            item.pickupRemark = row.pickupRemark;
+            item.diffReason = row.diffReason;
+          }
+          const wh = comboFinishedStockByWarehouse[row.pickupWarehouse] || {};
+          wh[row.sku] = Math.max((wh[row.sku] || 0) - qty, 0);
+          const fromWh = warehouseStock[pickupDoc.value.from];
+          if (fromWh) fromWh[row.sku] = (fromWh[row.sku] || 0) + qty;
+        } else {
+          const finishedQty = Number(row.pickupQty || 0),
+            finishedDetail =
+              finishedQty > 0
+                ? {
+                    sku: row.sku,
+                    name: row.name,
+                    warehouse: row.pickupWarehouse,
+                    qty: finishedQty,
+                    actualQty: finishedQty,
+                    skuType: '组合',
+                    pickupMode: 'finished',
+                    fulfillmentMode: 'finished_product',
+                  }
+                : null,
+            subSetQty = Number(row.subSetQty || 0),
+            subDetails = (row.subDetails || [])
+              .map((s) => {
+                const actualQty = subSetQty * (Number(s.ratio) || 1);
+                return {
+                  subSku: s.subSku,
+                  subName: s.subName,
+                  warehouse: s.pickupWarehouse,
+                  qty: actualQty,
+                  actualQty,
+                  bomRatio: Number(s.ratio) || 1,
+                  sku: s.subSku,
+                  skuType: '子件',
+                  pickupMode: 'sub',
+                  fulfillmentMode: 'sub_parts',
+                  parentComboSku: row.sku,
+                  parentComboPlan: row.plan,
+                  diffReason: '—',
+                };
+              })
+              .filter((s) => s.qty > 0);
+          details.push({
+            sku: row.sku,
+            plan: row.plan,
+            isCombo: true,
+            fulfillmentMode: row.fulfillmentMode,
+            qty: finishedQty + subSetQty,
+            finishedQty,
+            subSetQty,
+            warehouse: row.pickupWarehouse,
+            finishedDetail,
+            subDetails,
+            providerPickup: row.providerPickup,
+            remark: row.pickupRemark || '—',
+            diffReason: row.diffReason || '',
+          });
+          const item = pickupDoc.value.items.find((x) => x.sku === row.sku && x.plan === row.plan);
+          if (item) {
+            item.finishedPickedQty = Number(item.finishedPickedQty ?? item.pick ?? 0) + finishedQty;
+            item.subSetPickedQty = Number(item.subSetPickedQty || 0) + Number(row.subSetQty || 0);
+            item.pick = item.finishedPickedQty + item.subSetPickedQty;
+            item.providerPickup = row.providerPickup;
+            item.pickupRemark = row.pickupRemark;
+            item.diffReason = row.diffReason;
+          }
+          if (finishedQty > 0) {
+            const wh = comboFinishedStockByWarehouse[row.pickupWarehouse] || {};
+            wh[row.sku] = Math.max((wh[row.sku] || 0) - finishedQty, 0);
+            const fromWh = warehouseStock[pickupDoc.value.from];
+            if (fromWh) fromWh[row.sku] = (fromWh[row.sku] || 0) + finishedQty;
+          }
+          subDetails.forEach((s) => {
+            const wh = comboSubStockByWarehouse[s.warehouse] || {};
+            wh[s.subSku] = Math.max((wh[s.subSku] || 0) - s.qty, 0);
+            const fromWh = warehouseStock[pickupDoc.value.from];
+            if (fromWh) fromWh[s.subSku] = (fromWh[s.subSku] || 0) + s.qty;
+          });
+        }
+      });
+      pickupDoc.value.pick = pickupDoc.value.items.reduce((sum, item) => sum + Number(item.pick || 0), 0);
+      pickupDoc.value.pickDiff = pickupDoc.value.items.reduce((sum, item) => sum + Number(item.pickDiff || 0), 0);
+      const remaining = pickupDoc.value.items.reduce((sum, item) => {
+        const planQty = Number(skuMeta(item.sku).planQty ?? item.planQty ?? item.declare ?? 0),
+          picked = Number(item.pick || 0),
+          diff = Math.max(planQty - picked, 0);
+        return sum + (diff && !item.diffReason ? diff : 0);
+      }, 0);
+      if (remaining === 0) {
+        const hasSplit = pickupDoc.value.items.some(
+          (item) => skuMeta(item.sku).skuType === '组合' && Number(item.subSetPickedQty || 0) > 0,
+        );
+        pickupDoc.value.status = hasSplit ? '待加工' : '待发货';
+        pickupDoc.value.processable = hasSplit;
+      } else {
+        pickupDoc.value.status = '待提货';
+        pickupDoc.value.processable = false;
+      }
+      pickupDoc.value.logistics = '未发货';
+      pickupDoc.value.items.forEach((item) => {
+        item.status = pickupDoc.value.status;
+      });
+      updateDocDiffs(pickupDoc.value);
+      const parentBatchNo = createPickupBatchNo(reservedBatchNos),
+        operationTime = formatOperationTime();
+      const batchRecords = [];
+      details.forEach((item, index) => {
+        const parentNo = parentBatchNo;
+        const makeBatch = (detail, no) => {
+          const pickupMode =
+            detail.pickupMode ||
+            (detail.fulfillmentMode === 'finished_product'
+              ? 'finished'
+              : detail.fulfillmentMode === 'sub_parts' || detail.fulfillmentMode === 'sub'
+                ? 'sub'
+                : detail.isCombo
+                  ? 'finished'
+                  : 'normal');
+          return {
+            no,
+            type: '提货',
+            quantityType: 'pickup',
+            source: 'manual',
+            date: operationTime,
+            skuCount: '1 个',
+            qty: Number(detail.qty || 0),
+            warehouse: detail.warehouse || '—',
+            operator: '运营用户',
+            status: '已完成',
+            details: [
+              {
+                ...detail,
+                batchNo: no,
+                parentBatchNo: parentNo,
+                shipmentOrderNo: pickupDoc.value.id,
+                actualQty: Number(detail.actualQty ?? detail.qty ?? 0),
+                pickupMode,
+                skuType: detail.skuType || (pickupMode === 'sub' ? '子件' : detail.isCombo ? '组合' : '普通'),
+                diffReason: pickupMode === 'sub' ? '—' : detail.diffReason || '—',
+              },
+            ],
+            parentBatchNo: parentNo,
+          };
+        };
+        if (item.isCombo && item.subDetails?.length) {
+          if (item.finishedDetail) {
+            const no = createPickupBatchNo([...reservedBatchNos, parentNo, ...batchRecords.map((x) => x.no)]);
+            reservedBatchNos.push(no);
+            batchRecords.push(
+              makeBatch(
+                {
+                  ...item,
+                  finishedDetail: undefined,
+                  subDetails: undefined,
+                  sku: item.sku,
+                  qty: item.finishedQty,
+                  finishedQty: item.finishedQty,
+                  warehouse: item.finishedDetail.warehouse,
+                },
+                no,
+              ),
+            );
+          }
+          item.subDetails
+            .filter((s) => Number(s.qty || 0) > 0)
+            .forEach((sub) => {
+              const no = createPickupBatchNo([...reservedBatchNos, parentNo, ...batchRecords.map((x) => x.no)]);
+              reservedBatchNos.push(no);
+              batchRecords.push(
+                makeBatch(
+                  {
+                    sku: sub.subSku,
+                    subSku: sub.subSku,
+                    name: sub.subName,
+                    plan: item.plan,
+                    qty: sub.qty,
+                    actualQty: sub.actualQty ?? sub.qty,
+                    warehouse: sub.warehouse,
+                    isCombo: true,
+                    skuType: '子件',
+                    pickupMode: 'sub',
+                    fulfillmentMode: 'sub_parts',
+                    bomRatio: Number(sub.bomRatio ?? sub.ratio ?? 1),
+                    parentComboSku: item.sku,
+                    parentComboPlan: item.plan,
+                    providerPickup: item.providerPickup,
+                    remark: item.remark,
+                    diffReason: '—',
+                  },
+                  no,
+                ),
+              );
+            });
+        } else {
+          const no = createPickupBatchNo([...reservedBatchNos, parentNo, ...batchRecords.map((x) => x.no)]);
+          reservedBatchNos.push(no);
+          batchRecords.push(makeBatch(item, no));
+        }
+      });
+      pickupDoc.value.batches.unshift(...batchRecords);
+      pickupSubmitting.value = false;
+      pickupVisible.value = false;
+      ElementPlus.ElMessage.success(`提货成功，发货单已进入${pickupDoc.value.status}`);
+    };
+    const shipDocument = async (row) => {
+      if (row.status !== '待发货') {
+        ElementPlus.ElMessage.warning('当前状态不允许发货');
+        return;
+      }
+      const shipQty = row.items.reduce((sum, item) => sum + Number(item.pick || 0), 0);
+      if (shipQty <= 0) {
+        ElementPlus.ElMessage.error('当前发货单没有可发货数量');
+        return;
+      }
+      try {
+        await ElementPlus.ElMessageBox.confirm(
+          `确认发货单 ${row.id} 全部发货吗？本次发货 ${shipQty} 件，确认后将进入“待收货”。`,
+          '发货确认',
+          { type: 'warning', confirmButtonText: '确认发货', cancelButtonText: '取消' },
+        );
+      } catch {
+        return;
+      }
+      const details = row.items.map((item) => ({
+        sku: item.sku,
+        plan: item.plan,
+        qty: Number(item.pick || 0),
+        from: row.from,
+        to: row.to,
+      }));
+      row.items.forEach((item) => {
+        item.ship = Number(item.pick || 0);
+        item.status = '待收货';
+      });
+      row.ship = details.reduce((sum, item) => sum + item.qty, 0);
+      row.pendingReceive = Math.max(row.ship - Number(row.receive || 0), 0);
+      row.status = '待收货';
+      row.logistics = '已发货';
+      row.actualShipDate = formatOperationTime().slice(0, 10);
+      row.batches.unshift({
+        no: `SO${String(Date.now()).slice(-10)}`,
+        type: '发货',
+        quantityType: 'shipment',
+        source: 'manual',
+        date: formatOperationTime(),
+        skuCount: `${details.length} 个`,
+        qty: row.ship,
+        warehouse: `${row.from} → ${row.to}`,
+        operator: '运营用户',
+        status: '已完成',
+        details,
+      });
+      ElementPlus.ElMessage.success('发货成功，发货单已进入待收货');
+    };
+    const shipVisible = ref(false),
+      shipDoc = ref(null),
+      shipTableRef = ref(),
+      shipRows = ref([]),
+      shipSelection = ref([]),
+      shipSubmitting = ref(false);
+    const diffReasonOptions = ['货物丢失', '货物损坏', '物流扣货', '其他'];
+    const shipSelectable = (row) => row.remain > 0;
+    const isShipSelected = (row) => shipSelection.value.some((x) => x.key === row.key);
+    const shipRemainingTotal = computed(() => shipRows.value.reduce((sum, row) => sum + Number(row.remain || 0), 0));
+    const shipQtyTotal = computed(() => shipSelection.value.reduce((sum, row) => sum + Number(row.shipQty || 0), 0));
+    const shipAfterRemaining = computed(() => Math.max(shipRemainingTotal.value - shipQtyTotal.value, 0));
+    const openShip = (row) => {
+      if (row.status !== '待发货') {
+        ElementPlus.ElMessage.warning('当前状态不允许发货');
+        return;
+      }
+      shipDoc.value = row;
+      shipRows.value = row.items.map((item, index) => {
+        const picked = Number(item.pick || 0),
+          shipped = Number(item.ship || 0),
+          declared = Number(item.declare || 0);
+        return {
+          ...item,
+          key: `${item.sku}-${item.plan}-${index}`,
+          picked,
+          shipped,
+          declared,
+          remain: Math.max(picked - shipped, 0),
+          shipQty: null,
+          shipRemark: '',
+          diffReason: '',
+        };
+      });
+      shipSelection.value = [];
+      shipVisible.value = true;
+      nextTick(() => {
+        shipTableRef.value?.clearSelection();
+        shipRows.value.filter(shipSelectable).forEach((item) => shipTableRef.value?.toggleRowSelection(item, true));
+      });
+    };
+    const onShipSelection = (rows) => (shipSelection.value = rows);
+    const fillShipRemaining = () => {
+      if (!shipSelection.value.length) {
+        ElementPlus.ElMessage.warning('请先勾选需要发货的 SKU');
+        return;
+      }
+      shipSelection.value.forEach((row) => {
+        row.shipQty = row.remain;
+      });
+      ElementPlus.ElMessage.success('已按剩余可发数量填充');
+    };
+    const submitShip = async () => {
+      if (!shipSelection.value.length) {
+        ElementPlus.ElMessage.warning('请至少选择一个 SKU');
+        return;
+      }
+      const qtyInvalid = shipSelection.value.find(
+        (row) => !Number.isInteger(Number(row.shipQty)) || Number(row.shipQty) <= 0 || Number(row.shipQty) > row.remain,
+      );
+      if (qtyInvalid) {
+        ElementPlus.ElMessage.error(`SKU ${qtyInvalid.sku} 的本次发货数量必须为正整数，且不能超过剩余可发数量`);
+        return;
+      }
+      const diffMissing = shipSelection.value.find((row) => {
+        const cumulativeShip = Number(row.shipped || 0) + Number(row.shipQty || 0);
+        const tfDiff = cumulativeShip - Number(row.picked || 0);
+        return tfDiff < 0 && !row.diffReason;
+      });
+      if (diffMissing) {
+        ElementPlus.ElMessage.error(`SKU ${diffMissing.sku} 提发差异为负数，请选择少发原因`);
+        return;
+      }
+      try {
+        await ElementPlus.ElMessageBox.confirm(
+          `本次共发货 ${shipQtyTotal.value} 件，提交后状态为“待收货”，确认提交吗？`,
+          '确认发货',
+          { type: 'warning', confirmButtonText: '确认发货', cancelButtonText: '取消' },
+        );
+      } catch {
+        return;
+      }
+      shipSubmitting.value = true;
+      const details = shipSelection.value.map((row) => {
+        const cumulativeShip = Number(row.shipped || 0) + Number(row.shipQty || 0);
+        return {
+          sku: row.sku,
+          plan: row.plan,
+          qty: Number(row.shipQty),
+          shipRemark: row.shipRemark || '',
+          diffReason: row.diffReason || '',
+          declareDiff: cumulativeShip - Number(row.declared || 0),
+          pickupShipDiff: cumulativeShip - Number(row.picked || 0),
+        };
+      });
+      details.forEach((detail) => {
+        const item = shipDoc.value.items.find((x) => x.sku === detail.sku && x.plan === detail.plan);
+        if (item) {
+          item.ship = Number(item.ship || 0) + detail.qty;
+          item.shipRemark = detail.shipRemark;
+          if (detail.diffReason) item.shipDiffReason = detail.diffReason;
+        }
+      });
+      shipDoc.value.ship = shipDoc.value.items.reduce((sum, item) => sum + Number(item.ship || 0), 0);
+      shipDoc.value.pendingReceive = Math.max(shipDoc.value.ship - Number(shipDoc.value.receive || 0), 0);
+      shipDoc.value.status = '待收货';
+      shipDoc.value.logistics = '已发货';
+      shipDoc.value.actualShipDate = formatOperationTime().slice(0, 10);
+      shipDoc.value.items.forEach((item) => {
+        item.status = '待收货';
+      });
+      updateDocDiffs(shipDoc.value);
+      shipDoc.value.batches.unshift({
+        no: `SO${String(Date.now()).slice(-10)}`,
+        type: '发货',
+        quantityType: 'shipment',
+        source: 'manual',
+        date: formatOperationTime(),
+        skuCount: `${details.length} 个`,
+        qty: details.reduce((sum, x) => sum + x.qty, 0),
+        warehouse: `${shipDoc.value.from} → ${shipDoc.value.to}`,
+        operator: '运营用户',
+        status: '已完成',
+        details,
+      });
+      shipSubmitting.value = false;
+      shipVisible.value = false;
+      ElementPlus.ElMessage.success(`发货成功，发货单已进入待收货`);
+    };
+    const receiveVisible = ref(false),
+      receiveDoc = ref(null),
+      receiveTableRef = ref(),
+      receiveRows = ref([]),
+      receiveSelection = ref([]),
+      receiveSubmitting = ref(false);
+    const receiveSelectable = (row) => row.remain > 0;
+    const isReceiveSelected = (row) => receiveSelection.value.some((x) => x.key === row.key);
+    const receiveRemainingTotal = computed(() =>
+      receiveRows.value.reduce((sum, row) => sum + Number(row.remain || 0), 0),
+    );
+    const receiveQtyTotal = computed(() =>
+      receiveSelection.value.reduce((sum, row) => sum + Number(row.receiveQty || 0), 0),
+    );
+    const receiveAfterRemaining = computed(() => Math.max(receiveRemainingTotal.value - receiveQtyTotal.value, 0));
+    const receiveNextStatus = computed(() =>
+      receiveQtyTotal.value <= 0 ? '—' : receiveAfterRemaining.value === 0 ? '已完成' : '部分收货',
+    );
+    const openReceive = (row) => {
+      if (!['待收货', '部分收货'].includes(row.status)) {
+        ElementPlus.ElMessage.warning('当前状态不允许收货');
+        return;
+      }
+      receiveDoc.value = row;
+      receiveRows.value = row.items.map((item, index) => {
+        const shipped = Number(item.ship || 0),
+          received = Number(item.receive || 0);
+        return {
+          ...item,
+          key: `${item.sku}-${item.plan}-${index}`,
+          shipped,
+          received,
+          remain: Math.max(shipped - received, 0),
+          receiveQty: null,
+        };
+      });
+      receiveSelection.value = [];
+      receiveVisible.value = true;
+      nextTick(() => {
+        receiveTableRef.value?.clearSelection();
+        receiveRows.value
+          .filter(receiveSelectable)
+          .forEach((item) => receiveTableRef.value?.toggleRowSelection(item, true));
+      });
+    };
+    const onReceiveSelection = (rows) => (receiveSelection.value = rows);
+    const fillReceiveRemaining = () => {
+      if (!receiveSelection.value.length) {
+        ElementPlus.ElMessage.warning('请先勾选需要收货的 SKU');
+        return;
+      }
+      receiveSelection.value.forEach((row) => {
+        row.receiveQty = row.remain;
+      });
+      ElementPlus.ElMessage.success('已按剩余可收数量填充');
+    };
+    const submitReceive = async () => {
+      if (!receiveSelection.value.length) {
+        ElementPlus.ElMessage.warning('请至少选择一个 SKU');
+        return;
+      }
+      const qtyInvalid = receiveSelection.value.find(
+        (row) =>
+          !Number.isInteger(Number(row.receiveQty)) ||
+          Number(row.receiveQty) <= 0 ||
+          Number(row.receiveQty) > row.remain,
+      );
+      if (qtyInvalid) {
+        ElementPlus.ElMessage.error(`SKU ${qtyInvalid.sku} 的本次收货数量必须为正整数，且不能超过剩余可收数量`);
+        return;
+      }
+      const nextStatus = receiveAfterRemaining.value === 0 ? '已完成' : '部分收货';
+      try {
+        await ElementPlus.ElMessageBox.confirm(
+          `本次共收货 ${receiveQtyTotal.value} 件，提交后状态为“${nextStatus}”，确认提交吗？`,
+          '确认收货',
+          { type: 'warning', confirmButtonText: '确认收货', cancelButtonText: '取消' },
+        );
+      } catch {
+        return;
+      }
+      receiveSubmitting.value = true;
+      const details = receiveSelection.value.map((row) => ({
+        sku: row.sku,
+        plan: row.plan,
+        qty: Number(row.receiveQty),
+        shipped: row.shipped,
+        received: row.received,
+        diff: Number(row.received || 0) + Number(row.receiveQty || 0) - Number(row.shipped || 0),
+        diffReason: '',
+      }));
+      details.forEach((detail) => {
+        const item = receiveDoc.value.items.find((x) => x.sku === detail.sku && x.plan === detail.plan);
+        if (item) item.receive = Number(item.receive || 0) + detail.qty;
+      });
+      receiveDoc.value.receive = receiveDoc.value.items.reduce((sum, item) => sum + Number(item.receive || 0), 0);
+      const remaining = receiveDoc.value.items.reduce(
+        (sum, item) => sum + Math.max(Number(item.ship || 0) - Number(item.receive || 0), 0),
+        0,
+      );
+      receiveDoc.value.pendingReceive = remaining;
+      receiveDoc.value.status = remaining === 0 ? '已完成' : '部分收货';
+      receiveDoc.value.logistics = remaining === 0 ? '已完成' : '部分收货';
+      if (remaining === 0) receiveDoc.value.actualReceiveDate = formatOperationTime().slice(0, 10);
+      receiveDoc.value.items.forEach((item) => {
+        item.status = receiveDoc.value.status;
+      });
+      updateDocDiffs(receiveDoc.value);
+      receiveDoc.value.batches.unshift({
+        no: `SO${String(Date.now()).slice(-10)}`,
+        type: '收货',
+        quantityType: 'receive',
+        source: 'manual',
+        date: formatOperationTime(),
+        skuCount: `${details.length} 个`,
+        qty: details.reduce((sum, x) => sum + x.qty, 0),
+        operator: '运营用户',
+        status: '已完成',
+        details,
+      });
+      receiveSubmitting.value = false;
+      receiveVisible.value = false;
+      ElementPlus.ElMessage.success(`收货成功，发货单已进入${receiveDoc.value.status}`);
+    };
+    const processingVisible = ref(false),
+      processingSubmitting = ref(false),
+      processingDocId = ref('');
+    const processingRows = ref([]),
+      processingMode = ref('single');
+    const processingSearch = reactive({ sku: '', docId: '' });
+    const buildProcessingRows = (docId) => {
+      const targetDocs = docs.filter((d) => d.status === '待加工' && (!docId || d.id === docId));
+      // 按发货单号排序，批量模式同单的组合品靠在一起
+      targetDocs.sort((a, b) => a.id.localeCompare(b.id));
+      const rows = [];
+      targetDocs.forEach((doc) => {
+        doc.items.forEach((item) => {
+          const meta = skuMeta(item.sku);
+          if (meta.skuType !== '组合' || !comboBom[item.sku]) return;
+          const picked = Number(item.subSetPickedQty ?? item.pick ?? 0),
+            processed = Number(item.processedQty || 0);
+          const bom = comboBom[item.sku];
+          const warehouseStockMap = warehouseStock[doc.from] || {};
+          const subData = bom.map((sub) => {
+            const ratio = sub.ratio || 1;
+            const stock = Number(warehouseStockMap[sub.sku] || 0);
+            return { ...sub, stock, ratio, pickupQty: picked * ratio };
+          });
+          const stockLimited = Math.min(...subData.map((s) => Math.floor(s.stock / s.ratio)));
+          const processableQty = Math.max(0, Math.min(picked - processed, stockLimited));
+          const comboKey = `${doc.id}-${item.sku}-${item.plan}`;
+          const processingRoute = {
+            provider: doc.provider || '—',
+            channel: doc.channel || '—',
+            warehouse: doc.from || '—',
+          };
+          subData.forEach((sub, idx) => {
+            rows.push({
+              id: `${comboKey}-C${idx + 1}`,
+              comboKey,
+              comboFirst: idx === 0,
+              comboRowSpan: idx === 0 ? subData.length : 0,
+              docId: doc.id,
+              comboSku: item.sku,
+              comboPlanNo: item.plan,
+              comboLingxingSku: meta.overseasSku || '—',
+              comboName: item.name,
+              subSku: sub.sku,
+              subName: sub.name,
+              ratio: sub.ratio || 1,
+              stock: sub.stock,
+              pickupQty: sub.pickupQty,
+              processedQty: processed,
+              processableQty,
+              processQty: idx === 0 ? processableQty : null,
+              ...processingRoute,
+            });
+          });
+        });
+      });
+      return rows;
+    };
+    const filteredProcessingRows = computed(() => {
+      if (!processingRows.value.length) return [];
+      const s = processingSearch.sku.trim().toLowerCase(),
+        d = processingSearch.docId.trim().toLowerCase();
+      if (!s && !d) return processingRows.value;
+      const keepGroups = new Set();
+      processingRows.value.forEach((row) => {
+        const match =
+          (!s || row.comboSku.toLowerCase().includes(s) || row.subSku.toLowerCase().includes(s)) &&
+          (!d || row.docId.toLowerCase().includes(d));
+        if (match) keepGroups.add(row.comboKey);
+      });
+      return processingRows.value.filter((row) => keepGroups.has(row.comboKey));
+    });
+    const processingSpanMethod = ({ row, columnIndex }) => {
+      const batch = processingMode.value === 'batch';
+      const comboCols = batch ? [0, 1, 5, 6] : [0, 4, 5];
+      if (comboCols.includes(columnIndex)) return row.comboFirst ? [row.comboRowSpan, 1] : [0, 1];
+      return [1, 1];
+    };
+    const resetProcessingSearch = () => {
+      processingSearch.sku = '';
+      processingSearch.docId = '';
+    };
+    const removeProcessingGroup = (comboKey) => {
+      processingRows.value = processingRows.value.filter((row) => row.comboKey !== comboKey);
+      ElementPlus.ElMessage.success('已移除该组合 SKU');
+    };
+    const processingGroups = computed(() => {
+      const groups = new Map();
+      processingRows.value.forEach((row) => {
+        if (!groups.has(row.comboKey)) groups.set(row.comboKey, row);
+      });
+      return [...groups.values()];
+    });
+    const processingQtyTotal = computed(() =>
+      processingGroups.value.reduce((sum, row) => sum + Number(row.processQty || 0), 0),
+    );
+    const processingBatchSummary = computed(() => {
+      if (processingMode.value !== 'batch' || !filteredProcessingRows.value.length) return null;
+      const groups = processingGroups.value;
+      const docIds = [...new Set(groups.map((r) => r.docId))];
+      const totalPick = groups.reduce((s, r) => s + r.pickupQty, 0);
+      const totalProcessable = groups.reduce((s, r) => s + r.processableQty, 0);
+      return { docCount: docIds.length, comboCount: groups.length, totalPick, totalProcessable };
+    });
+    const fillAllProcessingQty = () => {
+      const groups = processingGroups.value.filter((r) => r.processableQty > 0);
+      groups.forEach((r) => {
+        r.processQty = r.processableQty;
+      });
+      ElementPlus.ElMessage.success(`已填满 ${groups.length} 个组合 SKU 的可加工数量`);
+    };
+    const clearAllProcessingQty = () => {
+      processingRows.value.forEach((r) => {
+        if (r.comboFirst) r.processQty = null;
+      });
+      ElementPlus.ElMessage.success('已清空所有加工数量');
+    };
+    const openProcessing = (row) => {
+      processingMode.value = 'single';
+      processingDocId.value = row?.id || '';
+      processingRows.value = buildProcessingRows(processingDocId.value);
+      resetProcessingSearch();
+      processingVisible.value = true;
+    };
+    const openBatchProcessing = () => {
+      processingMode.value = 'batch';
+      processingDocId.value = '';
+      processingRows.value = buildProcessingRows('');
+      resetProcessingSearch();
+      processingVisible.value = true;
+    };
+    const submitProcessing = async () => {
+      const groups = processingGroups.value;
+      if (!groups.length) {
+        ElementPlus.ElMessage.warning('请至少保留一个组合 SKU');
+        return;
+      }
+      const filled = groups.filter(
+        (row) => row.processQty !== null && row.processQty !== undefined && row.processQty !== '',
+      );
+      if (!filled.length) {
+        ElementPlus.ElMessage.error('请填写弹窗内所有组合 SKU 的加工数量');
+        return;
+      }
+      if (filled.length !== groups.length) {
+        ElementPlus.ElMessage.error('请填写弹窗内所有组合 SKU 的加工数量');
+        return;
+      }
+      const invalid = filled.find(
+        (row) =>
+          !Number.isInteger(Number(row.processQty)) ||
+          Number(row.processQty) <= 0 ||
+          Number(row.processQty) > row.processableQty,
+      );
+      if (invalid) {
+        ElementPlus.ElMessage.error(`组合 SKU ${invalid.comboSku} 的本次加工数量必须为正整数，且不能超过可加工数量`);
+        return;
+      }
+      const stockCheck = {};
+      for (const parent of filled) {
+        const stockMap = warehouseStock[parent.warehouse] || {};
+        const children = processingRows.value.filter((row) => row.comboKey === parent.comboKey);
+        for (const child of children) {
+          const key = `${parent.warehouse}-${child.subSku}`,
+            available = stockCheck[key] ?? Number(stockMap[child.subSku] || 0),
+            needed = Number(parent.processQty) * Number(child.ratio || 1);
+          if (needed > available) {
+            ElementPlus.ElMessage.error(`组合 SKU ${parent.comboSku} 的子件 ${child.subSku} 在发货仓库存不足`);
+            return;
+          }
+          stockCheck[key] = available - needed;
+        }
+      }
+      const total = processingQtyTotal.value;
+      const docsInvolved = [...new Set(filled.map((r) => r.docId))];
+      const confirmMsg =
+        processingMode.value === 'batch'
+          ? `涉及 ${docsInvolved.length} 张发货单，共加工 ${total} 套组合 SKU。确认后将扣减子 SKU 库存，是否继续？`
+          : `共加工 ${total} 套组合 SKU。确认后将扣减子 SKU 库存，是否继续？`;
+      try {
+        await ElementPlus.ElMessageBox.confirm(confirmMsg, '确认物流加工', {
+          type: 'warning',
+          confirmButtonText: '确认加工',
+          cancelButtonText: '取消',
+        });
+      } catch {
+        return;
+      }
+      processingSubmitting.value = true;
+      const detailsByDoc = {};
+      filled.forEach((parent) => {
+        const qty = Number(parent.processQty);
+        const children = processingRows.value.filter((row) => row.comboKey === parent.comboKey);
+        const warehouseStockMap = warehouseStock[parent.warehouse] || {};
+        const subConsumed = [];
+        children.forEach((child) => {
+          const consumedQty = qty * Number(child.ratio || 1);
+          const stockBefore = Number(warehouseStockMap[child.subSku] || 0);
+          const stockAfter = stockBefore - consumedQty;
+          child.stock = Math.max(stockAfter, 0);
+          warehouseStockMap[child.subSku] = Math.max(stockAfter, 0);
+          subConsumed.push({
+            sku: child.subSku,
+            name: child.subName,
+            ratio: Number(child.ratio || 1),
+            qty: consumedQty,
+            warehouse: parent.warehouse,
+            stockBefore,
+            stockAfter,
+          });
+        });
+        warehouseStockMap[parent.comboSku] = Number(warehouseStockMap[parent.comboSku] || 0) + qty;
+        const relatedDoc = docs.find((doc) => doc.id === parent.docId);
+        if (relatedDoc) {
+          const item = relatedDoc.items.find((x) => x.sku === parent.comboSku && x.plan === parent.comboPlanNo);
+          if (item) item.processedQty = Number(item.processedQty || 0) + qty;
+          relatedDoc.processedQty = relatedDoc.items.reduce((s, x) => s + Number(x.processedQty || 0), 0);
+          if (!detailsByDoc[parent.docId]) detailsByDoc[parent.docId] = { doc: relatedDoc, items: [] };
+          detailsByDoc[parent.docId].items.push({
+            sku: parent.comboSku,
+            plan: item?.plan || '—',
+            qty,
+            warehouse: parent.warehouse,
+            finishedQty: qty,
+            subConsumed,
+          });
+        }
+      });
+      Object.values(detailsByDoc).forEach(({ doc, items }) => {
+        const batchQty = items.reduce((s, x) => s + x.qty, 0);
+        doc.batches.unshift({
+          no: `SO${String(Date.now()).slice(-10)}`,
+          type: '加工',
+          quantityType: 'processing',
+          source: 'manual',
+          date: formatOperationTime(),
+          skuCount: `${items.length} 个`,
+          qty: batchQty,
+          operator: '运营用户',
+          status: '已完成',
+          details: items,
+        });
+        const comboItems = doc.items.filter((x) => skuMeta(x.sku).skuType === '组合' && comboBom[x.sku]);
+        const allComboProcessed = comboItems.every(
+          (x) => Number(x.processedQty || 0) >= Number(x.subSetPickedQty || 0),
+        );
+        if (allComboProcessed && doc.status === '待加工') {
+          doc.status = '待发货';
+          doc.logistics = '未发货';
+          doc.items.forEach((x) => {
+            x.status = '待发货';
+          });
+        }
+      });
+      processingSubmitting.value = false;
+      processingVisible.value = false;
+      ElementPlus.ElMessage.success(`物流加工完成，共加工 ${total} 件组合 SKU`);
+    };
+    const importVisible = ref(false),
+      importUploadRef = ref(),
+      importType = ref('fee'),
+      importFile = ref(null),
+      importTemplateDownloaded = ref(false);
+    const feeImportFields = [
+      '发货单号',
+      '箱规重量（kg）',
+      '箱规体积（m³）',
+      '预计单价（CNY/kg）',
+      '预计物流费用（CNY）',
+      '实际重量（kg）',
+      '实际体积（m³）',
+      '实际单价（CNY）',
+      '头程物流费（CNY）',
+      '清关税费（CNY）',
+      '其他物流费用（CNY）',
+      '费用备注',
+      '总辅料成本（CNY）',
+      '头程费用合计（CNY）',
+    ];
+    const feeRequiredFields = [
+      '发货单号',
+      '头程物流费（CNY）',
+      '清关税费（CNY）',
+      '其他物流费用（CNY）',
+      '总辅料成本（CNY）',
+      '头程费用合计（CNY）',
+    ];
+    const feeAutoFields = ['体积重（kg）', '计费重（kg）', '实际体积重（kg）', '实际计费重（kg）'];
+    const trackImportFields = [
+      '中台发货单号',
+      '物流状态',
+      '物流单号',
+      '下单日期',
+      '预计发货日期',
+      '实际发货日期',
+      '预计开船日期',
+      '实际开船日期',
+      '预计到港日期',
+      '实际到港日期',
+      '预计到货日期',
+      '实际到货日期',
+      '预计物流时长（整数）',
+      '实际物流时长（整数）',
+      '承运商',
+    ];
+    const trackRequiredFields = ['中台发货单号'];
+    const trackDateFields = [
+      '下单日期',
+      '预计发货日期',
+      '实际发货日期',
+      '预计开船日期',
+      '实际开船日期',
+      '预计到港日期',
+      '实际到港日期',
+      '预计到货日期',
+      '实际到货日期',
+    ];
+    const trackIntFields = ['预计物流时长（整数）', '实际物流时长（整数）'];
+    const feeImportHints = [
+      '必填，填写中台发货单号',
+      '数字，如 3',
+      '数字，如 0.0001',
+      '数字，如 0.02',
+      '数字，如 3',
+      '数字，如 15',
+      '数字，如 45',
+      '数字，如 3',
+      '数字，如 0.0001',
+      '数字',
+      '数字',
+      '数字，如 15',
+      '必填，数字，如 100',
+      '必填，数字，如 20',
+      '必填，数字，如 10',
+      '选填，文本说明',
+      '必填，数字，如 5',
+      '必填，数字，如 135',
+    ];
+    const trackImportHints = [
+      '必填，填写中台发货单号',
+      '文本，如 运输中',
+      '文本，物流跟踪单号',
+      '日期，格式 YYYY/MM/DD，如 2026/06/30',
+      '日期，格式 YYYY/MM/DD',
+      '日期，格式 YYYY/MM/DD',
+      '日期，格式 YYYY/MM/DD',
+      '日期，格式 YYYY/MM/DD',
+      '日期，格式 YYYY/MM/DD',
+      '日期，格式 YYYY/MM/DD',
+      '日期，格式 YYYY/MM/DD',
+      '日期，格式 YYYY/MM/DD',
+      '整数，如 30',
+      '整数，如 32',
+      '格式：承运商名称：上网单号：备注；示例：美国邮政：YD467897：港口到旧金山；',
+    ];
+    const importTitle = computed(() => (importType.value === 'fee' ? '导入物流费用' : '导入轨迹信息'));
+    const importFields = computed(() => (importType.value === 'fee' ? feeImportFields : trackImportFields));
+    const importStep = computed(() => (importFile.value ? 2 : importTemplateDownloaded.value ? 1 : 0));
+    const openImport = (type) => {
+      importType.value = type;
+      importFile.value = null;
+      importTemplateDownloaded.value = false;
+      importVisible.value = true;
+      nextTick(() => importUploadRef.value?.clearFiles());
+    };
+    const onImportFileChange = (file) => {
+      importFile.value = file;
+    };
+    const removeImportFile = () => {
+      importFile.value = null;
+    };
+    const parseCsvLine = (line) => {
+      const out = [];
+      let cur = '',
+        q = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (q) {
+          if (c === '"') {
+            if (line[i + 1] === '"') {
+              cur += '"';
+              i++;
+            } else q = false;
+          } else cur += c;
+        } else {
+          if (c === '"') q = true;
+          else if (c === ',') {
+            out.push(cur);
+            cur = '';
+          } else cur += c;
+        }
+      }
+      out.push(cur);
+      return out;
+    };
+    const downloadImportTemplate = () => {
+      const fields = importType.value === 'fee' ? feeImportFields : trackImportFields;
+      const required = importType.value === 'fee' ? feeRequiredFields : trackRequiredFields;
+      const hints = importType.value === 'fee' ? feeImportHints : trackImportHints;
+      const headers = fields.map((f) => (required.includes(f) ? `*${f}` : f));
+      const csv =
+        '\ufeff' + headers.map((field) => `"${field}"`).join(',') + '\n' + hints.map((h) => `"${h}"`).join(',') + '\n';
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }),
+        url = URL.createObjectURL(blob),
+        link = document.createElement('a');
+      link.href = url;
+      link.download = `${importTitle.value}模板.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      importTemplateDownloaded.value = true;
+      ElementPlus.ElMessage.success('模板已下载，请按模板填写后导入');
+    };
+    const checkImportFile = (onSuccess) => {
+      if (!importFile.value) {
+        ElementPlus.ElMessage.warning('请先选择需要导入的文件');
+        return;
+      }
+      const name = (importFile.value.name || '').toLowerCase();
+      if (!['.xlsx', '.xls', '.csv'].some((ext) => name.endsWith(ext))) {
+        ElementPlus.ElMessage.error('文件格式不正确，请上传 .xlsx、.xls 或 .csv 文件');
+        return;
+      }
+      if (!name.endsWith('.csv')) {
+        onSuccess();
+        return;
+      }
+      const file = importFile.value.raw || importFile.value;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result || '').replace(/^\ufeff/, '');
+        const lines = text.split(/\r?\n/).filter((l) => l.trim());
+        if (!lines.length) {
+          ElementPlus.ElMessage.error('文件内容为空，导入失败');
+          return;
+        }
+        const header = parseCsvLine(lines[0]).map((h) => h.trim().replace(/^\*/, ''));
+        const required = importType.value === 'fee' ? feeRequiredFields : trackRequiredFields;
+        if (importType.value === 'fee') {
+          const unsupported = feeAutoFields.filter((f) => header.includes(f));
+          if (unsupported.length) {
+            ElementPlus.ElMessage.error(`导入失败：以下字段由系统自动计算，不支持导入：${unsupported.join('、')}`);
+            return;
+          }
+        }
+        const missing = required.filter((f) => !header.includes(f));
+        if (missing.length) {
+          ElementPlus.ElMessage.error(`导入失败：模板表头缺少必填字段 ${missing.join('、')}`);
+          return;
+        }
+        const errors = [];
+        lines.slice(2).forEach((line, i) => {
+          const cells = parseCsvLine(line);
+          required.forEach((f) => {
+            const idx = header.indexOf(f);
+            const v = (cells[idx] || '').trim();
+            if (!v) errors.push(`第${i + 3}行「${f}」为空`);
+          });
+          if (importType.value === 'track') {
+            trackDateFields.forEach((f) => {
+              const idx = header.indexOf(f);
+              if (idx > -1) {
+                const v = (cells[idx] || '').trim();
+                if (v && !/^\d{4}\/\d{2}\/\d{2}$/.test(v)) errors.push(`第${i + 3}行「${f}」格式应为 YYYY/MM/DD`);
+              }
+            });
+            trackIntFields.forEach((f) => {
+              const idx = header.indexOf(f);
+              if (idx > -1) {
+                const v = (cells[idx] || '').trim();
+                if (v && !/^\d+$/.test(v)) errors.push(`第${i + 3}行「${f}」应为整数`);
+              }
+            });
+          }
+        });
+        if (errors.length) {
+          ElementPlus.ElMessage.error(
+            `导入失败：${errors.slice(0, 5).join('；')}${errors.length > 5 ? ` 等共 ${errors.length} 处` : ''}`,
+          );
+          return;
+        }
+        onSuccess();
+      };
+      reader.onerror = () => {
+        ElementPlus.ElMessage.error('文件读取失败，请重试');
+      };
+      reader.readAsText(file);
+    };
+    const submitImport = () => {
+      checkImportFile(() => {
+        const title = importTitle.value;
+        importVisible.value = false;
+        ElementPlus.ElMessage.success(`${title}成功，系统将按发货单号更新对应数据`);
+      });
+    };
 
-  const scrollDetailTo=id=>{detailActive.value=id;nextTick(()=>{const target=document.getElementById(id),container=detailScrollRef.value;if(target&&container)container.scrollTo({top:Math.max(target.offsetTop-container.offsetTop-4,0),behavior:'smooth'})})};
-  const onDetailScroll=()=>{const container=detailScrollRef.value;if(!container)return;let active='detail-info';detailNavItems.forEach(item=>{const section=document.getElementById(item.id);if(section&&section.offsetTop-container.offsetTop<=container.scrollTop+60)active=item.id});detailActive.value=active};
-  const openDetail=row=>{
-    if(!row.created&&row.id&&row.id.startsWith('DN')){
-      const id=row.id;
-      row.created=`20${id.slice(2,4)}-${id.slice(4,6)}-${id.slice(6,8)} 10:00:00`;
-    }
-    if(row.referenceId===undefined)row.referenceId='—';
-    if(row.totalBoxes===undefined)row.totalBoxes=row.boxes?row.boxes.length:0;
-    if(row.receiveOrderNo===undefined)row.receiveOrderNo='—';
-    if(!row.fromAddress)row.fromAddress={contact:'—',phone:'—',country:'中国',province:'广东',city:'深圳',district:'—',detail:row.from||'—',zip:'518000'};
-    if(!row.toAddress)row.toAddress={contact:'—',phone:'—',country:'美国',province:'California',city:'—',district:'—',detail:row.to||'—',zip:'—'};
-    currentDoc.value=row;detailActive.value='detail-info';editingFee.value=false;editingTrack.value=false;detailVisible.value=true;nextTick(()=>{if(detailScrollRef.value)detailScrollRef.value.scrollTop=0})
-  };
-  const batchVisible=ref(false),batchRows=ref([]),batchForm=reactive({type:'提货',date:'2026-08-06',logisticsNo:''});const openBatch=row=>{if(!row)return;currentDoc.value=row;batchRows.value=row.items.map(x=>({...x,batchQty:0}));batchVisible.value=true};const saveBatch=()=>{if(!batchRows.value.some(x=>x.batchQty>0)){ElementPlus.ElMessage.warning('请至少为一个 SKU 分配数量');return}batchVisible.value=false;ElementPlus.ElMessage.success('履约批次已保存')};
-  const exportData=()=>ElementPlus.ElMessage.success('导出任务已创建');
-  const handleExportCommand=cmd=>{if(cmd==='shipmentInfo'){ElementPlus.ElMessage.success('正在导出发货单信息...')}else if(cmd==='skuDetail'){ElementPlus.ElMessage.success('正在导出发货 SKU 明细...')}};
-  const erpDetailVisible=ref(false),erpDetailDoc=ref(null),erpDetailRows=ref([]);
-  const openErpDetail=row=>{erpDetailDoc.value=row;erpDetailRows.value=[{planNo:'EP20260809001',orderNo:'PO20260809001',pickOffNo:'PK20260809001',entryNo:'IN20260809001'},{planNo:'EP20260809002',orderNo:'PO20260809002',pickOffNo:'PK20260809002',entryNo:'IN20260809002'}];erpDetailVisible.value=true};
-  const refreshLoading=ref(false);
-  const refreshData=async()=>{if(refreshLoading.value)return;refreshLoading.value=true;try{await new Promise(resolve=>setTimeout(resolve,600));ElementPlus.ElMessage.success('数据刷新成功，已完成最新发货单数据拉取')}finally{refreshLoading.value=false}};
-  return{statuses,warehouses,pickupWarehouses,destWarehouses,shipModes,providers,transports,channels,countries,platformOptions,teamOptions,storeOptions,creatorOptions,comboFinishedStockByWarehouse,comboSubStockByWarehouse,codeTypeOptions,skuTypeOptions,codeTypeLabel,skuTypeLabel,query,queryExpanded,queryOverflow,statusTab,filteredDocs,statusCount,applyQuery,resetQuery,tagType,createVisible,createFormRef,createForm,createRules,selectedSkus,declareTotal,canAddSku,openCreate,openEdit,editingDoc,cancelVisible,cancelDoc,cancelRemark,cancelSubmitting,cancelShip,submitCancelShip,skuVisible,skuTableRef,skuSearch,filteredSkuCandidates,openSkuDialog,runSkuQuery,resetSkuQuery,onSkuSelection,confirmSkuSelection,removeSku,saveDraft,submitCreate,transitionStatus,voidDocument,selectedDocs,mainTableRef,onDocSelection,completeVisible,completeDoc,completeDocs,completeFormRef,completeForm,completeReasonOptions,completeFormRules,completeSubmitting,openComplete,submitComplete,quantityAdjustVisible,quantityAdjustDoc,quantityAdjustType,quantityAdjustTypeOptions,quantityAdjustTypeLabel,quantityAdjustReasonOptions,quantityAdjustRows,quantityAdjustReason,quantityAdjustRemark,quantityAdjustSubmitting,quantityAdjustChanged,quantityAdjustRowError,openQuantityAdjust,changeQuantityAdjustType,submitQuantityAdjust,logVisible,logDoc,logPage,logPageSize,logRows,openLog,pickupVisible,pickupDoc,pickupTableRef,pickupRows,visiblePickupRows,pickupSubmitting,pickupUnresolvedDiff,pickupRowClassName,pickupSpanMethod,pickupRemainingTotal,pickupQtyTotal,pickupAfterRemaining,pickupNextStatus,comboPickupTotal,openPickup,onPickupWarehouseChange,onSubWarehouseChange,onFulfillmentModeChange,togglePickupMode,onFinishedWarehouseChange,submitPickup,shipVisible,shipDoc,shipTableRef,shipRows,shipSelection,shipSubmitting,diffReasonOptions,shipSelectable,isShipSelected,shipRemainingTotal,shipQtyTotal,shipAfterRemaining,openShip,onShipSelection,fillShipRemaining,submitShip,receiveVisible,receiveDoc,receiveTableRef,receiveRows,receiveSelection,receiveSubmitting,receiveSelectable,isReceiveSelected,receiveRemainingTotal,receiveQtyTotal,receiveAfterRemaining,receiveNextStatus,openReceive,onReceiveSelection,fillReceiveRemaining,submitReceive,processingVisible,processingRows,filteredProcessingRows,processingSearch,supplierOptions,processingSubmitting,processingDocId,processingMode,processingGroups,processingQtyTotal,processingBatchSummary,processingSpanMethod,fillAllProcessingQty,clearAllProcessingQty,resetProcessingSearch,removeProcessingGroup,openProcessing,openBatchProcessing,submitProcessing,importVisible,importUploadRef,importFile,importTitle,importFields,importStep,openImport,onImportFileChange,removeImportFile,downloadImportTemplate,submitImport,costApportionVisible,costApportionTypeFormRef,costApportionFormRef,costApportionBatchTableRef,costApportionTypes,costApportionRulesOptions,costApportionOwners,costApportionForm,costApportionRules,costApportionTypeRules,costApportionRows,costApportionSelection,costApportionBatchRows,costApportionBatchSelection,costApportionSearch,openCostApportion,costApportionSkuCount,costApportionQtyTotal,costApportionTotal,queryCostApportionBatch,resetCostApportionSearch,onCostApportionBatchSelection,onCostApportionSelection,removeCostApportionRow,submitCostApportion,resetCostApportion,detailVisible,currentDoc,canEditFeeTrack,detailNavItems,detailActive,detailScrollRef,pickupDetailRows,processingDetailRows,receiveDetailRows,logisticsFeeFields,trackingFields,boxList,scrollDetailTo,onDetailScroll,openDetail,editingFee,editingTrack,feeForm,trackForm,editFee,saveFee,cancelFee,editTrack,saveTrack,cancelTrack,batchVisible,batchRows,batchForm,openBatch,saveBatch,exportData,handleExportCommand,erpDetailVisible,erpDetailDoc,erpDetailRows,openErpDetail,refreshLoading,refreshData,diffDetailVisible,diffDetailDoc,diffDetailRows,openDiffDetail,placeholderProductImage,skuMeta,comboParts,isAmazonOption,extractNumber,formatAddress}
-}}).use(ElementPlus).mount('#app');
+    const costApportionVisible = ref(false),
+      costApportionTypeFormRef = ref(),
+      costApportionFormRef = ref();
+    const costApportionTypes = ['提货运费', '其他出库费', '加工费（物流加工）'],
+      costApportionRulesOptions = ['按数量分摊', '按金额分摊'],
+      costApportionOwners = ['willTest5', 'willTest1', 'yepei12345', 'yepei666', 'willTest4', 'willTest3', 'willTest2'];
+    const costApportionForm = reactive({ type: '', amount: undefined, rule: '', owner: '', remark: '' });
+    const costApportionRules = {
+      type: [{ required: true, message: '请选择费用类型', trigger: 'change' }],
+      amount: [{ required: true, message: '请输入费用金额', trigger: 'blur' }],
+      rule: [{ required: true, message: '请选择分摊规则', trigger: 'change' }],
+      owner: [{ required: true, message: '请选择负责人', trigger: 'change' }],
+    };
+    const costApportionTypeRules = { type: costApportionRules.type };
+    const costApportionSearch = reactive({ docType: 'middleDoc', docNo: '', teams: [], batchNo: '', period: [] });
+    const costApportionRows = reactive([]);
+    const costApportionBatchRows = reactive([]);
+    const allPickBatches = reactive([]);
+    const parseDate = (str) => {
+      if (!str) return null;
+      const d = new Date(str);
+      return isNaN(d) ? null : d;
+    };
+    const inPeriod = (dateStr, period) => {
+      if (!period || !period[0] || !period[1] || !dateStr) return false;
+      const d = parseDate(dateStr),
+        s = parseDate(period[0]),
+        e = parseDate(period[1]);
+      if (!d || !s || !e) return false;
+      return d >= new Date(s.setHours(0, 0, 0, 0)) && d <= new Date(e.setHours(23, 59, 59, 999));
+    };
+    const parseFee = (str) => {
+      if (!str || str === '—') return 0;
+      const n = Number(String(str).replace(/[^0-9.-]/g, ''));
+      return isNaN(n) ? 0 : n;
+    };
+    const openCostApportion = () => {
+      Object.assign(costApportionForm, { type: '', amount: undefined, rule: '', owner: '', remark: '' });
+      Object.assign(costApportionSearch, { docType: 'middleDoc', docNo: '', teams: [], batchNo: '', period: [] });
+      costApportionRows.splice(0, costApportionRows.length);
+      costApportionVisible.value = true;
+      buildAllPickBatches();
+      queryCostApportionBatch();
+    };
+    const normalizeBatchDetails = (batch, doc) => {
+      if (batch.details?.length)
+        return batch.details.flatMap((item, index) => {
+          const rows = [];
+          if (item.finishedDetail)
+            rows.push({
+              ...item.finishedDetail,
+              sku: item.sku,
+              plan: item.plan,
+              qty: item.finishedQty ?? item.finishedDetail.qty,
+              isCombo: true,
+              fulfillmentMode: 'finished',
+              parentBatchNo: item.parentBatchNo,
+            });
+          if (item.subDetails?.length)
+            item.subDetails
+              .filter((s) => Number(s.qty || s.pickupQty || 0) > 0)
+              .forEach((s, subIndex) =>
+                rows.push({
+                  sku: s.subSku || s.sku,
+                  name: s.subName || s.name,
+                  plan: item.plan,
+                  qty: s.qty ?? s.pickupQty,
+                  warehouse: s.warehouse || item.warehouse,
+                  isCombo: true,
+                  fulfillmentMode: 'sub',
+                  batchNo: s.batchNo,
+                  parentBatchNo: item.parentBatchNo,
+                  remark: s.remark || item.remark,
+                  freight: s.freight ?? item.freight,
+                  otherOutboundFee: s.otherOutboundFee ?? item.otherOutboundFee,
+                  processingFee: s.processingFee ?? item.processingFee,
+                  sourceIndex: index,
+                  subIndex,
+                }),
+              );
+          if (!rows.length) rows.push({ ...item });
+          return rows;
+        });
+      const sku = batch.sku || batch.itemSku || batch.detail?.sku || doc?.items?.[0]?.sku || '—';
+      return [
+        {
+          sku,
+          plan: batch.plan || batch.planNo || '—',
+          qty: batch.qty ?? batch.quantity ?? batch.finishedQty ?? batch.processedQty ?? 0,
+          warehouse: batch.warehouse || doc?.from || '—',
+          remark: batch.remark || '—',
+        },
+      ];
+    };
+    const buildAllPickBatches = () => {
+      allPickBatches.splice(0, allPickBatches.length);
+      docs.forEach((doc) => {
+        (doc.batches || [])
+          .filter((b) => b.type === '提货' && b.status === '已完成')
+          .forEach((batch) => {
+            normalizeBatchDetails(batch, doc).forEach((item) => {
+              if (item.apportioned) return;
+              const key = `${doc.id}-${item.batchNo || batch.no}-${item.sku}-${item.pickupMode || item.fulfillmentMode || ''}-${item.warehouse || ''}`;
+              allPickBatches.push({
+                docId: doc.id,
+                batchNo: item.batchNo || batch.no,
+                planNo: item.plan || '—',
+                sku: item.sku,
+                name: item.name || skuMeta(item.sku).title || item.sku,
+                sellerSku: skuMeta(item.sku).sellerSku || '—',
+                team: skuMeta(item.sku).team || '—',
+                qty: item.actualQty ?? item.qty ?? 0,
+                date: batch.date,
+                pickupRemark: item.remark || '—',
+                freight: item.freight ?? batch.freight ?? '—',
+                otherOutboundFee: item.otherOutboundFee ?? batch.otherOutboundFee ?? '—',
+                processingFee: item.processingFee ?? batch.processingFee ?? '—',
+                apportioned: Boolean(item.apportioned),
+                key,
+              });
+            });
+          });
+      });
+    };
+    const costApportionSkuCount = computed(() => new Set(costApportionRows.map((r) => r.sku)).size);
+    const costApportionQtyTotal = computed(() => costApportionRows.reduce((sum, r) => sum + (Number(r.qty) || 0), 0));
+    const recalcApportionAmount = () => {
+      const total = Number(costApportionForm.amount) || 0;
+      if (!total || !costApportionRows.length) {
+        costApportionRows.forEach((r) => (r.apportionAmount = '¥0.00'));
+        return;
+      }
+      const baseKey =
+        costApportionForm.type === '提货运费'
+          ? 'freight'
+          : costApportionForm.type === '其他出库费'
+            ? 'otherOutboundFee'
+            : 'processingFee';
+      const bases =
+        costApportionForm.rule === '按数量分摊'
+          ? costApportionRows.map((r) => Number(r.qty) || 0)
+          : costApportionForm.rule === '按金额分摊'
+            ? costApportionRows.map((r) => parseFee(r[baseKey]))
+            : [];
+      const baseTotal = bases.reduce((sum, value) => sum + value, 0);
+      if (!baseTotal) {
+        costApportionRows.forEach((r) => (r.apportionAmount = '¥0.00'));
+        return;
+      }
+      let allocated = 0;
+      costApportionRows.forEach((row, index) => {
+        const amount =
+          index === costApportionRows.length - 1
+            ? total - allocated
+            : Number(((total * bases[index]) / baseTotal).toFixed(2));
+        allocated += amount;
+        row.apportionAmount = `¥${amount.toFixed(2)}`;
+      });
+    };
+    const costApportionTotal = computed(() => {
+      const total = costApportionRows.reduce((sum, r) => sum + parseFee(r.apportionAmount), 0);
+      return '¥' + total.toFixed(2);
+    });
+    watch(() => [costApportionForm.amount, costApportionForm.rule, costApportionForm.type], recalcApportionAmount, {
+      deep: true,
+    });
+    const queryCostApportionBatch = () => {
+      costApportionBatchRows.splice(0, costApportionBatchRows.length);
+      const docNo = costApportionSearch.docNo.trim(),
+        batchNo = costApportionSearch.batchNo.trim();
+      allPickBatches
+        .filter((b) => {
+          const doc = docs.find((d) => d.id === b.docId);
+          const matchDoc =
+            !docNo ||
+            (costApportionSearch.docType === 'middleDoc'
+              ? doc
+                ? String(doc.id || '').includes(docNo)
+                : false
+              : doc
+                ? (doc.yicangNo || '').includes(docNo) || (doc.lingxingNo || '').includes(docNo)
+                : false);
+          const matchTeam = !costApportionSearch.teams.length || costApportionSearch.teams.includes(b.team);
+          const matchBatch = !batchNo || String(b.batchNo || '').includes(batchNo);
+          const matchPeriod = inPeriod(b.date, costApportionSearch.period);
+          return matchDoc && matchTeam && matchBatch && matchPeriod;
+        })
+        .forEach((b) => costApportionBatchRows.push(b));
+      costApportionRows.splice(0, costApportionRows.length, ...costApportionBatchRows.map((b) => ({ ...b })));
+      recalcApportionAmount();
+    };
+    const resetCostApportionSearch = () => {
+      Object.assign(costApportionSearch, { docType: 'middleDoc', docNo: '', teams: [], batchNo: '', period: [] });
+      queryCostApportionBatch();
+    };
+    const submitCostApportion = async () => {
+      try {
+        await costApportionTypeFormRef.value.validate();
+        await costApportionFormRef.value.validate();
+      } catch {
+        return;
+      }
+      if (!costApportionRows.length) {
+        ElementPlus.ElMessage.warning('未查询到可分摊批次，请调整筛选条件后重试');
+        return;
+      }
+      const feeKey =
+        costApportionForm.type === '提货运费'
+          ? 'freight'
+          : costApportionForm.type === '其他出库费'
+            ? 'otherOutboundFee'
+            : 'processingFee';
+      costApportionRows.forEach((row) => {
+        const doc = docs.find((d) => d.id === row.docId),
+          batch = doc?.batches?.find((b) => b.no === row.batchNo);
+        if (!doc || !batch) return;
+        let item = (batch.details || []).find((detail) => detail.sku === row.sku && detail.plan === row.planNo);
+        if (!item) {
+          const parent = (batch.details || []).find((detail) =>
+            (detail.subDetails || []).some((sub) => (sub.subSku || sub.sku) === row.sku),
+          );
+          const sub = parent?.subDetails?.find((s) => (s.subSku || s.sku) === row.sku);
+          if (sub) {
+            item = sub;
+            item.sku = item.sku || item.subSku;
+          }
+        }
+        item = item || batch.details?.[0] || batch;
+        const amount = parseFee(row.apportionAmount),
+          record = {
+            type: costApportionForm.type,
+            amount,
+            rule: costApportionForm.rule,
+            owner: costApportionForm.owner,
+            remark: costApportionForm.remark || '',
+            date: formatOperationTime(),
+          };
+        item[feeKey] = `¥${(parseFee(item[feeKey]) + amount).toFixed(2)}`;
+        item.costApportionments = item.costApportionments || [];
+        item.costApportionments.push(record);
+        item.apportioned = true;
+      });
+      buildAllPickBatches();
+      ElementPlus.ElMessage.success(
+        `费用分摊成功，共 ${costApportionRows.length} 个批次，合计 ${costApportionTotal.value}`,
+      );
+      costApportionVisible.value = false;
+    };
+    const resetCostApportion = () => {
+      Object.assign(costApportionForm, { type: '', amount: undefined, rule: '', owner: '', remark: '' });
+      Object.assign(costApportionSearch, { docType: 'middleDoc', docNo: '', teams: [], batchNo: '', period: [] });
+      queryCostApportionBatch();
+      recalcApportionAmount();
+    };
 
-(function(){
-  function initPageNav(){
-    document.querySelectorAll('[data-page-nav]').forEach(item=>{
-      item.onclick=()=>{
-        const page=item.dataset.pageNav;
-        if(window.parent!==window){
-          window.parent.postMessage({type:'prototype:navigate',page},'*');
-        }else{
-          window.location.href={forecast:'../demand-forecast/index.html',stock:'../stock-plan/index.html',purchase:'../purchase-plan/index.html',shipment:'../shipment-plan/index.html',purchaseOrder:'../purchase-orders/index.html',shipmentOrder:'../shipment-orders/index.html',skuFirstLegCost:'../sku-first-leg-cost/index.html',supplierInventory:'../supplier-inventory/index.html'}[page];
+    const processingDetailRows = computed(() => {
+      const doc = currentDoc.value;
+      if (!doc) return [];
+      return (doc.batches || [])
+        .filter((batch) => batch.type === '加工')
+        .flatMap((batch) =>
+          normalizeBatchDetails(batch, doc).map((item) => ({
+            batchNo: item.batchNo || batch.no,
+            date: batch.date,
+            sku: item.sku || '—',
+            plan: item.plan || item.planNo || '—',
+            docId: doc.id,
+            qty: item.qty ?? item.processedQty ?? item.finishedQty ?? batch.qty ?? 0,
+            warehouse: item.warehouse || doc.from || '—',
+            finishedQty: item.finishedQty ?? item.qty ?? item.processedQty ?? 0,
+            subDetails: (item.subConsumed || item.subDetails || batch.subConsumed || batch.subDetails || [])
+              .map(
+                (s) => `${s.sku || s.subSku || s} ×${s.qty || s.pickupQty || ''}${s.ratio ? `（配比${s.ratio}）` : ''}`,
+              )
+              .join(' / '),
+            operator: batch.operator || '—',
+            sourceLabel: batchSourceLabel(batch.source),
+          })),
+        );
+    });
+    const detailNavItems = [
+      { id: 'detail-info', creator: 'Admin', label: '发货单信息' },
+      { id: 'detail-sku', creator: 'Admin', label: 'SKU 明细' },
+      { id: 'detail-box', creator: 'Admin', label: 'SKU 箱信息' },
+      { id: 'detail-pickup', creator: 'Admin', label: '提货明细' },
+      { id: 'detail-processing', creator: 'Admin', label: '加工明细' },
+      { id: 'detail-receive', creator: 'Admin', label: '收货明细' },
+      { id: 'detail-fee', creator: 'Admin', label: '物流费用' },
+      { id: 'detail-track', creator: 'Admin', label: '轨迹信息' },
+      { id: 'detail-boxes', creator: 'Admin', label: '装箱明细' },
+    ];
+    const detailVisible = ref(false),
+      currentDoc = ref(null),
+      detailActive = ref('detail-info'),
+      detailScrollRef = ref();
+    const parseMoney = (str) => {
+      if (!str) return 0;
+      const n = Number(String(str).replace(/[^0-9.-]/g, ''));
+      return isNaN(n) ? 0 : n;
+    };
+    const formatMoney = (n, symbol = '¥') => `${symbol}${n.toLocaleString('en-US')}`;
+    const editingFee = ref(false),
+      editingTrack = ref(false);
+    const canEditFeeTrack = computed(() => {
+      const s = currentDoc.value?.status;
+      return Boolean(s) && !['草稿', '已作废', '已取消'].includes(s);
+    });
+    const extractNumber = (str) => {
+      if (!str || str === '—') return '';
+      const n = String(str).replace(/[^0-9.-]/g, '');
+      return n;
+    };
+    const formatAddress = (addr) => {
+      if (!addr) return '—';
+      const parts = [
+        addr.contact,
+        addr.phone,
+        addr.country,
+        addr.province,
+        addr.city,
+        addr.district,
+        addr.detail,
+        addr.zip,
+      ].filter((v) => v && v !== '—');
+      return parts.length ? parts.join(' ') : '—';
+    };
+    const feeMoneyKeys = ['actualFreight', 'customsFee', 'otherLogisticsFee', 'totalAccessoryCost', 'firstLegTotal'];
+    const feeUnitPriceKeys = ['actualUnitPrice'];
+    const feeUnits = {
+      boxWeight: 'kg',
+      boxVolume: 'm³',
+      volumeWeight: 'kg',
+      chargeWeight: 'kg',
+      estimatedUnitPrice: 'CNY/kg',
+      estimatedLogisticsFee: 'CNY',
+      actualWeight: 'kg',
+      actualVolume: 'm³',
+      actualVolumeWeight: 'kg',
+      actualChargeWeight: 'kg',
+      actualUnitPrice: 'CNY',
+      actualFreight: 'CNY',
+      customsFee: 'CNY',
+      otherLogisticsFee: 'CNY',
+      totalAccessoryCost: 'CNY',
+      firstLegTotal: 'CNY',
+    };
+    const feeForm = reactive({
+      boxWeight: '',
+      boxVolume: '',
+      volumeWeight: '',
+      chargeWeight: '',
+      estimatedUnitPrice: '',
+      estimatedLogisticsFee: '',
+      actualWeight: '',
+      actualVolume: '',
+      actualVolumeWeight: '',
+      actualChargeWeight: '',
+      actualUnitPrice: '',
+      actualFreight: '',
+      customsFee: '',
+      otherLogisticsFee: '',
+      feeShareMethod: '',
+      feeRemark: '',
+      totalAccessoryCost: '',
+      firstLegTotal: '',
+    });
+    const trackForm = reactive({
+      logistics: '',
+      logisticsNo: '',
+      orderDate: '',
+      expectedShipDate: '',
+      actualShipDate: '',
+      expectedSailDate: '',
+      actualSailDate: '',
+      expectedPortDate: '',
+      actualPortDate: '',
+      eta: '',
+      actualReceiveDate: '',
+      expectedTransitDuration: '',
+      actualTransitDuration: '',
+      providerNo: '',
+      carrier: '',
+    });
+    const initFeeForm = (doc) => {
+      if (!doc) return;
+      feeForm.boxWeight = extractNumber(doc.boxWeight) || '3';
+      feeForm.boxVolume = extractNumber(doc.boxVolume) || '0.0001';
+      feeForm.volumeWeight = extractNumber(doc.volumeWeight) || '0.0200';
+      feeForm.chargeWeight = extractNumber(doc.chargeWeight) || '3';
+      feeForm.estimatedUnitPrice = extractNumber(doc.estimatedUnitPrice) || '0';
+      feeForm.estimatedLogisticsFee = extractNumber(doc.estimatedLogisticsFee) || '0';
+      feeForm.actualWeight = extractNumber(doc.actualWeight) || '0';
+      feeForm.actualVolume = extractNumber(doc.actualVolume) || '0';
+      feeForm.actualVolumeWeight = extractNumber(doc.actualVolumeWeight) || '';
+      feeForm.actualChargeWeight = extractNumber(doc.actualChargeWeight) || '';
+      feeForm.actualUnitPrice = extractNumber(doc.actualUnitPrice) || '0';
+      feeForm.actualFreight = extractNumber(doc.actualFreight) || '0';
+      feeForm.customsFee = extractNumber(doc.customsFee) || '0';
+      feeForm.otherLogisticsFee = extractNumber(doc.otherLogisticsFee) || '0';
+      feeForm.feeShareMethod = doc.feeShareMethod || '按计费重';
+      feeForm.feeRemark = doc.feeRemark === '—' ? '' : doc.feeRemark || '';
+      feeForm.totalAccessoryCost = extractNumber(doc.totalAccessoryCost) || '0';
+      feeForm.firstLegTotal = extractNumber(doc.firstLegTotal) || '0';
+    };
+    const initTrackForm = (doc) => {
+      if (!doc) return;
+      trackForm.logistics = doc.logistics || '—';
+      trackForm.logisticsNo = doc.logisticsNo || '—';
+      trackForm.orderDate = doc.orderDate || doc.expectedShipDate || '';
+      trackForm.expectedShipDate = doc.expectedShipDate || '';
+      trackForm.actualShipDate = doc.actualShipDate || '';
+      trackForm.expectedSailDate = doc.expectedSailDate || '';
+      trackForm.actualSailDate = doc.actualSailDate || '';
+      trackForm.expectedPortDate = doc.expectedPortDate || '';
+      trackForm.actualPortDate = doc.actualPortDate || '';
+      trackForm.eta = doc.eta || '';
+      trackForm.actualReceiveDate = doc.actualReceiveDate || '';
+      trackForm.expectedTransitDuration = doc.expectedTransitDuration || '';
+      trackForm.actualTransitDuration = doc.actualTransitDuration || '—';
+      trackForm.providerNo = doc.providerNo || '—';
+      trackForm.carrier = doc.carrier || '—';
+    };
+    const editFee = () => {
+      if (!currentDoc.value) return;
+      if (!canEditFeeTrack.value) {
+        ElementPlus.ElMessage.warning('草稿/已作废/已取消状态不支持编辑物流费用');
+        return;
+      }
+      initFeeForm(currentDoc.value);
+      editingFee.value = true;
+    };
+    const saveFee = () => {
+      if (!currentDoc.value) return;
+      const d = currentDoc.value;
+      d.boxWeight = `${feeForm.boxWeight} kg`;
+      d.boxVolume = `${feeForm.boxVolume} m³`;
+      d.volumeWeight = `${feeForm.volumeWeight} kg`;
+      d.chargeWeight = `${feeForm.chargeWeight} kg`;
+      d.estimatedUnitPrice = `${feeForm.estimatedUnitPrice} CNY/kg`;
+      d.estimatedLogisticsFee = `${feeForm.estimatedLogisticsFee} CNY`;
+      d.actualWeight = `${feeForm.actualWeight} kg`;
+      d.actualVolume = `${feeForm.actualVolume} m³`;
+      d.actualVolumeWeight = feeForm.actualVolumeWeight ? `${feeForm.actualVolumeWeight} kg` : '—';
+      d.actualChargeWeight = feeForm.actualChargeWeight ? `${feeForm.actualChargeWeight} kg` : '—';
+      d.actualUnitPrice = `${feeForm.actualUnitPrice} CNY`;
+      d.actualFreight = formatMoney(Number(feeForm.actualFreight || 0));
+      d.customsFee = formatMoney(Number(feeForm.customsFee || 0));
+      d.otherLogisticsFee = formatMoney(Number(feeForm.otherLogisticsFee || 0));
+      d.feeShareMethod = feeForm.feeShareMethod;
+      d.feeRemark = feeForm.feeRemark || '—';
+      d.totalAccessoryCost = formatMoney(Number(feeForm.totalAccessoryCost || 0));
+      d.firstLegTotal = formatMoney(Number(feeForm.firstLegTotal || 0));
+      editingFee.value = false;
+      ElementPlus.ElMessage.success('物流费用保存成功');
+    };
+    const cancelFee = () => {
+      editingFee.value = false;
+    };
+    const editTrack = () => {
+      if (!currentDoc.value) return;
+      if (!canEditFeeTrack.value) {
+        ElementPlus.ElMessage.warning('草稿/已作废/已取消状态不支持编辑轨迹信息');
+        return;
+      }
+      initTrackForm(currentDoc.value);
+      editingTrack.value = true;
+    };
+    const saveTrack = () => {
+      if (!currentDoc.value) return;
+      const d = currentDoc.value;
+      d.logistics = trackForm.logistics;
+      d.logisticsNo = trackForm.logisticsNo;
+      d.orderDate = trackForm.orderDate;
+      d.expectedShipDate = trackForm.expectedShipDate;
+      d.actualShipDate = trackForm.actualShipDate;
+      d.expectedSailDate = trackForm.expectedSailDate;
+      d.actualSailDate = trackForm.actualSailDate;
+      d.expectedPortDate = trackForm.expectedPortDate;
+      d.actualPortDate = trackForm.actualPortDate;
+      d.eta = trackForm.eta;
+      d.actualReceiveDate = trackForm.actualReceiveDate;
+      d.expectedTransitDuration = trackForm.expectedTransitDuration;
+      d.actualTransitDuration = trackForm.actualTransitDuration;
+      d.providerNo = trackForm.providerNo;
+      d.carrier = trackForm.carrier;
+      editingTrack.value = false;
+      ElementPlus.ElMessage.success('轨迹信息保存成功');
+    };
+    const cancelTrack = () => {
+      editingTrack.value = false;
+    };
+    const pickupDetailRows = computed(() => {
+      const doc = currentDoc.value;
+      if (!doc) return [];
+      return (doc.batches || [])
+        .filter((batch) => batch.type === '提货')
+        .flatMap((batch) =>
+          normalizeBatchDetails(batch, doc).map((item) => {
+            const sourceItem = (doc.items || []).find((x) => x.sku === item.sku && x.plan === item.plan),
+              meta = skuMeta(item.sku),
+              isCombo = Boolean(
+                item.isCombo ||
+                item.skuType === '组合' ||
+                item.skuType === '子件' ||
+                item.pickupMode === 'finished' ||
+                item.pickupMode === 'sub',
+              ),
+              pickupMode =
+                item.pickupMode ||
+                (item.fulfillmentMode === 'finished_product'
+                  ? 'finished'
+                  : item.fulfillmentMode === 'sub_parts' || item.fulfillmentMode === 'sub'
+                    ? 'sub'
+                    : isCombo
+                      ? 'finished'
+                      : 'normal'),
+              qty = Number(item.qty || 0);
+            return {
+              batchNo: item.batchNo || batch.no,
+              parentBatchNo: item.parentBatchNo || batch.parentBatchNo || '—',
+              date: batch.date,
+              sku: item.sku || '—',
+              plan: item.plan || '—',
+              warehouse: item.warehouse || batch.warehouse || '—',
+              fromWarehouse: doc.from || '—',
+              qty,
+              isCombo,
+              pickupMode,
+              pickDiff:
+                pickupMode === 'sub'
+                  ? '—'
+                  : Math.max(
+                      Number(meta.planQty ?? sourceItem?.planQty ?? sourceItem?.declare ?? 0) -
+                        Number(sourceItem?.pick || qty),
+                      0,
+                    ),
+              diffReason: item.diffReason || '—',
+              remark: item.remark || item.pickupRemark || '—',
+              operator: batch.operator || '—',
+              providerPickup: item.providerPickup || false,
+              freight: item.freight ?? batch.freight ?? '—',
+              otherOutboundFee: item.otherOutboundFee ?? batch.otherOutboundFee ?? '—',
+              processingFee: item.processingFee ?? batch.processingFee ?? '—',
+              sourceLabel: batchSourceLabel(batch.source),
+              quantityType: batch.quantityType || 'pickup',
+            };
+          }),
+        );
+    });
+    const receiveDetailRows = computed(() => {
+      const doc = currentDoc.value;
+      if (!doc) return [];
+      return (doc.batches || [])
+        .filter((batch) => batch.type === '收货')
+        .flatMap((batch) =>
+          normalizeBatchDetails(batch, doc).map((item) => ({
+            batchNo: item.batchNo || batch.no,
+            date: batch.date,
+            sku: item.sku || '—',
+            qty: item.qty ?? item.receivedQty ?? batch.qty ?? 0,
+            diff:
+              item.diff !== undefined
+                ? item.diff
+                : item.received !== undefined && item.shipped !== undefined
+                  ? Number(item.received) + Number(item.qty || 0) - Number(item.shipped)
+                  : 0,
+            diffReason: item.diffReason || batch.diffReason || '—',
+            operator: batch.operator || '—',
+            sourceLabel: batchSourceLabel(batch.source),
+            quantityType: batch.quantityType || 'receive',
+          })),
+        );
+    });
+    const logisticsFeeFields = computed(() => {
+      const d = currentDoc.value || {};
+      const isEdit = editingFee.value;
+      const getVal = (key, def = '0') => (isEdit ? (feeForm[key] ?? def) : (extractNumber(d[key]) ?? def));
+      const formatVal = (key, val) => {
+        if (val === '' || val === null || val === undefined) return '—';
+        if (feeMoneyKeys.includes(key)) return `¥${Number(val).toLocaleString('en-US')}`;
+        if (feeUnitPriceKeys.includes(key)) return `${val} CNY`;
+        return `${val} ${feeUnits[key]}`;
+      };
+      return [
+        {
+          label: '箱规重量（kg）',
+          key: 'boxWeight',
+          value: isEdit ? getVal('boxWeight', '3') : formatVal('boxWeight', getVal('boxWeight', '3')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '箱规体积（m³）',
+          key: 'boxVolume',
+          value: isEdit ? getVal('boxVolume', '0.0001') : formatVal('boxVolume', getVal('boxVolume', '0.0001')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '体积重（kg）',
+          key: 'volumeWeight',
+          value: isEdit
+            ? getVal('volumeWeight', '0.0200')
+            : formatVal('volumeWeight', getVal('volumeWeight', '0.0200')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '计费重（kg）',
+          key: 'chargeWeight',
+          value: isEdit ? getVal('chargeWeight', '3') : formatVal('chargeWeight', getVal('chargeWeight', '3')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '预计单价（CNY/kg）',
+          key: 'estimatedUnitPrice',
+          value: isEdit
+            ? getVal('estimatedUnitPrice', '0')
+            : formatVal('estimatedUnitPrice', getVal('estimatedUnitPrice', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '预计物流费用（CNY）',
+          key: 'estimatedLogisticsFee',
+          value: isEdit
+            ? getVal('estimatedLogisticsFee', '0')
+            : formatVal('estimatedLogisticsFee', getVal('estimatedLogisticsFee', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '实际重量（kg）',
+          key: 'actualWeight',
+          value: isEdit ? getVal('actualWeight', '0') : formatVal('actualWeight', getVal('actualWeight', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '实际体积（m³）',
+          key: 'actualVolume',
+          value: isEdit ? getVal('actualVolume', '0') : formatVal('actualVolume', getVal('actualVolume', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '实际体积重（kg）',
+          key: 'actualVolumeWeight',
+          value: isEdit
+            ? getVal('actualVolumeWeight', '')
+            : formatVal('actualVolumeWeight', getVal('actualVolumeWeight', '')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '实际计费重（kg）',
+          key: 'actualChargeWeight',
+          value: isEdit
+            ? getVal('actualChargeWeight', '')
+            : formatVal('actualChargeWeight', getVal('actualChargeWeight', '')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '实际单价（CNY）',
+          key: 'actualUnitPrice',
+          value: isEdit ? getVal('actualUnitPrice', '0') : formatVal('actualUnitPrice', getVal('actualUnitPrice', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '头程物流费（CNY）',
+          key: 'actualFreight',
+          value: isEdit ? getVal('actualFreight', '0') : formatVal('actualFreight', getVal('actualFreight', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '清关税费（CNY）',
+          key: 'customsFee',
+          value: isEdit ? getVal('customsFee', '0') : formatVal('customsFee', getVal('customsFee', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '其他物流费用（CNY）',
+          key: 'otherLogisticsFee',
+          value: isEdit
+            ? getVal('otherLogisticsFee', '0')
+            : formatVal('otherLogisticsFee', getVal('otherLogisticsFee', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '费用分摊方式',
+          key: 'feeShareMethod',
+          value: isEdit ? feeForm.feeShareMethod : d.feeShareMethod || '按计费重',
+          editable: true,
+          type: 'select',
+          options: ['按计费重'],
+        },
+        {
+          label: '费用备注',
+          key: 'feeRemark',
+          value: isEdit ? feeForm.feeRemark : d.feeRemark || '—',
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '总辅料成本（CNY）',
+          key: 'totalAccessoryCost',
+          value: isEdit
+            ? getVal('totalAccessoryCost', '0')
+            : formatVal('totalAccessoryCost', getVal('totalAccessoryCost', '0')),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '头程费用合计（CNY）',
+          key: 'firstLegTotal',
+          value: isEdit ? getVal('firstLegTotal', '0') : formatVal('firstLegTotal', getVal('firstLegTotal', '0')),
+          editable: true,
+          type: 'input',
+        },
+      ];
+    });
+    const trackingFields = computed(() => {
+      const d = currentDoc.value || {};
+      const isEdit = editingTrack.value;
+      const getVal = (key, def = '—') => (isEdit ? (trackForm[key] ?? def) : (d[key] ?? def));
+      return [
+        {
+          label: '物流状态',
+          key: 'logistics',
+          value: isEdit ? trackForm.logistics : d.logistics || '—',
+          editable: true,
+          type: 'select',
+          options: ['已提货', '已出运', '已起运', '已到港', '已清关', '已提取', '已签收', '异常'],
+        },
+        {
+          label: '物流单号',
+          key: 'logisticsNo',
+          value: isEdit ? trackForm.logisticsNo : d.logisticsNo || '—',
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '下单日期',
+          key: 'orderDate',
+          value: getVal('orderDate', d.expectedShipDate || '—'),
+          editable: true,
+          type: 'date',
+        },
+        {
+          label: '预计发货日期',
+          key: 'expectedShipDate',
+          value: getVal('expectedShipDate', '—'),
+          editable: true,
+          type: 'date',
+        },
+        {
+          label: '实际发货日期',
+          key: 'actualShipDate',
+          value: getVal('actualShipDate', '—'),
+          editable: true,
+          type: 'date',
+        },
+        {
+          label: '预计开船日期',
+          key: 'expectedSailDate',
+          value: getVal('expectedSailDate', '—'),
+          editable: true,
+          type: 'date',
+        },
+        {
+          label: '实际开船日期',
+          key: 'actualSailDate',
+          value: getVal('actualSailDate', '—'),
+          editable: true,
+          type: 'date',
+        },
+        {
+          label: '预计到港日期',
+          key: 'expectedPortDate',
+          value: getVal('expectedPortDate', '—'),
+          editable: true,
+          type: 'date',
+        },
+        {
+          label: '实际到港日期',
+          key: 'actualPortDate',
+          value: getVal('actualPortDate', '—'),
+          editable: true,
+          type: 'date',
+        },
+        { label: '预计到货日期', key: 'eta', value: getVal('eta', '—'), editable: true, type: 'date' },
+        {
+          label: '实际到货日期',
+          key: 'actualReceiveDate',
+          value: getVal('actualReceiveDate', '—'),
+          editable: true,
+          type: 'date',
+        },
+        {
+          label: '预计物流时长',
+          key: 'expectedTransitDuration',
+          value: getVal('expectedTransitDuration', '—'),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '实际物流时长',
+          key: 'actualTransitDuration',
+          value: getVal('actualTransitDuration', '—'),
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '物流服务商单号',
+          key: 'providerNo',
+          value: isEdit ? trackForm.providerNo : d.providerNo || '—',
+          editable: true,
+          type: 'input',
+        },
+        {
+          label: '承运商',
+          key: 'carrier',
+          value: isEdit ? trackForm.carrier : d.carrier || '—',
+          editable: true,
+          type: 'input',
+        },
+      ];
+    });
+    const boxList = computed(() => {
+      const doc = currentDoc.value;
+      if (!doc) return [];
+      return (doc.boxes || []).map((box, idx) => ({ ...box, index: idx + 1, items: box.items || [] }));
+    });
+
+    const scrollDetailTo = (id) => {
+      detailActive.value = id;
+      nextTick(() => {
+        const target = document.getElementById(id),
+          container = detailScrollRef.value;
+        if (target && container)
+          container.scrollTo({ top: Math.max(target.offsetTop - container.offsetTop - 4, 0), behavior: 'smooth' });
+      });
+    };
+    const onDetailScroll = () => {
+      const container = detailScrollRef.value;
+      if (!container) return;
+      let active = 'detail-info';
+      detailNavItems.forEach((item) => {
+        const section = document.getElementById(item.id);
+        if (section && section.offsetTop - container.offsetTop <= container.scrollTop + 60) active = item.id;
+      });
+      detailActive.value = active;
+    };
+    const openDetail = (row) => {
+      if (!row.created && row.id && row.id.startsWith('DN')) {
+        const id = row.id;
+        row.created = `20${id.slice(2, 4)}-${id.slice(4, 6)}-${id.slice(6, 8)} 10:00:00`;
+      }
+      if (row.referenceId === undefined) row.referenceId = '—';
+      if (row.totalBoxes === undefined) row.totalBoxes = row.boxes ? row.boxes.length : 0;
+      if (row.receiveOrderNo === undefined) row.receiveOrderNo = '—';
+      if (!row.fromAddress)
+        row.fromAddress = {
+          contact: '—',
+          phone: '—',
+          country: '中国',
+          province: '广东',
+          city: '深圳',
+          district: '—',
+          detail: row.from || '—',
+          zip: '518000',
+        };
+      if (!row.toAddress)
+        row.toAddress = {
+          contact: '—',
+          phone: '—',
+          country: '美国',
+          province: 'California',
+          city: '—',
+          district: '—',
+          detail: row.to || '—',
+          zip: '—',
+        };
+      currentDoc.value = row;
+      detailActive.value = 'detail-info';
+      editingFee.value = false;
+      editingTrack.value = false;
+      detailVisible.value = true;
+      nextTick(() => {
+        if (detailScrollRef.value) detailScrollRef.value.scrollTop = 0;
+      });
+    };
+    const batchVisible = ref(false),
+      batchRows = ref([]),
+      batchForm = reactive({ type: '提货', date: '2026-08-06', logisticsNo: '' });
+    const openBatch = (row) => {
+      if (!row) return;
+      currentDoc.value = row;
+      batchRows.value = row.items.map((x) => ({ ...x, batchQty: 0 }));
+      batchVisible.value = true;
+    };
+    const saveBatch = () => {
+      if (!batchRows.value.some((x) => x.batchQty > 0)) {
+        ElementPlus.ElMessage.warning('请至少为一个 SKU 分配数量');
+        return;
+      }
+      batchVisible.value = false;
+      ElementPlus.ElMessage.success('履约批次已保存');
+    };
+    const exportData = () => ElementPlus.ElMessage.success('导出任务已创建');
+    const handleExportCommand = (cmd) => {
+      if (cmd === 'shipmentInfo') {
+        ElementPlus.ElMessage.success('正在导出发货单信息...');
+      } else if (cmd === 'skuDetail') {
+        ElementPlus.ElMessage.success('正在导出发货 SKU 明细...');
+      }
+    };
+    const erpDetailVisible = ref(false),
+      erpDetailDoc = ref(null),
+      erpDetailRows = ref([]);
+    const openErpDetail = (row) => {
+      erpDetailDoc.value = row;
+      erpDetailRows.value = [
+        { planNo: 'EP20260809001', orderNo: 'PO20260809001', pickOffNo: 'PK20260809001', entryNo: 'IN20260809001' },
+        { planNo: 'EP20260809002', orderNo: 'PO20260809002', pickOffNo: 'PK20260809002', entryNo: 'IN20260809002' },
+      ];
+      erpDetailVisible.value = true;
+    };
+    return {
+      statuses,
+      warehouses,
+      pickupWarehouses,
+      destWarehouses,
+      shipModes,
+      providers,
+      transports,
+      channels,
+      countries,
+      platformOptions,
+      teamOptions,
+      storeOptions,
+      creatorOptions,
+      comboFinishedStockByWarehouse,
+      comboSubStockByWarehouse,
+      codeTypeOptions,
+      skuTypeOptions,
+      codeTypeLabel,
+      skuTypeLabel,
+      query,
+      queryExpanded,
+      queryOverflow,
+      statusTab,
+      filteredDocs,
+      statusCount,
+      applyQuery,
+      resetQuery,
+      tagType,
+      createVisible,
+      createFormRef,
+      createForm,
+      createRules,
+      selectedSkus,
+      declareTotal,
+      canAddSku,
+      openCreate,
+      openEdit,
+      editingDoc,
+      cancelVisible,
+      cancelDoc,
+      cancelRemark,
+      cancelSubmitting,
+      cancelShip,
+      submitCancelShip,
+      skuVisible,
+      skuTableRef,
+      skuSearch,
+      filteredSkuCandidates,
+      openSkuDialog,
+      runSkuQuery,
+      resetSkuQuery,
+      onSkuSelection,
+      confirmSkuSelection,
+      removeSku,
+      saveDraft,
+      submitCreate,
+      transitionStatus,
+      voidDocument,
+      selectedDocs,
+      mainTableRef,
+      onDocSelection,
+      completeVisible,
+      completeDoc,
+      completeDocs,
+      completeFormRef,
+      completeForm,
+      completeReasonOptions,
+      completeFormRules,
+      completeSubmitting,
+      openComplete,
+      submitComplete,
+      quantityAdjustVisible,
+      quantityAdjustDoc,
+      quantityAdjustType,
+      quantityAdjustTypeOptions,
+      quantityAdjustTypeLabel,
+      quantityAdjustReasonOptions,
+      quantityAdjustRows,
+      quantityAdjustReason,
+      quantityAdjustRemark,
+      quantityAdjustSubmitting,
+      quantityAdjustChanged,
+      quantityAdjustRowError,
+      openQuantityAdjust,
+      changeQuantityAdjustType,
+      submitQuantityAdjust,
+      logVisible,
+      logDoc,
+      logPage,
+      logPageSize,
+      logRows,
+      openLog,
+      pickupVisible,
+      pickupDoc,
+      pickupTableRef,
+      pickupRows,
+      visiblePickupRows,
+      pickupSubmitting,
+      pickupUnresolvedDiff,
+      pickupRowClassName,
+      pickupSpanMethod,
+      pickupRemainingTotal,
+      pickupQtyTotal,
+      pickupAfterRemaining,
+      pickupNextStatus,
+      comboPickupTotal,
+      openPickup,
+      onPickupWarehouseChange,
+      onSubWarehouseChange,
+      onFulfillmentModeChange,
+      togglePickupMode,
+      onFinishedWarehouseChange,
+      submitPickup,
+      shipVisible,
+      shipDoc,
+      shipTableRef,
+      shipRows,
+      shipSelection,
+      shipSubmitting,
+      diffReasonOptions,
+      shipSelectable,
+      isShipSelected,
+      shipRemainingTotal,
+      shipQtyTotal,
+      shipAfterRemaining,
+      openShip,
+      onShipSelection,
+      fillShipRemaining,
+      submitShip,
+      receiveVisible,
+      receiveDoc,
+      receiveTableRef,
+      receiveRows,
+      receiveSelection,
+      receiveSubmitting,
+      receiveSelectable,
+      isReceiveSelected,
+      receiveRemainingTotal,
+      receiveQtyTotal,
+      receiveAfterRemaining,
+      receiveNextStatus,
+      openReceive,
+      onReceiveSelection,
+      fillReceiveRemaining,
+      submitReceive,
+      processingVisible,
+      processingRows,
+      filteredProcessingRows,
+      processingSearch,
+      supplierOptions,
+      processingSubmitting,
+      processingDocId,
+      processingMode,
+      processingGroups,
+      processingQtyTotal,
+      processingBatchSummary,
+      processingSpanMethod,
+      fillAllProcessingQty,
+      clearAllProcessingQty,
+      resetProcessingSearch,
+      removeProcessingGroup,
+      openProcessing,
+      openBatchProcessing,
+      submitProcessing,
+      importVisible,
+      importUploadRef,
+      importFile,
+      importTitle,
+      importFields,
+      importStep,
+      openImport,
+      onImportFileChange,
+      removeImportFile,
+      downloadImportTemplate,
+      submitImport,
+      costApportionVisible,
+      costApportionTypeFormRef,
+      costApportionFormRef,
+      costApportionTypes,
+      costApportionRulesOptions,
+      costApportionOwners,
+      costApportionForm,
+      costApportionRules,
+      costApportionTypeRules,
+      costApportionRows,
+      costApportionBatchRows,
+      costApportionSearch,
+      openCostApportion,
+      costApportionSkuCount,
+      costApportionQtyTotal,
+      costApportionTotal,
+      queryCostApportionBatch,
+      resetCostApportionSearch,
+      submitCostApportion,
+      resetCostApportion,
+      detailVisible,
+      currentDoc,
+      canEditFeeTrack,
+      detailNavItems,
+      detailActive,
+      detailScrollRef,
+      pickupDetailRows,
+      processingDetailRows,
+      receiveDetailRows,
+      logisticsFeeFields,
+      trackingFields,
+      boxList,
+      scrollDetailTo,
+      onDetailScroll,
+      openDetail,
+      editingFee,
+      editingTrack,
+      feeForm,
+      trackForm,
+      editFee,
+      saveFee,
+      cancelFee,
+      editTrack,
+      saveTrack,
+      cancelTrack,
+      batchVisible,
+      batchRows,
+      batchForm,
+      openBatch,
+      saveBatch,
+      exportData,
+      handleExportCommand,
+      erpDetailVisible,
+      erpDetailDoc,
+      erpDetailRows,
+      openErpDetail,
+      diffDetailVisible,
+      diffDetailDoc,
+      diffDetailRows,
+      openDiffDetail,
+      placeholderProductImage,
+      skuMeta,
+      comboParts,
+      isAmazonOption,
+      extractNumber,
+      formatAddress,
+    };
+  },
+})
+  .use(ElementPlus)
+  .mount('#app');
+
+(function () {
+  function initPageNav() {
+    document.querySelectorAll('[data-page-nav]').forEach((item) => {
+      item.onclick = () => {
+        const page = item.dataset.pageNav;
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'prototype:navigate', page }, '*');
+        } else {
+          window.location.href = {
+            forecast: '../demand-forecast/index.html',
+            stock: '../stock-plan/index.html',
+            purchase: '../purchase-plan/index.html',
+            shipment: '../shipment-plan/index.html',
+            purchaseOrder: '../purchase-orders/index.html',
+            shipmentOrder: '../shipment-orders/index.html',
+            skuFirstLegCost: '../sku-first-leg-cost/index.html',
+            supplierInventory: '../supplier-inventory/index.html',
+          }[page];
         }
       };
     });
   }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',()=>setTimeout(initPageNav,100));
-  }else{
-    setTimeout(initPageNav,100);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initPageNav, 100));
+  } else {
+    setTimeout(initPageNav, 100);
   }
 })();

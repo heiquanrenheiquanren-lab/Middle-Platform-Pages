@@ -5,6 +5,10 @@ const frame=document.querySelector('#prototypeFrame');
 
 function openPage(key,updateHash=true){
   const page=pages[key]?key:'stock';
+  if(location.protocol==='file:'){
+    window.location.href=pages[page];
+    return;
+  }
   frame.src=pages[page];
   frame.title=`${pageNames[page]}查询原型`;
   if(updateHash)history.replaceState(null,'',`#${page}`);

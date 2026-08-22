@@ -64,14 +64,24 @@
 
 | 触发条件 | 操作 |
 |----------|------|
-| 开发中（日常改代码） | 正常改文件，**不改版本号**，不更新文档 |
-| 你说「上传 GitHub Pages」 | **版本定型**：递增 VER → 更新 CHANGELOG / BUSINESS_LOGIC / UI_SPEC / README → 统一打包提交 |
+| 开发中（日常改代码） | 正常改文件，**不改版本号**，不更新版本文档 |
+| 你说「推送到 GitHub」「push」 | 推送前必须根据实际变更更新 `docs/CHANGELOG.md`，记录本次变更内容；未经明确授权不得推送 |
+| 你说「上传 GitHub Pages」 | **版本定型**：递增 VER → 更新 `CHANGELOG.md` / `BUSINESS_LOGIC.md` / `UI_SPEC.md` / `README.md` → 统一提交并推送 |
+
+### 🧠 规则记忆与文档职责
+
+- `README.md`：记录项目协作约定、版本管理、Git 操作、发布流程和文档同步规则。
+- `docs/BUSINESS_LOGIC.md`：只记录长期有效的业务流程、状态流转、数据生成/计算/回写、库存、模块依赖、异常和一致性规则；不记录页面字段排列、表格列、弹窗布局、按钮、提示文案或局部交互。
+- `docs/UI_SPEC.md`：记录跨页面复用的 UI/UX 交互规范和视觉约束。
+- `PRD/`：记录具体页面的需求、字段、弹窗、交互、提示文案和验收标准。
+- 判断是否写入 `BUSINESS_LOGIC.md` 时，先确认该内容是否改变业务结果，或是否需要被多个模块长期共同遵守；仅属于页面展示或交互细节的内容只写入对应 PRD，无法判断时先确认，不直接写入业务逻辑知识库。
 
 ### 🔐 Git 推送规则
 
 - **绝对禁止**未经允许执行 `git push`
-- 日常改动只做 `git add` + `git commit`，不 push
+- 日常改动只做文件修改，不自动推送；是否提交和推送以你的明确指令为准
 - 只有你说「推送到 GitHub」「push」等明确指令时才 push
+- 每次执行明确的 GitHub 推送前，必须先更新 `docs/CHANGELOG.md`；未更新变更记录不得推送
 
 ---
 
@@ -80,7 +90,7 @@
 | 文件 | 用途 |
 |------|------|
 | [CHANGELOG.md](file:///Users/kafeiyang/我的项目（焊捷）/Middle-Platform-Pages/docs/CHANGELOG.md) | 版本变更记录（完整历史，最权威） |
-| [BUSINESS_LOGIC.md](file:///Users/kafeiyang/我的项目（焊捷）/Middle-Platform-Pages/docs/BUSINESS_LOGIC.md) | 各页面业务规则 + 状态流转 + 字段定义 |
+| [BUSINESS_LOGIC.md](file:///Users/kafeiyang/我的项目（焊捷）/Middle-Platform-Pages/docs/BUSINESS_LOGIC.md) | 业务流程、数据流转、库存与模块依赖规则 |
 | [UI_SPEC.md](file:///Users/kafeiyang/我的项目（焊捷）/Middle-Platform-Pages/docs/UI_SPEC.md) | UI/UX 交互规范（弹窗、表格、滚动等强制规则） |
 | `docs/发货单产品方案确认文档.md` | 发货单功能版本确认 |
 | `docs/发货单待确认问题清单.md` | 发货单待确认事项 |
@@ -178,10 +188,16 @@ Middle-Platform-Pages/
 
 ### 提交到 GitHub
 
-**日常开发**（不改变版本号）：
+**日常开发**（不改变版本号、不更新版本文档）：
 ```bash
+# 按你的明确指令决定是否提交；默认不 push
 git add . && git commit -m "描述你改了什么"
-# 不 push，等你说「推送到 GitHub」时才 push
+```
+
+**明确推送到 GitHub**（你说「推送到 GitHub」或「push」时）：
+```bash
+# 先根据实际变更更新 docs/CHANGELOG.md，再提交并 push
+git add . && git commit -m "记录本次变更" && git push
 ```
 
 **版本发布**（你说「上传 GitHub Pages」时）：

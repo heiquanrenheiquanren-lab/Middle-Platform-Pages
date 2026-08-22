@@ -60,7 +60,7 @@
             </div>
           </el-form>
         </div>
-        <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button type="success" plain @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button @click="openCostApportion">其他头程费用分摊</el-button><el-dropdown @command="handleExportCommand" style="margin-left:0"><el-button>导出<el-icon style="margin-left:4px"><i class="el-icon--right">⌄</i></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="shipmentInfo">发货单信息</el-dropdown-item><el-dropdown-item command="skuDetail">发货 SKU 明细</el-dropdown-item></el-dropdown-menu></template></el-dropdown><el-button :loading="refreshLoading" @click="refreshData">刷新</el-button></div>
+        <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button type="success" plain @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button @click="openCostApportion">其他头程费用分摊</el-button><el-dropdown @command="handleExportCommand" style="margin-left:0"><el-button>导出<el-icon style="margin-left:4px"><i class="el-icon--right">⌄</i></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="shipmentInfo">发货单信息</el-dropdown-item><el-dropdown-item command="skuDetail">发货 SKU 明细</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div>
         <div class="card status-card"><el-tabs v-model="statusTab" class="status-tabs"><el-tab-pane v-for="s in statuses" :key="s" :name="s"><template #label><span>{{s}}<i class="tab-count">{{statusCount(s)}}</i></span></template></el-tab-pane></el-tabs></div>
         <div class="card list-card">
           <div class="list-head"><b>发货单列表</b><span class="list-count">共 {{filteredDocs?.length}} 张</span></div>
@@ -383,6 +383,7 @@
 
   <el-dialog v-model="quantityAdjustVisible" :title="`数量调整｜${quantityAdjustDoc?.id||''}`" width="1080px" top="6vh" class="quantity-adjust-dialog" append-to-body :close-on-click-modal="false" destroy-on-close>
     <div v-if="quantityAdjustDoc">
+      <el-alert v-if="quantityAdjustType==='pickup'" title="调整说明：子件已完成物流加工的 SKU 不可调整提货数量，已锁定。" type="info" :closable="false" style="margin-bottom:12px"></el-alert>
       <el-form label-position="top" class="quantity-adjust-form">
         <el-form-item label="调整类型"><el-radio-group v-model="quantityAdjustType" @change="changeQuantityAdjustType"><el-radio-button v-for="item in quantityAdjustTypeOptions" :key="item.value" :label="item.value">{{item.label}}</el-radio-button></el-radio-group></el-form-item>
       </el-form>
@@ -395,7 +396,7 @@
           <el-table-column prop="pick" label="提货数量" width="100" align="right"></el-table-column>
           <el-table-column prop="ship" label="发货数量" width="100" align="right"></el-table-column>
           <el-table-column prop="receive" label="收货数量" width="100" align="right"></el-table-column>
-          <el-table-column :label="`调整后${quantityAdjustTypeLabel}`" min-width="210" fixed="right"><template #default="{row}"><el-input-number v-model="row.targetQty" :min="0" :max="row.upperLimit" :precision="0" :controls="false" size="small" class="quantity-adjust-input"></el-input-number><div v-if="quantityAdjustRowError(row)" class="quantity-adjust-error">{{quantityAdjustRowError(row)}}</div></template></el-table-column>
+          <el-table-column :label="`调整后${quantityAdjustTypeLabel}`" min-width="210" fixed="right"><template #default="{row}"><el-input-number v-if="!row.locked" v-model="row.targetQty" :min="1" :max="row.upperLimit" :precision="0" :controls="false" size="small" class="quantity-adjust-input"></el-input-number><div v-else class="quantity-adjust-locked"><span class="locked-value">{{row.targetQty}}</span><el-tag type="info" size="small">已锁定</el-tag></div><div v-if="quantityAdjustRowError(row)" class="quantity-adjust-error">{{quantityAdjustRowError(row)}}</div></template></el-table-column>
         </el-table>
       </div>
       <el-form label-position="top" class="quantity-adjust-form">
@@ -501,9 +502,8 @@
       </el-form>
     </div>
     <div class="cost-apportion-section">
-      <div class="cost-apportion-section-head"><span class="cost-apportion-section-title">分摊批次（勾选加入分摊）</span></div>
-      <el-table ref="costApportionBatchTableRef" :data="costApportionBatchRows" row-key="key" border size="small" class="cost-apportion-table" max-height="300" @selection-change="onCostApportionBatchSelection">
-        <el-table-column type="selection" width="46" align="center" reserve-selection></el-table-column>
+      <div class="cost-apportion-section-head"><span class="cost-apportion-section-title">分摊批次（查询结果将自动全量纳入分摊）</span></div>
+      <el-table :data="costApportionBatchRows" row-key="key" border size="small" class="cost-apportion-table" max-height="300">
         <el-table-column prop="batchNo" label="批次号" min-width="150"></el-table-column>
         <el-table-column prop="date" label="费用周期" min-width="130"></el-table-column>
         <el-table-column prop="docId" label="发货单号" min-width="175"></el-table-column>
@@ -525,7 +525,7 @@
         <el-table-column prop="apportionAmount" label="本次分摊金额" width="120" align="right"><template #default="{row}"><span class="cost-apportion-amount">{{row.apportionAmount||'—'}}</span></template></el-table-column>
       </el-table>
       <div v-if="!costApportionBatchRows.length" class="cost-apportion-empty">未查询到符合条件的分摊批次，请调整筛选条件</div>
-      <div class="cost-apportion-summary">已选 <b>{{costApportionRows.length}}</b> 个批次 · 涉及 <b>{{costApportionSkuCount}}</b> 个 SKU · 共 <b>{{costApportionQtyTotal}}</b> 件 · 本次分摊合计 <b>{{costApportionTotal}}</b></div>
+      <div class="cost-apportion-summary">已纳入 <b>{{costApportionRows.length}}</b> 个批次 · 涉及 <b>{{costApportionSkuCount}}</b> 个 SKU · 共 <b>{{costApportionQtyTotal}}</b> 件 · 本次分摊合计 <b>{{costApportionTotal}}</b></div>
     </div>
     <div class="cost-apportion-section">
       <div class="cost-apportion-section-title">费用信息</div>
