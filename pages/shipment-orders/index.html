@@ -381,7 +381,7 @@
     <template #footer><div class="pickup-footer-actions" style="justify-content:flex-end"><el-button @click="cancelVisible=false">再想想</el-button><el-button type="primary" :loading="cancelSubmitting" @click="submitCancelShip">确认取消</el-button></div></template>
   </el-dialog>
 
-  <el-dialog v-model="quantityAdjustVisible" :title="`数量调整｜${quantityAdjustDoc?.id||''}`" width="1080px" top="6vh" class="quantity-adjust-dialog" append-to-body :close-on-click-modal="false" destroy-on-close>
+  <el-dialog v-model="quantityAdjustVisible" :title="`数量调整｜${quantityAdjustDoc?.id||''}`" width="1300px" top="6vh" class="quantity-adjust-dialog" append-to-body :close-on-click-modal="false" destroy-on-close>
     <div v-if="quantityAdjustDoc">
       <el-alert v-if="quantityAdjustType==='pickup'" title="调整说明：子件已完成物流加工的 SKU 不可调整提货数量，已锁定。" type="info" :closable="false" style="margin-bottom:12px"></el-alert>
       <el-form label-position="top" class="quantity-adjust-form">
@@ -390,13 +390,20 @@
       <div class="quantity-adjust-table-wrap">
         <el-table :data="quantityAdjustRows" border size="small" class="quantity-adjust-table">
           <el-table-column prop="sku" label="SKU" width="150" fixed="left"></el-table-column>
-          <el-table-column prop="plan" label="发货计划" width="155"></el-table-column>
-          <el-table-column prop="planQty" label="计划发货数量" width="125" align="right"></el-table-column>
-          <!-- <el-table-column prop="declare" label="申报数量" width="100" align="right"></el-table-column> -->
-          <el-table-column prop="pick" label="提货数量" width="100" align="right"></el-table-column>
-          <el-table-column prop="ship" label="发货数量" width="100" align="right"></el-table-column>
-          <el-table-column prop="receive" label="收货数量" width="100" align="right"></el-table-column>
-          <el-table-column :label="`调整后${quantityAdjustTypeLabel}`" min-width="210" fixed="right"><template #default="{row}"><el-input-number v-if="!row.locked" v-model="row.targetQty" :min="1" :max="row.upperLimit" :precision="0" :controls="false" size="small" class="quantity-adjust-input"></el-input-number><div v-else class="quantity-adjust-locked"><span class="locked-value">{{row.targetQty}}</span><el-tag type="info" size="small">已锁定</el-tag></div><div v-if="quantityAdjustRowError(row)" class="quantity-adjust-error">{{quantityAdjustRowError(row)}}</div></template></el-table-column>
+          <el-table-column prop="plan" label="发货计划" width="140"></el-table-column>
+          <el-table-column prop="pickupWarehouse" label="提货仓" width="100" align="center"></el-table-column>
+          <el-table-column prop="pickupMethod" label="提货方式" width="90" align="center"><template #default="{row}"><el-tag v-if="row.isSubPickup" type="warning" size="small">子件提货</el-tag><span v-else class="muted-text">成品提货</span></template></el-table-column>
+          <el-table-column prop="pickupBatch" label="提货批次" width="120" align="center"></el-table-column>
+          <el-table-column prop="planQty" label="计划发货数量" width="110" align="right"></el-table-column>
+          <el-table-column prop="pick" label="提货数量" width="100" align="right">
+            <template #default="{row}">
+              <el-link v-if="row.isSubPickup" type="primary" :underline="false" @click="openSubDetail(row)">{{ row.pick }} 套</el-link>
+              <span v-else>{{ row.pick }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="ship" label="发货数量" width="90" align="right"></el-table-column>
+          <el-table-column prop="receive" label="收货数量" width="90" align="right"></el-table-column>
+          <el-table-column :label="`调整后${quantityAdjustTypeLabel}`" min-width="200" fixed="right"><template #default="{row}"><el-input-number v-if="!row.locked" v-model="row.targetQty" :min="1" :max="row.upperLimit" :precision="0" :controls="false" size="small" class="quantity-adjust-input"></el-input-number><div v-else class="quantity-adjust-locked"><span class="locked-value">{{row.targetQty}}</span><el-tag type="info" size="small">已锁定</el-tag></div><div v-if="quantityAdjustRowError(row)" class="quantity-adjust-error">{{quantityAdjustRowError(row)}}</div></template></el-table-column>
         </el-table>
       </div>
       <el-form label-position="top" class="quantity-adjust-form">
@@ -405,6 +412,16 @@
       </el-form>
     </div>
     <template #footer><div class="quantity-adjust-footer"><span class="muted">确认后将重算差异并写入操作日志</span><div><el-button @click="quantityAdjustVisible=false">取消</el-button><el-button type="primary" :loading="quantityAdjustSubmitting" @click="submitQuantityAdjust">确认调整</el-button></div></div></template>
+  </el-dialog>
+
+  <el-dialog v-model="subDetailVisible" title="子件提货明细" width="520px" append-to-body :close-on-click-modal="false">
+    <div v-if="subDetailRow">
+      <el-table :data="subDetailRow.subDetails" border size="small" class="sub-detail-table">
+        <el-table-column label="子件 SKU" min-width="160"><template #default="{row}">{{ row.sku }} <span class="sub-ratio">×{{ row.ratio }}</span></template></el-table-column>
+        <el-table-column prop="warehouse" label="提货仓" width="120" align="center"></el-table-column>
+        <el-table-column prop="batch" label="提货批次" width="130" align="center"></el-table-column>
+      </el-table>
+    </div>
   </el-dialog>
 
   <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量物流加工':'物流加工｜'+processingDocId" width="74vw" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">

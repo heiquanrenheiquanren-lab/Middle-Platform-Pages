@@ -3809,6 +3809,8 @@ createApp({
       const doc = quantityAdjustDoc.value;
       if (!doc) return [];
       const field = quantityAdjustField(type);
+      const primaryBatch = (doc.batches && doc.batches.length) ? doc.batches[0] : null;
+      const primaryWarehouse = primaryBatch ? primaryBatch.warehouse : doc.from;
       return (doc.items || []).map((item, index) => {
         const current = Number(item[field] || 0),
           planQty = Number(skuMeta(item.sku).planQty ?? item.planQty ?? item.declare ?? 0);
@@ -3817,6 +3819,13 @@ createApp({
         const processedQty = Number(item.processedQty || 0);
         const subSetPickedQty = Number(item.subSetPickedQty || 0);
         const subPartsProcessed = isCombo && subSetPickedQty > 0 && processedQty >= subSetPickedQty;
+        const isSubPickup = isCombo && (item.pickupMethod === '子件提货' || (!item.pickupMethod && index % 2 === 0 && isCombo));
+        const subDetails = isSubPickup ? comboBom[item.sku].map(sub => {
+          const subMeta = skuMeta(sub.sku);
+          const subWh = (item.subWarehouses && item.subWarehouses[sub.sku]) || defaultPickupWarehouse(sub.sku);
+          const subBatch = item.pickupBatch || (primaryBatch ? primaryBatch.no : '—');
+          return { sku: sub.sku, name: subMeta.title || sub.name || sub.sku, ratio: sub.ratio, warehouse: subWh, batch: subBatch };
+        }) : [];
         return {
           ...item,
           key: `${item.sku}-${item.plan}-${index}`,
@@ -3827,6 +3836,11 @@ createApp({
           upperLimit:
             type === 'pickup' ? planQty : type === 'shipment' ? Number(item.pick || 0) : Number(item.ship || 0),
           locked: type === 'pickup' && subPartsProcessed,
+          pickupMethod: isSubPickup ? '子件提货' : '成品提货',
+          pickupWarehouse: isSubPickup ? '—' : (item.pickupWarehouse || primaryWarehouse),
+          pickupBatch: isSubPickup ? '—' : (item.pickupBatch || (primaryBatch ? primaryBatch.no : '—')),
+          isSubPickup,
+          subDetails,
         };
       });
     };
@@ -3949,6 +3963,12 @@ createApp({
       quantityAdjustSubmitting.value = false;
       quantityAdjustVisible.value = false;
       ElementPlus.ElMessage.success('数量调整成功，差异和单据状态已重新计算');
+    };
+    const subDetailVisible = ref(false),
+      subDetailRow = ref(null);
+    const openSubDetail = (row) => {
+      subDetailRow.value = row;
+      subDetailVisible.value = true;
     };
     const pickupVisible = ref(false),
       pickupDoc = ref(null),
@@ -6383,6 +6403,9 @@ createApp({
       openQuantityAdjust,
       changeQuantityAdjustType,
       submitQuantityAdjust,
+      subDetailVisible,
+      subDetailRow,
+      openSubDetail,
       logVisible,
       logDoc,
       logPage,
