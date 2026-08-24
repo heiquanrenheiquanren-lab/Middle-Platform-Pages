@@ -5648,18 +5648,39 @@ createApp({
             date: batch.date,
             sku: item.sku || '—',
             plan: item.plan || item.planNo || '—',
-            docId: doc.id,
             qty: item.qty ?? item.processedQty ?? item.finishedQty ?? batch.qty ?? 0,
-            warehouse: item.warehouse || doc.from || '—',
-            finishedQty: item.finishedQty ?? item.qty ?? item.processedQty ?? 0,
             subDetails: (item.subConsumed || item.subDetails || batch.subConsumed || batch.subDetails || [])
               .map(
                 (s) => `${s.sku || s.subSku || s} ×${s.qty || s.pickupQty || ''}${s.ratio ? `（配比${s.ratio}）` : ''}`,
               )
               .join(' / '),
             operator: batch.operator || '—',
-            sourceLabel: batchSourceLabel(batch.source),
           })),
+        );
+    });
+    const shipmentDetailRows = computed(() => {
+      const doc = currentDoc.value;
+      if (!doc) return [];
+      return (doc.batches || [])
+        .filter((batch) => batch.type === '发货')
+        .flatMap((batch) =>
+          normalizeBatchDetails(batch, doc).map((item) => {
+            const skuItem = (doc.items || []).find((s) => s.sku === item.sku) || {};
+            const shipQtyPlan = skuItem.planQty ?? skuItem.ship ?? skuItem.declare ?? 0;
+            const qty = item.qty ?? item.shipped ?? batch.qty ?? 0;
+            return {
+              batchNo: item.batchNo || batch.no,
+              date: batch.date,
+              sku: item.sku || '—',
+              plan: item.plan || item.planNo || '—',
+              shipQtyPlan,
+              qty,
+              pickShipDiff: String(Number(qty || 0) - Number(skuItem.pick || skuItem.picked || 0)),
+              diffReason: item.diffReason || batch.diffReason || '—',
+              remark: item.remark || batch.remark || '—',
+              operator: batch.operator || '—',
+            };
+          }),
         );
     });
     const detailNavItems = [
@@ -5668,6 +5689,7 @@ createApp({
       { id: 'detail-box', creator: 'Admin', label: 'SKU 箱信息' },
       { id: 'detail-pickup', creator: 'Admin', label: '提货明细' },
       { id: 'detail-processing', creator: 'Admin', label: '加工明细' },
+      { id: 'detail-shipment', creator: 'Admin', label: '发货明细' },
       { id: 'detail-receive', creator: 'Admin', label: '收货明细' },
       { id: 'detail-fee', creator: 'Admin', label: '物流费用' },
       { id: 'detail-track', creator: 'Admin', label: '轨迹信息' },
@@ -5950,7 +5972,6 @@ createApp({
                   : 0,
             diffReason: item.diffReason || batch.diffReason || '—',
             operator: batch.operator || '—',
-            sourceLabel: batchSourceLabel(batch.source),
             quantityType: batch.quantityType || 'receive',
           })),
         );
@@ -6523,6 +6544,7 @@ createApp({
       detailScrollRef,
       pickupDetailRows,
       processingDetailRows,
+      shipmentDetailRows,
       receiveDetailRows,
       logisticsFeeFields,
       trackingFields,
