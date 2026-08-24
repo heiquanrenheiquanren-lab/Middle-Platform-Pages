@@ -59,7 +59,7 @@
           </div>
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
         </section>
-        <section class="action-strip"><div class="head-actions"><button class="btn primary">新建发货计划</button><button class="btn primary badge-button">发货计划管理清单<span class="badge">4</span></button><button class="btn" id="linkShipmentBtn" type="button">关联货件</button></div></section>
+        <section class="action-strip"><div class="head-actions"><button class="btn primary">新建发货计划</button><button class="btn primary badge-button">发货计划管理清单<span class="badge">4</span></button><button class="btn" id="linkShipmentBtn" type="button" style="display:none">关联货件</button><button class="btn soft" id="importLinkShipmentBtn" type="button" style="display:none">↥ 导入关联FBA货件</button></div></section>
         <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><label class="compare"><input id="compareToggle" type="checkbox" checked>显示销量环比</label><span class="tool" title="筛选">▽</span><span class="tool" title="搜索">⌕</span><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="上传">↥</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
         <section class="table-area" id="tableArea"><table class="stock-table"><thead><tr><th class="check"><input class="head-check" id="selectAll" type="checkbox"></th><th class="plan">计划号</th><th class="sku">SKU</th><th class="status-col">状态</th><th class="updated-col">更新时间</th><th class="creator-col">创建人</th><th class="remark-col">发货计划备注&nbsp; ✎</th><th class="delivery-col">预计发货日期&nbsp; ✎</th><th class="delivery-col">预计到货日期&nbsp; ✎</th><th class="box-col">箱数</th><th class="plan-op-col">操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
         <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft" id="voidBtn" title="已关联 FBA 货件的计划不可作废">作废</button><button class="btn soft">加入计划管理清单</button><button class="btn soft" id="genShipBtn" title="已关联 FBA 货件或非待发货状态的计划不可生成发货单">生成发货单</button></div><div class="bottom-right"><span>共 <b id="totalCount">62</b> 条</span><select class="control page-size" id="pageSize"><option value="15">15条/页</option><option value="30">30条/页</option><option value="50">50条/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
@@ -134,6 +134,56 @@
               <div class="plan-log-head"><h3 id="planLogTitle">操作日志</h3><button class="plan-log-close" type="button" aria-label="关闭" onclick="closePlanLogDialog()">×</button></div>
               <div class="plan-log-body">
                 <table class="plan-log-table"><thead><tr><th class="plan-log-type-col">操作类型</th><th class="plan-log-content-col">日志内容</th><th class="plan-log-operator-col">操作人</th><th class="plan-log-time-col">操作时间</th></tr></thead><tbody id="planLogBody"></tbody></table>
+              </div>
+            </div>
+          </div>
+          <div class="import-link-mask hidden" id="importLinkMask"></div>
+          <div class="import-link-dialog hidden" id="importLinkDialog" role="dialog" aria-modal="true" aria-labelledby="importLinkTitle">
+            <div class="import-link-head">
+              <h3 id="importLinkTitle">导入关联 FBA 货件</h3>
+              <button class="import-link-close" id="importLinkClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="import-link-body" id="importLinkBody">
+              <div class="import-steps">
+                <div class="import-step active" data-step="1"><span class="import-step-num">1</span><span class="import-step-text">下载模板</span></div>
+                <div class="import-step-line"></div>
+                <div class="import-step" data-step="2"><span class="import-step-num">2</span><span class="import-step-text">选择文件</span></div>
+                <div class="import-step-line"></div>
+                <div class="import-step" data-step="3"><span class="import-step-num">3</span><span class="import-step-text">确认导入</span></div>
+              </div>
+              <div class="import-guide">
+                <div class="import-guide-title">第一步：使用标准模板整理数据</div>
+                <div class="import-guide-tip">请勿修改模板表头。支持 .xlsx、.xls、.csv 文件，单次仅导入一个文件。</div>
+                <button class="btn primary plain" id="importLinkDownloadTpl" type="button">下载模板</button>
+              </div>
+              <div class="import-upload" id="importLinkDropArea">
+                <input type="file" id="importLinkFileInput" accept=".xlsx,.xls,.csv" hidden>
+                <div class="import-upload-icon">↥</div>
+                <div class="import-upload-text">将 Excel 文件拖到此处，或<span class="import-upload-link" id="importLinkChooseFile">点击选择文件</span></div>
+              </div>
+              <div class="import-upload-tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</div>
+              <div class="import-result hidden" id="importLinkResult">
+                <div class="import-result-head">
+                  <div class="import-result-summary">
+                    <span class="import-result-item success"><b id="importLinkSuccessCount">0</b> 条成功</span>
+                    <span class="import-result-item warn"><b id="importLinkFailCount">0</b> 条失败</span>
+                    <span class="import-result-item prelink" id="importLinkPrelinkWrap" style="display:none"><b id="importLinkPrelinkCount">0</b> 条预关联（货件待同步）</span>
+                  </div>
+                  <button class="btn soft" id="importLinkExportFail" type="button">导出失败行</button>
+                </div>
+                <div class="import-result-table-wrap">
+                  <table class="import-result-table">
+                    <thead><tr><th>结果</th><th>行号</th><th>发货计划号</th><th>SKU</th><th>FBA货件单号</th><th>原因 / 说明</th></tr></thead>
+                    <tbody id="importLinkResultBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="import-link-footer">
+              <span class="import-file-info" id="importLinkFileInfo">尚未选择文件</span>
+              <div class="import-link-footer-actions">
+                <button class="btn" id="importLinkCancel" type="button">取消</button>
+                <button class="btn primary" id="importLinkConfirm" type="button" disabled>确认导入</button>
               </div>
             </div>
           </div>

@@ -3530,8 +3530,8 @@ createApp({
     };
     const updateDocDiffs = (row) => {
       row.declarePickDiff = String(Number(row.declare || 0) - (row.pick || 0));
-      row.pickShipDiff = String((row.ship || 0) - (row.pick || 0));
-      row.shipReceiveDiff = String((row.receive || 0) - (row.ship || 0));
+      row.pickShipDiff = String((row.shipped || 0) - (row.pick || 0));
+      row.shipReceiveDiff = String((row.receive || 0) - (row.shipped || 0));
       row.declareReceiveDiff = String((row.receive || 0) - Number(row.declare || 0));
     };
     docs.forEach(updateDocDiffs);
@@ -3621,10 +3621,10 @@ createApp({
           subSetPickedQty,
           ship: Number(item.ship || 0),
           receive: Number(item.receive || 0),
-          pendingReceive: Math.max(Number(item.ship || 0) - Number(item.receive || 0), 0),
+          pendingReceive: Math.max(Number(item.shipped ?? item.ship ?? 0) - Number(item.receive || 0), 0),
           declarePickDiff: String(Number(item.declare || 0) - picked),
-          pickShipDiff: String(Number(item.ship || 0) - picked),
-          shipReceiveDiff: String(Number(item.receive || 0) - Number(item.ship || 0)),
+          pickShipDiff: String(Number(item.shipped ?? item.ship ?? 0) - picked),
+          shipReceiveDiff: String(Number(item.receive || 0) - Number(item.shipped ?? item.ship ?? 0)),
           declareReceiveDiff: String(Number(item.receive || 0) - Number(item.declare || 0)),
           pickupDiff: String(Math.max(Number(item.planQty ?? item.declare ?? 0) - picked, 0)),
         };
@@ -3790,7 +3790,7 @@ createApp({
       const options = [];
       if (['待加工', '待发货'].includes(doc.status) && Number(doc.pick || 0) > 0)
         options.push({ value: 'pickup', label: '提货数量' });
-      if (doc.status === '待收货' && Number(doc.ship || 0) > 0) options.push({ value: 'shipment', label: '发货数量' });
+      if (doc.status === '待收货' && Number(doc.ship || 0) > 0) options.push({ value: 'shipment', label: '实际发货量' });
       if (['待收货', '部分收货'].includes(doc.status) && Number(doc.receive || 0) > 0)
         options.push({ value: 'receive', label: '收货数量' });
       return options;
@@ -4276,7 +4276,7 @@ createApp({
       }
       const diffMissing = pickupRows.value.find((row) => !row.isSubDetail && pickupRowDiff(row) > 0 && !row.diffReason);
       if (diffMissing) {
-        ElementPlus.ElMessage.error(`SKU ${diffMissing.sku} 累计提货后仍小于发货数量，请选择差异原因`);
+        ElementPlus.ElMessage.error(`SKU ${diffMissing.sku} 累计提货后仍小于实际发货量，请选择差异原因`);
         return;
       }
       const otherReasonMissing = pickupRows.value.find(
@@ -4589,12 +4589,12 @@ createApp({
       }
       const shipQty = row.items.reduce((sum, item) => sum + Number(item.pick || 0), 0);
       if (shipQty <= 0) {
-        ElementPlus.ElMessage.error('当前发货单没有可发货数量');
+        ElementPlus.ElMessage.error('当前发货单没有可发货量');
         return;
       }
       try {
         await ElementPlus.ElMessageBox.confirm(
-          `确认发货单 ${row.id} 全部发货吗？本次发货 ${shipQty} 件，确认后将进入“待收货”。`,
+          `确认发货单 ${row.id} 全部发货吗？实际发货量 ${shipQty} 件，确认后将进入“待收货”。`,
           '发货确认',
           { type: 'warning', confirmButtonText: '确认发货', cancelButtonText: '取消' },
         );
@@ -4693,7 +4693,7 @@ createApp({
         (row) => !Number.isInteger(Number(row.shipQty)) || Number(row.shipQty) <= 0 || Number(row.shipQty) > row.remain,
       );
       if (qtyInvalid) {
-        ElementPlus.ElMessage.error(`SKU ${qtyInvalid.sku} 的本次发货数量必须为正整数，且不能超过剩余可发数量`);
+        ElementPlus.ElMessage.error(`SKU ${qtyInvalid.sku} 的实际发货量必须为正整数，且不能超过剩余可发数量`);
         return;
       }
       const diffMissing = shipSelection.value.find((row) => {
@@ -4707,7 +4707,7 @@ createApp({
       }
       try {
         await ElementPlus.ElMessageBox.confirm(
-          `本次共发货 ${shipQtyTotal.value} 件，提交后状态为“待收货”，确认提交吗？`,
+          `实际发货量合计 ${shipQtyTotal.value} 件，提交后状态为“待收货”，确认提交吗？`,
           '确认发货',
           { type: 'warning', confirmButtonText: '确认发货', cancelButtonText: '取消' },
         );

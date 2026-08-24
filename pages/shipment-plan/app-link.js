@@ -27,6 +27,9 @@ const rows=Array.from({length:62},(_,i)=>{
   };
 });
 
+const LINK_SHIPMENT_ENABLED=false; /* 本版本暂隐藏发货计划 tab 关联 FBA 货件入口。恢复时改为 true */
+const IMPORT_LINK_ENABLED=false;   /* 本版本暂隐藏发货计划 tab 导入关联 FBA 货件入口。恢复时改为 true */
+const PLAN_OP_SHOW_LOG=false;     /* 本版本暂隐藏操作列“日志”按钮。恢复时改为 true */
 const statusDefs=[['全部',null],['待确认','待确认'],['待发货','待发货'],['已完成','已完成'],['已作废','已作废']];
 const state={codes:[],shipWarehouses:[],destinationWarehouses:[],destinationTypes:[],firstMiles:[],channels:[],transports:[],platforms:[],countries:[],stores:[],teams:[],creators:['Admin'],status:null,page:1,pageSize:15,selected:new Set(),filtered:[...rows]};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -79,8 +82,9 @@ function renderTable(){
   $('#tableBody').innerHTML=data.map(row=>{
     const linked=row.linkedShipments.length>0;
     const canLink=row.status==='待发货'&&!linked;
-    const opCell=linked?`<span class="plan-linked-tag" title="当前计划已关联 FBA 货件，不可作废或生成发货单">已关联货件</span>`:(canLink?`<button class="plan-link-action" data-link-plan="${row.id}" type="button">关联货件</button>`:'');
-    return `<tr><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td>${row.plan}</td><td class="left"><span class="thumb">${row.icon}</span>${row.sku}</td><td>${row.status}</td><td>${row.updated}</td><td>${row.creator}</td><td><input class="inline-input row-remark" data-id="${row.id}" value="${row.remark}" placeholder="请输入备注"></td><td><input class="inline-input row-ship-date" data-id="${row.id}" type="date" value="${row.expectedShip}"></td><td><input class="inline-input row-arrival-date" data-id="${row.id}" type="date" value="${row.expectedArrival}"></td><td>${row.boxes}</td><td class="plan-op-cell">${opCell}<button class="plan-log-action" data-log-plan="${row.id}" type="button">日志</button></td></tr>`;
+    const opCell=linked?`<span class="plan-linked-tag" title="当前计划已关联 FBA 货件，不可作废或生成发货单">已关联货件</span>`:(LINK_SHIPMENT_ENABLED&&canLink?`<button class="plan-link-action" data-link-plan="${row.id}" type="button">关联货件</button>`:'');
+    const logCell=PLAN_OP_SHOW_LOG?`<button class="plan-log-action" data-log-plan="${row.id}" type="button">日志</button>`:'';
+    return `<tr><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td>${row.plan}</td><td class="left"><span class="thumb">${row.icon}</span>${row.sku}</td><td>${row.status}</td><td>${row.updated}</td><td>${row.creator}</td><td><input class="inline-input row-remark" data-id="${row.id}" value="${row.remark}" placeholder="请输入备注"></td><td><input class="inline-input row-ship-date" data-id="${row.id}" type="date" value="${row.expectedShip}"></td><td><input class="inline-input row-arrival-date" data-id="${row.id}" type="date" value="${row.expectedArrival}"></td><td>${row.boxes}</td><td class="plan-op-cell">${opCell}${logCell}</td></tr>`;
   }).join('');
   $$('.row-check').forEach(check=>check.onchange=()=>{const id=Number(check.dataset.id);check.checked?state.selected.add(id):state.selected.delete(id);syncSelection();});$$('.row-remark').forEach(input=>input.onchange=()=>{rows.find(r=>r.id===Number(input.dataset.id)).remark=input.value;toast('备注已保存');});
   $$('.row-ship-date,.row-arrival-date').forEach(input=>input.onclick=()=>{if(typeof input.showPicker==='function'){try{input.showPicker();}catch{}}});syncSelection();$$('[data-link-plan]').forEach(btn=>btn.onclick=()=>openPlanLinkShipmentPopover([Number(btn.dataset.linkPlan)]));$$('[data-log-plan]').forEach(btn=>btn.onclick=()=>openPlanLogDialog(Number(btn.dataset.logPlan)));
@@ -237,8 +241,19 @@ function renderFbaTable(){
   $$('[data-fba-remark]').forEach(input=>input.onchange=()=>{const found=fbaGroups.flatMap(group=>group.children).find(child=>child.id===input.dataset.fbaRemark);found.remark=input.value;toast('备注已保存');});
 }
 function fbaPlanDate(value){return value.replaceAll('–','-');}
+/* 关联发货计划弹窗：打开后默认按货件的 SKU/店铺/FNSKU 精确过滤候选计划，后续缩小范围使用 */
+const fbaPopupDefaults={sku:'',fnsku:'',store:''};
 function filteredFbaPlans(){
-  return fbaPlanOptions.filter(plan=>plan.status==='待发货'&&fbaExactMatch(plan.plan,fbaState.planSearch)&&fbaExactMatch(plan.sku,fbaState.planSku)&&fbaExactMatch(plan.fnsku,fbaState.planFnsku)&&(!fbaState.planStore||plan.store===fbaState.planStore));
+  /* 强制候选范围：只有 SKU=FBA SKU && FNSKU=FBA FNSKU && 店铺=FBA 店铺 的计划，才允许作为候选 */
+  return fbaPlanOptions.filter(plan=>{
+    if(plan.status!=='待发货')return false;
+    if(fbaPopupDefaults.sku&&String(plan.sku).toLowerCase()!==fbaPopupDefaults.sku.toLowerCase())return false;
+    if(fbaPopupDefaults.fnsku&&String(plan.fnsku).toLowerCase()!==fbaPopupDefaults.fnsku.toLowerCase())return false;
+    if(fbaPopupDefaults.store&&plan.store!==fbaPopupDefaults.store)return false;
+    return fbaExactMatch(plan.plan,fbaState.planSearch)&&
+      fbaExactMatch(plan.sku,fbaState.planSku)&&
+      fbaExactMatch(plan.fnsku,fbaState.planFnsku);
+  });
 }
 function renderFbaPlanList(){const plans=filteredFbaPlans(),pages=Math.max(1,Math.ceil(plans.length/fbaState.planPageSize));fbaState.planPage=Math.min(fbaState.planPage,pages);const data=plans.slice((fbaState.planPage-1)*fbaState.planPageSize,fbaState.planPage*fbaState.planPageSize);$('#fbaPlanListInfo').textContent=`共 ${plans.length} 条`;
   $('#fbaPlanJumpPage').value=fbaState.planPage;$('#fbaPlanPageTotal').textContent=pages;$('#fbaPlanPrevPage').disabled=fbaState.planPage===1;$('#fbaPlanNextPage').disabled=fbaState.planPage===pages;
@@ -258,11 +273,25 @@ function confirmFbaUnlink(){const child=findFbaChild(fbaState.pendingUnlink);if(
     addPlanLog(planRow.id,'解除关联',`SKU ${planRow.sku} 解除货件 ${group?group.shipmentNo:child.id} 的关联`);}
   renderFbaTable();renderTable();toast(`已取消关联发货计划 ${linkedPlan}`);}}
 function readFbaPlanQuery(){fbaState.planSearch=$('#fbaPlanSearch').value;fbaState.planSku=$('#fbaPlanSku').value;fbaState.planFnsku=$('#fbaPlanFnsku').value;}
-function resetFbaPlanQuery(){fbaState.planSearch='';fbaState.planSku='';fbaState.planFnsku='';fbaState.planPage=1;$('#fbaPlanSearch').value='';$('#fbaPlanSku').value='';$('#fbaPlanFnsku').value='';$('#fbaPlanDefaultStore').textContent=fbaState.planStore||'—';$('#fbaPlanDefaultSku').textContent=fbaState.planSku||'—';$('#fbaPlanDefaultFnsku').textContent=fbaState.planFnsku||'—';}
-function openFbaPlanPopover(childIds){
-  fbaState.activeChildIds=childIds;const contexts=childIds.map(id=>{for(const group of fbaGroups){const child=group.children.find(item=>item.id===id);if(child)return {group,child};}return null;}).filter(Boolean);const commonStore=contexts.length&&contexts.every(item=>item.group.seller===contexts[0].group.seller)?contexts[0].group.seller:'';const commonSku=contexts.length?contexts[0].child.sku:'';const commonFnsku=contexts.length?contexts[0].child.fnsku:'';fbaState.planStore=commonStore;fbaState.planSku=commonSku;fbaState.planFnsku=commonFnsku;resetFbaPlanQuery();renderFbaPlanList();$('#fbaLinkModalMask').classList.remove('hidden');$('#fbaLinkPopover').classList.remove('hidden');
+function resetFbaPlanQuery(){
+  /* 重置：清空用户查询条件（计划号/扩展SKU/扩展FNSKU），但保留当前 FBA 货件的默认 SKU / FNSKU / 店铺映射作为候选范围，以便继续缩小范围 */
+  fbaState.planSearch='';fbaState.planSku='';fbaState.planFnsku='';fbaState.planPage=1;
+  $('#fbaPlanSearch').value='';$('#fbaPlanSku').value='';$('#fbaPlanFnsku').value='';
+  $('#fbaPlanDefaultStore').textContent=fbaPopupDefaults.store||'—';
+  $('#fbaPlanDefaultSku').textContent=fbaPopupDefaults.sku||'—';
+  $('#fbaPlanDefaultFnsku').textContent=fbaPopupDefaults.fnsku||'—';
 }
-function closeFbaPlanPopover(){$('#fbaLinkModalMask').classList.add('hidden');$('#fbaLinkPopover').classList.add('hidden');fbaState.activeChildIds=[];}
+function openFbaPlanPopover(childIds){
+  fbaState.activeChildIds=childIds;
+  const contexts=childIds.map(id=>{for(const group of fbaGroups){const child=group.children.find(item=>item.id===id);if(child)return {group,child};}return null;}).filter(Boolean);
+  /* 写入默认映射：SKU、FNSKU、店铺 — 以后续筛选（缩小范围）发货计划候选，不需要改弹窗字段 */
+  fbaPopupDefaults.sku=contexts.length?contexts[0].child.sku:'';
+  fbaPopupDefaults.fnsku=contexts.length?contexts[0].child.fnsku:'';
+  fbaPopupDefaults.store=contexts.length&&contexts.every(x=>x.group.seller===contexts[0].group.seller)?contexts[0].group.seller:'';
+  resetFbaPlanQuery();renderFbaPlanList();
+  $('#fbaLinkModalMask').classList.remove('hidden');$('#fbaLinkPopover').classList.remove('hidden');
+}
+function closeFbaPlanPopover(){$('#fbaLinkModalMask').classList.add('hidden');$('#fbaLinkPopover').classList.add('hidden');fbaState.activeChildIds=[];fbaPopupDefaults.sku='';fbaPopupDefaults.fnsku='';fbaPopupDefaults.store='';}
 // ===== 计划侧关联货件（双向关联入口·新增）=====
 let planLinkPlanIds=[];
 function planLinkRowHtml(plan,canDelete){
@@ -308,6 +337,7 @@ function confirmPlanLinkShipment(){
   closePlanLinkShipmentPopover();renderTable();toast('关联成功，发货计划已流转至「已完成」');
 }
 function initPlanLinkShipment(){
+  if(!LINK_SHIPMENT_ENABLED){$('#linkShipmentBtn').style.display='none';return;}
   $('#linkShipmentBtn').onclick=()=>{
     const selected=[...state.selected];
     if(!selected.length){toast('请先勾选待发货的发货计划');return;}
@@ -333,3 +363,220 @@ function initFbaView(){
 }
 function switchShipmentModule(module){const isFba=module==='fba';$('#shipmentPlanView').classList.toggle('hidden',isFba);$('#fbaShipmentView').classList.toggle('hidden',!isFba);$('#shipmentPlanTab').classList.toggle('active',!isFba);$('#fbaShipmentTab').classList.toggle('active',isFba);if(!isFba)closeFbaPlanPopover();}
 initFbaView();initPlanLinkShipment();
+
+/* ===========================================================
+ * 导入关联 FBA 货件（原型实现，仅支持 CSV 以便前端直接解析）
+ * =========================================================== */
+const IMPORT_LINK_FIELDS=['发货计划号','SKU','店铺','FNSKU','FBA货件单号'];
+const IMPORT_LINK_HINTS=['必填，中台发货计划号','必填，发货计划中的 SKU','必填，店铺名称，需与发货计划一致','必填，亚马逊 FNSKU','必填，领星/亚马逊 FBA 货件单号'];
+let importLinkState={file:null,templateDownloaded:false,parsedRows:[],resultItems:[]};
+function openImportLinkDialog(){
+  if(!IMPORT_LINK_ENABLED){toast('导入关联功能暂未开放','error');return;}
+  importLinkState={file:null,templateDownloaded:importLinkState.templateDownloaded,parsedRows:[],resultItems:[]};
+  renderImportStep(1);
+  $('#importLinkFileInput').value='';
+  $('#importLinkFileInfo').innerHTML='尚未选择文件';
+  $('#importLinkConfirm').disabled=true;
+  $('#importLinkResult').classList.add('hidden');
+  $('#importLinkMask').classList.remove('hidden');
+  $('#importLinkDialog').classList.remove('hidden');
+}
+function closeImportLinkDialog(){
+  $('#importLinkDialog').classList.add('hidden');
+  $('#importLinkMask').classList.add('hidden');
+}
+function renderImportStep(active){
+  const steps=$$('#importLinkBody .import-step');
+  steps.forEach((step,index)=>{
+    const n=index+1;
+    step.classList.toggle('active',n<=active);
+    step.classList.toggle('done',n<active);
+  });
+}
+function downloadImportLinkTemplate(){
+  const headers=IMPORT_LINK_FIELDS.map(f=>`*${f}`);
+  const csv='\ufeff'+headers.map(h=>`"${h}"`).join(',')+'\n'+
+    IMPORT_LINK_HINTS.map(h=>`"${h}"`).join(',')+'\n'+
+    ['SHP20260801-1','140US260008','ARCCAP','X00800001','FBA19JV2DS11'].map(v=>`"${v}"`).join(',')+'\n';
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='导入关联FBA货件模板.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  importLinkState.templateDownloaded=true;
+  renderImportStep(1);
+  toast('模板已下载，请按模板填写后导入');
+}
+function importParseCsvLine(line){
+  const out=[];let cur='',q=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(q){
+      if(c==='"'){if(line[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;
+    }else{
+      if(c==='"')q=true;
+      else if(c===','){out.push(cur);cur='';}
+      else cur+=c;
+    }
+  }
+  out.push(cur);return out;
+}
+function onImportLinkFileChange(file){
+  if(!file)return;
+  const name=(file.name||'').toLowerCase();
+  if(!['.xlsx','.xls','.csv'].some(ext=>name.endsWith(ext))){toast('文件格式不正确，请上传 .xlsx、.xls 或 .csv 文件','error');return;}
+  if(!name.endsWith('.csv')){toast('原型版本仅支持 CSV 模板，正式版将支持 xls/xlsx','error');return;}
+  importLinkState.file=file;
+  $('#importLinkFileInfo').innerHTML=`<span class="file-name">当前文件：${file.name}</span><span class="file-remove" id="importLinkFileRemove">移除</span>`;
+  $('#importLinkConfirm').disabled=false;
+  renderImportStep(2);
+  $('#importLinkFileRemove')?.addEventListener('click',e=>{e.stopPropagation();importLinkState.file=null;$('#importLinkFileInput').value='';$('#importLinkFileInfo').textContent='尚未选择文件';$('#importLinkConfirm').disabled=true;renderImportStep(importLinkState.templateDownloaded?1:1);});
+}
+function validateImportLinkHeaders(headerRow){
+  const header=headerRow.map(h=>h.trim().replace(/^\*/,''));
+  const missing=IMPORT_LINK_FIELDS.filter(f=>!header.includes(f));
+  return {header,missing};
+}
+/* 在 fbaGroups 里查找：按 shipmentNo + SKU + FNSKU 找到对应 SKU 明细 */
+function findFbaShipmentChild(shipmentNo,sku,fnsku){
+  for(const g of fbaGroups){
+    if(g.shipmentNo.toLowerCase()!==String(shipmentNo).toLowerCase())continue;
+    const child=g.children.find(c=>String(c.sku).toLowerCase()===String(sku).toLowerCase()&&String(c.fnsku).toLowerCase()===String(fnsku).toLowerCase());
+    if(child)return {group:g,child};
+  }
+  const groupOnly=fbaGroups.find(g=>g.shipmentNo.toLowerCase()===String(shipmentNo).toLowerCase());
+  if(groupOnly)return {group:groupOnly,child:null};
+  return null;
+}
+/* 目的仓匹配：计划的目的地仓 vs FBA货件的物流中心编码 */
+function matchDestination(row,group){
+  const planDest=(row.destinationWarehouse||'').toLowerCase().trim();
+  const fbaCenter=(group&&group.center?group.center:'').toLowerCase().trim();
+  if(!planDest||!fbaCenter)return true; /* 原型：任一为空则放行，避免影响演示 */
+  return planDest===fbaCenter;
+}
+async function submitImportLink(){
+  const file=importLinkState.file;
+  if(!file){toast('请先选择需要导入的文件','error');return;}
+  renderImportStep(2);
+  const text=await new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(String(r.result||'').replace(/^\ufeff/,''));
+    r.onerror=()=>reject(new Error('文件读取失败'));
+    r.readAsText(file);
+  });
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2){toast('文件内容为空，导入失败','error');return;}
+  const headerInfo=validateImportLinkHeaders(importParseCsvLine(lines[0]));
+  if(headerInfo.missing.length){toast(`导入失败：模板表头缺少必填字段 ${headerInfo.missing.join('、')}`,'error');return;}
+  const header=headerInfo.header;
+  const idx=name=>header.indexOf(name);
+  const dataLines=lines.slice(2);/* 首行表头、第二行示例/说明 */
+  const items=[];
+  const planSeen=new Set();/* 同一文件内禁止同一计划重复关联 */
+  const childSeen=new Set();/* 同一文件内禁止同一货件SKU明细重复关联 */
+  for(let i=0;i<dataLines.length;i++){
+    const lineNo=i+3;
+    const cells=importParseCsvLine(dataLines[i]);
+    const planNo=(cells[idx('发货计划号')]||'').trim();
+    const sku=(cells[idx('SKU')]||'').trim();
+    const store=(cells[idx('店铺')]||'').trim();
+    const fnsku=(cells[idx('FNSKU')]||'').trim();
+    const shipmentNo=(cells[idx('FBA货件单号')]||'').trim();
+    const item={lineNo,planNo,sku,store,fnsku,shipmentNo,status:'',msg:''};
+    /* 1. 必填校验 */
+    const empty=[];
+    if(!planNo)empty.push('发货计划号');if(!sku)empty.push('SKU');if(!store)empty.push('店铺');if(!fnsku)empty.push('FNSKU');if(!shipmentNo)empty.push('FBA货件单号');
+    if(empty.length){item.status='fail';item.msg=`必填字段缺失：${empty.join('、')}`;items.push(item);continue;}
+    /* 2. 计划存在性 */
+    const plan=rows.find(r=>r.plan===planNo);
+    if(!plan){item.status='fail';item.msg='发货计划不存在';items.push(item);continue;}
+    /* 3. 状态必须为待发货 */
+    if(plan.status!=='待发货'){item.status='fail';item.msg=`发货计划状态为「${plan.status}」，仅待发货可关联`;items.push(item);continue;}
+    /* 4. 同一计划已有关联 */
+    if(plan.linkedShipments.length>0){item.status='fail';item.msg=`该计划已关联 FBA 货件 ${plan.linkedShipments.join('、')}`;items.push(item);continue;}
+    /* 5. 文件内同一计划重复 */
+    if(planSeen.has(planNo)){item.status='fail';item.msg='同一文件内计划号重复';items.push(item);continue;}
+    planSeen.add(planNo);
+    /* 6. SKU 匹配 */
+    if(plan.sku.toLowerCase()!==sku.toLowerCase()){item.status='fail';item.msg=`SKU 与发货计划不一致（计划 SKU=${plan.sku}）`;items.push(item);continue;}
+    /* 7. 店铺匹配 */
+    if(plan.store!==store){item.status='fail';item.msg=`店铺与发货计划不一致（计划店铺=${plan.store}）`;items.push(item);continue;}
+    /* 8. 货件是否已同步到中台 */
+    const match=findFbaShipmentChild(shipmentNo,sku,fnsku);
+    if(!match){
+      /* 预关联：货件尚未同步，先记录关联，等同步后自动落地 */
+      item.status='prelink';item.msg='FBA 货件尚未同步至中台，已记录预关联，待下次同步后自动完成关联';
+      /* 原型里预关联直接写计划 linkedShipments 并保持待发货，加一个 tag 区分预关联状态 */
+      if(!plan.prelinkShipments)plan.prelinkShipments=[];
+      plan.prelinkShipments.push(shipmentNo);
+      if(!plan.linkedShipments.includes(shipmentNo))plan.linkedShipments.push(shipmentNo);
+      addPlanLog(plan.id,'预关联FBA货件',`SKU ${plan.sku} 预关联货件 ${shipmentNo}（货件待同步）`);
+      items.push(item);continue;
+    }
+    /* 9. 货件 SKU 明细存在性 + FNSKU 匹配 */
+    if(!match.child){
+      item.status='fail';item.msg=`FBA 货件已存在，但未找到 SKU=${sku} 且 FNSKU=${fnsku} 的明细`;items.push(item);continue;
+    }
+    /* 10. 同一货件SKU明细已被其他计划关联 */
+    if(match.child.linkedPlans&&match.child.linkedPlans.length>0){
+      item.status='fail';item.msg=`该货件 SKU 已被计划 ${match.child.linkedPlans.join('、')} 关联，不可重复关联`;items.push(item);continue;
+    }
+    const childKey=`${shipmentNo}|${sku}|${fnsku}`;
+    if(childSeen.has(childKey)){item.status='fail';item.msg='同一文件内货件+SKU+FNSKU 重复，不可重复关联';items.push(item);continue;}
+    childSeen.add(childKey);
+    /* 11. 目的仓匹配（计划目的地仓 vs 货件物流中心编码） */
+    if(!matchDestination(plan,match.group)){
+      item.status='fail';item.msg=`目的地仓不匹配（发货计划目的地仓=${plan.destinationWarehouse}，货件物流中心=${match.group.center}）`;items.push(item);continue;
+    }
+    /* 校验通过，执行关联 */
+    plan.linkedShipments.push(shipmentNo);
+    plan.status='已完成';
+    match.child.linkedPlans=[plan.plan];
+    addPlanLog(plan.id,'关联FBA货件',`SKU ${plan.sku} 关联货件 ${shipmentNo}（FNSKU=${fnsku}，店铺=${store}）`);
+    item.status='success';item.msg=`关联成功，发货计划已流转至「已完成」`;
+    items.push(item);
+  }
+  importLinkState.resultItems=items;
+  renderImportLinkResult(items);
+  renderImportStep(3);
+  renderTable();
+}
+function renderImportLinkResult(items){
+  const success=items.filter(x=>x.status==='success').length;
+  const fail=items.filter(x=>x.status==='fail').length;
+  const prelink=items.filter(x=>x.status==='prelink').length;
+  $('#importLinkSuccessCount').textContent=success;
+  $('#importLinkFailCount').textContent=fail;
+  $('#importLinkPrelinkCount').textContent=prelink;
+  $('#importLinkPrelinkWrap').style.display=prelink>0?'':'none';
+  const label={success:'成功',fail:'失败',prelink:'预关联'};
+  $('#importLinkResultBody').innerHTML=items.map(it=>`<tr class="${it.status}"><td>${label[it.status]||it.status}</td><td>${it.lineNo}</td><td>${it.planNo||'—'}</td><td>${it.sku||'—'}</td><td>${it.shipmentNo||'—'}</td><td>${it.msg||'—'}</td></tr>`).join('');
+  $('#importLinkResult').classList.remove('hidden');
+  toast(`导入完成：成功 ${success} 条 / 失败 ${fail} 条${prelink?' / 预关联 '+prelink+' 条':''}`);
+}
+function exportImportLinkFail(){
+  const fails=importLinkState.resultItems.filter(x=>x.status==='fail');
+  if(!fails.length){toast('没有失败行可导出');return;}
+  const header=[...IMPORT_LINK_FIELDS,'失败原因'];
+  const csv='\ufeff'+header.map(h=>`"${h}"`).join(',')+'\n'+fails.map(it=>[it.planNo,it.sku,it.store,it.fnsku,it.shipmentNo,it.msg].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='导入关联FBA货件-失败行.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+function initImportLink(){
+  if(!IMPORT_LINK_ENABLED){
+    const btn=$('#importLinkShipmentBtn');if(btn)btn.style.display='none';
+    return;
+  }
+  $('#importLinkShipmentBtn').onclick=openImportLinkDialog;
+  $('#importLinkClose').onclick=closeImportLinkDialog;
+  $('#importLinkCancel').onclick=closeImportLinkDialog;
+  $('#importLinkMask').onclick=e=>{if(e.target.id==='importLinkMask')closeImportLinkDialog();};
+  $('#importLinkDownloadTpl').onclick=downloadImportLinkTemplate;
+  $('#importLinkChooseFile').onclick=()=>$('#importLinkFileInput').click();
+  $('#importLinkDropArea').onclick=()=>$('#importLinkFileInput').click();
+  $('#importLinkFileInput').addEventListener('change',e=>onImportLinkFileChange(e.target.files[0]));
+  ['dragenter','dragover'].forEach(ev=>$('#importLinkDropArea').addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();$('#importLinkDropArea').classList.add('drag-over');}));
+  ['dragleave','drop'].forEach(ev=>$('#importLinkDropArea').addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();$('#importLinkDropArea').classList.remove('drag-over');}));
+  $('#importLinkDropArea').addEventListener('drop',e=>{const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];onImportLinkFileChange(f);if(f)$('#importLinkFileInput').files=e.dataTransfer.files;});
+  $('#importLinkConfirm').onclick=submitImportLink;
+  $('#importLinkExportFail').onclick=exportImportLinkFail;
+}
+initImportLink();

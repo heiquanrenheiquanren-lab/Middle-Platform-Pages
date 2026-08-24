@@ -83,3 +83,59 @@
     .plan-log-content-col{min-width:280px}
     .plan-log-operator-col{width:120px;text-align:center}
     .plan-log-time-col{width:170px;text-align:center}
+
+    /* 导入关联 FBA 货件弹窗 */
+    .import-link-mask{position:fixed;z-index:49;inset:0;background:rgba(0,0,0,.42)}.import-link-mask.hidden{display:none}
+    .import-link-dialog{position:fixed;z-index:50;top:50%;left:50%;transform:translate(-50%,-50%);width:min(720px,calc(100vw - 48px));max-height:calc(100vh - 72px);background:#fff;border-radius:6px;box-shadow:0 10px 32px rgba(0,0,0,.2);display:flex;flex-direction:column}
+    .import-link-dialog.hidden{display:none}
+    .import-link-head{display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 18px;border-bottom:1px solid #ebeef5;flex:0 0 54px}
+    .import-link-head h3{margin:0;color:#303133;font-size:16px;font-weight:600}
+    .import-link-close{width:32px;height:32px;border:0;background:transparent;font-size:24px;color:#909399;cursor:pointer}.import-link-close:hover{color:#606266}
+    .import-link-body{padding:18px 20px;overflow:auto;min-height:0;flex:1 1 auto}
+    .btn.plain{background:#ecf5ff;border-color:#c6e2ff;color:var(--blue)}
+    .btn.plain:hover{background:#d9ecff;border-color:#a0cfff}
+
+    .import-steps{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:18px}
+    .import-step{display:flex;align-items:center;gap:8px;color:#c0c4cc;min-width:108px}
+    .import-step.active{color:var(--blue)}
+    .import-step.done .import-step-num{background:#67c23a;border-color:#67c23a;color:#fff}
+    .import-step-num{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #c0c4cc;border-radius:50%;font-size:12px;line-height:1;font-weight:600;background:#fff}
+    .import-step.active .import-step-num{background:var(--blue);border-color:var(--blue);color:#fff}
+    .import-step-text{font-size:14px;white-space:nowrap}
+    .import-step-line{flex:0 0 58px;height:1px;background:#dcdfe6}
+
+    .import-guide{padding:14px 16px;border-radius:4px;background:#fafcff;border:1px solid #e4efff;margin-bottom:16px}
+    .import-guide-title{font-size:14px;color:#303133;font-weight:600;margin-bottom:6px}
+    .import-guide-tip{color:#909399;font-size:12px;margin-bottom:12px;line-height:20px}
+
+    .import-upload{min-height:148px;border:1px dashed #dcdfe6;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;background:#fafafc;transition:.15s;cursor:pointer}
+    .import-upload:hover,.import-upload.drag-over{border-color:var(--blue);background:#f0f7ff}
+    .import-upload-icon{font-size:40px;color:#c0c4cc;line-height:1}
+    .import-upload-text{color:#606266;font-size:13px}
+    .import-upload-link{color:var(--blue);cursor:pointer;text-decoration:underline;margin:0 2px}
+    .import-upload-tip{margin-top:10px;color:#909399;font-size:12px;text-align:center}
+
+    .import-link-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 14px;border-top:1px solid #ebeef5;flex:0 0 auto}
+    .import-file-info{color:#909399;font-size:13px}
+    .import-file-info .file-name{color:#606266;margin-right:8px}
+    .import-file-info .file-remove{color:#f56c6c;cursor:pointer;margin-left:8px;text-decoration:underline}
+    .import-link-footer-actions{display:flex;gap:8px}
+
+    .import-result{margin-top:18px;padding:14px;border-radius:4px;background:#fff;border:1px solid #ebeef5}
+    .import-result.hidden{display:none}
+    .import-result-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .import-result-summary{display:flex;gap:18px}
+    .import-result-item{font-size:13px;color:#606266}
+    .import-result-item b{font-size:16px;font-weight:600;margin-right:4px}
+    .import-result-item.success b{color:#67c23a}
+    .import-result-item.warn b{color:#f56c6c}
+    .import-result-item.prelink b{color:#e6a23c}
+    .import-result-table-wrap{max-height:220px;overflow:auto;border:1px solid #ebeef5;border-radius:4px}
+    .import-result-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+    .import-result-table th{position:sticky;top:0;height:36px;background:#fafafa;color:#303133;font-weight:600;border-bottom:1px solid #ebeef5;border-right:1px solid #f0f2f5;padding:0 8px;text-align:left;white-space:nowrap}
+    .import-result-table th:last-child{border-right:0}
+    .import-result-table td{height:34px;padding:0 8px;border-bottom:1px solid #f2f4f7;border-right:1px solid #f0f2f5;color:#606266;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+    .import-result-table td:last-child{border-right:0;max-width:none;white-space:normal}
+    .import-result-table tr.success td:first-child{color:#67c23a;font-weight:600}
+    .import-result-table tr.fail td:first-child{color:#f56c6c;font-weight:600}
+    .import-result-table tr.prelink td:first-child{color:#e6a23c;font-weight:600}
