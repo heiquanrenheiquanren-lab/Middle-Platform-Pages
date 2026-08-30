@@ -3,7 +3,7 @@ const {createApp,ref,reactive,computed,nextTick,onMounted}=Vue;
 const splitValues=value=>String(value||'').split(/[\s,，、;；]+/).map(item=>item.trim()).filter(Boolean).map(item=>item.toLowerCase());
 const textMatch=(value,query)=>{const terms=splitValues(query);if(!terms.length)return true;const source=String(value||'').toLowerCase();return terms.some(term=>source.includes(term));};
 const inMulti=(value,selected)=>!selected.length||selected.includes(value);
-const navRoutes={forecast:'../demand-forecast/index.html',stock:'../stock-plan/index.html',purchase:'../purchase-plan/index.html',shipment:'../shipment-plan/index.html',purchaseOrder:'../purchase-orders/index.html',shipmentOrder:'../shipment-orders/index.html',skuFirstLegCost:'../sku-first-leg-cost/index.html',supplierInventory:'../supplier-inventory/index.html'};
+const navRoutes={forecast:'../demand-forecast/index.html',stock:'../stock-plan/index.html',purchase:'../purchase-plan/index.html',shipment:'../shipment-plan/index.html',purchaseOrder:'../purchase-orders/index.html',shipmentOrder:'../shipment-orders/index.html',skuFirstLegCost:'../sku-first-leg-cost/index.html',supplierInventory:'../supplier-inventory/index.html',processingOrder:'../processing-orders/index.html'};
 
 const rows=[
   {destination:'美国西部仓',middleOrder:'DN20260808001',erpOrder:'EC20260808001',platform:'Amazon US',store:'Amazon-US 旗舰店',team:'北美一组',sku:'SPU-1001-BL',planNo:'FP20260806011',shippedQty:500,receiveQty:499,unitCost:3.8265,totalCost:1913.25,transport:'海运',channel:'标准海运',createdAt:'2026-08-09'},

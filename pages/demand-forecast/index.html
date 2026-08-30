@@ -250,6 +250,7 @@
         <div class="nav-item"><span class="nav-icon">▤</span><span>团队库存</span></div>
         <div class="nav-item"><span class="nav-icon">▥</span><span>平台仓&海外仓</span></div>
         <div class="nav-item" data-page-nav="supplierInventory"><span class="nav-icon">▱</span><span>供应商库存</span></div>
+        <div class="nav-item" data-page-nav="processingOrder"><span class="nav-icon">▦</span><span>加工单</span></div>
         <div class="nav-section"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
         <div class="nav-item active" data-page-nav="forecast"><span class="nav-icon">▣</span><span>需求预测</span></div>
         <div class="nav-item" data-page-nav="stock"><span class="nav-icon">▤</span><span>备货计划</span></div>
@@ -1343,7 +1344,7 @@
   </script>
   <script>
     (() => {
-      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', supplierInventory: '../supplier-inventory/index.html' };
+      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', supplierInventory: '../supplier-inventory/index.html', processingOrder: '../processing-orders/index.html' };
       document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => {
         const page = item.dataset.pageNav;
         if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page }, '*');

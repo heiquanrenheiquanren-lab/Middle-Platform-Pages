@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>加工单</title>
+  <link rel="stylesheet" href="../../vendor/element-plus.css">
+  <link rel="stylesheet" href="./styles.css?v=1.0.0">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.37">
+</head>
+<body>
+  <div id="app" class="app" v-cloak>
+    <header class="global-bar">
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
+      <div class="global-right"><button class="refresh-button" type="button" aria-label="刷新" @click="refresh">⟳</button><span class="admin">Admin⌄</span></div>
+    </header>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="nav-scroll">
+          <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item"><span class="mini">▤</span>团队库存</div>
+          <div class="nav-item"><span class="mini">▥</span>平台仓&海外仓</div>
+          <div class="nav-item" data-page-nav="supplierInventory"><span class="mini">▱</span>供应商库存</div>
+          <div class="nav-item active" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+          <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
+          <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
+          <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
+          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+          <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
+          <div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
+          <div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
+        </div>
+        <div class="collapse">≡</div>
+      </aside>
+
+      <main class="main">
+        <section class="page-head">
+          <div class="page-tab"><span>加工单</span></div>
+          <div class="page-head-note">记录已在仓库实际完成的组合加工，并同步过账库存</div>
+        </section>
+
+        <section class="query-panel">
+          <div class="query-grid">
+            <el-input v-model="filters.keyword" clearable placeholder="加工单号 / 加工批次号 / 组合 SKU" @keyup.enter="query"></el-input>
+            <el-select v-model="filters.warehouse" clearable filterable placeholder="仓库"><el-option v-for="item in warehouses" :key="item" :label="item" :value="item"></el-option></el-select>
+            <el-select v-model="filters.team" clearable filterable placeholder="团队"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select>
+            <el-select v-model="filters.operator" clearable placeholder="操作人"><el-option v-for="item in operators" :key="item" :label="item" :value="item"></el-option></el-select>
+            <el-select v-model="filters.status" clearable placeholder="状态"><el-option label="已完成" value="已完成"></el-option><el-option label="已冲销" value="已冲销"></el-option></el-select>
+            <el-date-picker v-model="filters.dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator="至" start-placeholder="加工开始日期" end-placeholder="加工结束日期"></el-date-picker>
+            <div class="query-actions"><el-button type="primary" @click="query">查询</el-button><el-button @click="resetFilters">重置</el-button></div>
+          </div>
+        </section>
+
+        <section class="summary-strip">
+          <div class="metric"><span>已完成加工单</span><strong>{{ summary.completed }}</strong><small>单</small></div>
+          <div class="metric"><span>成品入库</span><strong>{{ summary.finishedQty }}</strong><small>件</small></div>
+          <div class="metric"><span>子件耗用</span><strong>{{ summary.componentQty }}</strong><small>件</small></div>
+          <div class="metric"><span>本月加工成本</span><strong>¥ {{ money(summary.totalCost) }}</strong></div>
+        </section>
+
+        <section class="action-strip">
+          <div class="action-left"><el-button type="primary" @click="openCreate">库内加工</el-button><span class="rule-hint">提交即完工：系统校验库存后，同步扣减子件并增加同仓同团队的组合成品库存</span></div>
+          <div class="action-right"><el-button text @click="exportRecords">导出</el-button><el-button text @click="refresh">刷新</el-button></div>
+        </section>
+
+        <section class="table-area">
+          <el-table :data="pagedRecords" border height="100%" row-key="orderNo" @row-dblclick="openDetail">
+            <el-table-column prop="orderNo" label="加工单号" min-width="152" fixed="left"><template #default="scope"><el-button link type="primary" @click="openDetail(scope.row)">{{ scope.row.orderNo }}</el-button></template></el-table-column>
+            <el-table-column prop="batchNo" label="加工批次号" min-width="158"></el-table-column>
+            <el-table-column prop="completedAt" label="加工完成时间" min-width="158"></el-table-column>
+            <el-table-column prop="warehouse" label="仓库" min-width="210" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="team" label="团队" min-width="118"></el-table-column>
+            <el-table-column prop="finishedSku" label="组合 SKU" min-width="138"></el-table-column>
+            <el-table-column prop="finishedName" label="成品名称" min-width="220" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="bomVersion" label="BOM 版本" min-width="104"></el-table-column>
+            <el-table-column prop="processQty" label="加工数量" min-width="100" align="right"></el-table-column>
+            <el-table-column label="消耗子件" min-width="106" align="right"><template #default="scope">{{ totalConsumed(scope.row) }}</template></el-table-column>
+            <el-table-column prop="materialCost" label="子件成本" min-width="112" align="right"><template #default="scope">¥ {{ money(scope.row.materialCost) }}</template></el-table-column>
+            <el-table-column prop="processingFee" label="加工费" min-width="102" align="right"><template #default="scope">¥ {{ money(scope.row.processingFee) }}</template></el-table-column>
+            <el-table-column label="成品单位成本" min-width="126" align="right"><template #default="scope">¥ {{ money(unitCost(scope.row)) }}</template></el-table-column>
+            <el-table-column prop="operator" label="操作人" min-width="94"></el-table-column>
+            <el-table-column prop="status" label="状态" min-width="92" fixed="right"><template #default="scope"><el-tag :type="scope.row.status === '已完成' ? 'success' : 'info'" effect="plain">{{ scope.row.status }}</el-tag></template></el-table-column>
+            <el-table-column label="操作" width="138" fixed="right"><template #default="scope"><el-button link type="primary" @click="openDetail(scope.row)">查看</el-button><el-tooltip :content="scope.row.reverseReason || '冲销本加工单产生的全部库存流水'" placement="top"><span><el-button link type="danger" :disabled="scope.row.status !== '已完成' || !scope.row.canReverse" @click="openReverse(scope.row)">冲销</el-button></span></el-tooltip></template></el-table-column>
+            <template #empty><el-empty description="暂无符合条件的加工记录"></el-empty></template>
+          </el-table>
+        </section>
+
+        <footer class="bottom-bar">
+          <span>共 {{ filteredRecords.length }} 条记录</span>
+          <el-pagination v-model:current-page="page" v-model:page-size="pageSize" layout="sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50]" :total="filteredRecords.length"></el-pagination>
+        </footer>
+      </main>
+    </div>
+
+    <el-dialog v-model="createVisible" width="1180px" top="4vh" :close-on-click-modal="false" class="processing-dialog">
+      <template #header>
+        <div class="dialog-title"><div><h2>库内加工 · 完工补录</h2><p>无需仓库接单流程；本次提交成功后直接完成库存过账</p></div><el-tag type="warning" effect="plain">后端提交时重新校验并锁定库存</el-tag></div>
+      </template>
+
+      <el-steps :active="createStep" finish-status="success" align-center class="create-steps"><el-step title="确定范围与成品"></el-step><el-step title="确认子件与数量"></el-step><el-step title="核对并过账"></el-step></el-steps>
+
+      <div v-show="createStep === 0" class="step-body">
+        <div class="section-title"><b>1. 库存归集范围</b><span>仓库与团队共同确定可消耗库存边界</span></div>
+        <el-form :model="form" label-width="100px" class="scope-form">
+          <el-form-item label="仓库" required><el-select v-model="form.warehouse" filterable placeholder="请选择实际完成加工的仓库" @change="scopeChanged"><el-option v-for="item in warehouses" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+          <el-form-item label="团队" required><el-select v-model="form.team" filterable placeholder="请选择库存归属团队" @change="scopeChanged"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select></el-form-item>
+          <el-form-item label="组合 SKU" required><el-select v-model="form.bundleId" filterable placeholder="请选择已维护 BOM 的组合 SKU" :disabled="!form.warehouse || !form.team" @change="bundleChanged"><el-option v-for="item in availableBundles" :key="item.id" :label="`${item.finishedSku}｜${item.finishedName}`" :value="item.id"></el-option></el-select></el-form-item>
+          <el-form-item label="BOM 版本"><el-input :model-value="selectedBundle?.bomVersion || '-'" disabled></el-input></el-form-item>
+        </el-form>
+        <el-alert type="info" :closable="false" show-icon title="采购计划号仅保留在来源批次与库存流水中用于追溯，不参与本次加工查询、配比或库存判定。"></el-alert>
+      </div>
+
+      <div v-show="createStep === 1" class="step-body">
+        <div class="range-card"><div><span>库存范围</span><strong>{{ form.warehouse }} / {{ form.team }}</strong></div><div><span>组合成品</span><strong>{{ selectedBundle?.finishedSku }} / {{ selectedBundle?.bomVersion }}</strong></div><div><span>最大可加工</span><strong class="blue">{{ maxProcessQty }} 件</strong></div></div>
+        <div class="section-title"><b>2. 子件库存与 BOM 配比</b><span>可用量已按同仓同团队聚合；实际扣减按来源入库批次 FIFO</span></div>
+        <el-table :data="selectedBundle?.components || []" border max-height="285">
+          <el-table-column prop="sku" label="子件 SKU" min-width="140"></el-table-column>
+          <el-table-column prop="name" label="子件名称" min-width="190"></el-table-column>
+          <el-table-column label="单位配比" width="94" align="right"><template #default="scope">{{ scope.row.ratio }}</template></el-table-column>
+          <el-table-column label="账面在库" width="100" align="right"><template #default="scope">{{ componentStock(scope.row) }}</template></el-table-column>
+          <el-table-column prop="occupied" label="已占用" width="90" align="right"></el-table-column>
+          <el-table-column prop="frozen" label="冻结" width="82" align="right"></el-table-column>
+          <el-table-column label="加工可用" width="100" align="right"><template #default="scope"><b>{{ componentAvailable(scope.row) }}</b></template></el-table-column>
+          <el-table-column label="本次耗用" width="100" align="right"><template #default="scope"><span :class="{'danger-text': form.processQty * scope.row.ratio > componentAvailable(scope.row)}">{{ form.processQty * scope.row.ratio }}</span></template></el-table-column>
+          <el-table-column label="FIFO 预览" min-width="230"><template #default="scope"><el-button link type="primary" @click="previewFifo(scope.row)">查看 {{ fifoPlan(scope.row, form.processQty).length }} 个来源批次</el-button></template></el-table-column>
+        </el-table>
+        <el-form :model="form" label-width="110px" class="quantity-form">
+          <el-form-item label="本次加工数量" required><el-input-number v-model="form.processQty" :min="1" :max="Math.max(1, maxProcessQty)" controls-position="right"></el-input-number><span class="form-suffix">件（允许同一组合 SKU 分批多次加工）</span></el-form-item>
+          <el-form-item label="加工完成时间" required><el-date-picker v-model="form.completedAt" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" placeholder="请选择实际完成时间"></el-date-picker></el-form-item>
+          <el-form-item label="加工费"><el-input-number v-model="form.processingFee" :min="0" :precision="2" controls-position="right"></el-input-number><span class="form-suffix">元，本批次加工费用总额</span></el-form-item>
+          <el-form-item label="备注"><el-input v-model="form.remark" type="textarea" :rows="2" maxlength="200" show-word-limit placeholder="可填写现场加工说明或异常备注"></el-input></el-form-item>
+        </el-form>
+      </div>
+
+      <div v-show="createStep === 2" class="step-body">
+        <el-alert type="warning" :closable="false" show-icon title="提交是库存变更操作。系统将以提交时的最新库存为准，按提交顺序竞争库存；校验失败不会产生任何流水。"></el-alert>
+        <div class="confirm-grid">
+          <div><span>仓库 / 团队</span><b>{{ form.warehouse }} / {{ form.team }}</b></div><div><span>组合成品</span><b>{{ selectedBundle?.finishedSku }} {{ selectedBundle?.finishedName }}</b></div><div><span>加工数量</span><b>{{ form.processQty }} 件</b></div><div><span>加工完成时间</span><b>{{ form.completedAt }}</b></div><div><span>预计子件成本</span><b>¥ {{ money(estimatedMaterialCost) }}</b></div><div><span>加工费 / 成品单位成本</span><b>¥ {{ money(form.processingFee) }} / ¥ {{ money(estimatedUnitCost) }}</b></div>
+        </div>
+        <div class="posting-list"><h3>提交后一次性完成</h3><div><i>1</i><span>生成一张已完成加工单及一个新的加工批次</span></div><div><i>2</i><span>在“{{ form.warehouse }} + {{ form.team }}”范围按入库批次 FIFO 扣减子件</span></div><div><i>3</i><span>在同一仓库、同一团队增加组合成品库存 {{ form.processQty }} 件</span></div><div><i>4</i><span>写入子件出库、成品入库、成本与来源采购计划追溯流水</span></div></div>
+      </div>
+
+      <template #footer><div class="dialog-footer"><el-button @click="createVisible = false">取消</el-button><el-button v-if="createStep > 0" @click="createStep--">上一步</el-button><el-button v-if="createStep < 2" type="primary" @click="nextStep">下一步</el-button><el-button v-else type="primary" :loading="submitting" @click="submitProcessing">确认完工并过账</el-button></div></template>
+    </el-dialog>
+
+    <el-drawer v-model="detailVisible" size="760px" class="detail-drawer">
+      <template #header><div class="drawer-title"><div><h2>加工单详情</h2><span>{{ currentRecord?.orderNo }} / {{ currentRecord?.batchNo }}</span></div><el-tag :type="currentRecord?.status === '已完成' ? 'success' : 'info'">{{ currentRecord?.status }}</el-tag></div></template>
+      <template v-if="currentRecord">
+        <div class="detail-section"><h3>基本信息</h3><div class="detail-grid"><div><span>加工完成时间</span><b>{{ currentRecord.completedAt }}</b></div><div><span>仓库</span><b>{{ currentRecord.warehouse }}</b></div><div><span>团队</span><b>{{ currentRecord.team }}</b></div><div><span>操作人</span><b>{{ currentRecord.operator }}</b></div><div class="wide"><span>组合成品</span><b>{{ currentRecord.finishedSku }}｜{{ currentRecord.finishedName }}</b></div><div><span>BOM 版本</span><b>{{ currentRecord.bomVersion }}</b></div><div><span>加工数量</span><b>{{ currentRecord.processQty }} 件</b></div></div></div>
+        <div class="detail-section"><h3>子件 FIFO 消耗明细</h3><el-table :data="flattenConsumptions(currentRecord)" border max-height="310"><el-table-column prop="sku" label="子件 SKU" min-width="130"></el-table-column><el-table-column prop="name" label="子件名称" min-width="150"></el-table-column><el-table-column prop="sourceBatch" label="来源入库批次" min-width="150"></el-table-column><el-table-column prop="receivedAt" label="入库日期" width="105"></el-table-column><el-table-column prop="purchasePlanNo" label="来源采购计划" min-width="145"></el-table-column><el-table-column prop="qty" label="扣减" width="72" align="right"></el-table-column><el-table-column label="批次单价" width="100" align="right"><template #default="scope">¥ {{ money(scope.row.unitCost) }}</template></el-table-column></el-table></div>
+        <div class="detail-section"><h3>库存过账结果</h3><div class="ledger-flow"><div class="ledger-node minus"><span>子件库存</span><b>- {{ totalConsumed(currentRecord) }} 件</b><small>{{ currentRecord.warehouse }} / {{ currentRecord.team }}</small></div><div class="ledger-arrow">→</div><div class="ledger-node batch"><span>加工批次</span><b>{{ currentRecord.batchNo }}</b><small>子件 FIFO 转换</small></div><div class="ledger-arrow">→</div><div class="ledger-node plus"><span>组合成品库存</span><b>+ {{ currentRecord.processQty }} 件</b><small>{{ currentRecord.warehouse }} / {{ currentRecord.team }}</small></div></div></div>
+        <div class="detail-section"><h3>成本与追溯</h3><div class="cost-row"><div><span>子件成本</span><b>¥ {{ money(currentRecord.materialCost) }}</b></div><div><span>加工费</span><b>¥ {{ money(currentRecord.processingFee) }}</b></div><div><span>成品总成本</span><b>¥ {{ money(currentRecord.materialCost + currentRecord.processingFee) }}</b></div><div><span>成品单位成本</span><b>¥ {{ money(unitCost(currentRecord)) }}</b></div></div><p class="trace-note">成品库龄起算：{{ currentRecord.stockAgeStart }}（沿用本批次最早被消耗子件的入库日期）；加工完成时间单独保留。</p></div>
+        <div v-if="currentRecord.status === '已冲销'" class="reversed-note"><b>冲销记录</b><span>{{ currentRecord.reversedAt }} · {{ currentRecord.reversedBy }} · {{ currentRecord.reverseMemo }}</span></div>
+      </template>
+    </el-drawer>
+
+    <el-dialog v-model="reverseVisible" width="520px" title="冲销加工单" :close-on-click-modal="false"><el-alert type="error" :closable="false" show-icon title="冲销将反向恢复子件库存并扣减本加工批次生成的成品库存，不删除原记录。"></el-alert><el-form label-width="88px" class="reverse-form"><el-form-item label="加工单号"><b>{{ reverseTarget?.orderNo }}</b></el-form-item><el-form-item label="冲销原因" required><el-input v-model="reverseMemo" type="textarea" :rows="3" maxlength="120" show-word-limit placeholder="请填写冲销原因"></el-input></el-form-item></el-form><template #footer><el-button @click="reverseVisible = false">取消</el-button><el-button type="danger" @click="confirmReverse">确认冲销</el-button></template></el-dialog>
+
+    <el-dialog v-model="fifoVisible" width="760px" title="FIFO 来源批次预览"><el-table :data="fifoRows" border><el-table-column prop="sourceBatch" label="来源入库批次" min-width="165"></el-table-column><el-table-column prop="receivedAt" label="入库日期" width="112"></el-table-column><el-table-column prop="purchasePlanNo" label="来源采购计划" min-width="155"></el-table-column><el-table-column prop="stockQty" label="批次可用" width="92" align="right"></el-table-column><el-table-column prop="qty" label="预计扣减" width="92" align="right"></el-table-column><el-table-column label="批次单价" width="105" align="right"><template #default="scope">¥ {{ money(scope.row.unitCost) }}</template></el-table-column></el-table></el-dialog>
+  </div>
+
+  <script src="../../vendor/vue.global.prod.js"></script>
+  <script src="../../vendor/element-plus.js"></script>
+  <script src="./app.js?v=1.0.0"></script>
+</body>
+</html>
