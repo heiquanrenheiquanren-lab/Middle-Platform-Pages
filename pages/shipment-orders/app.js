@@ -1753,6 +1753,12 @@ createApp({
           },
         ],
         batches: [],
+        boxes: [
+          { code: 'BOX2607200001-01', skuCount: 250, spec: '54 × 34.5 × 20 (cm)', volume: 0.0373, volumeWeight: '6.21 kg', netWeight: 14.8, grossWeight: 16.2, items: [{ sku: 'SPU-1001-BL', overseasSku: 'OW-US-1001-BL', logisticsAttr: '普货', qty: 250 }] },
+          { code: 'BOX2607200001-02', skuCount: 250, spec: '54 × 34.5 × 20 (cm)', volume: 0.0373, volumeWeight: '6.21 kg', netWeight: 14.6, grossWeight: 16.0, items: [{ sku: 'SPU-1001-BL', overseasSku: 'OW-US-1001-BL', logisticsAttr: '普货', qty: 250 }] },
+          { code: 'BOX2607200001-03', skuCount: 150, spec: '54 × 34.5 × 20 (cm)', volume: 0.0373, volumeWeight: '6.21 kg', netWeight: 10.1, grossWeight: 11.3, items: [{ sku: 'SPU-1001-WH', overseasSku: 'OW-US-1001-WH', logisticsAttr: '普货', qty: 150 }] },
+          { code: 'BOX2607200001-04', skuCount: 150, spec: '54 × 34.5 × 20 (cm)', volume: 0.0373, volumeWeight: '6.21 kg', netWeight: 10.0, grossWeight: 11.2, items: [{ sku: 'SPU-1001-WH', overseasSku: 'OW-US-1001-WH', logisticsAttr: '普货', qty: 150 }] },
+        ],
       },
       {
         id: 'DN20260715001',
@@ -1814,6 +1820,11 @@ createApp({
           },
         ],
         batches: [],
+        boxes: [
+          { code: 'BOX2607150001-01', skuCount: 50, spec: '60 × 40 × 48 (cm)', volume: 0.1152, volumeWeight: '19.2 kg', netWeight: 12.4, grossWeight: 14.1, items: [{ sku: 'SPU-3001', overseasSku: 'OW-DE-3001', logisticsAttr: '普货', qty: 50 }] },
+          { code: 'BOX2607150001-02', skuCount: 50, spec: '60 × 40 × 48 (cm)', volume: 0.1152, volumeWeight: '19.2 kg', netWeight: 12.6, grossWeight: 14.3, items: [{ sku: 'SPU-3001', overseasSku: 'OW-DE-3001', logisticsAttr: '普货', qty: 50 }] },
+          { code: 'BOX2607150001-03', skuCount: 50, spec: '60 × 40 × 48 (cm)', volume: 0.1152, volumeWeight: '19.2 kg', netWeight: 12.5, grossWeight: 14.2, items: [{ sku: 'SPU-3001', overseasSku: 'OW-DE-3001', logisticsAttr: '普货', qty: 50 }] },
+        ],
       },
       {
         id: 'DN20260710001',
@@ -1877,6 +1888,11 @@ createApp({
           },
         ],
         batches: [],
+        boxes: [
+          { code: 'BOX2607100001-01', skuCount: 50, spec: '58 × 42 × 38 (cm)', volume: 0.0926, volumeWeight: '15.43 kg', netWeight: 11.8, grossWeight: 13.5, items: [{ sku: 'SPU-9001', overseasSku: 'OW-US-9001', logisticsAttr: '普货', qty: 50 }] },
+          { code: 'BOX2607100001-02', skuCount: 50, spec: '58 × 42 × 38 (cm)', volume: 0.0926, volumeWeight: '15.43 kg', netWeight: 12.0, grossWeight: 13.7, items: [{ sku: 'SPU-9001', overseasSku: 'OW-US-9001', logisticsAttr: '普货', qty: 50 }] },
+          { code: 'BOX2607100001-03', skuCount: 50, spec: '58 × 42 × 38 (cm)', volume: 0.0926, volumeWeight: '15.43 kg', netWeight: 11.9, grossWeight: 13.6, items: [{ sku: 'SPU-9001', overseasSku: 'OW-US-9001', logisticsAttr: '普货', qty: 50 }] },
+        ],
       },
       {
         id: 'DN20260705001',
