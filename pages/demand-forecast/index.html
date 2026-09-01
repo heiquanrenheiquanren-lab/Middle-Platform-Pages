@@ -24,65 +24,7 @@
     }
 
     .app-shell { display: flex; width: 100%; height: 100%; }
-    .side-nav {
-      width: 224px;
-      flex: 0 0 224px;
-      color: #cbd5e1;
-      background: var(--app-sidebar);
-      display: flex;
-      flex-direction: column;
-    }
-    .brand {
-      height: 64px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 20px;
-      color: #fff;
-      font-size: 17px;
-      font-weight: 600;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-    .brand-mark {
-      width: 30px;
-      height: 30px;
-      display: grid;
-      place-items: center;
-      border-radius: 8px;
-      color: #fff;
-      background: #409eff;
-      font-size: 15px;
-    }
-    .nav-section { padding: 16px 12px 6px; color: #8190a8; font-size: 12px; }
-    .nav-item {
-      height: 44px;
-      margin: 2px 10px;
-      padding: 0 14px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #cbd5e1;
-      cursor: pointer;
-    }
-    .nav-item:hover { color: #fff; background: rgba(255,255,255,.06); }
-    .nav-item.active { color: #fff; background: var(--app-sidebar-active); }
-    .nav-icon { width: 18px; text-align: center; opacity: .9; }
-    .side-footer { margin-top: auto; padding: 16px 20px; font-size: 12px; color: #64748b; }
-
     .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
-    .top-header {
-      height: 64px;
-      flex: 0 0 64px;
-      padding: 0 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #fff;
-      border-bottom: 1px solid var(--app-line);
-    }
-    .header-title { font-size: 15px; color: #606266; }
-    .header-user { display: flex; align-items: center; gap: 10px; font-size: 14px; }
 
     .content-scroll { min-height: 0; flex: 1; overflow: auto; padding: 20px 24px 30px; }
     .page-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
@@ -244,35 +186,7 @@
 <body>
   <div id="app">
     <div class="app-shell">
-      <aside class="side-nav">
-        <div class="brand"><span>工作台</span></div>
-        <div class="nav-section"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-        <div class="nav-item"><span class="nav-icon">▤</span><span>团队库存</span></div>
-        <div class="nav-item"><span class="nav-icon">▥</span><span>平台仓&海外仓</span></div>
-        <div class="nav-item" data-page-nav="supplierInventory"><span class="nav-icon">▱</span><span>供应商库存</span></div>
-        <div class="nav-item" data-page-nav="processingOrder"><span class="nav-icon">▦</span><span>加工单</span></div>
-        <div class="nav-section"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-        <div class="nav-item active" data-page-nav="forecast"><span class="nav-icon">▣</span><span>需求预测</span></div>
-        <div class="nav-item" data-page-nav="stock"><span class="nav-icon">▤</span><span>备货计划</span></div>
-        <div class="nav-item" data-page-nav="purchase"><span class="nav-icon">▥</span><span>采购计划</span></div>
-        <div class="nav-item" data-page-nav="shipment"><span class="nav-icon">♨</span><span>发货计划</span></div>
-        <div class="nav-section"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
-        <div class="nav-item" data-page-nav="purchaseOrder"><span class="nav-icon">▰</span><span>采购单</span></div>
-        <div class="nav-item" data-page-nav="shipmentOrder"><span class="nav-icon">▤</span><span>发货单</span></div>
-        
-        <div class="nav-item" data-page-nav="skuFirstLegCost"><span class="nav-icon">¥</span><span>头程费用</span></div>
-        <div class="side-footer">Element Plus 页面重构原型</div>
-      </aside>
-
       <main class="main-area">
-        <header class="top-header">
-          <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
-          <div class="header-user">
-            <button class="refresh-button" type="button" aria-label="刷新">⟳</button>
-            <span class="admin">Admin⌄</span>
-          </div>
-        </header>
-
         <div v-if="currentModule === 'forecast'" class="content-scroll">
           <section class="page-head">
             <div>
@@ -458,9 +372,7 @@
         </div>
         <stock-plan-page v-else class="module-page" :focus-no="stockFocusNo" @go-forecast="openRelatedForecast"></stock-plan-page>
       </main>
-    </div>
-
-    <el-dialog
+  </div>   <el-dialog
       v-model="documentDialogVisible"
       :title="documentDialogTitle"
       width="90%"
@@ -1344,14 +1256,13 @@
   </script>
   <script>
     (() => {
-      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', supplierInventory: '../supplier-inventory/index.html', processingOrder: '../processing-orders/index.html' };
       document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => {
         const page = item.dataset.pageNav;
         if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page }, '*');
-        else if (routes[page]) window.location.href = routes[page];
       }));
     })();
   </script>
   <script src="../../global-export.js?v=1.7.37"></script>
+  <script src="../../redirect.js?v=1.7.38"></script>
 </body>
 </html>

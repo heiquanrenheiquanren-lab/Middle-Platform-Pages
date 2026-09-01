@@ -14,32 +14,7 @@
 <body>
 <div id="app" v-cloak>
   <div class="app">
-    <header class="global-bar">
-      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
-      <div class="global-right"><button class="refresh-button" type="button" aria-label="刷新">⟳</button><span class="admin">Admin⌄</span></div>
-    </header>
-    <div class="shell">
-      <aside class="sidebar">
-        <div class="nav-scroll">
-          <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item"><span class="mini">▤</span>团队库存</div>
-          <div class="nav-item"><span class="mini">▥</span>平台仓&海外仓</div>
-          <div class="nav-item" data-page-nav="supplierInventory"><span class="mini">▱</span>供应商库存</div>
-          <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
-          <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
-          <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
-          <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
-          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
-          <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
-          <div class="nav-item active" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
-          
-          <div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
-        </div>
-        <div class="collapse">≡</div>
-      </aside>
-      <main class="main">
+    <main class="main">
         <section class="content">
           <div class="page-head"><h1 class="page-title">发货单</h1><div class="page-desc">一张发货单可包含多个 SKU，每个 SKU 对应一个发货计划</div></div>
         <div class="card query-card" :class="{'query-expanded':queryExpanded,'query-has-overflow':queryOverflow,'query-collapsed':queryOverflow&&!queryExpanded}">
@@ -571,9 +546,11 @@
     <template #footer><el-button @click="erpDetailVisible=false">关闭</el-button></template>
   </el-dialog>
 </div>
+</div>
 <script src="../../vendor/vue.global.prod.js"></script>
 <script src="../../vendor/element-plus.js"></script>
 <script src="app.js?v=1.7.27"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
+<script src="../../redirect.js?v=1.7.38"></script>
 </body>
 </html>

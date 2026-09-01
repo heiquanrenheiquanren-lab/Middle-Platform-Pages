@@ -28,8 +28,8 @@
 | 核心用途 | 产品经理交互原型 → 评审 / 开发参考 / PRD 配图 |
 | 技术栈 | Vue 3 (global build) + Element Plus (global build) |
 | 运行方式 | 纯静态 HTML，浏览器直接打开或 GitHub Pages |
-| 统一入口 | `index.html`（左侧导航 + iframe 切换各页面） |
-| 独立访问 | 每个 `pages/*/index.html` 也可独立打开（自带导航） |
+| 统一入口 | `index.html`（固定顶部导航 + 左侧菜单 + 面包屑栏，iframe 加载业务页面） |
+| 独立访问 | 直接访问 `pages/*/index.html` 会自动重定向到根入口并打开对应页面 |
 | GitHub Pages | https://heiquanrenheiquanren-lab.github.io/Middle-Platform-Pages |
 | 版本号位置 | 根目录 `app.js` 第 1 行 `const VER='x.x.x'` |
 | 缓存机制 | 每次变更递增 VER，所有 iframe src 自动带 `?v=x.x.x` 强制刷新 |
@@ -37,6 +37,15 @@
 ---
 
 ## 二、版本变更记录（倒序）
+
+### 2026-09-01 · 固定全局导航与已打开页面面包屑栏（Shell 框架改造）
+
+1. **根入口改造为固定 Shell**：`index.html` 重构为包含顶部全局导航、左侧固定菜单、主内容区顶部面包屑栏的统一框架，所有业务页面通过 iframe 加载并缓存状态。
+2. **新增核心交互脚本**：`app.js` 实现 `openTab` / `activateTab` / `closeTab`，维护已打开页面列表与当前激活页，支持 iframe 显示/隐藏切换、菜单高亮同步、URL hash 同步。
+3. **新增面包屑栏交互**：`styles.css` 实现已打开页面标签展示、切换、关闭，以及页面过多时左右箭头横向滚动浏览。
+4. **业务页面去导航化**：需求预测、备货计划、采购计划、发货计划、采购单、发货单、SKU 头程成本、供应商库存、加工单共 9 个页面移除独立顶部导航与侧边栏，改为纯内容区，适配根 Shell。
+5. **新增子页面重定向适配**：`redirect.js` 实现业务子页面被直接访问时自动重定向到根入口并带上对应 hash，避免页面脱离固定框架。
+6. **版本号**：`app.js` 中 `VER` 更新为 `1.7.38`。
 
 ### 2026-08-26 · 新增「加工单」独立页面并沉淀多份业务文档
 

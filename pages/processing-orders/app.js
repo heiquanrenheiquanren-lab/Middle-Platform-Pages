@@ -176,8 +176,7 @@
         ElMessage.success('冲销完成：已生成反向库存流水，原加工单保留用于审计');
       };
 
-      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', supplierInventory: '../supplier-inventory/index.html', processingOrder: '../processing-orders/index.html' };
-      window.setTimeout(() => document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => { const key = item.dataset.pageNav; if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page: key }, '*'); else if (routes[key]) window.location.href = routes[key]; })), 0);
+      window.setTimeout(() => document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => { const key = item.dataset.pageNav; if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page: key }, '*'); })), 0);
 
       return { warehouses, teams, operators, records, filters, page, pageSize, filteredRecords, pagedRecords, summary, createVisible, createStep, submitting, detailVisible, currentRecord, reverseVisible, reverseTarget, reverseMemo, fifoVisible, fifoRows, form, availableBundles, selectedBundle, maxProcessQty, estimatedMaterialCost, estimatedUnitCost, componentStock, componentAvailable, fifoPlan, money, unitCost, totalConsumed, flattenConsumptions, query, resetFilters, refresh, exportRecords, openCreate, scopeChanged, bundleChanged, nextStep, previewFifo, submitProcessing, openDetail, openReverse, confirmReverse };
     }
