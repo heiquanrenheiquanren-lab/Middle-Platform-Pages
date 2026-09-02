@@ -30,7 +30,7 @@
         </div><div class="collapse">≡</div>
       </aside>
       <main class="main">
-        <section class="page-head"><div class="page-tab"><span>▰</span><span>采购单</span></div></section>
+        <section class="page-head"><div class="page-tab"><span>▰</span><span>采购单</span></div><span class="page-hint">采购单主单与 SKU 明细</span></section>
         <section class="query-panel" aria-label="新增查询区域">
           <div class="query-row" id="queryRowOne">
             <div class="query-item" data-query-order="1"><input class="control po-number-input" id="purchaseOrderNo" placeholder="支持输入多个易仓、领星、中台单号"></div>
@@ -51,12 +51,13 @@
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
         </section>
         <section class="action-strip"><div class="head-actions"><button class="btn primary">新建采购单</button><button class="btn primary">收货清单</button><button class="btn primary">采购运费分摊</button><button class="btn primary" id="openOwnershipAdjustment">货权调整</button></div></section>
-        <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><span class="tool" title="筛选">▽</span><span class="tool" title="搜索">⌕</span><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
-        <section class="table-area" id="tableArea"><table class="stock-table po-table"><thead><tr><th class="check"><input class="head-check" id="selectAll" type="checkbox"></th><th class="batch-col">批次号</th><th class="plan-col">计划号</th><th class="sku-col">SKU</th><th class="qty-col">采购数</th><th class="qty-col">在途数</th><th class="qty-col">到货数</th><th class="qty-col">待发数</th><th class="qty-col">收货数量&nbsp; ✎</th><th class="note-col">收货备注&nbsp; ✎</th><th class="money-col">辅料包材费</th><th class="money-col">运费</th><th class="money-col">其他费用</th></tr></thead><tbody id="tableBody"></tbody></table></section>
-        <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft">确认收货</button><button class="btn soft" id="openOwnershipBottom">加入货权调整</button></div><div class="bottom-right"><span>共 <b id="totalCount">27</b> 条</span><select class="control page-size" id="pageSize"><option value="25">25条/页</option><option value="10">10条/页</option><option value="50">50条/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
+        <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
+        <section class="table-area" id="tableArea"><table class="po-table"><colgroup><col class="col-check"><col class="col-sequence"><col class="col-expand"><col class="col-po"><col class="col-supplier"><col class="col-amount"><col class="col-inbound"><col class="col-logistics"><col class="col-remark"><col class="col-creator"><col class="col-action"></colgroup><thead><tr><th><input class="head-check" id="selectAll" type="checkbox"></th><th>序号</th><th></th><th>采购单号</th><th>供应商信息</th><th>采购单金额</th><th>入库信息</th><th>物流信息</th><th>备注信息</th><th>创建信息</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
+        <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft">确认收货</button><button class="btn soft" id="openOwnershipBottom">加入货权调整</button></div><div class="bottom-right"><span>共 <b id="totalCount">13</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="25">25张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
       </main>
     </div>
   </div>
+  <div class="erp-popup" id="erpPopup" hidden role="dialog" aria-label="ERP采购单详情"></div>
   <div id="ownership-adjustment-app"></div>
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
