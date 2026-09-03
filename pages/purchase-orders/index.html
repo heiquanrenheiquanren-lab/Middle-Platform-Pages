@@ -13,6 +13,7 @@
 </head>
 <body>
   <div class="toast" id="toast">查询完成</div>
+  <div class="watermark-layer" id="watermarkLayer" aria-hidden="true"></div>
   <div class="app">
     <header class="global-bar">
       <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
@@ -50,14 +51,22 @@
           <div class="query-row advanced-query-row"></div>
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
         </section>
-        <section class="action-strip"><div class="head-actions"><button class="btn primary">新建采购单</button><button class="btn primary">收货清单</button><button class="btn primary">采购运费分摊</button><button class="btn primary" id="openOwnershipAdjustment">货权调整</button></div></section>
+        <section class="action-strip"><div class="head-actions"><button class="btn primary" id="openPurchaseCreate">新建采购单</button><button class="btn primary" id="openPurchaseFeeApportion">采购运费分摊</button><button class="btn primary" id="openOwnershipAdjustment">货权调整</button></div></section>
         <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
-        <section class="table-area" id="tableArea"><table class="po-table"><colgroup><col class="col-check"><col class="col-sequence"><col class="col-expand"><col class="col-po"><col class="col-supplier"><col class="col-amount"><col class="col-inbound"><col class="col-logistics"><col class="col-remark"><col class="col-creator"><col class="col-action"></colgroup><thead><tr><th><input class="head-check" id="selectAll" type="checkbox"></th><th>序号</th><th></th><th>采购单号</th><th>供应商信息</th><th>采购单金额</th><th>入库信息</th><th>物流信息</th><th>备注信息</th><th>创建信息</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
-        <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft">确认收货</button><button class="btn soft" id="openOwnershipBottom">加入货权调整</button></div><div class="bottom-right"><span>共 <b id="totalCount">13</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="25">25张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
+        <section class="table-area" id="tableArea"><table class="po-table"><colgroup><col class="col-check"><col class="col-expand"><col class="col-po"><col class="col-supplier"><col class="col-amount"><col class="col-inbound"><col class="col-logistics"><col class="col-remark"><col class="col-creator"><col class="col-action"></colgroup><thead><tr><th><input class="head-check" id="selectAll" type="checkbox"></th><th></th><th>采购单号</th><th>供应商信息</th><th>采购单金额</th><th>入库信息</th><th>物流信息</th><th>备注信息</th><th>创建信息</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
+        <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span></div><div class="bottom-right"><span>共 <b id="totalCount">13</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="25">25张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
       </main>
     </div>
   </div>
   <div class="erp-popup" id="erpPopup" hidden role="dialog" aria-label="ERP采购单详情"></div>
+  <div class="purchase-detail-modal" id="purchaseDetailModal" hidden role="dialog" aria-label="采购单详情"></div>
+  <div class="purchase-log-modal" id="purchaseLogModal" hidden role="dialog" aria-label="采购单操作日志"></div>
+  <div class="receive-adjust-modal" id="receiveAdjustModal" hidden role="dialog" aria-label="修改收货数量"></div>
+  <div class="purchase-receive-modal" id="purchaseReceiveModal" hidden role="dialog" aria-label="采购单收货"></div>
+  <div class="purchase-complete-modal" id="purchaseCompleteModal" hidden role="dialog" aria-label="采购单手动完成"></div>
+  <div class="purchase-create-modal" id="purchaseCreateModal" hidden role="dialog" aria-label="新建采购单"></div>
+  <div class="purchase-plan-sku-modal" id="purchasePlanSkuModal" hidden role="dialog" aria-label="从采购计划新增 SKU"></div>
+  <div class="purchase-fee-apportion-modal" id="purchaseFeeApportionModal" hidden role="dialog" aria-label="采购运费分摊"></div>
   <div id="ownership-adjustment-app"></div>
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
