@@ -102,6 +102,20 @@
 @media(max-width:900px){.purchase-create-modal,.purchase-plan-sku-modal{padding:12px}.purchase-create-dialog,.purchase-plan-sku-dialog{width:calc(100vw - 24px)}.purchase-create-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.purchase-plan-sku-query{grid-template-columns:repeat(2,minmax(0,1fr))}.purchase-create-header,.purchase-plan-sku-header,.purchase-create-footer,.purchase-plan-sku-footer{padding-left:14px;padding-right:14px}.purchase-create-body,.purchase-plan-sku-body{padding:14px}}
 @media(max-width:560px){.purchase-create-grid{grid-template-columns:1fr}.purchase-create-field:last-child{grid-column:auto}.purchase-create-footer,.purchase-plan-sku-footer{align-items:flex-start;flex-direction:column}.purchase-create-footer>div,.purchase-plan-sku-footer>div{width:100%;justify-content:flex-end}}
 
+/* 一级列表：ERP 采购单信息刷新入口。 */
+.erp-refresh-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:2px;padding:0;border:0;border-radius:3px;background:transparent;color:var(--blue);font-size:18px;line-height:22px;cursor:pointer}
+.erp-refresh-btn:hover{background:#eaf4ff;color:var(--blue)}
+.erp-refresh-btn:disabled{cursor:wait;opacity:.65}
+.erp-refresh-btn.is-refreshing{animation:purchase-erp-refresh .45s linear}
+@keyframes purchase-erp-refresh{to{transform:rotate(360deg)}}
+
+/* 费用分摊明细：费用类型对应一笔分摊金额，不再拆成三列。 */
+.purchase-allocation-table{min-width:1420px}
+.purchase-allocation-table th:nth-child(7){width:120px}
+.purchase-allocation-table th:nth-child(8){width:170px}
+.purchase-allocation-table th:nth-child(9){width:110px}
+.purchase-allocation-table th:nth-child(10),.purchase-allocation-table th:nth-child(11),.purchase-allocation-table th:nth-child(12){width:110px}
+
 /* 新建采购单明细字段与交互状态。 */
 .purchase-create-plan-head{justify-content:flex-start}.purchase-create-table{min-width:1960px}.purchase-create-table th:first-child,.purchase-create-table td:first-child{width:52px}.purchase-create-table th:nth-child(2){width:145px}.purchase-create-table th:nth-child(3){width:150px}.purchase-create-table th:nth-child(4){width:190px}.purchase-create-table th:nth-child(5),.purchase-create-table th:nth-child(6),.purchase-create-table th:nth-child(7){width:100px}.purchase-create-table th:nth-child(8){width:145px}.purchase-create-table th:nth-child(9),.purchase-create-table th:nth-child(10),.purchase-create-table th:nth-child(11),.purchase-create-table th:nth-child(12),.purchase-create-table th:nth-child(13){width:105px}.purchase-create-table th:nth-child(14),.purchase-create-table th:nth-child(15){width:115px}.purchase-create-table th:nth-child(16){width:180px}.purchase-create-table th:nth-child(17){width:80px}.purchase-create-remark{width:150px;height:30px;box-sizing:border-box;padding:0 8px;border:1px solid #dcdfe6;border-radius:4px;outline:0;color:var(--text);font:inherit}.purchase-create-remark:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(24,144,255,.1)}.purchase-create-readonly-date{color:#606266}.purchase-create-plan-head #openPurchasePlanSku:disabled{border-color:#e4e7ed;background:#f5f7fa;color:#c0c4cc;cursor:not-allowed;box-shadow:none}.purchase-create-footer{justify-content:flex-end}
 .purchase-plan-sku-table{min-width:2400px}.purchase-plan-sku-table th:first-child,.purchase-plan-sku-table td:first-child{width:44px}.purchase-plan-sku-table th:nth-child(2){width:145px}.purchase-plan-sku-table th:nth-child(3){width:150px}.purchase-plan-sku-table th:nth-child(4){width:115px}.purchase-plan-sku-table th:nth-child(5){width:105px}.purchase-plan-sku-table th:nth-child(6){width:125px}.purchase-plan-sku-table th:nth-child(7){width:80px}.purchase-plan-sku-table th:nth-child(8){width:120px}.purchase-plan-sku-table th:nth-child(9),.purchase-plan-sku-table th:nth-child(10),.purchase-plan-sku-table th:nth-child(11){width:100px}.purchase-plan-sku-table th:nth-child(12),.purchase-plan-sku-table th:nth-child(13),.purchase-plan-sku-table th:nth-child(14){width:125px}.purchase-plan-sku-table th:nth-child(15),.purchase-plan-sku-table th:nth-child(16){width:115px}.purchase-plan-sku-table th:nth-child(17){width:160px}
