@@ -100,6 +100,9 @@
                   <template #default="{row}"><div class="stack-cell number-cell"><span><em>实际发货：</em>{{row.shippedQty}}</span><span class="sub-value"><em>收货：</em>{{row.receiveQty}}</span></div></template>
                 </el-table-column>
                 <el-table-column label="发货单总费用" width="160" align="right">
+                  <template #header>
+                    <span class="diff-header">发货单总费用<el-tooltip placement="top"><template #content>发货单总费用 = 头程物流费 + 清关税费 + 其他物流费用</template><span class="help-icon">?</span></el-tooltip></span>
+                  </template>
                   <template #default="{row}"><span>{{row.totalCost||'—'}}</span></template>
                 </el-table-column>
                 <el-table-column label="SKU单位头程成本（CNY）" width="180" align="right">
