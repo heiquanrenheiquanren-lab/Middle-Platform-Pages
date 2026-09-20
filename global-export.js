@@ -33,7 +33,7 @@
     return [
       { id: uid(), taskType: '海外仓发货计划导出', templateName: '海外仓发货计划导出', sourcePage: '发货计划', status: 'failed', operator: 'Admin', startedAt: before(18), completedAt: before(16), duration: '2秒', failureReason: '导出服务超时' },
       { id: uid(), taskType: '需求预测导出', templateName: '需求预测导出', sourcePage: '需求预测', status: 'success', operator: 'Admin', startedAt: before(42), completedAt: before(41), duration: '1秒', failureReason: '—' },
-      { id: uid(), taskType: '供应商库存导出', templateName: '供应商库存导出', sourcePage: '供应商库存', status: 'processing', operator: 'Admin', startedAt: before(1), completedAt: '—', duration: '—', failureReason: '—' }
+      { id: uid(), taskType: '库存查询导出', templateName: '库存查询导出', sourcePage: '库存查询', status: 'processing', operator: 'Admin', startedAt: before(1), completedAt: '—', duration: '—', failureReason: '—' }
     ];
   }
 
@@ -52,8 +52,7 @@
   function getSourcePage() {
     var title = (document.title || '').replace(/[-—|].*$/, '').trim();
     var map = [
-      ['需求预测', '需求预测'], ['供应商库存', '供应商库存'], ['平台仓', '平台仓&海外仓库存'],
-      ['海外仓库存', '平台仓&海外仓库存'], ['团队库存', '团队库存'], ['备货计划', '备货计划'],
+      ['需求预测', '需求预测'], ['库存查询', '库存查询'], ['备货计划', '备货计划'],
       ['采购单', '采购单'], ['发货单', '发货单'], ['发货计划', '发货计划'], ['头程成本', 'SKU头程成本']
     ];
     for (var i = 0; i < map.length; i += 1) if (title.indexOf(map[i][0]) >= 0) return map[i][1];
@@ -240,9 +239,9 @@
   }
 
   function navigateToBusinessPages() {
-    var message = { type: 'prototype:navigate', page: 'supplierInventory' };
+    var message = { type: 'prototype:navigate', page: 'inventoryQuery' };
     if (window.parent !== window) window.parent.postMessage(message, '*');
-    else window.location.href = '../../pages/supplier-inventory/index.html';
+    else window.location.href = '../../pages/inventory-query/index.html';
   }
 
   function mountWorkbenchShortcut() {

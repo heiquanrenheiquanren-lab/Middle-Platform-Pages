@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>加工单</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="./styles.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.37">
+  <link rel="stylesheet" href="./styles.css?v=1.0.1">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.50">
 </head>
 <body>
   <div id="app" class="app" v-cloak>
@@ -19,9 +19,7 @@
       <aside class="sidebar">
         <div class="nav-scroll">
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item"><span class="mini">▤</span>团队库存</div>
-          <div class="nav-item"><span class="mini">▥</span>平台仓&海外仓</div>
-          <div class="nav-item" data-page-nav="supplierInventory"><span class="mini">▱</span>供应商库存</div>
+          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
           <div class="nav-item active" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
@@ -37,11 +35,6 @@
       </aside>
 
       <main class="main">
-        <section class="page-head">
-          <div class="page-tab"><span>加工单</span></div>
-          <div class="page-head-note">记录已在仓库实际完成的组合加工，并同步过账库存</div>
-        </section>
-
         <section class="query-panel">
           <div class="query-grid">
             <el-input v-model="filters.keyword" clearable placeholder="加工单号 / 加工批次号 / 组合 SKU" @keyup.enter="query"></el-input>
@@ -165,5 +158,6 @@
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
   <script src="./app.js?v=1.0.0"></script>
+  <script src="../../navigation.js?v=1.7.50"></script>
 </body>
 </html>

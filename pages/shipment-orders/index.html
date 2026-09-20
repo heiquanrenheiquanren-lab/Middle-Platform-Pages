@@ -9,7 +9,7 @@
   
   <link rel="stylesheet" href="styles.css?v=1.7.23">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.37">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.50">
 </head>
 <body>
 <div id="app" v-cloak>
@@ -22,9 +22,7 @@
       <aside class="sidebar">
         <div class="nav-scroll">
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item"><span class="mini">▤</span>团队库存</div>
-          <div class="nav-item"><span class="mini">▥</span>平台仓&海外仓</div>
-          <div class="nav-item" data-page-nav="supplierInventory"><span class="mini">▱</span>供应商库存</div>
+          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
           <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
@@ -41,7 +39,6 @@
       </aside>
       <main class="main">
         <section class="content">
-          <div class="page-head"><h1 class="page-title">发货单</h1><div class="page-desc">一张发货单可包含多个 SKU，每个 SKU 对应一个发货计划</div></div>
         <div class="card query-card" :class="{'query-expanded':queryExpanded,'query-has-overflow':queryOverflow,'query-collapsed':queryOverflow&&!queryExpanded}">
           <el-form size="default" @submit.prevent>
             <div class="query-grid">
@@ -575,5 +572,6 @@
 <script src="../../vendor/element-plus.js"></script>
 <script src="app.js?v=1.7.27"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
+<script src="../../navigation.js?v=1.7.50"></script>
 </body>
 </html>

@@ -6621,7 +6621,7 @@ createApp({
             purchaseOrder: '../purchase-orders/index.html',
             shipmentOrder: '../shipment-orders/index.html',
             skuFirstLegCost: '../sku-first-leg-cost/index.html',
-            supplierInventory: '../supplier-inventory/index.html',
+            inventoryQuery: '../inventory-query/index.html',
             processingOrder: '../processing-orders/index.html',
           }[page];
         }

@@ -24,6 +24,7 @@
     }
 
     .app-shell { display: flex; width: 100%; height: 100%; }
+    #app > .app-shell { height: calc(100% - 48px); }
     .side-nav {
       width: 224px;
       flex: 0 0 224px;
@@ -239,17 +240,21 @@
     }
   </style>
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.37">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.50">
 </head>
 <body>
   <div id="app">
+    <header class="top-header">
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
+      <div class="header-user">
+        <button class="refresh-button" type="button" aria-label="刷新">⟳</button>
+        <span class="admin">Admin⌄</span>
+      </div>
+    </header>
     <div class="app-shell">
       <aside class="side-nav">
-        <div class="brand"><span>工作台</span></div>
         <div class="nav-section"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-        <div class="nav-item"><span class="nav-icon">▤</span><span>团队库存</span></div>
-        <div class="nav-item"><span class="nav-icon">▥</span><span>平台仓&海外仓</span></div>
-        <div class="nav-item" data-page-nav="supplierInventory"><span class="nav-icon">▱</span><span>供应商库存</span></div>
+        <div class="nav-item" data-page-nav="inventoryQuery"><span class="nav-icon">▤</span><span>库存查询</span></div>
         <div class="nav-item" data-page-nav="processingOrder"><span class="nav-icon">▦</span><span>加工单</span></div>
         <div class="nav-section"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
         <div class="nav-item active" data-page-nav="forecast"><span class="nav-icon">▣</span><span>需求预测</span></div>
@@ -265,22 +270,7 @@
       </aside>
 
       <main class="main-area">
-        <header class="top-header">
-          <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
-          <div class="header-user">
-            <button class="refresh-button" type="button" aria-label="刷新">⟳</button>
-            <span class="admin">Admin⌄</span>
-          </div>
-        </header>
-
         <div v-if="currentModule === 'forecast'" class="content-scroll">
-          <section class="page-head">
-            <div>
-              <h1 class="page-title">需求预测</h1>
-              <p class="page-desc">按平台、店铺、国家、团队、运营负责人和预测类型建立预测单据，并维护多个 SKU 月度销量。</p>
-            </div>
-          </section>
-
           <section class="panel filter-panel">
             <el-form size="default">
               <div class="filter-grid">
@@ -614,13 +604,6 @@
   <template id="stock-plan-template">
     <div class="module-page">
       <div class="content-scroll">
-        <section class="page-head">
-          <div>
-            <h1 class="page-title">备货计划</h1>
-            <p class="page-desc">按业务范围建立备货计划，集中维护多个 SKU 的建议下单数量、期望交货时间和明细备注。</p>
-          </div>
-        </section>
-
         <section class="panel filter-panel">
           <el-form size="default">
             <div class="filter-grid">
@@ -1344,7 +1327,7 @@
   </script>
   <script>
     (() => {
-      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', supplierInventory: '../supplier-inventory/index.html', processingOrder: '../processing-orders/index.html' };
+      const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', inventoryQuery: '../inventory-query/index.html', processingOrder: '../processing-orders/index.html' };
       document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => {
         const page = item.dataset.pageNav;
         if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page }, '*');
@@ -1353,5 +1336,6 @@
     })();
   </script>
   <script src="../../global-export.js?v=1.7.37"></script>
+  <script src="../../navigation.js?v=1.7.50"></script>
 </body>
 </html>
