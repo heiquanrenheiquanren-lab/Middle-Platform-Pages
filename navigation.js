@@ -23,8 +23,18 @@
     organization: '<circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v5M5 17v-3h14v3"/>',
     company: '<path d="M4 21V5l8-3v19M12 9h8v12M8 7v1M8 11v1M8 15v1M16 13v1M16 17v1M2 21h20"/>',
     assets: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 15-5-5L5 20"/>',
-    log: '<path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/>'
+    log: '<path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20.3h-3v-.08A1.7 1.7 0 0 0 10.66 18.66a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04H5.3v-3h.14A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.04-1.56V4.6h3v.1a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06A1.7 1.7 0 0 0 19.4 9.92a1.7 1.7 0 0 0 1.56 1.04h.14v3h-.14A1.7 1.7 0 0 0 19.4 15z"/>'
   };
+
+  var themes = [
+    { id: 'obsidian-red', label: '曜石红', background: '#202023', active: '#373739', accent: '#F53661' },
+    { id: 'cloud-blue', label: '云海蓝', background: '#FFFFFF', active: '#EAF3FF', accent: '#1677FF' },
+    { id: 'midnight-blue', label: '极夜蓝', background: '#122037', active: '#1C304E', accent: '#86BDF5' },
+    { id: 'indigo-slate', label: '靛青灰', background: '#1F2029', active: '#343640', accent: '#B69CFF' },
+    { id: 'cloud-pine', label: '云杉绿', background: '#FFFFFF', active: '#EDF8F1', accent: '#2FA66A' },
+    { id: 'cloud-mist', label: '云雾紫', background: '#F6F7F9', active: '#EAE6FF', accent: '#7C6EE6' }
+  ];
 
   var sideIcons = [
     { label: '库存管理', icon: 'inventory' },
@@ -83,6 +93,71 @@
     document.querySelectorAll('.nav-flyout-open').forEach(function (item) { item.classList.remove('nav-flyout-open'); });
   }
 
+  function closeThemePopover() {
+    var popover = document.querySelector('.nav-theme-popover');
+    if (popover) popover.remove();
+    document.querySelectorAll('.nav-theme-button').forEach(function (button) { button.setAttribute('aria-expanded', 'false'); });
+  }
+
+  function getTheme() {
+    var saved = 'obsidian-red';
+    try { saved = window.localStorage.getItem('middle-platform-theme') || saved; } catch (error) { /* local file fallback */ }
+    if (saved === 'enterprise-blue-white') saved = 'cloud-blue';
+    return themes.some(function (theme) { return theme.id === saved; }) ? saved : 'obsidian-red';
+  }
+
+  function applyTheme(themeId) {
+    var theme = themes.find(function (item) { return item.id === themeId; }) || themes[0];
+    document.documentElement.setAttribute('data-theme', theme.id);
+    try { window.localStorage.setItem('middle-platform-theme', theme.id); } catch (error) { /* local file fallback */ }
+  }
+
+  function openThemePopover(trigger) {
+    closeFlyout();
+    closeThemePopover();
+    var rect = trigger.getBoundingClientRect();
+    var popover = document.createElement('section');
+    popover.className = 'nav-theme-popover';
+    popover.setAttribute('aria-label', '主题设置');
+    popover.style.left = Math.max(8, rect.right + 8) + 'px';
+    popover.style.bottom = '12px';
+    popover.innerHTML = '<div class="nav-theme-title">主题设置</div><div class="nav-theme-grid"></div>';
+    var grid = popover.querySelector('.nav-theme-grid');
+    themes.forEach(function (theme) {
+      var option = document.createElement('button');
+      option.type = 'button';
+      option.className = 'nav-theme-option' + (getTheme() === theme.id ? ' active' : '');
+      option.setAttribute('aria-label', '切换为' + theme.label + '主题');
+      option.title = theme.label;
+      option.innerHTML = '<span class="nav-theme-swatch" style="--swatch-bg:' + theme.background + ';--swatch-active:' + theme.active + ';--swatch-accent:' + theme.accent + '"><i></i><b></b><em></em></span>';
+      option.addEventListener('click', function () {
+        applyTheme(theme.id);
+        closeThemePopover();
+      });
+      grid.appendChild(option);
+    });
+    document.body.appendChild(popover);
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+
+  function mountThemeSwitcher(sidebar) {
+    if (sidebar.querySelector('.nav-theme-button')) return;
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'nav-theme-button';
+    button.setAttribute('aria-label', '主题设置');
+    button.setAttribute('title', '主题设置');
+    button.setAttribute('aria-expanded', 'false');
+    button.appendChild(createIcon('settings'));
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (document.querySelector('.nav-theme-popover')) closeThemePopover();
+      else openThemePopover(button);
+    });
+    sidebar.appendChild(button);
+  }
+
   function openFlyout(title, items) {
     closeFlyout();
     var rect = title.getBoundingClientRect();
@@ -115,6 +190,7 @@
     });
     try { window.localStorage.setItem('middle-platform-nav-collapsed', collapsed ? '1' : '0'); } catch (error) { /* local file fallback */ }
     if (!collapsed) closeFlyout();
+    closeThemePopover();
   }
 
   function mountSidebarCollapse() {
@@ -140,6 +216,8 @@
       if (event.key === 'Enter' || event.key === ' ') button.click();
     });
 
+    mountThemeSwitcher(sidebar);
+
     var collapsed = false;
     try { collapsed = window.localStorage.getItem('middle-platform-nav-collapsed') === '1'; } catch (error) { /* local file fallback */ }
     setCollapsed(collapsed);
@@ -159,9 +237,10 @@
 
     document.addEventListener('click', function (event) {
       if (!event.target.closest('.nav-flyout, .nav-flyout-open')) closeFlyout();
+      if (!event.target.closest('.nav-theme-popover, .nav-theme-button')) closeThemePopover();
     });
-    document.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeFlyout(); });
-    window.addEventListener('resize', closeFlyout);
+    document.addEventListener('keydown', function (event) { if (event.key === 'Escape') { closeFlyout(); closeThemePopover(); } });
+    window.addEventListener('resize', function () { closeFlyout(); closeThemePopover(); });
   }
 
   function selectModule(buttons, selectedIndex) {
@@ -183,6 +262,7 @@
   }
 
   function mountTopNavigation() {
+    applyTheme(getTheme());
     document.querySelectorAll('.global-left .top-icon').forEach(function (button) {
       if ((button.textContent || '').trim() === '企业工单') button.remove();
     });
