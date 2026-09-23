@@ -1,6 +1,6 @@
-const VER='1.7.59';
-const pages={workbench:`./pages/workbench/index.html?v=${VER}`,forecast:`./pages/demand-forecast/index.html?v=${VER}`,stock:`./pages/stock-plan/index.html?v=${VER}`,purchase:`./pages/purchase-plan/index.html?v=${VER}`,shipment:`./pages/shipment-plan/index.html?v=${VER}`,purchaseOrder:`./pages/purchase-orders/index.html?v=${VER}`,shipmentOrder:`./pages/shipment-orders/index.html?v=${VER}`,skuFirstLegCost:`./pages/sku-first-leg-cost/index.html?v=${VER}`,inventoryQuery:`./pages/inventory-query/index.html?v=${VER}`,processingOrder:`./pages/processing-orders/index.html?v=${VER}`};
-const pageNames={workbench:'工作台',forecast:'需求预测',stock:'备货计划',purchase:'采购计划',shipment:'发货计划',purchaseOrder:'采购单',shipmentOrder:'发货单',skuFirstLegCost:'头程费用',inventoryQuery:'库存查询',processingOrder:'加工单'};
+const VER='1.7.60';
+const pages={workbench:`./pages/workbench/index.html?v=${VER}`,forecast:`./pages/demand-forecast/index.html?v=${VER}`,stock:`./pages/stock-plan/index.html?v=${VER}`,purchase:`./pages/purchase-plan/index.html?v=${VER}`,shipment:`./pages/shipment-plan/index.html?v=${VER}`,purchaseOrder:`./pages/purchase-orders/index.html?v=${VER}`,shipmentOrder:`./pages/shipment-orders/index.html?v=${VER}`,skuFirstLegCost:`./pages/sku-first-leg-cost/index.html?v=${VER}`,inventoryQuery:`./pages/inventory-query/index.html?v=${VER}`,processingOrder:`./pages/processing-orders/index.html?v=${VER}`,transferOrder:`./pages/transfer-orders/index.html?v=${VER}`};
+const pageNames={workbench:'工作台',forecast:'需求预测',stock:'备货计划',purchase:'采购计划',shipment:'发货计划',purchaseOrder:'采购单',shipmentOrder:'发货单',skuFirstLegCost:'头程费用',inventoryQuery:'库存查询',processingOrder:'加工单',transferOrder:'调拨单'};
 const frame=document.querySelector('#prototypeFrame');
 
 function openPage(key,updateHash=true){

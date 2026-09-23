@@ -3,10 +3,10 @@
 
   var modules = [
     { label: '工作台', icon: 'dashboard', page: 'workbench', path: '../workbench/index.html' },
-    { label: '财务中台', icon: 'finance' },
-    { label: '供应链中台', icon: 'supplyChain', page: 'inventoryQuery', path: '../inventory-query/index.html' },
-    { label: '运营中台', icon: 'operations' },
-    { label: '产品资料', icon: 'product' }
+    { label: '财务', icon: 'finance' },
+    { label: '供应链', icon: 'supplyChain', page: 'inventoryQuery', path: '../inventory-query/index.html' },
+    { label: '运营', icon: 'operations' },
+    { label: '产品', icon: 'product' }
   ];
 
   var icons = {
@@ -193,6 +193,35 @@
     closeThemePopover();
   }
 
+  /* The inventory menu is shared by every standalone prototype page. Keep the
+     transfer-order entry mounted here so opening a child page directly (rather
+     than through the root iframe) still exposes the same navigation. */
+  function mountTransferNav() {
+    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .workbench-nav-title'));
+    titles.forEach(function (title) {
+      if ((title.textContent || '').indexOf('库存管理') < 0) return;
+      var container = title.parentElement;
+      if (!container || container.querySelector('[data-page-nav="transferOrder"]')) return;
+      var source = container.querySelector('[data-page-nav="processingOrder"]');
+      if (!source) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'transferOrder');
+      item.classList.remove('active');
+      item.innerHTML = '<span class="mini">⇄</span>调拨单';
+      source.insertAdjacentElement('afterend', item);
+    });
+    if (document.documentElement.dataset.transferNavBound === '1') return;
+    document.documentElement.dataset.transferNavBound = '1';
+    document.addEventListener('click', function (event) {
+      var item = event.target.closest('[data-page-nav="transferOrder"]');
+      if (!item) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page: 'transferOrder' }, '*');
+      else window.location.href = '../transfer-orders/index.html';
+    }, true);
+  }
+
   function mountSidebarCollapse() {
     var sidebar = document.querySelector('.sidebar, .workbench-sidebar, .supplier-sidebar, .side-nav');
     if (!sidebar) return;
@@ -217,6 +246,7 @@
     });
 
     mountThemeSwitcher(sidebar);
+    mountTransferNav();
 
     var collapsed = false;
     try { collapsed = window.localStorage.getItem('middle-platform-nav-collapsed') === '1'; } catch (error) { /* local file fallback */ }

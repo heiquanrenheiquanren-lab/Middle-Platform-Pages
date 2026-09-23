@@ -7,23 +7,25 @@
   <title>采购单｜查询区域交互原型</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
   <link rel="stylesheet" href="./styles.css?v=1.7.24">
+  <link rel="stylesheet" href="../../document-list.css?v=1.0.0">
   <link rel="stylesheet" href="./ownership.css?v=1.7.23">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.59">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.60">
+  <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
 </head>
 <body>
   <div class="toast" id="toast">查询完成</div>
   <div class="watermark-layer" id="watermarkLayer" aria-hidden="true"></div>
   <div class="app">
     <header class="global-bar">
-      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
       <div class="global-right"><span class="admin">Admin⌄</span></div>
     </header>
     <div class="shell">
       <aside class="sidebar">
         <div class="nav-scroll">
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div><div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div><div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div><div class="nav-item" data-page-nav="transferOrder"><span class="mini">⇄</span>调拨单</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
@@ -52,7 +54,7 @@
         </section>
         <section class="action-strip"><div class="head-actions"><button class="btn primary" id="openPurchaseCreate">新建采购单</button><button class="btn primary" id="submitPurchaseReview" disabled>提交审核</button><button class="btn primary" id="openPurchaseFeeApportion">采购运费分摊</button><button class="btn primary" id="openOwnershipAdjustment">货权调整</button></div></section>
         <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
-        <section class="table-area" id="tableArea"><table class="po-table"><colgroup><col class="col-check"><col class="col-expand"><col class="col-po"><col class="col-supplier"><col class="col-amount"><col class="col-inbound"><col class="col-logistics"><col class="col-remark"><col class="col-creator"><col class="col-action"></colgroup><thead><tr><th><input class="head-check" id="selectAll" type="checkbox"></th><th></th><th>采购单号</th><th>供应商信息</th><th>采购单金额</th><th>入库信息</th><th>物流信息</th><th>备注信息</th><th>创建信息</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
+        <section class="table-area" id="tableArea"><table class="po-table document-list"><colgroup><col class="col-check"><col class="col-expand"><col class="col-po"><col class="col-supplier"><col class="col-amount"><col class="col-composition"><col class="col-inbound"><col class="col-logistics"><col class="col-remark"><col class="col-creator"><col class="col-action"></colgroup><thead><tr><th><input class="head-check" id="selectAll" type="checkbox"></th><th></th><th>采购单号</th><th>供应商信息</th><th>采购单金额</th><th>金额构成</th><th>入库信息</th><th>物流信息</th><th>备注信息</th><th>创建信息</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
         <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span></div><div class="bottom-right"><span>共 <b id="totalCount">13</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="25">25张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
       </main>
     </div>
@@ -71,6 +73,7 @@
   <script src="./app.js?v=1.7.23"></script>
   <script src="./ownership.js?v=1.7.23"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
-  <script src="../../navigation.js?v=1.7.59"></script>
+  <script src="../../custom-select.js?v=1.0.0"></script>
+  <script src="../../navigation.js?v=1.7.60"></script>
 </body>
 </html>

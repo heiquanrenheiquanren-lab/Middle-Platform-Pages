@@ -256,13 +256,13 @@
     }
     if (businessTarget && businessTarget.dataset.businessBound !== 'true') {
       businessTarget.dataset.businessBound = 'true';
-      businessTarget.setAttribute('title', '供应链中台');
+      businessTarget.setAttribute('title', '供应链');
       businessTarget.addEventListener('click', navigateToBusinessPages);
     }
   }
 
   function mountTopModuleLabels() {
-    var labels = ['工作台', '财务中台', '供应链中台', '运营中台', '产品资料', '企业工单'];
+    var labels = ['工作台', '财务', '供应链', '运营', '产品'];
     document.querySelectorAll('.global-left').forEach(function (container) {
       var icons = Array.prototype.slice.call(container.children).filter(function (child) { return child.classList.contains('top-icon') || child.classList.contains('global-icon'); });
       icons.slice(0, labels.length).forEach(function (icon, index) {

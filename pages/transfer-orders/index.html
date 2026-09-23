@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>调拨单</title>
+  <link rel="stylesheet" href="./styles.css?v=1.0.0">
+  <link rel="stylesheet" href="../../document-list.css?v=1.0.0">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.60">
+  <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
+</head>
+<body>
+  <div class="app">
+    <header class="global-bar">
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
+      <div class="global-right"><span class="admin">Admin⌄</span></div>
+    </header>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="nav-scroll">
+          <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
+          <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+          <div class="nav-item active" data-page-nav="transferOrder"><span class="mini">⇄</span>调拨单</div>
+          <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+          <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div><div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
+        </div>
+        <div class="collapse">≡</div>
+      </aside>
+      <main class="main">
+        <section class="query-panel">
+          <div class="query-row">
+            <input class="control wide" id="keyword" placeholder="调拨单号 / SKU / 产品名称">
+            <select class="control" id="sourceWarehouse"><option value="">调出仓库（可多选）</option><option>华东实体仓</option><option>SZ01东莞仓</option><option>Temu09-全托管平台仓</option><option>快猫物流中转仓</option></select>
+            <select class="control" id="targetWarehouse"><option value="">调入仓库（可多选）</option><option>华东实体仓</option><option>SZ01东莞仓</option><option>Temu09-全托管平台仓</option><option>快猫物流中转仓</option></select>
+            <select class="control" id="transferType"><option value="">调拨类型</option><option>仓间调拨</option></select>
+            <div class="date-group"><input id="startDate" type="date" aria-label="开始日期"><span>至</span><input id="endDate" type="date" aria-label="结束日期"></div>
+            <div class="query-actions"><button class="btn primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button></div>
+          </div>
+        </section>
+        <section class="action-strip"><div class="head-actions"><button class="btn primary" id="newBtn">新建调拨单</button><button class="btn" id="exportBtn">导出</button></div></section>
+        <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><span id="refreshBtn" hidden></span></section>
+        <section class="table-area"><table class="transfer-table document-list"><colgroup><col class="check-col"><col class="expand-col"><col class="no-col"><col class="warehouse-col"><col class="progress-col"><col class="fee-col"><col class="logistics-col"><col class="remark-col"><col class="creator-col"><col class="action-col"></colgroup><thead><tr><th><input id="selectAll" type="checkbox" aria-label="全选"></th><th></th><th>调拨单号</th><th>调拨方向</th><th>调拨进度</th><th>费用信息</th><th>物流信息</th><th>备注</th><th>创建信息</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table><div class="empty" id="empty" hidden>暂无符合条件的调拨单</div></section>
+        <footer class="bottom-bar"><div>已选 <b id="selectedCount">0</b> 条结果</div><div class="pager"><span>共 <b id="totalCount">0</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="20">20张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button></div></footer>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="detailModal" hidden></div>
+  <div class="modal-mask" id="editorModal" hidden></div>
+  <div class="modal-mask" id="skuPickerModal" hidden></div>
+  <div class="toast" id="toast"></div>
+  <script src="./app.js?v=1.0.0"></script>
+  <script src="../../custom-select.js?v=1.0.0"></script>
+  <script src="../../navigation.js?v=1.7.60"></script>
+</body>
+</html>

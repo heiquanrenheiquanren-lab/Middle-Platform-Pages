@@ -8,14 +8,15 @@
   
   
   <link rel="stylesheet" href="styles.css?v=1.7.23">
+  <link rel="stylesheet" href="../../document-list.css?v=1.0.0">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.59">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.60">
 </head>
 <body>
 <div id="app" v-cloak>
   <div class="app">
     <header class="global-bar">
-      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务中台</button><button class="top-icon active">供应链中台</button><button class="top-icon">运营中台</button><button class="top-icon">产品资料</button><button class="top-icon">企业工单</button></div>
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
       <div class="global-right"><span class="admin">Admin⌄</span></div>
     </header>
     <div class="shell">
@@ -62,7 +63,7 @@
         <div class="card status-card"><el-tabs v-model="statusTab" class="status-tabs"><el-tab-pane v-for="s in statuses" :key="s" :name="s"><template #label><span>{{s}}<i class="tab-count">{{statusCount(s)}}</i></span></template></el-tab-pane></el-tabs></div>
         <div class="card list-card">
           <div class="list-head"><b>发货单列表</b><span class="list-count">共 {{filteredDocs?.length}} 张</span></div>
-          <el-table ref="mainTableRef" :data="filteredDocs" row-key="id" class="main-table" style="width:100%" @selection-change="onDocSelection">
+          <el-table ref="mainTableRef" :data="filteredDocs" row-key="id" class="main-table document-list" style="width:100%" @selection-change="onDocSelection">
             <el-table-column type="selection" width="46" fixed="left"></el-table-column>
             <el-table-column type="expand" width="46" fixed="left">
               <template #default="{row}"><div class="expand-panel"><div class="detail-table-wrap"><el-table :data="row.items" border size="small" class="detail-sku-table"><el-table-column prop="sku" label="SKU" width="145" fixed="left"><template #default="{row:item}"><div>{{item.sku}}<el-popover v-if="skuMeta(item.sku).skuType==='组合'" trigger="click" placement="top-start" width="220" popper-class="combo-popover"><template #reference><el-tag type="warning" size="small" style="margin-left:4px;cursor:pointer">组合</el-tag></template><div class="combo-popover-title">组合明细｜{{item.sku}}</div><el-table :data="comboParts(item.sku)" size="small" border><el-table-column prop="sku" label="子件 SKU"></el-table-column><el-table-column prop="ratio" label="组合数量" width="80" align="center"></el-table-column></el-table></el-popover></div></template></el-table-column><el-table-column label="产品信息" width="220"><template #default="{row:item}"><div class="product-cell"><el-image :src="skuMeta(item.sku).image||placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="item.name||'—'" placement="top"><div class="product-title">{{item.name||'—'}}</div></el-tooltip></div></template></el-table-column><el-table-column prop="plan" label="计划号" width="155"></el-table-column><el-table-column label="海外仓 SKU" width="145"><template #default="{row:item}">{{skuMeta(item.sku).overseasSku||'—'}}</template></el-table-column><!-- <el-table-column label="FNSKU" width="120"><template #default="{row:item}">{{skuMeta(item.sku).fnsku||'—'}}</template></el-table-column> --><el-table-column label="计划发货量" width="105"><template #default="{row:item}">{{skuMeta(item.sku).planQty||item.declare}}</template></el-table-column><!-- <el-table-column prop="declare" label="申报量" width="90"></el-table-column> --><el-table-column label="提货量" width="90"><template #default="{row:item}">{{item.pick||0}}</template></el-table-column><el-table-column label="发货量" width="90"><template #default="{row:item}">{{item.ship||0}}</template></el-table-column><el-table-column label="实际发货量" width="100"><template #default="{row:item}">{{item.shipped||0}}</template></el-table-column><el-table-column label="收货量" width="90"><template #default="{row:item}">{{item.receive||0}}</template></el-table-column><el-table-column label="平台" width="115"><template #default="{row:item}">{{skuMeta(item.sku).platform||'—'}}</template></el-table-column><el-table-column label="店铺" width="150"><template #default="{row:item}">{{skuMeta(item.sku).store||'—'}}</template></el-table-column><el-table-column label="团队" width="105"><template #default="{row:item}">{{skuMeta(item.sku).team||'—'}}</template></el-table-column><el-table-column label="备注" width="140"><template #default="{row:item}">{{item.remark||skuMeta(item.sku).skuRemark||'—'}}</template></el-table-column></el-table></div></div></template>
@@ -572,6 +573,6 @@
 <script src="../../vendor/element-plus.js"></script>
 <script src="app.js?v=1.7.27"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
-<script src="../../navigation.js?v=1.7.59"></script>
+<script src="../../navigation.js?v=1.7.60"></script>
 </body>
 </html>

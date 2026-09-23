@@ -1,0 +1,163 @@
+/* Shared visual baseline for all document lists (purchase, shipment, transfer). */
+:root {
+  --document-font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --document-label-color: #8f959e;
+  --document-value-color: #606266;
+  --document-muted-color: #909399;
+  --document-field-size: 12px;
+}
+
+.document-list {
+  font-family: var(--document-font-family);
+  color: var(--document-value-color);
+}
+
+.document-list td,
+.document-list .field-line,
+.document-list .stack-cell,
+.document-list .summary-cell {
+  font-family: var(--document-font-family);
+  font-weight: 400;
+}
+
+/* Merged fields use one shared label/value rhythm across document pages. */
+.document-list .field-line {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 20px;
+  color: var(--document-value-color);
+  font-size: var(--document-field-size);
+  text-align: left;
+}
+
+.document-list .field-label,
+.document-list .field-line > span:first-child {
+  flex: none;
+  color: var(--document-label-color);
+  font-size: var(--document-field-size);
+  font-weight: 400;
+}
+
+.document-list .field-value,
+.document-list .field-line > span:last-child,
+.document-list .field-line strong {
+  min-width: 0;
+  color: var(--document-value-color);
+  font-size: var(--document-field-size);
+  font-weight: 400;
+}
+
+.document-list .stack-cell,
+.document-list .summary-cell {
+  align-items: flex-start;
+  gap: 5px;
+  line-height: 18px;
+  color: var(--document-value-color);
+}
+
+.document-list .stack-cell span,
+.document-list .summary-cell span {
+  color: var(--document-label-color);
+  font-size: var(--document-field-size);
+  font-weight: 400;
+}
+
+.document-list .stack-cell b,
+.document-list .summary-cell b {
+  color: var(--document-value-color);
+  font-size: var(--document-field-size);
+  font-weight: 400;
+}
+
+.document-list .direction {
+  color: var(--document-value-color);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* One expand affordance for every document list. */
+.document-list .document-expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--document-label-color);
+  font-size: 0;
+  line-height: 0;
+  transform: none !important;
+}
+
+.document-list .document-expand::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform .15s ease;
+}
+
+.document-list .document-expand.is-expanded::before,
+.document-list .document-expand.open::before {
+  transform: rotate(135deg);
+}
+
+.document-list .document-expand:hover {
+  background: transparent;
+  color: var(--document-label-color);
+}
+
+/* Transfer rows keep a legacy child span; the shared pseudo-element is the only icon. */
+.document-list .document-expand .expand-chevron {
+  display: none !important;
+}
+
+/* Compatibility selectors keep existing page markup on the same shared component. */
+.document-list .expand-row,
+.document-list .expand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--document-label-color);
+  font-size: 0;
+  line-height: 0;
+  transform: none !important;
+}
+
+.document-list .expand-row::before,
+.document-list .expand-btn::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform .15s ease;
+}
+
+.document-list .expand-row.is-expanded::before,
+.document-list .expand-btn.open::before {
+  transform: rotate(135deg);
+}
+
+.document-list .expand-row:hover,
+.document-list .expand-btn:hover {
+  background: transparent;
+  color: var(--document-label-color);
+}
+
+.document-list .expand-row .expand-chevron {
+  display: none !important;
+}
