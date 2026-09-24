@@ -40,7 +40,7 @@
             <div class="query-actions"><button class="btn primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button></div>
           </div>
         </section>
-        <section class="action-strip"><div class="head-actions"><button class="btn primary" id="newBtn">新建调拨单</button><button class="btn" id="exportBtn">导出</button></div></section>
+        <section class="action-strip"><div class="head-actions"><button class="btn primary" id="newBtn">新建调拨单</button><button class="btn" id="importBtn">导入新建</button><button class="btn" id="exportBtn">导出</button><button class="btn success" id="auditBtn">批量审核</button></div></section>
         <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><span id="refreshBtn" hidden></span></section>
         <section class="table-area"><table class="transfer-table document-list"><colgroup><col class="check-col"><col class="expand-col"><col class="no-col"><col class="warehouse-col"><col class="progress-col"><col class="fee-col"><col class="logistics-col"><col class="remark-col"><col class="creator-col"><col class="action-col"></colgroup><thead><tr><th><input id="selectAll" type="checkbox" aria-label="全选"></th><th></th><th>调拨单号</th><th>调拨方向</th><th>调拨进度</th><th>费用信息</th><th>物流信息</th><th>备注</th><th>创建信息</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table><div class="empty" id="empty" hidden>暂无符合条件的调拨单</div></section>
         <footer class="bottom-bar"><div>已选 <b id="selectedCount">0</b> 条结果</div><div class="pager"><span>共 <b id="totalCount">0</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="20">20张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button></div></footer>
@@ -49,10 +49,13 @@
   </div>
 
   <div class="modal-mask" id="detailModal" hidden></div>
+  <div class="transfer-log-modal" id="logModal" hidden></div>
+  <div class="modal-mask" id="auditModal" hidden></div>
   <div class="modal-mask" id="editorModal" hidden></div>
   <div class="modal-mask" id="skuPickerModal" hidden></div>
+  <div class="modal-mask" id="importModal" hidden></div>
   <div class="toast" id="toast"></div>
-  <script src="./app.js?v=1.0.0"></script>
+  <script src="./app.js?v=1.0.1"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../navigation.js?v=1.7.60"></script>
 </body>

@@ -73,7 +73,7 @@
     var node = document.querySelector('.gx-toast');
     if (!node) { node = document.createElement('div'); node.className = 'gx-toast'; document.body.appendChild(node); }
     node.textContent = message;
-    node.className = 'gx-toast ' + (kind || '');
+    node.className = 'gx-toast gx-toast-show' + (kind ? ' ' + kind : '');
     clearTimeout(showToast.timer);
     showToast.timer = setTimeout(function () { node.className = 'gx-toast'; }, 2800);
   }
@@ -146,7 +146,7 @@
     var mask = document.createElement('div');
     mask.className = 'gx-mask';
     var taskTypeOptions = Array.from(new Set(tasks.map(function (task) { return task.taskType; }))).map(function (type) { return '<label class="gx-multi-option"><input type="checkbox" value="' + escapeHtml(type) + '"><span>' + escapeHtml(type) + '</span></label>'; }).join('');
-    mask.innerHTML = '<section class="gx-dialog" role="dialog" aria-modal="true" aria-label="导出中心"><div class="gx-dialog-header"><div><h2>导出中心</h2><p>查看和管理当前账号发起的全部导出任务</p></div><button class="gx-close" aria-label="关闭">×</button></div><div class="gx-dialog-body"><div class="gx-filter"><div class="gx-multi-select"><button type="button" class="gx-control gx-multi-select-trigger">全部任务类型⌄</button><div class="gx-multi-select-panel"><input class="gx-control gx-multi-search" placeholder="搜索任务类型"><div class="gx-multi-options">' + taskTypeOptions + '</div></div></div><input class="gx-control gx-filter-template" placeholder="模板名称，支持模糊搜索"><select class="gx-control gx-filter-status"><option value="">全部处理状态</option><option value="processing">处理中</option><option value="success">成功</option><option value="failed">失败</option><option value="cancelled">已取消</option></select><button class="gx-btn gx-btn-primary gx-filter-submit">搜索</button><button class="gx-btn gx-btn-plain gx-filter-reset">重置</button></div><div class="gx-table-wrap"><table class="gx-table"><thead><tr><th>任务类型</th><th>模板名称</th><th>来源页面</th><th>处理状态</th><th>操作人</th><th>发起时间</th><th>完成时间</th><th>处理耗时</th><th>失败原因</th><th>操作</th></tr></thead><tbody class="gx-table-body"></tbody></table></div><div class="gx-dialog-footer"><span class="gx-result-count">共 0 条记录</span><div class="gx-pagination"><button class="gx-page-prev">‹</button><span class="gx-page-current">1</span><span>/</span><span class="gx-page-total">1</span><button class="gx-page-next">›</button></div></div></div></section>';
+    mask.innerHTML = '<section class="gx-dialog" role="dialog" aria-modal="true" aria-label="导出中心"><div class="gx-dialog-header"><div><h2>导出中心</h2><p>查看和管理当前账号发起的全部导出任务，需要在处理完成后 24 小时之内下载，超过 24 小时之后文件过期无法下载，需回到页面重新导出</p></div><button class="gx-close" aria-label="关闭">×</button></div><div class="gx-dialog-body"><div class="gx-filter"><div class="gx-multi-select"><button type="button" class="gx-control gx-multi-select-trigger">全部任务类型⌄</button><div class="gx-multi-select-panel"><input class="gx-control gx-multi-search" placeholder="搜索任务类型"><div class="gx-multi-options">' + taskTypeOptions + '</div></div></div><input class="gx-control gx-filter-template" placeholder="模板名称，支持模糊搜索"><select class="gx-control gx-filter-status"><option value="">全部处理状态</option><option value="processing">处理中</option><option value="success">成功</option><option value="failed">失败</option><option value="cancelled">已取消</option></select><button class="gx-btn gx-btn-primary gx-filter-submit">搜索</button><button class="gx-btn gx-btn-plain gx-filter-reset">重置</button></div><div class="gx-table-wrap"><table class="gx-table"><thead><tr><th>任务类型</th><th>模板名称</th><th>来源页面</th><th>处理状态</th><th>操作人</th><th>发起时间</th><th>完成时间</th><th>处理耗时</th><th>失败原因</th><th>操作</th></tr></thead><tbody class="gx-table-body"></tbody></table></div><div class="gx-dialog-footer"><span class="gx-result-count">共 0 条记录</span><div class="gx-pagination"><button class="gx-page-prev">‹</button><span class="gx-page-current">1</span><span>/</span><span class="gx-page-total">1</span><button class="gx-page-next">›</button></div></div></div></section>';
     document.body.appendChild(mask);
     mask.addEventListener('click', function (event) {
       if (event.target === mask || event.target.closest('.gx-close')) closeWorkbench();
@@ -195,8 +195,15 @@
     if (changed) { saveTasks(); updateBadge(); renderTable(); showToast('导出任务状态已刷新'); } else showToast('暂无处理中任务');
   }
 
+  function isDownloadExpired(task) {
+    if (!task.completedAt || task.completedAt === '—') return false;
+    var completed = new Date(task.completedAt.replace(/-/g, '/')).getTime();
+    return Date.now() - completed > 24 * 60 * 60 * 1000;
+  }
+
   function downloadTask(task) {
     if (task.status !== 'success') return;
+    if (isDownloadExpired(task)) { showToast('超过 24 小时，文件已过期，请回到页面重新导出', 'gx-toast-error'); return; }
     saveTasks(); renderTable();
     var content = '\ufeff任务类型,模板名称,来源页面,筛选条件快照\n' + [task.taskType, task.templateName, task.sourcePage, task.filterSnapshot || '当前页面筛选条件'].map(function (value) { return '"' + String(value).replace(/"/g, '""') + '"'; }).join(',') + '\n';
     var link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' })); link.download = (task.templateName || '导出结果') + '.csv'; link.click(); URL.revokeObjectURL(link.href); showToast('文件已开始下载');
@@ -225,7 +232,7 @@
     if (document.querySelector('.gx-entry')) return;
     var container = document.querySelector('.global-right') || document.querySelector('.header-user');
     if (!container) return;
-    var entry = document.createElement('button'); entry.type = 'button'; entry.className = 'gx-entry'; entry.innerHTML = '<span class="gx-entry-icon">⇩</span><span>导出中心</span><sup class="gx-entry-badge" hidden>0</sup>';
+    var entry = document.createElement('button'); entry.type = 'button'; entry.className = 'gx-entry'; entry.innerHTML = '<span class="gx-entry-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg></span><span>导出中心</span><sup class="gx-entry-badge" hidden>0</sup>';
     var admin = container.querySelector('.admin');
     if (!admin) admin = Array.prototype.slice.call(container.children).find(function (child) { return /Admin/.test(child.textContent || ''); });
     if (admin) container.insertBefore(entry, admin); else container.appendChild(entry);

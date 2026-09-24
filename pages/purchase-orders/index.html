@@ -37,13 +37,13 @@
           <div class="query-row" id="queryRowOne">
             <div class="query-item" data-query-order="1"><input class="control po-number-input" id="purchaseOrderNo" placeholder="支持输入多个易仓、领星、中台单号"></div>
             <div class="query-item" data-query-order="2"><input class="control sku-input" id="skuInput" placeholder="请输入多个 SKU，使用逗号或空格分隔"></div>
-            <div class="query-item" data-query-order="3"><div class="multi supplier-box" id="supplierMulti"><div class="multi-trigger" data-trigger>供应商（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item" data-query-order="4"><input class="control common-input" id="planNo" placeholder="采购计划，多个请用逗号或空格隔开"></div>
-            <div class="query-item" data-query-order="5"><input class="control common-input" id="batchNo" placeholder="收货批次，多个请用逗号或空格隔开"></div>
-            <div class="query-item" data-query-order="6"><div class="multi warehouse-box" id="warehouseMulti"><div class="multi-trigger" data-trigger>采购仓库（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item" data-query-order="7"><div class="multi platform-box" id="platformMulti"><div class="multi-trigger" data-trigger>平台（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item" data-query-order="8"><div class="multi store-box" id="storeMulti"><div class="multi-trigger" data-trigger>店铺（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item" data-query-order="9"><div class="multi team-box" id="teamMulti"><div class="multi-trigger" data-trigger>团队（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="3"><input class="control common-input" id="planNo" placeholder="采购计划号，多个请用逗号或空格隔开"></div>
+            <div class="query-item" data-query-order="4"><div class="multi team-box" id="teamMulti"><div class="multi-trigger" data-trigger>团队（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="5"><div class="multi supplier-box" id="supplierMulti"><div class="multi-trigger" data-trigger>供应商（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="6"><input class="control common-input" id="batchNo" placeholder="收货批次，多个请用逗号或空格隔开"></div>
+            <div class="query-item" data-query-order="7"><div class="multi warehouse-box" id="warehouseMulti"><div class="multi-trigger" data-trigger>采购仓库（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="8"><div class="multi platform-box" id="platformMulti"><div class="multi-trigger" data-trigger>平台（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item" data-query-order="9"><div class="multi store-box" id="storeMulti"><div class="multi-trigger" data-trigger>店铺（可多选）</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item" data-query-order="10"><div class="multi receiver-box" id="receiverMulti"><div class="multi-trigger" data-trigger>收货人（可多选）</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item time-query" data-query-order="11"><select class="control time-type" id="timeType"><option>收货时间</option></select><div class="date-group"><input id="startDate" type="date" aria-label="开始日期"><span>至</span><input id="endDate" type="date" aria-label="结束日期"></div></div>
             <div class="query-item" data-query-order="12"><div class="multi creator-box" id="creatorMulti"><div class="multi-trigger" data-trigger>创建人（可多选）</div><div class="dropdown" data-menu></div></div></div>
@@ -52,7 +52,7 @@
           <div class="query-row advanced-query-row"></div>
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
         </section>
-        <section class="action-strip"><div class="head-actions"><button class="btn primary" id="openPurchaseCreate">新建采购单</button><button class="btn primary" id="submitPurchaseReview" disabled>提交审核</button><button class="btn primary" id="openPurchaseFeeApportion">采购运费分摊</button><button class="btn primary" id="openOwnershipAdjustment">货权调整</button></div></section>
+        <section class="action-strip"><div class="head-actions"><button class="btn primary" id="openPurchaseCreate">新建采购单</button><button class="btn primary" id="openBatchPurchaseReceive" disabled>批量收货</button><button class="btn primary" id="submitPurchaseReview" disabled>提交审核</button><button class="btn primary" id="openPurchaseFeeApportion">采购运费分摊</button><button class="btn primary" id="openOwnershipAdjustment">货权调整</button></div></section>
         <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
         <section class="table-area" id="tableArea"><table class="po-table document-list"><colgroup><col class="col-check"><col class="col-expand"><col class="col-po"><col class="col-supplier"><col class="col-amount"><col class="col-composition"><col class="col-inbound"><col class="col-logistics"><col class="col-remark"><col class="col-creator"><col class="col-action"></colgroup><thead><tr><th><input class="head-check" id="selectAll" type="checkbox"></th><th></th><th>采购单号</th><th>供应商信息</th><th>采购单金额</th><th>金额构成</th><th>入库信息</th><th>物流信息</th><th>备注信息</th><th>创建信息</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
         <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span></div><div class="bottom-right"><span>共 <b id="totalCount">13</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="25">25张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
@@ -63,6 +63,7 @@
   <div class="purchase-log-modal" id="purchaseLogModal" hidden role="dialog" aria-label="采购单操作日志"></div>
   <div class="receive-adjust-modal" id="receiveAdjustModal" hidden role="dialog" aria-label="修改收货数量"></div>
   <div class="purchase-receive-modal" id="purchaseReceiveModal" hidden role="dialog" aria-label="采购单收货"></div>
+  <div class="purchase-batch-receive-modal" id="purchaseBatchReceiveModal" hidden role="dialog" aria-label="采购单批量收货"></div>
   <div class="purchase-complete-modal" id="purchaseCompleteModal" hidden role="dialog" aria-label="采购单手动完成"></div>
   <div class="purchase-create-modal" id="purchaseCreateModal" hidden role="dialog" aria-label="新建采购单"></div>
   <div class="purchase-plan-sku-modal" id="purchasePlanSkuModal" hidden role="dialog" aria-label="从采购计划新增 SKU"></div>

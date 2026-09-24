@@ -1,6 +1,7 @@
 .gx-entry{position:relative;display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 4px;border:0;background:transparent;color:#303133;cursor:pointer;font:inherit}
 .gx-entry:hover{color:#1890ff}
-.gx-entry-icon{font-size:19px;line-height:1}
+.gx-entry-icon{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.gx-entry-icon svg{width:16px;height:16px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .gx-entry-badge{position:absolute;top:-4px;right:-9px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:#f56c6c;color:#fff;font-size:11px;line-height:16px;text-align:center}
 .gx-mask{position:fixed;z-index:9998;inset:0;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.42)}
 .gx-mask.gx-show{display:flex}

@@ -231,3 +231,40 @@
 .purchase-fee-form-grid .purchase-create-field>span{flex:none;width:70px;white-space:nowrap}
 .purchase-fee-form-grid .purchase-create-field>.purchase-create-control,.purchase-fee-form-grid .purchase-create-field>.purchase-select,.purchase-fee-form-grid .purchase-create-field>.purchase-fee-date-range,.purchase-fee-form-grid .purchase-create-field>.purchase-fee-remark{flex:1;min-width:0}
 .purchase-fee-form-grid .purchase-fee-remark{height:34px;min-height:34px}
+
+/* 批量收货：采购单按组展示，滚动仅发生在明细表格区域。 */
+.purchase-batch-receive-modal[hidden]{display:none!important}
+.purchase-batch-receive-modal{position:fixed;z-index:170;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(31,35,41,.42)}
+.purchase-batch-dialog{width:min(1320px,calc(100vw - 48px));max-height:88vh;display:flex;flex-direction:column;border-radius:8px;background:#fff;box-shadow:0 14px 42px rgba(0,0,0,.28);overflow:hidden}
+.purchase-batch-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line);flex:none}
+.purchase-batch-header h2{margin:0;color:var(--dark);font-size:18px}
+.purchase-batch-header span{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+.purchase-batch-close{width:30px;height:30px;padding:0;border:0;border-radius:4px;background:transparent;color:#8f959e;font-size:25px;line-height:26px;cursor:pointer}
+.purchase-batch-close:hover{background:#f5f7fa;color:var(--dark)}
+.purchase-batch-body{min-height:0;overflow:auto;padding:18px 22px;background:#f7f9fc}
+.purchase-batch-alert{padding:10px 12px;margin-bottom:12px;border:1px solid #d9ecff;border-radius:5px;background:#f0f7ff;color:#606a78;font-size:12px;line-height:20px}
+.purchase-batch-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;color:var(--dark);font-size:13px}
+.purchase-batch-table-wrap{max-height:56vh;overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+.purchase-batch-table{width:100%;min-width:1020px;border-collapse:separate;border-spacing:0;table-layout:fixed;color:var(--text)}
+.purchase-batch-table th{position:sticky;top:0;z-index:1;height:40px;background:#f5f7fa;color:#606266;font-size:12px;font-weight:600}
+.purchase-batch-table th,.purchase-batch-table td{padding:8px 10px;border-right:1px solid #e5edf7;border-bottom:1px solid #e5edf7;text-align:center;vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.purchase-batch-table td{height:50px;font-size:12px}
+.purchase-batch-table th:nth-child(1){width:170px}.purchase-batch-table th:nth-child(2){width:150px}.purchase-batch-table th:nth-child(3){width:260px}.purchase-batch-table th:nth-child(n+4):nth-child(-n+6){width:120px}.purchase-batch-table th:nth-child(7){width:170px}
+.purchase-batch-table th:last-child,.purchase-batch-table td:last-child{border-right:0}
+.purchase-batch-order-row td{height:42px;background:#f0f6ff;text-align:left;font-size:12px}
+.purchase-batch-order-row b{margin-right:12px;color:#303133}.purchase-batch-order-row .status-tag{display:inline-block;margin-right:12px}.purchase-batch-order-row>td>span:last-child{color:var(--muted)}
+.purchase-batch-product{display:flex;align-items:center;gap:8px;text-align:left!important}.purchase-batch-product .thumb{flex:none}
+.purchase-batch-input{width:120px;height:32px;padding:0 8px;border:1px solid #dcdfe6;border-radius:4px;outline:0;text-align:center;color:var(--dark)}
+.purchase-batch-input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(24,144,255,.1)}.purchase-batch-input:disabled{background:#f5f7fa;cursor:not-allowed}
+.purchase-batch-row-error{min-height:15px;margin-top:2px;color:#f56c6c;font-size:11px}
+.purchase-batch-table tr.is-unavailable{color:#aeb5bf;background:#fbfcfd}
+.purchase-batch-empty{height:100px;color:var(--muted)}
+.purchase-batch-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;flex:none}
+.purchase-batch-footer b{color:var(--dark)}.purchase-batch-footer>div{display:flex;gap:8px}
+@media(max-width:760px){.purchase-batch-receive-modal{padding:12px}.purchase-batch-dialog{width:calc(100vw - 24px);max-height:94vh}.purchase-batch-header,.purchase-batch-footer{padding-left:14px;padding-right:14px}.purchase-batch-body{padding:14px}.purchase-batch-table-wrap{max-height:62vh}.purchase-batch-footer{align-items:flex-start;flex-direction:column}}
+.purchase-batch-table{min-width:1220px}
+.purchase-batch-table th:nth-child(1){width:145px}.purchase-batch-table th:nth-child(2){width:145px}.purchase-batch-table th:nth-child(3){width:130px}.purchase-batch-table th:nth-child(4){width:220px}.purchase-batch-table th:nth-child(5){width:130px}.purchase-batch-table th:nth-child(n+6):nth-child(-n+8){width:100px}.purchase-batch-table th:nth-child(9){width:160px}
+.purchase-receive-table{min-width:1120px}
+.purchase-receive-table th:nth-child(1),.purchase-receive-table td:nth-child(1){width:48px}
+.purchase-receive-table th:nth-child(2){width:145px}.purchase-receive-table th:nth-child(3){width:210px}.purchase-receive-table th:nth-child(4){width:150px}.purchase-receive-table th:nth-child(5){width:130px}.purchase-receive-table th:nth-child(n+6):nth-child(-n+8){width:95px}.purchase-receive-table th:nth-child(9){width:155px}
+.status-tag.status-partial{background:#fff7e6;color:#d48806}
