@@ -4,13 +4,30 @@
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const now = () => '2026-09-22 16:40';
   const warehouses = ['华东实体仓', 'SZ01东莞仓', 'Temu09-全托管平台仓', '快猫物流中转仓'];
+  const logisticsChannels = ['顺丰','京东物流','德邦','中通','圆通'];
+  const logisticsChannelStorageKey = 'transfer-logistics-channels-v2';
+  function customLogisticsChannels(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(logisticsChannelStorageKey) || '[]');
+      return Array.isArray(saved) ? saved.filter(item => typeof item === 'string' && item.trim()) : [];
+    }catch(error){ return []; }
+  }
+  function logisticsChannelList(){ return [...new Set([...logisticsChannels, ...customLogisticsChannels()])]; }
+  function persistLogisticsChannel(name){
+    const value = String(name || '').trim();
+    if(!value || logisticsChannels.includes(value)) return;
+    const saved = customLogisticsChannels();
+    if(saved.includes(value)) return;
+    saved.push(value);
+    try{ localStorage.setItem(logisticsChannelStorageKey, JSON.stringify(saved)); }catch(error){}
+  }
   const teams = ['公共库存', 'Temu团队', '亚马逊北美团队', '独立站团队'];
   const skuPool = [
     {sku:'KBAB0057-009',name:'焊接面罩自动变光款',sourceSku:'KBAB0057-009',targetSku:'KBAB0057-009',available:312,price:6.4881,team:'Temu团队'},
     {sku:'34001001110',name:'焊接帽子迷彩 2-白色',sourceSku:'34001001110',targetSku:'34001001110',available:240,price:12.86,team:'公共库存'},
-    {sku:'34001001206',name:'焊接手套加厚款',sourceSku:'34001001206',targetSku:'34001001206',available:128,price:18.5,team:'亚马逊北美团队'},
-    {sku:'34001001401',name:'焊接护目镜防雾款',sourceSku:'34001001401',targetSku:'34001001401',available:86,price:25.2,team:'独立站团队'},
-    {sku:'34001001501',name:'焊接面罩手持式',sourceSku:'34001001501',targetSku:'34001001501',available:64,price:32.8,team:'亚马逊北美团队'}
+    {sku:'34001001206',name:'焊接手套加厚款',sourceSku:'34001001206',targetSku:'34001001206',available:186,price:18.5,team:'亚马逊北美团队'},
+    {sku:'34001001401',name:'焊接护目镜防雾款',sourceSku:'34001001401',targetSku:'34001001401',available:154,price:25.2,team:'独立站团队'},
+    {sku:'34001001501',name:'焊接面罩手持式',sourceSku:'34001001501',targetSku:'34001001501',available:128,price:32.8,team:'亚马逊北美团队'}
   ];
   let orders = [
     order('TF2609220001','待审核','华东实体仓','快猫物流中转仓',3,300,0,'快猫物流','—','2026-09-25','采购部','Admin'),
@@ -34,9 +51,13 @@
   }
   function order(no,status,source,target,skuCount,requestQty,inboundQty,channel,waybill,eta,department,creator){
     const hasLogistics=Boolean(channel&&channel!=='—'&&waybill&&waybill!=='—');
-    return {id:no,no,status,source,target,skuCount,requestQty,outboundQty:status==='待审核'||status==='待出库'||status==='已驳回'||status==='已作废'?0:requestQty,inboundQty,channel:hasLogistics?channel:'—',waybill:hasLogistics?waybill:'—',eta,department,creator,createdAt:`${transferDate(no)} 10:20`,updatedAt:now(),inheritAge:true,fee:0,otherFee:0,remark:'',items:[]};
+    const shipped=!['待审核','待出库','已驳回','已作废'].includes(status);
+    const received=Number(inboundQty||0)>0;
+    return {id:no,no,status,source,target,skuCount,requestQty,outboundQty:shipped?requestQty:0,inboundQty,voidedQty:0,channel:hasLogistics?channel:'—',waybill:hasLogistics?waybill:'—',eta,department,creator,createdAt:`${transferDate(no)} 10:20`,updatedAt:now(),outboundAt:shipped?`${transferDate(no)} 14:30`:'',inboundAt:received?`${transferDate(no)} 18:10`:'',inheritAge:true,fee:0,otherFee:0,remark:'',items:[]};
   }
-  const state = {status:'全部',keyword:'',page:1,pageSize:10,selected:new Set(),expanded:new Set(),editing:null,pickerRows:[],pickerSelected:new Set(),importFile:null,importRows:[],importErrors:[]};
+  const CURRENT_USER = 'Admin';
+  const state = {status:'全部',page:1,pageSize:10,selected:new Set(),expanded:new Set(),editing:null,pickerRows:[],pickerSelected:new Set(),importFile:null,importRows:[],importErrors:[],sourceWarehouses:[],targetWarehouses:[],sourceTeams:[],targetTeams:[],channels:[],creators:[CURRENT_USER],queryExpanded:false};
+  function defaultQueryValues(key){return key==='creators'?[CURRENT_USER]:[];}
   const importColumns = [
     {key:'sku',label:'SKU',required:true,description:'【必填】填写有效 SKU，SKU 必须存在且属于调出仓库库存。'},
     {key:'sourceWarehouse',label:'调出仓库',required:true,description:'【必填】填写调出库存的仓库名称，必须与系统仓库一致。'},
@@ -53,17 +74,113 @@
     {key:'remark',label:'SKU备注',required:false,description:'【选填】填写该 SKU 的备注，最多 120 个字符。'}
   ];
   const statusList = ['全部','待审核','待出库','在途','部分入库','已完成','已驳回','已作废','异常'];
+  function splitValues(value){return [...new Set(String(value||'').trim().toLowerCase().split(/[\s,，;；]+/).filter(Boolean))];}
+  function equalsAny(value,values){return !values.length||values.includes(value);}
+  function includesAny(value,values){return !values.length||values.some(item=>String(value||'').toLowerCase().includes(item));}
+  function queryMultiConfigs(){
+    return [
+      ['#sourceWarehouseMulti',warehouses,'sourceWarehouses','请选择调出仓库（可多选）'],
+      ['#targetWarehouseMulti',warehouses,'targetWarehouses','请选择调入仓库（可多选）'],
+      ['#sourceTeamMulti',teams,'sourceTeams','请选择调出团队（可多选）'],
+      ['#targetTeamMulti',teams,'targetTeams','请选择调入团队（可多选）'],
+      ['#channelMulti',logisticsChannelList(),'channels','请选择物流渠道（可多选）'],
+      ['#creatorMulti',[...new Set(orders.map(row=>row.creator))],'creators','请选择创建人（默认当前账号，可多选）']
+    ];
+  }
+  function closeQueryMenus(except){$$('.multi').forEach(node=>{if(node===except)return;node.querySelector('[data-menu]')?.classList.remove('show');node.querySelector('[data-trigger]')?.classList.remove('open');});}
+  function syncQueryMulti(rootId,key,placeholder){
+    const root=$(rootId);
+    if(!root)return;
+    const trigger=root.querySelector('[data-trigger]'),menu=root.querySelector('[data-menu]');
+    menu.querySelectorAll('input').forEach(input=>{input.checked=state[key].includes(input.value);});
+    const picked=state[key];
+    trigger.textContent=picked.length?`${picked.slice(0,2).join('、')}${picked.length>2?` +${picked.length-2}`:''}`:placeholder;
+    trigger.classList.toggle('has-value',Boolean(picked.length));
+  }
+  function initQueryMulti(rootId,items,key,placeholder){
+    const root=$(rootId);
+    if(!root)return;
+    const trigger=root.querySelector('[data-trigger]'),menu=root.querySelector('[data-menu]');
+    if(!Array.isArray(state[key]))state[key]=defaultQueryValues(key);
+    menu.innerHTML=items.map(item=>`<label><input type="checkbox" value="${escapeHtml(item)}">${escapeHtml(item)}</label>`).join('');
+    trigger.onclick=event=>{event.stopPropagation();closeQueryMenus(root);menu.classList.toggle('show');trigger.classList.toggle('open',menu.classList.contains('show'));};
+    const sync=()=>{state[key]=[...menu.querySelectorAll('input:checked')].map(input=>input.value);syncQueryMulti(rootId,key,placeholder);};
+    menu.onclick=event=>event.stopPropagation();
+    menu.onchange=sync;
+    syncQueryMulti(rootId,key,placeholder);
+  }
+  function resetQueryMulti(){
+    queryMultiConfigs().forEach(([rootId,,key,placeholder])=>{
+      const root=$(rootId);
+      if(!root)return;
+      state[key]=defaultQueryValues(key);
+      syncQueryMulti(rootId,key,placeholder);
+      root.querySelector('[data-trigger]').classList.remove('open');
+      root.querySelector('[data-menu]').classList.remove('show');
+    });
+  }
+  function validateQueryDates(){
+    const start=$('#startDate').value,end=$('#endDate').value;
+    if((start&&!end)||(!start&&end)){toast('请选择完整的时间范围','error');return false;}
+    if(start&&end&&start>end){toast('开始日期不能晚于结束日期','error');return false;}
+    return true;
+  }
+  function syncComboPlaceholder(){
+    const codeType=$('#codeType')?.value||'no',skuType=$('#skuType')?.value||'sku';
+    const code=$('#codeText'),sku=$('#skuText');
+    if(code)code.placeholder=`请输入${codeType==='waybill'?'物流单号':'调拨单号'}，支持输入多个，用逗号、空格或换行隔开`;
+    if(sku)sku.placeholder=`请输入${skuType==='name'?'产品名称':'SKU'}，支持输入多个，用逗号、空格或换行隔开`;
+  }
+  // 按实际换行位置判定溢出：第三行起的查询项标记为 query-overflow-item，不写死行号。
+  function layoutQuery(){
+    const card=$('#queryCard');
+    if(!card)return;
+    card.classList.remove('query-collapsed');
+    const items=$$('.query-item',card).filter(item=>!item.classList.contains('query-action-item'));
+    const tops=[...new Set(items.map(item=>Math.round(item.getBoundingClientRect().top)))].sort((a,b)=>a-b);
+    const overflowTop=tops[2];
+    let overflow=false;
+    items.forEach(item=>{
+      const isOverflow=overflowTop!==undefined&&Math.round(item.getBoundingClientRect().top)>=overflowTop;
+      item.classList.toggle('query-overflow-item',isOverflow);
+      if(isOverflow)overflow=true;
+    });
+    const button=$('#queryExpand');
+    if(button){
+      button.hidden=!overflow;
+      button.setAttribute('aria-expanded',String(state.queryExpanded));
+      button.querySelector('.query-arrow').textContent=state.queryExpanded?'⌃':'⌄';
+      button.querySelector('.query-expand-text').textContent=state.queryExpanded?'收起':'展开';
+      button.onclick=()=>{state.queryExpanded=!state.queryExpanded;layoutQuery();};
+    }
+    card.classList.toggle('query-has-overflow',overflow);
+    card.classList.toggle('query-collapsed',overflow&&!state.queryExpanded);
+  }
   function statusClass(status){return {待审核:'review',待出库:'out',在途:'transit',部分入库:'partial',已完成:'done',已驳回:'rejected',已作废:'void',异常:'exception'}[status]||'void';}
-  function toast(message){const node=$('#toast');node.textContent=message;node.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>node.classList.remove('show'),2200);}
+  function toast(message,type){const node=$('#toast');node.textContent=message;node.classList.toggle('is-error',type==='error');node.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>node.classList.remove('show'),2200);}
   function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
   function filtered(){
-    const keyword=state.keyword.trim().toLowerCase();
+    const codeType=$('#codeType')?.value||'no';
+    const codeValues=splitValues($('#codeText')?.value);
+    const skuType=$('#skuType')?.value||'sku';
+    const skuValues=splitValues($('#skuText')?.value);
+    const hasDiff=$('#hasDiff')?.value||'';
+    const timeType=$('#timeType')?.value||'createdAt';
+    const start=$('#startDate')?.value||'',end=$('#endDate')?.value||'';
     return orders.filter(row=>{
-      const hitStatus=state.status==='全部'||row.status===state.status;
-      const hitKeyword=!keyword||[row.no,row.source,row.target].some(value=>String(value).toLowerCase().includes(keyword));
-      const source=$('#sourceWarehouse').value,target=$('#targetWarehouse').value,type=$('#transferType').value;
-      const hitSource=!source||row.source===source,hitTarget=!target||row.target===target,hitType=!type||type==='仓间调拨';
-      return hitStatus&&hitKeyword&&hitSource&&hitTarget&&hitType;
+      const items=buildItems(row);
+      const timeValue=String(row[timeType]||'');
+      const timeKey=/^\d{4}-\d{2}-\d{2}/.test(timeValue)?timeValue.slice(0,10):'';
+      const diff=Number(row.outboundQty||0)-Number(row.inboundQty||0);
+      const hitCode=codeType==='waybill'?includesAny(row.waybill,codeValues):includesAny(row.no,codeValues);
+      const hitSku=!skuValues.length||items.some(item=>skuValues.some(term=>String(skuType==='name'?item.name:item.sku||'').toLowerCase().includes(term)));
+      return (state.status==='全部'||row.status===state.status)&&hitCode&&hitSku&&
+        equalsAny(row.source,state.sourceWarehouses)&&equalsAny(row.target,state.targetWarehouses)&&
+        (!state.sourceTeams.length||items.some(item=>state.sourceTeams.includes(item.team)))&&
+        (!state.targetTeams.length||items.some(item=>state.targetTeams.includes(item.targetTeam)))&&
+        equalsAny(row.channel,state.channels)&&equalsAny(row.creator,state.creators)&&
+        (!start||(timeKey&&timeKey>=start))&&(!end||(timeKey&&timeKey<=end))&&
+        (!hasDiff||(hasDiff==='是')===(diff>0));
     });
   }
   function renderTabs(){
@@ -71,12 +188,21 @@
     $('#statusTabs').innerHTML=statusList.map(status=>`<button class="status-tab ${state.status===status?'active':''}" data-status="${status}">${status}<em>${counts[status]}</em></button>`).join('');
   }
   function itemProgress(items,row,index){
-    let outboundRemaining=row.outboundQty,inboundRemaining=row.inboundQty;
+    const perItem=items.some(item=>typeof item.outboundQty==='number'||typeof item.inboundQty==='number'||typeof item.voidedQty==='number');
+    if(perItem){
+      const item=items[index];
+      const outbound=typeof item.outboundQty==='number'?Number(item.outboundQty):Number(item.quantity||0);
+      const inbound=typeof item.inboundQty==='number'?Number(item.inboundQty):0;
+      const voided=typeof item.voidedQty==='number'?Number(item.voidedQty):0;
+      return {outbound,inbound,voided,inTransit:Math.max(outbound-inbound-voided,0),diff:outbound-inbound};
+    }
+    let outboundRemaining=row.outboundQty,inboundRemaining=row.inboundQty,voidedRemaining=Number(row.voidedQty||0);
     return items.slice(0,index+1).reduce((progress,item,currentIndex)=>{
       const outbound=Math.min(item.quantity,Math.max(0,outboundRemaining));outboundRemaining-=outbound;
       const inbound=Math.min(outbound,Math.max(0,inboundRemaining));inboundRemaining-=inbound;
-      return currentIndex===index?{outbound,inbound,inTransit:outbound-inbound,diff:outbound-inbound}:progress;
-    },{outbound:0,inbound:0,inTransit:0});
+      const voided=Math.min(outbound-inbound,Math.max(0,voidedRemaining));voidedRemaining-=voided;
+      return currentIndex===index?{outbound,inbound,voided,inTransit:Math.max(outbound-inbound-voided,0),diff:outbound-inbound}:progress;
+    },{outbound:0,inbound:0,voided:0,inTransit:0,diff:0});
   }
   function childDetailRow(row){
     const items=buildItems(row);
@@ -84,28 +210,42 @@
   }
   function renderTable(){
     const rows=filtered();const pages=Math.max(1,Math.ceil(rows.length/state.pageSize));state.page=Math.min(state.page,pages);const pageRows=rows.slice((state.page-1)*state.pageSize,state.page*state.pageSize);$('#totalCount').textContent=rows.length;$('#empty').hidden=pageRows.length>0;$('#selectAll').checked=pageRows.length>0&&pageRows.every(row=>state.selected.has(row.id));
-    $('#tableBody').innerHTML=pageRows.map(row=>{const expanded=state.expanded.has(row.id),amount=transferAmount(row);return `<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${row.id}"><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td><span class="expand-row ${expanded?'is-expanded':''}" data-expand="${row.id}" role="button" tabindex="0" aria-label="${expanded?'收起':'展开'}调拨明细"><span class="expand-chevron"></span></span></td><td><div class="doc-line doc-main"><button class="link doc-no" data-action="view">${row.no}</button><span class="status-tag status-${statusClass(row.status)}">${row.status}</span></div><div class="label-line"><span>调拨类型：</span><span>仓间调拨</span></div></td><td><div class="direction"><span>${escapeHtml(row.source)}</span><span class="arrow">→</span><span>${escapeHtml(row.target)}</span></div></td><td><div class="field-line"><span>出库数量：</span><span>${row.outboundQty}</span></div><div class="field-line"><span>入库数量：</span><span>${row.inboundQty}</span></div><div class="field-line"><span>在途数量：</span><span>${Math.max(row.outboundQty-row.inboundQty,0)}</span></div><div class="field-line"><span>差异数量：</span><span>${row.outboundQty-row.inboundQty}</span></div></td><td><div class="field-line"><span>运费：</span><span>${formatMoney(row.fee)}</span></div><div class="field-line"><span>其他费用：</span><span>${formatMoney(row.otherFee)}</span></div><div class="field-line"><span>调拨金额：</span><span>${formatMoney(amount)}</span></div></td><td><div class="field-line"><span>物流渠道：</span><span>${escapeHtml(row.channel||'—')}</span></div><div class="field-line"><span>物流单号：</span><span>${escapeHtml(row.waybill||'—')}</span></div><div class="field-line"><span>预计到仓：</span><span>${row.eta}</span></div></td><td><input class="list-remark-input" data-list-remark placeholder="请输入备注" value="${escapeHtml(row.remark||'')}"></td><td><div class="field-line"><span>创建人：</span><span>${escapeHtml(row.creator)}</span></div><div class="field-line"><span>创建时间：</span><span>${escapeHtml(row.createdAt)}</span></div></td><td><div class="action-cell">${actionsFor(row)}</div></td></tr>${expanded?childDetailRow(row):''}`;}).join('');
+    $('#tableBody').innerHTML=pageRows.map(row=>{const expanded=state.expanded.has(row.id),amount=transferAmount(row);return `<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${row.id}"><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td><span class="expand-row ${expanded?'is-expanded':''}" data-expand="${row.id}" role="button" tabindex="0" aria-label="${expanded?'收起':'展开'}调拨明细"><span class="expand-chevron"></span></span></td><td><div class="doc-line doc-main"><button class="link doc-no" data-action="view">${row.no}</button><span class="status-tag status-${statusClass(row.status)}">${row.status}</span></div><div class="label-line"><span>调拨类型：</span><span>仓间调拨</span></div></td><td><div class="direction"><span>${escapeHtml(row.source)}</span><span class="arrow">↓</span><span>${escapeHtml(row.target)}</span></div></td><td><div class="field-line"><span>出库数量：</span><span>${row.outboundQty}</span></div><div class="field-line"><span>入库数量：</span><span>${row.inboundQty}</span></div><div class="field-line"><span>在途数量：</span><span>${Math.max(row.outboundQty-row.inboundQty-Number(row.voidedQty||0),0)}</span></div><div class="field-line"><span>差异数量：</span><span>${row.outboundQty-row.inboundQty}</span></div></td><td><div class="field-line"><span>运费：</span><span>${formatMoney(row.fee)}</span></div><div class="field-line"><span>其他费用：</span><span>${formatMoney(row.otherFee)}</span></div><div class="field-line"><span>调拨金额：</span><span>${formatMoney(amount)}</span></div></td><td><div class="field-line"><span>物流渠道：</span><span>${escapeHtml(row.channel||'—')}</span></div><div class="field-line"><span>物流单号：</span><span>${escapeHtml(row.waybill||'—')}</span></div><div class="field-line"><span>预计到仓：</span><span>${row.eta}</span></div></td><td><input class="list-remark-input" data-list-remark placeholder="请输入备注" value="${escapeHtml(row.remark||'')}"></td><td><div class="field-line"><span>创建人：</span><span>${escapeHtml(row.creator)}</span></div><div class="field-line"><span>创建时间：</span><span>${escapeHtml(row.createdAt)}</span></div></td><td><div class="action-cell">${actionsFor(row)}</div></td></tr>${expanded?childDetailRow(row):''}`;}).join('');
     $$('#tableBody .label-line').forEach(node=>node.remove());
     $('#selectedCount').textContent=state.selected.size;renderPager(pages);
   }
   function actionsFor(row){
-    const view='<button class="link" data-action="view">查看</button>';
-    const log='<button class="link" data-action="log">日志</button>';
-    if(row.status==='待审核')return `${view}<button class="link" data-action="edit">修改</button>${log}`;
-    if(row.status==='待出库')return `${view}<button class="link" data-action="outbound">确认出库</button><button class="link danger-link" data-action="void">作废</button>${log}`;
-    if(row.status==='在途'||row.status==='部分入库')return `${view}<button class="link" data-action="inbound">确认入库</button><button class="link" data-action="edit-logistics">补录物流</button>${log}`;
-    if(row.status==='已驳回')return `${view}<button class="link" data-action="edit">修改</button>${log}`;
-    return `${view}${log}`;
+    const log='<button class="link log-link" data-action="log">日志</button>';
+    const voidBtn='<button class="link danger-link" data-action="void">作废</button>';
+    if(row.status==='待审核')return `<button class="link" data-action="edit">修改</button>${voidBtn}${log}`;
+    if(row.status==='待出库')return `<button class="link" data-action="outbound">确认出库</button>${voidBtn}${log}`;
+    if(row.status==='在途'||row.status==='部分入库')return `<button class="link" data-action="inbound">入库收货</button><button class="link" data-action="complete">手动完结</button>${log}`;
+    if(row.status==='已驳回')return `<button class="link" data-action="edit">修改</button>${log}`;
+    return `${log}`;
   }
   function renderPager(pages){$('#pageButtons').innerHTML=Array.from({length:pages},(_,index)=>`<button class="page-number ${state.page===index+1?'active':''}" data-page="${index+1}">${index+1}</button>`).join('');$('#prevPage').disabled=state.page<=1;$('#nextPage').disabled=state.page>=pages;}
-  function resetFilters(){['keyword','sourceWarehouse','targetWarehouse','transferType','startDate','endDate'].forEach(id=>{const node=$('#'+id);if(node)node.value='';});state.keyword='';state.status='全部';state.page=1;renderTabs();renderTable();toast('筛选条件已重置');}
+  function resetFilters(){
+    ['startDate','endDate'].forEach(id=>{const node=$('#'+id);if(node)node.value='';});
+    $('#timeType').value='createdAt';
+    $('#hasDiff').value='';
+    $('#codeType').value='no';
+    $('#skuType').value='sku';
+    $('#codeText').value='';
+    $('#skuText').value='';
+    syncComboPlaceholder();
+    resetQueryMulti();
+    state.status='全部';state.page=1;renderTabs();renderTable();layoutQuery();toast('筛选条件已重置');
+  }
   function selectedRow(){const id=state.editing;return orders.find(row=>row.id===id);}
   function formatMoney(value){return `¥${Number(value||0).toFixed(2)}`;}
   function normalizeLogistics(channel,waybill){const hasLogistics=Boolean(channel&&channel!=='—'&&waybill&&waybill!=='—');return {channel:hasLogistics?channel:'—',waybill:hasLogistics?waybill:'—'};}
   function transferAmount(row){return buildItems(row).reduce((sum,item)=>sum+(Number(item.quantity)||0)*(Number(item.price)||0),0)+Number(row.fee||0)+Number(row.otherFee||0);}
   function buildItems(row){
     if(row.items.length)return row.items;
-    return skuPool.slice(0,row.skuCount).map((item,index)=>({...item,sourceWarehouse:row.source,team:item.team,quantity:Math.max(1,Math.round(row.requestQty/row.skuCount)-(index*2)),targetTeam:teams[(index+2)%teams.length],remark:''}));
+    const count=Math.min(row.skuCount,skuPool.length);
+    if(!count)return [];
+    const total=Number(row.requestQty||0),base=Math.floor(total/count),remainder=total%count;
+    return skuPool.slice(0,count).map((item,index)=>({...item,sourceWarehouse:row.source,team:item.team,quantity:base+(index<remainder?1:0),targetTeam:teams[(index+2)%teams.length],remark:''}));
   }
   function renderDetail(row){
     const items=buildItems(row);
@@ -134,6 +274,262 @@
   function renderAudit(rows){
     return `<div class="dialog audit-dialog"><header class="dialog-header"><div><h2>审核调拨单</h2><p>已选择 ${rows.length} 张待审核调拨单</p></div><button class="dialog-close" data-close="audit" aria-label="关闭审核弹窗">×</button></header><div class="dialog-body audit-body"><section class="audit-opinion"><label for="auditReason">审核意见</label><textarea id="auditReason" maxlength="500" placeholder="审核通过可留空，驳回时请填写原因"></textarea><div class="audit-opinion-footer"><em id="auditReasonCount">0 / 500</em></div><p class="audit-error" id="auditError" aria-live="polite"></p></section></div><footer class="dialog-footer audit-footer"><button class="btn" data-close="audit">取消</button><button class="btn danger" data-audit-action="reject">驳回</button><button class="btn success" data-audit-action="approve">通过</button></footer></div>`;
   }
+  function outboundItemRows(row){
+    return buildItems(row).map(item=>{
+      const quantity=Number(item.quantity)||0;
+      const available=Number(item.available);
+      const stock=Number.isFinite(available)&&available>0?available:quantity;
+      return {...item,quantity,stock,maxQty:Math.max(Math.min(stock,quantity),1)};
+    });
+  }
+  function renderOutbound(row){
+    const items=outboundItemRows(row);
+    const channelList=logisticsChannelList();
+    const channel=row.channel&&row.channel!=='—'&&channelList.includes(row.channel)?row.channel:'';
+    const waybill=row.waybill&&row.waybill!=='—'?escapeHtml(row.waybill):'';
+    const channelOptions=channelList.map(item=>`<option value="${escapeHtml(item)}"${item===channel?' selected':''}>${escapeHtml(item)}</option>`).join('');
+    const rows=items.map((item,index)=>`<tr><td>${escapeHtml(item.sku)}</td><td class="outbound-product"><div class="outbound-product-content"><span class="product-thumb">▧</span><span title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td class="outbound-stock">${item.stock}</td><td><input class="outbound-input" type="number" min="1" max="${item.maxQty}" step="1" value="${item.quantity}" required data-index="${index}" aria-label="${escapeHtml(item.sku)} 出库数量"><div class="outbound-row-error"></div></td><td>${escapeHtml(item.remark||'—')}</td></tr>`).join('');
+    const totalQuantity=items.reduce((sum,item)=>sum+Number(item.quantity||0),0);
+    const totalStock=items.reduce((sum,item)=>sum+Number(item.stock||0),0);
+    return `<div class="outbound-dialog"><header class="outbound-header"><div><h2>确认出库</h2><span>调拨单：${escapeHtml(row.no)} · ${escapeHtml(row.source)} → ${escapeHtml(row.target)}</span></div><button class="outbound-close" type="button" aria-label="关闭确认出库">×</button></header><div class="outbound-body"><div class="outbound-toolbar"><b>出库明细</b></div><div class="outbound-table-wrap"><table class="outbound-table"><thead><tr><th>SKU</th><th>品名</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>在库量</th><th class="outbound-required-column">出库数量</th><th>备注</th></tr></thead><tbody>${rows}</tbody><tfoot><tr class="outbound-total-row"><td colspan="4">合计</td><td>${totalQuantity}</td><td>${totalStock}</td><td data-outbound-total="outbound">0</td><td></td></tr></tfoot></table></div><div class="outbound-logistics-block"><div class="outbound-logistics-title">物流信息</div><div class="outbound-logistics"><div class="outbound-logistics-item"><label for="outboundChannel">物流渠道</label><div class="outbound-channel-field"><select class="outbound-channel-select" id="outboundChannel" aria-label="物流渠道"><option value="">请选择物流渠道</option>${channelOptions}<option value="__add_channel__">＋ 新增渠道</option></select></div></div><div class="outbound-logistics-item"><label for="outboundWaybill">物流单号</label><input class="control" id="outboundWaybill" value="${waybill}" placeholder="填写物流单号"></div></div><p class="outbound-error" id="outboundError" aria-live="polite"></p></div></div><footer class="outbound-footer"><div class="outbound-result">本次出库 <b data-outbound-summary="total">0</b> 件 · 出库后状态 <span class="status-tag status-transit">在途</span></div><div><button class="btn" data-outbound-action="cancel">取消</button><button class="btn primary" data-outbound-action="submit">确认出库</button></div></footer></div>`;
+  }
+  function checkOutboundInput(input){
+    const value=Number(input.value);
+    const max=Number(input.max);
+    const error=input.parentElement.querySelector('.outbound-row-error');
+    let message='';
+    if(input.value===''||!Number.isInteger(value)||value<1)message='请输入大于 0 的整数';
+    else if(value>max)message=`不能超过 ${max}`;
+    if(error)error.textContent=message;
+    input.classList.toggle('is-error',Boolean(message));
+    return !message;
+  }
+  function syncOutboundTotal(modal){
+    const total=$$('.outbound-input',modal).reduce((sum,input)=>sum+(input.classList.contains('is-error')?0:(Number(input.value)||0)),0);
+    $$('[data-outbound-summary="total"], [data-outbound-total="outbound"]',modal).forEach(node=>{node.textContent=total;});
+  }
+  function setupOutboundChannelMenu(modal){
+    window.enhanceCustomSelects?.();
+    const select=$('#outboundChannel',modal);
+    const wrapper=select?.closest('.custom-select');
+    const menu=wrapper?.querySelector('.custom-select-menu');
+    if(!select||!wrapper||!menu)return;
+    const addIndex=[...select.options].findIndex(option=>option.value==='__add_channel__');
+    const addOption=menu.querySelector(`.custom-select-option[data-index="${addIndex}"]`);
+    if(addOption){
+      addOption.classList.add('is-add-channel');
+      addOption.onclick=event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        toggleNewChannel(modal,true);
+      };
+    }
+    let editor=menu.querySelector('.outbound-channel-editor');
+    if(!editor){
+      editor=document.createElement('div');
+      editor.className='outbound-channel-editor';
+      editor.hidden=true;
+      editor.innerHTML=`<input class="control" id="outboundNewChannel" maxlength="30" placeholder="请输入内容"><button class="outbound-icon-btn is-confirm" type="button" data-outbound-action="save-channel" aria-label="确认新增渠道">✓</button><button class="outbound-icon-btn is-cancel" type="button" data-outbound-action="cancel-channel" aria-label="取消新增渠道">×</button><p class="outbound-channel-editor-error" aria-live="polite"></p>`;
+      menu.append(editor);
+    }
+    editor.onclick=event=>event.stopPropagation();
+    editor.querySelector('[data-outbound-action="save-channel"]').onclick=event=>{event.stopPropagation();saveNewChannel(modal);};
+    editor.querySelector('[data-outbound-action="cancel-channel"]').onclick=event=>{event.stopPropagation();toggleNewChannel(modal,false);};
+    editor.querySelector('#outboundNewChannel').onkeydown=event=>{
+      if(event.key==='Enter'){event.preventDefault();saveNewChannel(modal);}
+      if(event.key==='Escape'){event.preventDefault();toggleNewChannel(modal,false);}
+    };
+  }
+  function toggleNewChannel(modal,show){
+    const editor=modal.querySelector('.outbound-channel-editor');
+    const wrapper=modal.querySelector('.outbound-channel-field .custom-select');
+    if(!editor||!wrapper)return;
+    editor.hidden=!show;
+    wrapper.classList.add('is-open');
+    wrapper.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded','true');
+    const input=editor.querySelector('#outboundNewChannel');
+    const error=editor.querySelector('.outbound-channel-editor-error');
+    if(error)error.textContent='';
+    if(show){
+      requestAnimationFrame(()=>{editor.scrollIntoView({block:'nearest'});input.focus();});
+    }else{
+      input.value='';
+      wrapper.querySelector('.custom-select-trigger')?.focus();
+    }
+  }
+  function rebuildChannelOptions(modal,selected){
+    const select=$('#outboundChannel',modal);
+    select.innerHTML=`<option value="">请选择物流渠道</option>${logisticsChannelList().map(item=>`<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('')}<option value="__add_channel__">＋ 新增渠道</option>`;
+    select.value=selected||'';
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  function saveNewChannel(modal){
+    const input=$('#outboundNewChannel',modal);
+    const error=modal.querySelector('.outbound-channel-editor-error');
+    const value=input.value.trim();
+    if(!value){error.textContent='请输入物流渠道名称';input.focus();return;}
+    error.textContent='';
+    const isNew=!logisticsChannelList().includes(value);
+    persistLogisticsChannel(value);
+    rebuildChannelOptions(modal,value);
+    requestAnimationFrame(()=>{
+      setupOutboundChannelMenu(modal);
+      const wrapper=modal.querySelector('.outbound-channel-field .custom-select');
+      wrapper?.classList.remove('is-open');
+      wrapper?.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded','false');
+    });
+    toast(isNew?`已新增物流渠道「${value}」`:`已选择物流渠道「${value}」`);
+  }
+  function openOutbound(row){
+    const modal=$('#outboundModal');
+    modal.innerHTML=renderOutbound(row);
+    modal.hidden=false;
+    modal.querySelector('.outbound-close').onclick=()=>{modal.hidden=true;};
+    modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};
+    modal.querySelector('[data-outbound-action="cancel"]').onclick=()=>{modal.hidden=true;};
+    setupOutboundChannelMenu(modal);
+    modal.querySelectorAll('.outbound-input').forEach(input=>input.oninput=()=>{checkOutboundInput(input);syncOutboundTotal(modal);$('#outboundError',modal).textContent='';});
+    modal.querySelector('[data-outbound-action="submit"]').onclick=()=>submitOutbound(row,modal);
+    syncOutboundTotal(modal);
+  }
+  function submitOutbound(row,modal){
+    const error=$('#outboundError',modal);
+    error.textContent='';
+    const inputs=$$('.outbound-input',modal);
+    const invalidInputs=inputs.filter(input=>!checkOutboundInput(input));
+    syncOutboundTotal(modal);
+    if(invalidInputs.length){
+      error.textContent='出库数量填写有误，请修正后再提交';
+      invalidInputs[0].scrollIntoView({block:'center'});
+      return;
+    }
+    const channel=$('#outboundChannel',modal).value.trim();
+    const waybill=$('#outboundWaybill',modal).value.trim();
+    if(Boolean(channel)!==Boolean(waybill)){error.textContent='物流渠道和物流单号需同时填写';return;}
+    const values=inputs.map(input=>Number(input.value));
+    const logistics=normalizeLogistics(channel,waybill);
+    const items=buildItems(row);
+    if(!row.items.length)row.items=items;
+    items.forEach((item,index)=>{if(Number.isInteger(values[index]))item.outboundQty=values[index];});
+    row.channel=logistics.channel;row.waybill=logistics.waybill;
+    row.outboundQty=items.reduce((sum,item)=>sum+Number(item.outboundQty||0),0);
+    row.status='在途';row.updatedAt=now();row.outboundAt=now();
+    modal.hidden=true;renderTabs();renderTable();
+    toast(`调拨单 ${row.no} 已确认出库`);
+  }
+  function inboundItemRows(row){
+    const items=buildItems(row);
+    return items.map((item,index)=>({...item,...itemProgress(items,row,index)}));
+  }
+  function checkInboundInput(input){
+    const value=Number(input.value);
+    const max=Number(input.max);
+    const error=input.parentElement.querySelector('.outbound-row-error');
+    let message='';
+    if(input.value===''||!Number.isInteger(value)||value<0)message='请输入不小于 0 的整数';
+    else if(value>max)message=`不能超过 ${max}`;
+    if(error)error.textContent=message;
+    input.classList.toggle('is-error',Boolean(message));
+    return !message;
+  }
+  function syncInboundTotals(modal){
+    let inbound=0;
+    $$('.inbound-input',modal).forEach(input=>{
+      inbound+=input.classList.contains('is-error')?0:(Number(input.value)||0);
+    });
+    const baseOutbound=Number(modal.querySelector('[data-inbound-base="outbound"]')?.textContent||0);
+    const baseInbound=Number(modal.querySelector('[data-inbound-base="inbound"]')?.textContent||0);
+    const nextStatus=baseOutbound>0&&baseInbound+inbound>=baseOutbound?'已完成':'部分入库';
+    $$('[data-inbound-total="inbound"]',modal).forEach(node=>{node.textContent=inbound;});
+    $$('[data-inbound-total="footer"]',modal).forEach(node=>{node.textContent=inbound;});
+    const status=modal.querySelector('[data-inbound-status]');
+    if(status){status.textContent=nextStatus;status.className=`status-tag status-${statusClass(nextStatus)}`;}
+  }
+  function renderInbound(row){
+    const items=inboundItemRows(row);
+    const totalQuantity=items.reduce((sum,item)=>sum+Number(item.quantity||0),0);
+    const totalOutbound=items.reduce((sum,item)=>sum+item.outbound,0);
+    const totalInbound=items.reduce((sum,item)=>sum+item.inbound,0);
+    const totalTransit=items.reduce((sum,item)=>sum+item.inTransit,0);
+    const channel=row.channel&&row.channel!=='—'?escapeHtml(row.channel):'未填写';
+    const waybill=row.waybill&&row.waybill!=='—'?escapeHtml(row.waybill):'未填写';
+    const rows=items.map((item,index)=>`<tr><td>${escapeHtml(item.sku)}</td><td class="outbound-product"><div class="outbound-product-content"><span class="product-thumb">▧</span><span title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${item.outbound}</td><td>${item.inbound}</td><td>${item.inTransit}</td><td><input class="outbound-input inbound-input" type="number" min="0" max="${item.inTransit}" step="1" value="${item.inTransit}" required data-index="${index}" aria-label="${escapeHtml(item.sku)} 本次入库数量"><div class="outbound-row-error"></div></td><td>${escapeHtml(item.remark||'—')}</td></tr>`).join('');
+    return `<div class="outbound-dialog inbound-dialog"><header class="outbound-header"><div><h2>入库收货</h2><span>调拨单：${escapeHtml(row.no)} · ${escapeHtml(row.source)} → ${escapeHtml(row.target)}</span></div><button class="outbound-close" type="button" aria-label="关闭入库收货">×</button></header><div class="outbound-body"><div class="outbound-toolbar"><b>入库明细</b></div><div class="outbound-table-wrap"><table class="outbound-table inbound-table"><thead><tr><th>SKU</th><th>品名</th><th>调入团队</th><th>调拨数量</th><th>已出库</th><th>已入库</th><th>在途数量</th><th class="outbound-required-column">本次入库数量</th><th>备注</th></tr></thead><tbody>${rows}</tbody><tfoot><tr class="outbound-total-row"><td colspan="3">合计</td><td>${totalQuantity}</td><td data-inbound-base="outbound">${totalOutbound}</td><td data-inbound-base="inbound">${totalInbound}</td><td>${totalTransit}</td><td data-inbound-total="inbound">${totalTransit}</td><td></td></tr></tfoot></table></div><div class="outbound-logistics-block"><div class="outbound-logistics-title">物流信息</div><div class="inbound-logistics"><span>物流渠道：<b>${channel}</b></span><span>物流单号：<b>${waybill}</b></span></div></div><p class="outbound-error" id="inboundError" aria-live="polite"></p></div><footer class="outbound-footer"><div class="outbound-result">本次入库 <b data-inbound-total="footer">${totalTransit}</b> 件 · 入库后状态 <span class="status-tag status-partial" data-inbound-status>部分入库</span></div><div><button class="btn" data-inbound-action="cancel">取消</button><button class="btn primary" data-inbound-action="submit">确认收货</button></div></footer></div>`;
+  }
+  function openInbound(row){
+    const modal=$('#inboundModal');
+    modal.innerHTML=renderInbound(row);
+    const inputs=$$('.inbound-input',modal);
+    if(!inputs.some(input=>Number(input.max)>0)){toast('当前无在途数量可收货','error');return;}
+    modal.hidden=false;
+    modal.querySelector('.outbound-close').onclick=()=>{modal.hidden=true;};
+    modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};
+    modal.querySelector('[data-inbound-action="cancel"]').onclick=()=>{modal.hidden=true;};
+    inputs.forEach(input=>input.oninput=()=>{checkInboundInput(input);syncInboundTotals(modal);$('#inboundError',modal).textContent='';});
+    modal.querySelector('[data-inbound-action="submit"]').onclick=()=>submitInbound(row,modal);
+    syncInboundTotals(modal);
+  }
+  function submitInbound(row,modal){
+    const error=$('#inboundError',modal);
+    error.textContent='';
+    const inputs=$$('.inbound-input',modal);
+    const invalidInputs=inputs.filter(input=>!checkInboundInput(input));
+    syncInboundTotals(modal);
+    if(invalidInputs.length){
+      error.textContent='本次入库数量填写有误，请修正后再提交';
+      invalidInputs[0].scrollIntoView({block:'center'});
+      return;
+    }
+    const items=buildItems(row);
+    if(!row.items.length)row.items=items;
+    const progresses=items.map((item,index)=>itemProgress(items,row,index));
+    items.forEach((item,index)=>{
+      item.outboundQty=progresses[index].outbound;
+      item.inboundQty=progresses[index].inbound+Number(inputs[index].value||0);
+      item.voidedQty=progresses[index].voided;
+    });
+    row.outboundQty=items.reduce((sum,item)=>sum+Number(item.outboundQty||0),0);
+    row.inboundQty=items.reduce((sum,item)=>sum+Number(item.inboundQty||0),0);
+    row.voidedQty=items.reduce((sum,item)=>sum+Number(item.voidedQty||0),0);
+    row.status=row.inboundQty>=row.outboundQty?'已完成':'部分入库';
+    row.updatedAt=now();row.inboundAt=now();
+    modal.hidden=true;renderTabs();renderTable();
+    toast(`调拨单 ${row.no} ${row.status==='已完成'?'已完成入库':'已部分入库'}`);
+  }
+  function renderComplete(row){
+    const transit=Math.max(Number(row.outboundQty||0)-Number(row.inboundQty||0)-Number(row.voidedQty||0),0);
+    return `<div class="complete-dialog"><header class="complete-header"><div><h2>手动完结</h2><span>调拨单：${escapeHtml(row.no)}</span></div><button class="complete-close" type="button" aria-label="关闭手动完结">×</button></header><div class="complete-body"><p class="complete-alert">手动完结后，剩余在途数量 <b>${transit}</b> 件将作为差异核销，单据状态置为「已完成」，且不再支持入库收货。</p><div class="complete-form"><label for="completeReason">完结原因 <em>*</em></label><select id="completeReason" class="control complete-reason"><option value="">请选择完结原因</option><option>货物丢失</option><option>货物损坏</option><option>运输异常</option><option>其他</option></select><label for="completeRemark">备注（选填）</label><textarea id="completeRemark" class="complete-remark" maxlength="300" placeholder="请输入备注（选填）"></textarea><p class="complete-error" aria-live="polite"></p></div></div><footer class="complete-footer"><button class="btn" data-complete-action="cancel">取消</button><button class="btn primary" data-complete-action="confirm">确认完结</button></footer></div>`;
+  }
+  function openComplete(row){
+    const modal=$('#completeModal');
+    modal.innerHTML=renderComplete(row);
+    modal.hidden=false;
+    modal.querySelector('.complete-close').onclick=()=>{modal.hidden=true;};
+    modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};
+    modal.querySelector('[data-complete-action="cancel"]').onclick=()=>{modal.hidden=true;};
+    modal.querySelector('[data-complete-action="confirm"]').onclick=()=>submitComplete(row,modal);
+  }
+  function submitComplete(row,modal){
+    const reason=$('#completeReason',modal).value;
+    const remark=$('#completeRemark',modal).value.trim();
+    const error=modal.querySelector('.complete-error');
+    if(!reason){error.textContent='请选择完结原因';return;}
+    error.textContent='';
+    const items=buildItems(row);
+    if(!row.items.length)row.items=items;
+    const progresses=items.map((item,index)=>itemProgress(items,row,index));
+    items.forEach((item,index)=>{
+      item.outboundQty=progresses[index].outbound;
+      item.inboundQty=progresses[index].inbound;
+      item.voidedQty=progresses[index].voided+progresses[index].inTransit;
+    });
+    row.outboundQty=items.reduce((sum,item)=>sum+Number(item.outboundQty||0),0);
+    row.inboundQty=items.reduce((sum,item)=>sum+Number(item.inboundQty||0),0);
+    row.voidedQty=items.reduce((sum,item)=>sum+Number(item.voidedQty||0),0);
+    row.status='已完成';row.completeReason=reason;row.completeRemark=remark;row.updatedAt=now();
+    modal.hidden=true;renderTabs();renderTable();
+    toast(`调拨单 ${row.no} 已手动完结`);
+  }
   function openAudit(){
     const rows=auditRows();
     if(!rows)return;
@@ -152,6 +548,14 @@
     if(decision==='reject'&&!reason){error.textContent='驳回时必须填写原因';$('#auditReason',modal).classList.add('is-error');$('#auditReason',modal).focus();return;}
     rows.forEach(row=>{row.status=decision==='approve'?'待出库':'已驳回';row.auditDecision=decision;row.auditReason=reason;row.updatedAt=now();state.selected.delete(row.id);});
     modal.hidden=true;renderTabs();renderTable();toast(decision==='approve'?`已通过 ${rows.length} 张调拨单`:`已驳回 ${rows.length} 张调拨单`);
+  }
+  function voidRows(){
+    const selected=orders.filter(row=>state.selected.has(row.id));
+    if(!selected.length){toast('请先选择调拨单','error');return;}
+    if(selected.some(row=>!['待审核','待出库'].includes(row.status))){toast('仅支持作废待审核或待出库状态的调拨单','error');return;}
+    if(!confirm(`确认作废选中的 ${selected.length} 张调拨单吗？`))return;
+    selected.forEach(row=>{row.status='已作废';row.updatedAt=now();state.selected.delete(row.id);});
+    renderTabs();renderTable();toast(`已作废 ${selected.length} 张调拨单`);
   }
   function editorForm(row){
     const isEdit=Boolean(row),source=row?.source||'',target=row?.target||'',inheritAge=row?String(row.inheritAge?'是':'否'):'',items=buildItems(row||{items:[],skuCount:0,requestQty:0});
@@ -265,16 +669,22 @@
     $('#downloadImportTemplate',modal).onclick=downloadImportTemplate;const input=$('#importFileInput',modal),drop=$('#importDropArea',modal);$('#chooseImportFile',modal).onclick=()=>input.click();drop.onclick=event=>{if(event.target!==input)input.click();};input.onchange=()=>loadImportFile(input.files[0]);drop.ondragover=event=>{event.preventDefault();drop.classList.add('drag-over');};drop.ondragleave=()=>drop.classList.remove('drag-over');drop.ondrop=event=>{event.preventDefault();drop.classList.remove('drag-over');loadImportFile(event.dataTransfer.files[0]);};$('#confirmImport',modal).onclick=submitImport;
   }
   function runAction(action,row){
-    if(action==='view'){openDetail(row);return;}if(action==='edit'){openEditor(row);return;}if(action==='edit-logistics'){openEditor(row);return;}if(action==='log'){openLog(row);return;}
-    const messages={approve:'审核通过后将进入待出库状态',reject:'驳回后可由创建人修改并重新提交',outbound:'确认出库后将扣减调出仓库存并增加在途库存',inbound:'确认入库后将减少在途库存并增加调入仓库存',void:'确认作废该调拨单吗？'};
+    if(action==='view'){openDetail(row);return;}if(action==='edit'){openEditor(row);return;}if(action==='log'){openLog(row);return;}if(action==='outbound'){openOutbound(row);return;}if(action==='inbound'){openInbound(row);return;}if(action==='complete'){openComplete(row);return;}
+    const messages={approve:'审核通过后将进入待出库状态',reject:'驳回后可由创建人修改并重新提交',void:'确认作废该调拨单吗？'};
     if(!confirm(messages[action]||'确认执行该操作吗？'))return;
-    if(action==='approve')row.status='待出库';else if(action==='reject')row.status='已驳回';else if(action==='outbound'){row.status='在途';row.outboundQty=row.requestQty;}else if(action==='inbound'){const inbound=Math.max(row.outboundQty,0);row.inboundQty=inbound;row.status=inbound>=row.requestQty?'已完成':'部分入库';}else if(action==='void'){row.status='已作废';}
-    row.updatedAt=now();renderTabs();renderTable();toast(`调拨单 ${row.no} 已${action==='approve'?'审核通过':action==='reject'?'驳回':action==='outbound'?'确认出库':action==='inbound'?'确认入库':'作废'}`);
+    if(action==='approve')row.status='待出库';else if(action==='reject')row.status='已驳回';else if(action==='void')row.status='已作废';
+    row.updatedAt=now();renderTabs();renderTable();toast(`调拨单 ${row.no} 已${action==='approve'?'审核通过':action==='reject'?'驳回':'作废'}`);
   }
   function init(){
     $('#importBtn').onclick=openImport;
-    renderTabs();renderTable();
-    $('#searchBtn').onclick=()=>{state.keyword=$('#keyword').value;state.page=1;renderTable();toast('查询完成');};$('#keyword').onkeydown=event=>{if(event.key==='Enter')$('#searchBtn').click();};$('#resetBtn').onclick=resetFilters;$('#refreshBtn').onclick=()=>{renderTabs();renderTable();toast('列表已刷新');};$('#newBtn').onclick=()=>openEditor();$('#exportBtn').onclick=()=>toast('已生成调拨单导出文件');$('#auditBtn').onclick=openAudit;$('#pageSize').onchange=event=>{state.pageSize=Number(event.target.value);state.page=1;renderTable();};$('#prevPage').onclick=()=>{if(state.page>1){state.page--;renderTable();}};$('#nextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(filtered().length/state.pageSize));if(state.page<pages){state.page++;renderTable();}};$('#statusTabs').onclick=event=>{const tab=event.target.closest('[data-status]');if(!tab)return;state.status=tab.dataset.status;state.page=1;renderTabs();renderTable();};$('#selectAll').onchange=event=>{const visible=filtered().slice((state.page-1)*state.pageSize,state.page*state.pageSize);visible.forEach(row=>event.target.checked?state.selected.add(row.id):state.selected.delete(row.id));renderTable();};$('#tableBody').onclick=event=>{const check=event.target.closest('.row-check');if(check){check.checked?state.selected.add(check.dataset.id):state.selected.delete(check.dataset.id);$('#selectedCount').textContent=state.selected.size;return;}const button=event.target.closest('[data-action]');if(!button)return;const row=orders.find(item=>item.id===button.closest('tr').dataset.id);if(row)runAction(button.dataset.action,row);};$('#pageButtons').onclick=event=>{const button=event.target.closest('[data-page]');if(button){state.page=Number(button.dataset.page);renderTable();}};$('#addSkuBtn')?.addEventListener('click',openPicker);
+    queryMultiConfigs().forEach(config=>initQueryMulti(...config));
+    $('#codeType').onchange=syncComboPlaceholder;
+    $('#skuType').onchange=syncComboPlaceholder;
+    syncComboPlaceholder();
+    document.addEventListener('click',()=>closeQueryMenus());
+    window.addEventListener('resize',layoutQuery);
+    renderTabs();renderTable();layoutQuery();
+    $('#searchBtn').onclick=()=>{if(!validateQueryDates())return;state.page=1;renderTable();toast('查询完成');};['codeText','skuText'].forEach(id=>{$('#'+id).onkeydown=event=>{if(event.key==='Enter')$('#searchBtn').click();};});$('#resetBtn').onclick=resetFilters;$('#refreshBtn').onclick=()=>{renderTabs();renderTable();toast('列表已刷新');};$('#newBtn').onclick=()=>openEditor();$('#exportBtn').onclick=()=>toast('已生成调拨单导出文件');$('#auditBtn').onclick=openAudit;$('#voidBtn').onclick=voidRows;$('#pageSize').onchange=event=>{state.pageSize=Number(event.target.value);state.page=1;renderTable();};$('#prevPage').onclick=()=>{if(state.page>1){state.page--;renderTable();}};$('#nextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(filtered().length/state.pageSize));if(state.page<pages){state.page++;renderTable();}};$('#statusTabs').onclick=event=>{const tab=event.target.closest('[data-status]');if(!tab)return;state.status=tab.dataset.status;state.page=1;renderTabs();renderTable();};$('#selectAll').onchange=event=>{const visible=filtered().slice((state.page-1)*state.pageSize,state.page*state.pageSize);visible.forEach(row=>event.target.checked?state.selected.add(row.id):state.selected.delete(row.id));renderTable();};$('#tableBody').onclick=event=>{const check=event.target.closest('.row-check');if(check){check.checked?state.selected.add(check.dataset.id):state.selected.delete(check.dataset.id);$('#selectedCount').textContent=state.selected.size;return;}const button=event.target.closest('[data-action]');if(!button)return;const row=orders.find(item=>item.id===button.closest('tr').dataset.id);if(row)runAction(button.dataset.action,row);};$('#pageButtons').onclick=event=>{const button=event.target.closest('[data-page]');if(button){state.page=Number(button.dataset.page);renderTable();}};$('#addSkuBtn')?.addEventListener('click',openPicker);
     document.addEventListener('click',event=>{const button=event.target.closest('#tableBody [data-expand]');if(!button)return;const id=button.dataset.expand;state.expanded.has(id)?state.expanded.delete(id):state.expanded.add(id);renderTable();});
     document.addEventListener('input',event=>{const input=event.target.closest('#tableBody [data-list-remark]');if(!input)return;const row=orders.find(item=>item.id===input.closest('tr')?.dataset.id);if(row)row.remark=input.value;});
     document.addEventListener('click',event=>{if(event.target.matches('[data-page-nav]')){const page=event.target.dataset.pageNav;const map={transferOrder:'../transfer-orders/index.html',inventoryQuery:'../inventory-query/index.html',processingOrder:'../processing-orders/index.html',forecast:'../demand-forecast/index.html',stock:'../stock-plan/index.html',purchase:'../purchase-plan/index.html',shipment:'../shipment-plan/index.html',purchaseOrder:'../purchase-orders/index.html',shipmentOrder:'../shipment-orders/index.html',skuFirstLegCost:'../sku-first-leg-cost/index.html'};if(window.parent!==window)window.parent.postMessage({type:'prototype:navigate',page},'*');else if(map[page])window.location.href=map[page];}});

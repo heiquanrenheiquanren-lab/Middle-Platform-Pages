@@ -107,7 +107,52 @@
     buildOptions(select);
   };
 
-  const enhanceAll=root=>root.querySelectorAll?.(`select:not([${ready}])`).forEach(enhance);
+  const enhanceMultiClear=root=>{
+    root.querySelectorAll?.('.multi').forEach(box=>{
+      if(box.dataset.multiClearReady)return;
+      box.dataset.multiClearReady='1';
+      const trigger=box.querySelector('.multi-trigger[data-trigger]');
+      const menu=box.querySelector('[data-menu]');
+      if(!trigger||!menu)return;
+      const clear=document.createElement('button');
+      clear.type='button';
+      clear.className='multi-clear';
+      clear.setAttribute('aria-label','清空');
+      clear.textContent='×';
+      clear.addEventListener('click',event=>{
+        event.stopPropagation();
+        menu.querySelectorAll('input').forEach(input=>{input.checked=false;});
+        menu.dispatchEvent(new Event('change',{bubbles:true}));
+      });
+      box.append(clear);
+    });
+  };
+  const enhanceInputClear=root=>{
+    root.querySelectorAll?.('input.control').forEach(input=>{
+      if(input.dataset.inputClearReady)return;
+      if(['date','number','hidden','file','range','checkbox','radio'].includes(input.type))return;
+      if(input.closest('.date-group')||input.closest('.tag-input')||input.closest('.input-clear'))return;
+      input.dataset.inputClearReady='1';
+      const wrap=document.createElement('span');
+      wrap.className='input-clear';
+      input.parentNode.insertBefore(wrap,input);
+      wrap.append(input);
+      const clear=document.createElement('button');
+      clear.type='button';
+      clear.className='input-clear-btn';
+      clear.setAttribute('aria-label','清空');
+      clear.textContent='×';
+      clear.addEventListener('click',()=>{
+        input.value='';
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+        input.dispatchEvent(new Event('change',{bubbles:true}));
+        input.focus();
+      });
+      wrap.append(clear);
+    });
+  };
+  const enhanceClearAll=root=>{enhanceMultiClear(root);enhanceInputClear(root);};
+  const enhanceAll=root=>{root.querySelectorAll?.(`select:not([${ready}])`).forEach(enhance);enhanceClearAll(root);};
   document.addEventListener('click',event=>{if(openSelect&&!openSelect.closest('.custom-select')?.contains(event.target))close(openSelect);});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&openSelect)close(openSelect);});
   new MutationObserver(records=>{
