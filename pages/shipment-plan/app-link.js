@@ -122,7 +122,6 @@ function openPlanLogDialog(planId){
   $('#planLogDialog').classList.remove('hidden');
 }
 function closePlanLogDialog(){$('#planLogDialog').classList.add('hidden');}
-function initPageNav(){$$('[data-page-nav]').forEach(item=>item.onclick=()=>{const page=item.dataset.pageNav;if(window.parent!==window)window.parent.postMessage({type:'prototype:navigate',page},'*');else window.location.href={forecast:'../demand-forecast/index.html',stock:'../stock-plan/index.html',purchase:'../purchase-plan/index.html',shipment:'../shipment-plan/index.html',purchaseOrder:'../purchase-orders/index.html',shipmentOrder:'../shipment-orders/index.html',skuFirstLegCost:'../sku-first-leg-cost/index.html',inventoryQuery:'../inventory-query/index.html',processingOrder:'../processing-orders/index.html'}[page];});}
 function initResponsiveQueryLayout(){
   const panel=$('.query-panel'),rowOne=$('#queryRowOne'),rowTwo=$('#queryRowTwo'),advanced=$('.advanced-query-row'),actions=$('.query-actions');
   const items=$$('.query-item[data-query-order]').sort((a,b)=>Number(a.dataset.queryOrder)-Number(b.dataset.queryOrder));
@@ -151,7 +150,7 @@ function initResponsiveQueryLayout(){
 const multiConfigs=[
   ['#shipWarehouseMulti',shipWarehouses,'shipWarehouses','发货仓（可多选）'],['#destinationWarehouseMulti',destinationWarehouses,'destinationWarehouses','目的地仓（可多选）'],['#destinationTypeMulti',destinationTypes,'destinationTypes','目的地仓类型（可多选）'],['#firstMileMulti',firstMiles,'firstMiles','头程物流商（可多选）'],['#channelMulti',channels,'channels','物流渠道（可多选）'],['#transportMulti',transports,'transports','运输方式（可多选）'],['#platformMulti',platforms,'platforms','平台（可多选）'],['#countryMulti',countries,'countries','国家（可多选）'],['#storeMulti',stores,'stores','店铺（可多选）'],['#teamMulti',teams,'teams','团队（可多选）'],['#creatorMulti',creators,'creators','创建人（可多选）']
 ];
-initPageNav();initQueryExpand();multiConfigs.forEach(config=>initMulti(...config));initResponsiveQueryLayout();renderTabs();renderTable();
+initQueryExpand();multiConfigs.forEach(config=>initMulti(...config));initResponsiveQueryLayout();renderTabs();renderTable();
 
 /* FBA 货件：按测试环境页面结构复刻的本地交互数据 */
 const fbaStatusOptions=['已取消','已登记','已关闭','已删除','已送达','运输中','接收中','已发货'];

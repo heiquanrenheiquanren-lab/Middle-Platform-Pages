@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>产品列表｜产品</title>
+  <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
+  <link rel="stylesheet" href="./styles.css?v=1.0.3">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.65">
+</head>
+<body>
+  <div class="product-page">
+    <header class="product-topbar">
+      <div class="global-left" aria-label="全局导航">
+        <span class="brand-shield" aria-label="品牌标识"></span>
+        <button class="top-icon" type="button">工作台</button>
+        <button class="top-icon" type="button">财务</button>
+        <button class="top-icon" type="button">供应链</button>
+        <button class="top-icon" type="button">运营</button>
+        <button class="top-icon active" type="button">产品</button>
+      </div>
+      <div class="global-right"><span class="admin">Admin⌄</span></div>
+    </header>
+
+    <div class="product-body">
+      <aside class="product-sidebar">
+        <div class="nav-section"><span class="nav-symbol">▦</span><span>产品管理</span><span class="nav-chevron">⌃</span></div>
+        <button class="nav-item active" type="button" data-page-nav="productList"><span class="nav-symbol">▤</span><span>产品列表</span></button>
+      </aside>
+
+      <main class="product-main">
+        <section class="product-query-card" aria-label="产品查询条件">
+          <div class="query-row">
+            <div class="code-search">
+              <select id="codeType" aria-label="查询字段"><option value="sku">SKU</option><option value="barcode">条码</option><option value="name">产品名称</option></select>
+              <input id="keyword" placeholder="请输入内容，支持多个，用逗号或空格隔开">
+            </div>
+            <select id="productStatus"><option value="">产品状态（全部）</option><option>可售</option><option>停售</option><option>开发中</option></select>
+            <select id="logisticsType"><option value="">物流属性（全部）</option><option>普货</option><option>带电</option><option>带磁</option><option>敏感货</option></select>
+            <select id="supplier"><option value="">供应商（全部）</option><option>深圳焊虎机电有限公司</option><option>东莞市华诚五金有限公司</option><option>宁波锐虎机械有限公司</option></select>
+          </div>
+          <div class="query-row query-row-bottom">
+            <label class="date-field">创建时间 <input id="startDate" type="date"><span>至</span><input id="endDate" type="date"></label>
+            <div class="query-actions"><button id="resetButton" class="button" type="button">重置</button><button id="searchButton" class="button primary" type="button">查询</button></div>
+          </div>
+        </section>
+
+        <section class="product-actions">
+          <div class="action-left"><button id="addButton" class="button primary" type="button">新增产品</button><button id="batchButton" class="button" type="button" disabled>批量编辑</button><button id="importButton" class="button" type="button">导入</button><button id="exportButton" class="button" type="button">导出</button></div>
+          <button id="columnButton" class="column-button" type="button" aria-expanded="false">☷ 列设置</button>
+          <div id="columnPanel" class="column-panel" hidden>
+            <div class="column-panel-title">显示列</div>
+            <label><input type="checkbox" data-column="specification" checked> 规格</label>
+            <label><input type="checkbox" data-column="supplier" checked> 供应商</label>
+            <label><input type="checkbox" data-column="price" checked> 采购价</label>
+            <label><input type="checkbox" data-column="createdAt" checked> 创建时间</label>
+          </div>
+        </section>
+
+        <section class="product-table-card">
+          <header class="table-header"><div><strong>产品列表</strong><span id="resultCount">共 0 条</span></div><span class="table-tip">产品以 SKU 为唯一管理对象</span></header>
+          <div class="table-wrap">
+            <table class="product-table">
+              <thead><tr>
+                <th class="select-col"><input id="selectAll" type="checkbox" aria-label="全选"></th><th>产品信息</th><th>SKU</th><th>条码</th><th data-column-head="specification">规格</th><th>产品状态</th><th>物流属性</th><th data-column-head="supplier">供应商</th><th data-column-head="price">采购价</th><th data-column-head="createdAt">创建时间</th><th class="operation-col">操作</th>
+              </tr></thead>
+              <tbody id="productTableBody"></tbody>
+            </table>
+          </div>
+          <div id="emptyState" class="empty-state" hidden>暂无符合条件的产品</div>
+          <footer class="table-footer"><span id="selectedCount">已选 0 项</span><div class="pager"><button type="button" disabled>‹</button><button class="current" type="button">1</button><button type="button">›</button></div></footer>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="productModal" class="modal-mask" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><header><h2 id="modalTitle">新增产品</h2><button class="modal-close" type="button" data-close>×</button></header><div class="modal-body"><div class="form-grid"><label>SKU<input id="formSku" placeholder="请输入 SKU"></label><label>条码<input id="formBarcode" placeholder="请输入条码"></label><label class="span-2">产品名称<input id="formName" placeholder="请输入产品名称"></label><label>规格<input id="formSpecification" placeholder="如：200A / 欧规"></label><label>产品状态<select id="formStatus"><option>可售</option><option>停售</option><option>开发中</option></select></label><label>物流属性<select id="formLogistics"><option>普货</option><option>带电</option><option>带磁</option><option>敏感货</option></select></label><label>供应商<input id="formSupplier" placeholder="请输入供应商"></label></div><p id="formError" class="form-error"></p></div><footer><button class="button" type="button" data-close>取消</button><button id="saveButton" class="button primary" type="button">保存</button></footer></section></div>
+
+  <script src="./app.js?v=1.0.3"></script>
+  <script src="../../global-export.js?v=1.7.37"></script>
+  <script src="../../navigation.js?v=1.7.65"></script>
+</body>
+</html>

@@ -3,7 +3,6 @@ const {createApp,ref,reactive,computed,nextTick,onMounted}=Vue;
 const splitValues=value=>String(value||'').split(/[\s,，、;；]+/).map(item=>item.trim()).filter(Boolean).map(item=>item.toLowerCase());
 const textMatch=(value,query)=>{const terms=splitValues(query);if(!terms.length)return true;const source=String(value||'').toLowerCase();return terms.some(term=>source.includes(term));};
 const inMulti=(value,selected)=>!selected.length||selected.includes(value);
-const navRoutes={forecast:'../demand-forecast/index.html',stock:'../stock-plan/index.html',purchase:'../purchase-plan/index.html',shipment:'../shipment-plan/index.html',purchaseOrder:'../purchase-orders/index.html',shipmentOrder:'../shipment-orders/index.html',skuFirstLegCost:'../sku-first-leg-cost/index.html',inventoryQuery:'../inventory-query/index.html',processingOrder:'../processing-orders/index.html'};
 
 const rows=[
   {destination:'美国西部仓',middleOrder:'DN20260808001',erpOrder:'EC20260808001',platform:'Amazon US',store:'Amazon-US 旗舰店',team:'北美一组',sku:'SPU-1001-BL',planNo:'FP20260806011',shippedQty:500,receiveQty:499,unitCost:3.8265,totalCost:1913.25,transport:'海运',channel:'标准海运',createdAt:'2026-08-09'},
@@ -103,12 +102,5 @@ const app=createApp({setup(){
   onMounted(()=>{nextTick(()=>{layoutQuery();let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(layoutQuery,80)})})});
   const csvEscape=value=>`"${String(value??'').replaceAll('"','""')}"`;
   const exportData=()=>{const headers=['目的仓','中台发货单号','ERP发货单号','平台','店铺','团队','SKU','发货计划','实际发货数量','收货数量','发货单总费用','SKU单位头程成本（CNY）','差异','运输方式','物流渠道','创建时间'];const lines=[headers,...filteredRows.value.map(row=>[row.destination,row.middleOrder,row.erpOrder,row.platform,row.store,row.team,row.sku,row.planNo,row.shippedQty,row.receiveQty,row.totalCost||'—',row.unitCost!=null?row.unitCost:'—',row.diff!=null?(Math.abs(row.diff)<0.001?'0':row.diff.toFixed(2)):'—',row.transport,row.channel,row.createdAt])].map(line=>line.map(csvEscape).join(','));const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='头程费用明细.csv';link.click();URL.revokeObjectURL(url);ElementPlus.ElMessage.success(`已导出 ${filteredRows.value.length} 条明细`)};
-  const navigate=pageKey=>{if(window.parent!==window)window.parent.postMessage({type:'prototype:navigate',page:pageKey},'*');else if(navRoutes[pageKey])window.location.href=navRoutes[pageKey]};
-  return{query,queryExpanded,queryOverflow,queryGridRef,destinations,platforms,stores,teams,transports,channels,creators,filteredRows,pageRows,page,pageSize,refreshing,totalCostSum,totalUnitCostSum,diffTotalSum,applyQuery,resetQuery,refreshData,exportData,navigate};
+  return{query,queryExpanded,queryOverflow,queryGridRef,destinations,platforms,stores,teams,transports,channels,creators,filteredRows,pageRows,page,pageSize,refreshing,totalCostSum,totalUnitCostSum,diffTotalSum,applyQuery,resetQuery,refreshData,exportData};
 }}).use(ElementPlus).mount('#app');
-
-document.querySelectorAll('[data-page-nav]').forEach(item=>item.addEventListener('click',()=>{
-  const page=item.dataset.pageNav;
-  if(window.parent!==window)window.parent.postMessage({type:'prototype:navigate',page},'*');
-  else if(navRoutes[page])window.location.href=navRoutes[page];
-}));

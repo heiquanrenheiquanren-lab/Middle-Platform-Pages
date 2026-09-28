@@ -238,10 +238,3 @@ createApp({
     return { months, batches, platforms, shops, countries, teams, owners, documents, activeStatus, statusTabs, page, pageSize, selectedDocs, filteredDocs, pagedDocs, statusMeta, confirmerLabel, DRAFT_STATUSES, PENDING_STATUSES, EXECUTING_STATUSES, statusCount, rowTotal, documentTotal, documentDialogVisible, documentDialogMode, documentDialogTitle, docFormRef, form, rules, openCreate, openEdit, openView, saveDocument, skuDialogVisible, skuBatchInput, skuSearchExecuted, skuQueryResults, unmatchedSkuCodes, selectedProducts, openSkuDialog, querySkus, clearSkuQuery, addSelectedSkus, removeSku, auditDialogVisible, auditDialogTitle, auditFormRef, auditForm, auditRules, auditTargets, openAudit, openBatchAudit, submitAudit, generatePurchasePlan, generateShipmentPlan, batchGeneratePurchase, voidDocument, batchVoid, refresh, showImport, showExport, openRelatedForecast };
   }
 }).use(ElementPlus).mount(root);
-
-document.querySelectorAll('[data-page-nav]').forEach(item => item.addEventListener('click', () => {
-  const routes = { forecast: '../demand-forecast/index.html', stock: '../stock-plan/index.html', purchase: '../purchase-plan/index.html', shipment: '../shipment-plan/index.html', purchaseOrder: '../purchase-orders/index.html', shipmentOrder: '../shipment-orders/index.html', skuFirstLegCost: '../sku-first-leg-cost/index.html', inventoryQuery: '../inventory-query/index.html', processingOrder: '../processing-orders/index.html' };
-  const page = item.dataset.pageNav;
-  if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page }, '*');
-  else if (routes[page]) window.location.href = routes[page];
-}));

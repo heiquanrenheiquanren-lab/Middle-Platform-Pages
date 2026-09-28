@@ -3,82 +3,110 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>供应商列表｜工作台</title>
-  <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.60">
-  <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
+  <title>供应商列表｜供应链</title>
+  <link rel="stylesheet" href="./management.css?v=1.0.0">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.65">
 </head>
 <body>
-  <div class="supplier-page">
-    <header class="supplier-topbar">
-      <div class="global-left" aria-label="全局导航">
-        <span class="brand-shield" aria-label="品牌标识"></span>
-        <button class="top-icon" type="button" aria-label="工作台">工作台</button>
-        <button class="top-icon" type="button" aria-label="财务">财务</button>
-        <button class="top-icon active" type="button" aria-label="供应链">供应链</button>
-        <button class="top-icon" type="button" aria-label="运营">运营</button>
-        <button class="top-icon" type="button" aria-label="产品">产品</button>
-        <button class="top-icon" type="button" aria-label="企业工单">企业工单</button>
-      </div>
-      <div class="global-right">
-        <span class="admin">Admin⌄</span>
-      </div>
-    </header>
-
-    <div class="supplier-body">
-      <aside class="supplier-sidebar">
-        <div class="supplier-nav-title"><span>▱</span><span>工作台</span></div>
-        <div class="supplier-nav-section"><span>▦</span><span>业务组织</span><span class="nav-chevron">⌃</span></div>
-        <button class="supplier-nav-item" type="button"><span>▤</span><span>平台管理</span></button>
-        <button class="supplier-nav-item" type="button"><span>♧</span><span>团队管理</span></button>
-        <button class="supplier-nav-item" type="button"><span>▱</span><span>仓库管理</span></button>
-        <button class="supplier-nav-item active" type="button"><span>▤</span><span>供应商列表</span></button>
-      </aside>
-
-      <main class="supplier-main">
-        <section class="supplier-query-card" aria-label="供应商查询条件">
-          <div class="supplier-query-row">
-            <div class="supplier-query-item supplier-name-select">
-              <button class="supplier-select-trigger" id="supplierNameTrigger" type="button">供应商名称（可多选）</button>
-              <div class="supplier-select-dropdown" id="supplierNameDropdown">
-                <input id="supplierNameKeyword" class="supplier-dropdown-search" placeholder="搜索供应商名称">
-                <div id="supplierNameOptions"></div>
-              </div>
-            </div>
-            <div class="supplier-query-item supplier-code-item">
-              <input id="supplierCodeInput" class="supplier-control" placeholder="供应商代码，支持多个，精确匹配">
-            </div>
-            <div class="supplier-query-item supplier-status-item">
-              <select id="supplierStatusInput" class="supplier-control">
-                <option value="">合作状态（全部）</option>
-                <option value="合作中">合作中</option>
-                <option value="禁用">禁用</option>
-              </select>
-            </div>
-            <div class="supplier-query-actions">
-              <button id="supplierSearchButton" class="supplier-button primary" type="button">查询</button>
-              <button id="supplierResetButton" class="supplier-button" type="button">重置</button>
-            </div>
+  <div class="app">
+    <header class="global-bar"><div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button></div><div class="global-right"><span class="admin">Admin⌄</span></div></header>
+    <div class="shell">
+      <aside class="sidebar" aria-label="供应链菜单"><div class="nav-scroll">
+        <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+        <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
+        <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+        <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+        <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
+        <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
+        <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
+        <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+        <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+        <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
+        <div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
+        <div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
+      </div></aside>
+      <main class="main">
+        <section class="query-panel" aria-label="供应商查询">
+          <div class="status-tabs" role="tablist" aria-label="供应商状态">
+            <button class="status-tab active" type="button" data-tab="全部">全部 <span id="countAll"></span></button>
+            <button class="status-tab" type="button" data-tab="草稿">草稿 <span id="countDraft"></span></button>
+            <button class="status-tab" type="button" data-tab="待审核">待审核 <span id="countPending"></span></button>
+            <button class="status-tab" type="button" data-tab="禁用">禁用 <span id="countDisabled"></span></button>
+            <button class="status-tab" type="button" data-tab="合作中">合作中 <span id="countActive"></span></button>
+            <button class="status-tab" type="button" data-tab="待我审核">待我审核 <span id="countMine"></span></button>
+          </div>
+          <div class="query-grid">
+            <input id="filterCode" class="control wide" placeholder="供应商编码，支持多个精确匹配" aria-label="供应商编码">
+            <select id="filterBuyer" class="control" aria-label="采购员"><option value="">采购员（全部）</option></select>
+            <select id="filterDeveloper" class="control" aria-label="开发员"><option value="">开发员（全部）</option></select>
+            <select id="filterApproval" class="control" aria-label="审核状态"><option value="">审核状态（全部）</option><option>草稿</option><option>待审核</option><option>已通过</option><option>已驳回</option></select>
+            <select id="filterCreator" class="control" aria-label="创建人"><option value="">创建人（全部）</option></select>
+            <select id="filterPayment" class="control" aria-label="支付方式"><option value="">支付方式（全部）</option><option>线上支付宝</option><option>银行转账</option><option>线下支付</option></select>
+            <input id="filterName" class="control" placeholder="供应商名称" aria-label="供应商名称">
+            <select id="filterPush" class="control" aria-label="推送易仓状态"><option value="">推送易仓状态（全部）</option><option>已推送</option><option>未推送</option></select>
+            <select id="filterType" class="control" aria-label="合作类型"><option value="">合作类型（全部）</option><option>公司-线上</option><option>公司-线下</option><option>个人</option></select>
+            <div class="query-actions"><button id="searchButton" class="btn primary" type="button">查询</button><button id="resetButton" class="btn" type="button">重置</button></div>
           </div>
         </section>
-        <section class="supplier-action-zone"><button id="supplierAddButton" class="supplier-button primary supplier-add-button" type="button">新增供应商</button></section>
-        <section class="supplier-table-card">
-          <div class="supplier-table-toolbar"><div class="supplier-toolbar-left"><span>供应商列表</span><span id="supplierResultCount" class="supplier-count">共 0 条</span></div></div>
-          <div class="supplier-table-wrap">
-            <table class="supplier-table">
-              <thead><tr><th>供应商名称</th><th>供应商代码</th><th>合作状态</th><th>操作</th></tr></thead>
-              <tbody id="supplierTableBody"></tbody>
-            </table>
+        <section class="business-card">
+          <div class="action-strip">
+            <button id="addButton" class="btn soft" type="button">添加信息</button>
+            <button class="btn success" data-batch="采购审核" type="button">采购审核</button>
+            <button class="btn muted" data-batch="财务审核" type="button">财务审核</button>
+            <button class="btn danger" data-batch="批量删除" type="button">批量删除</button>
+            <button class="btn soft" data-batch="人员替换" type="button">人员替换</button>
+            <button class="btn warning" data-batch="推送到易仓" type="button">推送到易仓</button>
+            <button id="exportButton" class="btn success" type="button">导出</button>
+            <span class="action-spacer"></span><span id="selectionHint" class="selection-hint">已选 0 条</span>
           </div>
-          <div class="supplier-empty" id="supplierEmpty" hidden>暂无符合条件的供应商</div>
+          <div class="table-scroll"><table class="supplier-table"><thead><tr><th class="check-col"><input id="selectAll" type="checkbox" aria-label="全选当前页"></th><th class="name-col">供应商名称</th><th>供应商编码</th><th>支付方式</th><th>合作类目</th><th>合作金额</th><th>采购员</th><th>创建人</th><th>最新编辑人</th><th>SKU数量</th><th class="operation-col">操作</th></tr></thead><tbody id="tableBody"></tbody></table><div id="emptyState" class="empty-state" hidden>暂无符合条件的供应商</div></div>
+          <footer class="table-footer"><span id="resultCount">共 0 条</span><div class="pager"><button id="prevPage" type="button" aria-label="上一页">‹</button><span id="pageNumber">1</span><button id="nextPage" type="button" aria-label="下一页">›</button></div></footer>
         </section>
       </main>
     </div>
   </div>
-  <script src="./app.js?v=1.0.0"></script>
-  <script src="../../global-export.js?v=1.7.37"></script>
-  <script src="../../custom-select.js?v=1.0.0"></script>
-  <script src="../../navigation.js?v=1.7.60"></script>
+
+  <div id="editMask" class="modal-mask" hidden><section class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <header class="modal-header"><h2 id="editTitle">编辑供应商信息</h2><button class="icon-button" type="button" data-close="edit" aria-label="关闭">×</button></header>
+    <div id="editScroll" class="modal-scroll"><form id="supplierForm" novalidate>
+      <section class="form-section"><h3>公司基本信息</h3><div class="form-grid">
+        <label class="field"><span class="field-label required">合作类型</span><select name="type" required><option value="">请选择</option><option>公司-线上</option><option>公司-线下</option><option>个人</option></select></label>
+        <label class="field"><span class="field-label required">供应商名称</span><input name="name" required placeholder="请输入供应商名称"></label>
+        <label class="field"><span class="field-label">供应商编码</span><input name="code" readonly></label>
+        <label class="field"><span class="field-label">创建日期</span><input name="createdAt" readonly></label>
+        <label class="field"><span class="field-label required">信用代码</span><input name="creditCode" required placeholder="请输入统一社会信用代码"></label>
+        <label class="field"><span class="field-label required">注册资金</span><span class="with-unit"><input name="capital" type="number" min="0" step="0.01" required placeholder="请输入金额"><small>万元</small></span></label>
+        <label class="field"><span class="field-label required">注册日期</span><input name="registrationDate" type="date" required></label>
+        <label class="field"><span class="field-label">供应商类目</span><select name="category"><option value="">请选择</option><option>焊接设备</option><option>焊接耗材</option><option>防护用品</option><option>包装辅料</option></select></label>
+        <label class="field"><span class="field-label required">可无理由退货</span><select name="returns" required><option>否</option><option>是</option></select></label>
+        <label class="field"><span class="field-label required">可退货周期</span><span class="with-unit"><input name="returnDays" type="number" min="0" required><small>天</small></span></label>
+        <label class="field"><span class="field-label required">旺旺号</span><input name="wangwang" required placeholder="请输入旺旺号"></label>
+        <label class="field"><span class="field-label required">供应商链接</span><input name="link" type="url" required placeholder="https://"></label>
+        <label class="field"><span class="field-label">是否核心供应商</span><select name="core"><option>否</option><option>是</option></select></label>
+        <div class="field span-2"><span class="field-label required">注册地址</span><div class="address-inputs"><input name="province" placeholder="省" required><input name="city" placeholder="市" required><input name="district" placeholder="区" required><input name="registeredAddress" placeholder="详细地址" required></div></div>
+      </div></section>
+      <section class="form-section"><h3>供应商联系方式</h3><div class="contact-head"><span>* 联系人</span><span>* 手机号码</span><span>联系电话</span><span>微信号</span><span>QQ号码</span><span>电子邮箱</span><span>是否默认 / 操作</span></div><div id="contacts" class="repeat-list"></div><button class="add-line" type="button" data-add="contact">＋ 添加新的联系人</button></section>
+      <section class="form-section"><h3>发货地址</h3><div id="shippingAddresses" class="repeat-list"></div><button class="add-line" type="button" data-add="shipping">＋ 添加新的发货地址</button></section>
+      <section class="form-section"><h3>退货地址</h3><div id="returnAddresses" class="repeat-list"></div><button class="add-line" type="button" data-add="return">＋ 添加新的退货地址</button></section>
+      <section class="form-section"><h3>人员配置</h3><div class="form-grid"><label class="field"><span class="field-label">开发员</span><select name="developer"><option value="">请选择</option><option>许树娴</option><option>黄佳旋</option><option>陈平</option></select></label></div><div class="personnel-table"><table><thead><tr><th>仓库</th><th>采购人员</th><th>操作</th></tr></thead><tbody id="personnelRows"></tbody></table></div><button class="add-line personnel-add" type="button" data-add="personnel">＋ 添加人员配置</button></section>
+      <section class="form-section"><h3>财务结算</h3><div class="form-grid">
+        <label class="field"><span class="field-label required">是否包邮</span><select name="freeShipping"><option>否</option><option>是</option></select></label>
+        <label class="field"><span class="field-label required">付款币种</span><select name="currency"><option>RMB</option><option>USD</option><option>EUR</option></select></label>
+        <label class="field"><span class="field-label required">开票</span><select name="invoice"><option>否</option><option>是</option></select></label>
+        <label class="field"><span class="field-label required">付款方式</span><select name="paymentMethod"><option>款到发货</option><option>账期</option><option>货到付款</option></select></label>
+        <label class="field"><span class="field-label required">支付方式</span><select name="paymentChannel"><option>线上支付宝</option><option>银行转账</option><option>线下支付</option></select></label>
+        <label class="field span-2 textarea-field"><span class="field-label">结算备注</span><textarea name="settlementNote" maxlength="300" placeholder="请输入结算备注"></textarea></label>
+      </div></section>
+      <section class="form-section"><h3>相关证明资料</h3><div class="upload-grid"><label>营业执照<input type="file" name="license" accept="image/*,.pdf"><span class="upload-box">＋</span></label><label>收款确认函<input type="file" name="confirmation" accept="image/*,.pdf"><span class="upload-box">＋</span></label><label>框架协议<input type="file" name="framework" accept="image/*,.pdf"><span class="upload-box">＋</span></label><label>品质协议<input type="file" name="quality" accept="image/*,.pdf"><span class="upload-box">＋</span></label></div></section>
+      <section class="form-section"><h3>备注信息</h3><label class="field textarea-field"><span class="field-label">备注</span><textarea name="remark" maxlength="500" placeholder="请输入备注信息"></textarea></label></section>
+      <p id="formError" class="form-error" role="alert"></p>
+    </form></div>
+    <footer class="modal-footer"><button class="btn" type="button" data-close="edit">取消</button><button id="saveButton" class="btn primary" type="button">确定</button></footer>
+  </section></div>
+  <div id="logMask" class="modal-mask" hidden><section class="simple-modal" role="dialog" aria-modal="true" aria-labelledby="logTitle"><header class="modal-header"><h2 id="logTitle">操作日志</h2><button class="icon-button" type="button" data-close="log" aria-label="关闭">×</button></header><div class="simple-body"><p id="logSupplierName"></p><table><thead><tr><th>操作类型</th><th>日志内容</th><th>操作人</th><th>操作时间</th></tr></thead><tbody id="logBody"></tbody></table></div><footer class="modal-footer"><button class="btn" type="button" data-close="log">关闭</button></footer></section></div>
+  <div id="confirmMask" class="modal-mask" hidden><section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><header class="modal-header"><h2 id="confirmTitle">确认操作</h2><button class="icon-button" type="button" data-close="confirm" aria-label="关闭">×</button></header><div class="simple-body"><p id="confirmMessage"></p></div><footer class="modal-footer"><button class="btn" type="button" data-close="confirm">取消</button><button id="confirmButton" class="btn primary" type="button">确定</button></footer></section></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./management.js?v=1.0.0"></script>
+  <script src="../../navigation.js?v=1.7.65"></script>
 </body>
 </html>

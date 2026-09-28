@@ -100,9 +100,6 @@
       const refresh=()=>{updatedAt.value=nowText();rows.value=clone(rows.value);ElMessage.success('库存数据已刷新')};
       const openMetric=(row,mode,team='')=>{currentRow.value=row;detailMode.value=mode;detailTeam.value=team;detailVisible.value=true};
 
-      const routes={forecast:'../demand-forecast/index.html',stock:'../stock-plan/index.html',purchase:'../purchase-plan/index.html',shipment:'../shipment-plan/index.html',purchaseOrder:'../purchase-orders/index.html',shipmentOrder:'../shipment-orders/index.html',skuFirstLegCost:'../sku-first-leg-cost/index.html',inventoryQuery:'../inventory-query/index.html',processingOrder:'../processing-orders/index.html'};
-      window.setTimeout(()=>document.querySelectorAll('[data-page-nav]').forEach(item=>item.addEventListener('click',()=>{const key=item.dataset.pageNav;if(window.parent!==window)window.parent.postMessage({type:'prototype:navigate',page:key},'*');else if(routes[key])window.location.href=routes[key]})),0);
-
       return{filters,warehouses,teams,developers,buyers,stockStates,page,pageSize,updatedAt,filteredRows,pagedRows,detailVisible,currentRow,detailMode,detailTeam,detailTeams,detailSummary,detailTitle,detailRows,qty,ageText,quantityClass,rowTags,query,resetFilters,refresh,openMetric};
     }
   }).use(window.ElementPlus).mount('#app');

@@ -30,33 +30,34 @@
 
     <div class="workbench-body">
       <aside class="workbench-sidebar" aria-label="工作台菜单">
-        <button class="workbench-nav-title active" type="button"><span class="nav-symbol">▱</span><span>工作台</span></button>
-        <section class="nav-section">
-          <button class="nav-section-title" type="button"><span class="nav-symbol">⚙</span><span>账号管理</span><span class="nav-chevron">⌃</span></button>
-          <button class="nav-item" type="button"><span class="nav-symbol">♙</span><span>账号管理</span></button>
-          <button class="nav-item" type="button"><span class="nav-symbol">♙</span><span>权限管理</span><span class="item-chevron">⌄</span></button>
-        </section>
-        <section class="nav-section">
-          <button class="nav-section-title" type="button"><span class="nav-symbol">▦</span><span>业务组织</span><span class="nav-chevron">⌃</span></button>
-          <button class="nav-item" type="button"><span class="nav-symbol">▤</span><span>平台管理</span></button>
-          <button class="nav-item" type="button"><span class="nav-symbol">♧</span><span>团队管理</span></button>
-          <button class="nav-item" type="button" data-page-nav="warehouseSku"><span class="nav-symbol">▱</span><span>仓库管理</span></button>
-          <button class="nav-item" type="button" data-page-nav="supplierList"><span class="nav-symbol">▤</span><span>供应商列表</span></button>
-        </section>
-        <section class="nav-section">
-          <button class="nav-section-title" type="button"><span class="nav-symbol">▥</span><span>公司组织</span><span class="nav-chevron">⌃</span></button>
-          <button class="nav-item" type="button"><span class="nav-symbol">♙</span><span>部门管理</span></button>
-          <button class="nav-item" type="button"><span class="nav-symbol">♙</span><span>岗位管理</span></button>
-        </section>
-        <section class="nav-section">
-          <button class="nav-section-title" type="button"><span class="nav-symbol">▧</span><span>素材管理</span><span class="nav-chevron">⌃</span></button>
-          <button class="nav-item" type="button"><span class="nav-symbol">◉</span><span>素材中心</span></button>
-        </section>
-        <button class="nav-item standalone" type="button"><span class="nav-symbol">▤</span><span>系统日志</span></button>
+        <button class="workbench-nav-title active" type="button" data-workbench-home><span class="nav-symbol">▱</span><span>工作台</span></button>
+        <div class="base-navigation" hidden>
+          <section class="nav-section">
+            <button class="nav-section-title" type="button"><span class="nav-symbol">⚙</span><span>权限管理</span><span class="nav-chevron">⌃</span></button>
+            <button class="nav-item" type="button" data-base-page="账号管理"><span class="nav-symbol">♙</span><span>账号管理</span></button>
+            <button class="nav-item" type="button" data-base-page="部门管理"><span class="nav-symbol">♙</span><span>部门管理</span></button>
+            <button class="nav-item" type="button" data-base-page="角色管理"><span class="nav-symbol">♙</span><span>角色管理</span></button>
+            <button class="nav-item" type="button" data-base-page="菜单管理"><span class="nav-symbol">♙</span><span>菜单管理</span></button>
+            <button class="nav-item" type="button" data-base-page="流程管理"><span class="nav-symbol">♙</span><span>流程管理</span></button>
+            <button class="nav-item" type="button" data-base-page="敏感字段"><span class="nav-symbol">♙</span><span>敏感字段</span></button>
+            <button class="nav-item" type="button" data-base-page="系统日志"><span class="nav-symbol">▤</span><span>系统日志</span></button>
+          </section>
+          <section class="nav-section">
+            <button class="nav-section-title" type="button"><span class="nav-symbol">▦</span><span>基础配置</span><span class="nav-chevron">⌃</span></button>
+            <button class="nav-item" type="button" data-base-page="平台管理"><span class="nav-symbol">▤</span><span>平台管理</span></button>
+            <button class="nav-item" type="button" data-base-page="团队管理"><span class="nav-symbol">♧</span><span>团队管理</span></button>
+            <button class="nav-item" type="button" data-page-nav="warehouseSku"><span class="nav-symbol">▱</span><span>仓库管理</span></button>
+            <button class="nav-item" type="button" data-base-page="国家管理"><span class="nav-symbol">♙</span><span>国家管理</span></button>
+            <button class="nav-item" type="button" data-base-page="站点管理"><span class="nav-symbol">♙</span><span>站点管理</span></button>
+          </section>
+        </div>
       </aside>
 
       <main class="workbench-content">
         <section id="workbenchDashboard" class="workbench-dashboard"></section>
+        <section id="workbenchBaseView" class="workbench-base-view" hidden>
+          <div class="workbench-base-card"><h1 id="basePageTitle">账号管理</h1><p id="basePageDescription">在这里管理系统账号及其访问权限。</p></div>
+        </section>
         <section id="workbenchSupplierView" class="workbench-supplier-view" hidden>
           <section class="supplier-query-card" aria-label="供应商查询条件">
             <div class="supplier-query-row">
@@ -136,41 +137,67 @@
   <script>
     (() => {
       const dashboard = document.querySelector('#workbenchDashboard');
+      const baseView = document.querySelector('#workbenchBaseView');
       const supplierView = document.querySelector('#workbenchSupplierView');
       const warehouseSkuView = document.querySelector('#workbenchWarehouseSkuView');
-      const supplierMenu = document.querySelector('[data-page-nav="supplierList"]');
+      const baseNavigation = document.querySelector('.base-navigation');
+      const workbenchHome = document.querySelector('[data-workbench-home]');
+      const basePageTitle = document.querySelector('#basePageTitle');
+      const basePageDescription = document.querySelector('#basePageDescription');
       const warehouseSkuMenu = document.querySelector('[data-page-nav="warehouseSku"]');
-      const showSupplierList = () => {
+      const baseItems = Array.from(document.querySelectorAll('.base-navigation .nav-item'));
+      const showBaseNavigation = (visible) => {
+        baseNavigation.hidden = !visible;
+        workbenchHome.hidden = visible;
+      };
+      const setBaseActive = (item) => baseItems.forEach((menuItem) => menuItem.classList.toggle('active', menuItem === item));
+      const showBasePage = (item = document.querySelector('[data-base-page="账号管理"]')) => {
         dashboard.hidden = true;
-        supplierView.hidden = false;
+        baseView.hidden = false;
+        supplierView.hidden = true;
         warehouseSkuView.hidden = true;
-        supplierMenu.classList.add('active');
-        warehouseSkuMenu.classList.remove('active');
-        history.replaceState(null, '', '#supplierList');
+        showBaseNavigation(true);
+        setBaseActive(item);
+        const title = item.dataset.basePage || item.textContent.trim();
+        basePageTitle.textContent = title;
+        basePageDescription.textContent = title === '权限管理' ? '在这里配置角色、权限范围和授权规则。' : title === '账号管理' ? '在这里管理系统账号及其访问权限。' : '在这里维护 ' + title + ' 相关基础信息。';
+        history.replaceState(null, '', '#basic');
       };
       const showWarehouseSku = () => {
         dashboard.hidden = true;
+        baseView.hidden = true;
         supplierView.hidden = true;
         warehouseSkuView.hidden = false;
-        supplierMenu.classList.remove('active');
-        warehouseSkuMenu.classList.add('active');
+        showBaseNavigation(true);
+        setBaseActive(warehouseSkuMenu);
         history.replaceState(null, '', '#warehouseSku');
       };
       const showDashboard = () => {
         dashboard.hidden = false;
+        baseView.hidden = true;
         supplierView.hidden = true;
         warehouseSkuView.hidden = true;
-        supplierMenu.classList.remove('active');
-        warehouseSkuMenu.classList.remove('active');
+        showBaseNavigation(false);
+        setBaseActive(null);
         history.replaceState(null, '', '#workbench');
       };
-      supplierMenu.addEventListener('click', showSupplierList);
       warehouseSkuMenu.addEventListener('click', showWarehouseSku);
-      if (location.hash === '#supplierList') showSupplierList(); else if (location.hash === '#warehouseSku') showWarehouseSku(); else showDashboard();
+      workbenchHome.addEventListener('click', showDashboard);
+      baseItems.filter((item) => !item.dataset.pageNav).forEach((item) => item.addEventListener('click', () => showBasePage(item)));
+      document.addEventListener('prototype:module-change', (event) => {
+        if (event.detail.label === '工作台') showDashboard();
+        if (event.detail.label === '基础') showBasePage();
+      });
+      document.addEventListener('prototype:page-nav', (event) => {
+        if (event.detail.page !== 'warehouseSku') return;
+        event.preventDefault();
+        showWarehouseSku();
+      });
+      if (location.hash === '#warehouseSku') showWarehouseSku(); else if (location.hash === '#basic') showBasePage(); else showDashboard();
     })();
   </script>
   <script src="../../global-export.js?v=1.7.37"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
-  <script src="../../navigation.js?v=1.7.60"></script>
+  <script src="../../navigation.js?v=1.7.65"></script>
 </body>
 </html>

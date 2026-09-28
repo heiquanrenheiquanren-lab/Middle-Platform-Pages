@@ -3,14 +3,36 @@
 
   var modules = [
     { label: '工作台', icon: 'dashboard', page: 'workbench', path: '../workbench/index.html' },
+    { label: '基础', icon: 'basic', page: 'base', path: '../workbench/index.html#basic' },
     { label: '财务', icon: 'finance' },
     { label: '供应链', icon: 'supplyChain', page: 'inventoryQuery', path: '../inventory-query/index.html' },
     { label: '运营', icon: 'operations' },
-    { label: '产品', icon: 'product' }
+    { label: '产品', icon: 'product', page: 'productList', path: '../product-list/index.html' }
   ];
+
+  /* Single source of truth for every sidebar page route. Each prototype page
+     lives one directory below /pages, so these paths are shared everywhere. */
+  var pageRoutes = Object.freeze({
+    workbench: '../workbench/index.html',
+    base: '../workbench/index.html#basic',
+    forecast: '../demand-forecast/index.html',
+    stock: '../stock-plan/index.html',
+    purchase: '../purchase-plan/index.html',
+    shipment: '../shipment-plan/index.html',
+    purchaseOrder: '../purchase-orders/index.html',
+    shipmentOrder: '../shipment-orders/index.html',
+    skuFirstLegCost: '../sku-first-leg-cost/index.html',
+    inventoryQuery: '../inventory-query/index.html',
+    processingOrder: '../processing-orders/index.html',
+    transferOrder: '../transfer-orders/index.html',
+    supplierList: '../supplier-list/index.html',
+    warehouseSku: '../warehouse-sku/index.html',
+    productList: '../product-list/index.html'
+  });
 
   var icons = {
     dashboard: '<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>',
+    basic: '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="11" cy="18" r="2"/>',
     finance: '<path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h13"/><path d="M16 12h6v4h-6a2 2 0 0 1 0-4z"/>',
     supplyChain: '<circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="m7.7 7 3.1 8.2M16.3 7l-3.1 8.2M8 6h8"/>',
     operations: '<path d="M3 3v18h18"/><path d="m6 15 4-4 3 3 6-7"/><path d="M15 7h4v4"/>',
@@ -40,12 +62,14 @@
     { label: '库存管理', icon: 'inventory' },
     { label: '计划管理', icon: 'plan' },
     { label: '供应链协同', icon: 'collaboration' },
+    { label: '供应商管理', icon: 'company' },
     { label: '账号管理', icon: 'account' },
     { label: '业务组织', icon: 'organization' },
     { label: '公司组织', icon: 'company' },
-    { label: '素材管理', icon: 'assets' },
     { label: '系统日志', icon: 'log' },
-    { label: '工作台', icon: 'dashboard' }
+    { label: '工作台', icon: 'dashboard' },
+    { label: '权限管理', icon: 'account' },
+    { label: '基础配置', icon: 'settings' }
   ];
 
   function createIcon(name) {
@@ -197,7 +221,7 @@
      transfer-order entry mounted here so opening a child page directly (rather
      than through the root iframe) still exposes the same navigation. */
   function mountTransferNav() {
-    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .workbench-nav-title'));
+    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title'));
     titles.forEach(function (title) {
       if ((title.textContent || '').indexOf('库存管理') < 0) return;
       var container = title.parentElement;
@@ -210,16 +234,26 @@
       item.innerHTML = '<span class="mini">⇄</span>调拨单';
       source.insertAdjacentElement('afterend', item);
     });
-    if (document.documentElement.dataset.transferNavBound === '1') return;
-    document.documentElement.dataset.transferNavBound = '1';
-    document.addEventListener('click', function (event) {
-      var item = event.target.closest('[data-page-nav="transferOrder"]');
-      if (!item) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page: 'transferOrder' }, '*');
-      else window.location.href = '../transfer-orders/index.html';
-    }, true);
+  }
+
+  function mountSupplierNav() {
+    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .side-nav > .nav-section'));
+    titles.forEach(function (title) {
+      if ((title.textContent || '').indexOf('供应链协同') < 0) return;
+      var container = title.parentElement;
+      if (!container || container.querySelector('[data-page-nav="supplierList"]')) return;
+      var lastItem = title;
+      while (lastItem.nextElementSibling && lastItem.nextElementSibling.matches('.nav-item')) lastItem = lastItem.nextElementSibling;
+      var group = document.createElement('div');
+      group.className = title.className;
+      group.innerHTML = '<span>▤</span><span>供应商管理</span><span class="chev">⌃</span>';
+      var item = document.createElement('div');
+      item.className = 'nav-item' + (location.pathname.indexOf('/supplier-list/') >= 0 ? ' active' : '');
+      item.setAttribute('data-page-nav', 'supplierList');
+      item.innerHTML = '<span class="mini">▤</span>供应商列表';
+      lastItem.insertAdjacentElement('afterend', group);
+      group.insertAdjacentElement('afterend', item);
+    });
   }
 
   function mountSidebarCollapse() {
@@ -247,6 +281,7 @@
 
     mountThemeSwitcher(sidebar);
     mountTransferNav();
+    mountSupplierNav();
 
     var collapsed = false;
     try { collapsed = window.localStorage.getItem('middle-platform-nav-collapsed') === '1'; } catch (error) { /* local file fallback */ }
@@ -282,13 +317,50 @@
     });
   }
 
-  function navigate(module) {
-    if (!module.page) return;
+  function navigateToPage(page) {
+    if (!pageRoutes[page]) return;
     if (window.parent !== window) {
-      window.parent.postMessage({ type: 'prototype:navigate', page: module.page }, '*');
+      window.parent.postMessage({ type: 'prototype:navigate', page: page }, '*');
       return;
     }
-    window.location.href = module.path;
+    window.location.href = pageRoutes[page];
+  }
+
+  function mountPageNavigation() {
+    if (document.documentElement.dataset.pageNavBound === '1') return;
+    document.documentElement.dataset.pageNavBound = '1';
+    document.addEventListener('click', function (event) {
+      var item = event.target.closest('[data-page-nav]');
+      if (!item || !pageRoutes[item.dataset.pageNav]) return;
+
+      var request = new CustomEvent('prototype:page-nav', {
+        cancelable: true,
+        detail: { page: item.dataset.pageNav, source: item }
+      });
+      document.dispatchEvent(request);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!request.defaultPrevented) navigateToPage(item.dataset.pageNav);
+    }, true);
+  }
+
+  function navigate(module) {
+    if (!module.page) return;
+    navigateToPage(module.page);
+  }
+
+  function mountBasicModuleButton() {
+    var workbench = Array.prototype.slice.call(document.querySelectorAll('.global-left .top-icon')).find(function (button) {
+      return (button.textContent || '').trim() === '工作台';
+    });
+    if (!workbench || workbench.parentElement.querySelector('[data-module="basic"]')) return;
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'top-icon';
+    button.setAttribute('data-module', 'basic');
+    button.setAttribute('aria-label', '基础');
+    button.textContent = '基础';
+    workbench.insertAdjacentElement('afterend', button);
   }
 
   function mountTopNavigation() {
@@ -296,11 +368,13 @@
     document.querySelectorAll('.global-left .top-icon').forEach(function (button) {
       if ((button.textContent || '').trim() === '企业工单') button.remove();
     });
+    mountBasicModuleButton();
     var buttons = Array.prototype.slice.call(document.querySelectorAll('.global-left .top-icon'));
     if (!buttons.length) return;
 
-    mountMenuIcons(buttons);
     mountSidebarCollapse();
+    mountMenuIcons(buttons);
+    mountPageNavigation();
 
     buttons.slice(0, modules.length).forEach(function (button, index) {
       button.type = 'button';
@@ -308,6 +382,8 @@
       if (button.classList.contains('active')) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     });
+
+    if (location.hash === '#basic') selectModule(buttons, 1);
 
     document.addEventListener('click', function (event) {
       var button = event.target.closest('.global-left .top-icon');

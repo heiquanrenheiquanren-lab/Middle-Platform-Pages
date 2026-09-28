@@ -23,14 +23,14 @@
   }
   const teams = ['公共库存', 'Temu团队', '亚马逊北美团队', '独立站团队'];
   const skuPool = [
-    {sku:'KBAB0057-009',name:'焊接面罩自动变光款',sourceSku:'KBAB0057-009',targetSku:'KBAB0057-009',available:312,price:6.4881,team:'Temu团队'},
-    {sku:'34001001110',name:'焊接帽子迷彩 2-白色',sourceSku:'34001001110',targetSku:'34001001110',available:240,price:12.86,team:'公共库存'},
-    {sku:'34001001206',name:'焊接手套加厚款',sourceSku:'34001001206',targetSku:'34001001206',available:186,price:18.5,team:'亚马逊北美团队'},
-    {sku:'34001001401',name:'焊接护目镜防雾款',sourceSku:'34001001401',targetSku:'34001001401',available:154,price:25.2,team:'独立站团队'},
-    {sku:'34001001501',name:'焊接面罩手持式',sourceSku:'34001001501',targetSku:'34001001501',available:128,price:32.8,team:'亚马逊北美团队'}
+    {sku:'KBAB0057-009',name:'焊接面罩自动变光款',sourceSku:'KBAB0057-009',targetSku:'KBAB0057-009',available:312,price:6.4881,costBatches:[{quantity:160,unitCost:6.32},{quantity:152,unitCost:6.66}],team:'Temu团队'},
+    {sku:'34001001110',name:'焊接帽子迷彩 2-白色',sourceSku:'34001001110',targetSku:'34001001110',available:240,price:12.86,costBatches:[{quantity:120,unitCost:12.48},{quantity:120,unitCost:13.24}],team:'公共库存'},
+    {sku:'34001001206',name:'焊接手套加厚款',sourceSku:'34001001206',targetSku:'34001001206',available:186,price:18.5,costBatches:[{quantity:90,unitCost:18.12},{quantity:96,unitCost:18.86}],team:'亚马逊北美团队'},
+    {sku:'34001001401',name:'焊接护目镜防雾款',sourceSku:'34001001401',targetSku:'34001001401',available:154,price:25.2,costBatches:[{quantity:70,unitCost:24.8},{quantity:84,unitCost:25.53}],team:'独立站团队'},
+    {sku:'34001001501',name:'焊接面罩手持式',sourceSku:'34001001501',targetSku:'34001001501',available:128,price:32.8,costBatches:[{quantity:64,unitCost:32.15},{quantity:64,unitCost:33.45}],team:'亚马逊北美团队'}
   ];
   let orders = [
-    order('TF2609220001','待审核','华东实体仓','快猫物流中转仓',3,300,0,'快猫物流','—','2026-09-25','采购部','Admin'),
+    order('TF2609220001','待审核','华东实体仓','快猫物流中转仓',3,620,0,'快猫物流','—','2026-09-25','采购部','Admin'),
     order('TF2609210001','在途','SZ01东莞仓','Temu09-全托管平台仓',2,180,0,'中通','ZT20260921008','2026-09-23','仓库部','张三'),
     order('TF2609200001','部分入库','华东实体仓','快猫物流中转仓',4,420,360,'快猫物流','KM20260920015','2026-09-22','仓库部','李四'),
     order('TF2609180001','已完成','华东实体仓','SZ01东莞仓',1,100,100,'圆通','YT20260918007','2026-09-20','仓库部','李四'),
@@ -206,21 +206,23 @@
   }
   function childDetailRow(row){
     const items=buildItems(row);
-    return `<tr class="detail-row"><td colspan="10"><div class="child-detail-box"><div class="child-table-wrap"><table class="child-detail-table"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th></tr></thead><tbody>${items.map((item,index)=>{const progress=itemProgress(items,row,index);return `<tr><td>${escapeHtml(item.sku)}</td><td class="left">${escapeHtml(item.name)}</td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td class="left">${escapeHtml(item.remark||'—')}</td></tr>`;}).join('')}</tbody></table></div></div></td></tr>`;
+    return `<tr class="detail-row"><td colspan="10"><div class="child-detail-box"><div class="child-table-wrap"><table class="child-detail-table"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th></tr></thead><tbody>${items.map((item,index)=>{const progress=itemProgress(items,row,index);return `<tr><td>${escapeHtml(item.sku)}</td><td class="left">${escapeHtml(item.name)}</td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td class="left">${escapeHtml(item.remark||'—')}</td></tr>`;}).join('')}</tbody></table></div></div></td></tr>`;
   }
   function renderTable(){
     const rows=filtered();const pages=Math.max(1,Math.ceil(rows.length/state.pageSize));state.page=Math.min(state.page,pages);const pageRows=rows.slice((state.page-1)*state.pageSize,state.page*state.pageSize);$('#totalCount').textContent=rows.length;$('#empty').hidden=pageRows.length>0;$('#selectAll').checked=pageRows.length>0&&pageRows.every(row=>state.selected.has(row.id));
-    $('#tableBody').innerHTML=pageRows.map(row=>{const expanded=state.expanded.has(row.id),amount=transferAmount(row);return `<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${row.id}"><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td><span class="expand-row ${expanded?'is-expanded':''}" data-expand="${row.id}" role="button" tabindex="0" aria-label="${expanded?'收起':'展开'}调拨明细"><span class="expand-chevron"></span></span></td><td><div class="doc-line doc-main"><button class="link doc-no" data-action="view">${row.no}</button><span class="status-tag status-${statusClass(row.status)}">${row.status}</span></div><div class="label-line"><span>调拨类型：</span><span>仓间调拨</span></div></td><td><div class="direction"><span>${escapeHtml(row.source)}</span><span class="arrow">↓</span><span>${escapeHtml(row.target)}</span></div></td><td><div class="field-line"><span>出库数量：</span><span>${row.outboundQty}</span></div><div class="field-line"><span>入库数量：</span><span>${row.inboundQty}</span></div><div class="field-line"><span>在途数量：</span><span>${Math.max(row.outboundQty-row.inboundQty-Number(row.voidedQty||0),0)}</span></div><div class="field-line"><span>差异数量：</span><span>${row.outboundQty-row.inboundQty}</span></div></td><td><div class="field-line"><span>运费：</span><span>${formatMoney(row.fee)}</span></div><div class="field-line"><span>其他费用：</span><span>${formatMoney(row.otherFee)}</span></div><div class="field-line"><span>调拨金额：</span><span>${formatMoney(amount)}</span></div></td><td><div class="field-line"><span>物流渠道：</span><span>${escapeHtml(row.channel||'—')}</span></div><div class="field-line"><span>物流单号：</span><span>${escapeHtml(row.waybill||'—')}</span></div><div class="field-line"><span>预计到仓：</span><span>${row.eta}</span></div></td><td><input class="list-remark-input" data-list-remark placeholder="请输入备注" value="${escapeHtml(row.remark||'')}"></td><td><div class="field-line"><span>创建人：</span><span>${escapeHtml(row.creator)}</span></div><div class="field-line"><span>创建时间：</span><span>${escapeHtml(row.createdAt)}</span></div></td><td><div class="action-cell">${actionsFor(row)}</div></td></tr>${expanded?childDetailRow(row):''}`;}).join('');
+    $('#tableBody').innerHTML=pageRows.map(row=>{const expanded=state.expanded.has(row.id),amount=transferAmount(row);return `<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${row.id}"><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td><span class="expand-row ${expanded?'is-expanded':''}" data-expand="${row.id}" role="button" tabindex="0" aria-label="${expanded?'收起':'展开'}调拨明细"><span class="expand-chevron"></span></span></td><td><div class="doc-line doc-main"><button class="link doc-no" data-action="view">${row.no}</button><span class="status-tag status-${statusClass(row.status)}">${row.status}</span></div><div class="label-line"><span>调拨类型：</span><span>仓间调拨</span></div></td><td><div class="direction"><span>${escapeHtml(row.source)}</span><span class="arrow">↓</span><span>${escapeHtml(row.target)}</span></div></td><td><div class="field-line"><span>出库数量：</span><span>${row.outboundQty}</span></div><div class="field-line"><span>入库数量：</span><span>${row.inboundQty}</span></div><div class="field-line"><span>在途数量：</span><span>${Math.max(row.outboundQty-row.inboundQty-Number(row.voidedQty||0),0)}</span></div><div class="field-line"><span>差异数量：</span><span>${row.outboundQty-row.inboundQty}</span></div></td><td><div class="field-line"><span>运费：</span><span>${formatMoney(row.fee)}</span></div><div class="field-line"><span>其他费用：</span><span>${formatMoney(row.otherFee)}</span></div><div class="field-line"><span>调拨总金额：</span><span>${formatMoney(amount)}</span></div></td><td><div class="field-line"><span>物流渠道：</span><span>${escapeHtml(row.channel||'—')}</span></div><div class="field-line"><span>物流单号：</span><span>${escapeHtml(row.waybill||'—')}</span></div><div class="field-line"><span>预计到仓：</span><span>${row.eta}</span></div></td><td><input class="list-remark-input" data-list-remark placeholder="请输入备注" value="${escapeHtml(row.remark||'')}"></td><td><div class="field-line"><span>创建人：</span><span>${escapeHtml(row.creator)}</span></div><div class="field-line"><span>创建时间：</span><span>${escapeHtml(row.createdAt)}</span></div></td><td><div class="action-cell">${actionsFor(row)}</div></td></tr>${expanded?childDetailRow(row):''}`;}).join('');
     $$('#tableBody .label-line').forEach(node=>node.remove());
     $('#selectedCount').textContent=state.selected.size;renderPager(pages);
   }
   function actionsFor(row){
     const log='<button class="link log-link" data-action="log">日志</button>';
     const voidBtn='<button class="link danger-link" data-action="void">作废</button>';
-    if(row.status==='待审核')return `<button class="link" data-action="edit">修改</button>${voidBtn}${log}`;
+    if(row.status==='待审核')return `<button class="link" data-action="edit">编辑</button>${voidBtn}${log}`;
     if(row.status==='待出库')return `<button class="link" data-action="outbound">确认出库</button>${voidBtn}${log}`;
     if(row.status==='在途'||row.status==='部分入库')return `<button class="link" data-action="inbound">入库收货</button><button class="link" data-action="complete">手动完结</button>${log}`;
-    if(row.status==='已驳回')return `<button class="link" data-action="edit">修改</button>${log}`;
+    if(row.status==='已驳回')return `<button class="link" data-action="edit">编辑</button>${log}`;
+    if(row.status==='已作废')return `<button class="link" data-action="edit">编辑</button>${log}`;
+    if(row.status==='异常')return `<button class="link" data-action="edit">编辑</button>${log}`;
     return `${log}`;
   }
   function renderPager(pages){$('#pageButtons').innerHTML=Array.from({length:pages},(_,index)=>`<button class="page-number ${state.page===index+1?'active':''}" data-page="${index+1}">${index+1}</button>`).join('');$('#prevPage').disabled=state.page<=1;$('#nextPage').disabled=state.page>=pages;}
@@ -239,7 +241,21 @@
   function selectedRow(){const id=state.editing;return orders.find(row=>row.id===id);}
   function formatMoney(value){return `¥${Number(value||0).toFixed(2)}`;}
   function normalizeLogistics(channel,waybill){const hasLogistics=Boolean(channel&&channel!=='—'&&waybill&&waybill!=='—');return {channel:hasLogistics?channel:'—',waybill:hasLogistics?waybill:'—'};}
-  function transferAmount(row){return buildItems(row).reduce((sum,item)=>sum+(Number(item.quantity)||0)*(Number(item.price)||0),0)+Number(row.fee||0)+Number(row.otherFee||0);}
+  function itemCostAllocations(item){
+    const requested=Math.max(0,Number(item.quantity)||0);
+    const confirmed=Array.isArray(item.costAllocations)?item.costAllocations:[];
+    const batches=confirmed.length?confirmed:(Array.isArray(item.costBatches)&&item.costBatches.length?item.costBatches:[{quantity:requested,unitCost:Number(item.price)||0}]);
+    let remaining=requested;
+    return batches.reduce((allocations,batch)=>{
+      if(remaining<=0)return allocations;
+      const quantity=Math.min(remaining,Math.max(0,Number(batch.quantity)||0));
+      if(quantity>0)allocations.push({quantity,unitCost:Number(batch.unitCost??batch.price??item.price)||0});
+      remaining-=quantity;
+      return allocations;
+    },[]);
+  }
+  function itemTransferAmount(item){return itemCostAllocations(item).reduce((sum,batch)=>sum+batch.quantity*batch.unitCost,0);}
+  function transferAmount(row){return buildItems(row).reduce((sum,item)=>sum+itemTransferAmount(item),0)+Number(row.fee||0)+Number(row.otherFee||0);}
   function buildItems(row){
     if(row.items.length)return row.items;
     const count=Math.min(row.skuCount,skuPool.length);
@@ -252,13 +268,15 @@
     const amount=transferAmount(row);
     const value=(label,content)=>`<div class="transfer-detail-field"><span>${label}：</span><b>${content}</b></div>`;
     const status=`<span class="status-tag status-${statusClass(row.status)}">${escapeHtml(row.status)}</span>`;
-    const detailRows=items.map((item,index)=>{const progress=itemProgress(items,row,index);return `<tr><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td>${escapeHtml(item.remark||'—')}</td></tr>`;}).join('');
-    return `<div class="dialog detail-dialog"><header class="dialog-header"><div><h2>调拨单详情</h2><p>${escapeHtml(row.no)} · ${escapeHtml(row.source)} → ${escapeHtml(row.target)}</p></div><button class="dialog-close" data-close="detail" aria-label="关闭调拨单详情">×</button></header><div class="dialog-body transfer-detail-body"><section class="section transfer-detail-section"><div class="section-title">调拨信息</div><div class="transfer-detail-field-grid">${value('调拨单号',escapeHtml(row.no))}${value('单据状态',status)}${value('调拨类型','仓间调拨')}${value('调出仓库',escapeHtml(row.source))}${value('调入仓库',escapeHtml(row.target))}${value('预计到仓',escapeHtml(row.eta||'—'))}${value('是否继承库龄',row.inheritAge?'是':'否')}${value('物流渠道',escapeHtml(row.channel||'—'))}${value('物流单号',escapeHtml(row.waybill||'—'))}${value('运费',formatMoney(row.fee))}${value('其他费用',formatMoney(row.otherFee))}${value('调拨金额',formatMoney(amount))}${value('创建人',escapeHtml(row.creator))}${value('创建时间',escapeHtml(row.createdAt))}</div><div class="transfer-detail-remark"><span>备注：</span><p>${escapeHtml(row.remark||'—')}</p></div></section><section class="section transfer-detail-section"><div class="section-title">调拨明细</div><div class="section-body transfer-detail-table-wrap"><table class="detail-table transfer-detail-table"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th></tr></thead><tbody>${detailRows}</tbody></table></div></section></div>`;
+    const detailRows=items.map((item,index)=>{const progress=itemProgress(items,row,index);return `<tr><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td>${escapeHtml(item.remark||'—')}</td></tr>`;}).join('');
+    return `<div class="dialog detail-dialog"><header class="dialog-header"><div><h2>调拨单详情</h2><p>${escapeHtml(row.no)} · ${escapeHtml(row.source)} → ${escapeHtml(row.target)}</p></div><button class="dialog-close" data-close="detail" aria-label="关闭调拨单详情">×</button></header><div class="dialog-body transfer-detail-body"><section class="section transfer-detail-section"><div class="section-title">调拨信息</div><div class="transfer-detail-field-grid">${value('调拨单号',escapeHtml(row.no))}${value('单据状态',status)}${value('调拨类型','仓间调拨')}${value('调出仓库',escapeHtml(row.source))}${value('调入仓库',escapeHtml(row.target))}${value('预计到仓',escapeHtml(row.eta||'—'))}${value('是否继承库龄',row.inheritAge?'是':'否')}${value('物流渠道',escapeHtml(row.channel||'—'))}${value('物流单号',escapeHtml(row.waybill||'—'))}${value('运费',formatMoney(row.fee))}${value('其他费用',formatMoney(row.otherFee))}${value('调拨总金额',formatMoney(amount))}${value('创建人',escapeHtml(row.creator))}${value('创建时间',escapeHtml(row.createdAt))}</div><div class="transfer-detail-remark"><span>备注：</span><p>${escapeHtml(row.remark||'—')}</p></div></section><section class="section transfer-detail-section"><div class="section-title">调拨明细</div><div class="section-body transfer-detail-table-wrap"><table class="detail-table transfer-detail-table"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th></tr></thead><tbody>${detailRows}</tbody></table></div></section></div>`;
   }
   function openDetail(row){const modal=$('#detailModal');modal.innerHTML=renderDetail(row);modal.querySelector('.dialog-footer')?.remove();modal.hidden=false;bindDetail(modal,row);}
   function bindDetail(modal,row){modal.querySelectorAll('[data-close="detail"]').forEach(button=>button.onclick=()=>{modal.hidden=true;});modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};modal.querySelectorAll('[data-detail-action]').forEach(button=>button.onclick=()=>{modal.hidden=true;runAction(button.dataset.detailAction,row);});}
   function transferLogs(row){
     const logs=[{type:'创建调拨单',content:'创建仓间调拨申请',operator:row.creator,time:row.createdAt}];
+    if(row.abnormalReason)logs.push({type:'库存不足进入异常',content:row.abnormalReason,operator:'Admin',time:row.updatedAt});
+    if(row.reflowLog)logs.push({type:'重新流转待出库',content:row.reflowLog,operator:'Admin',time:row.updatedAt});
     if(row.auditDecision)logs.push({type:row.auditDecision==='approve'?'审核通过':'驳回调拨单',content:row.auditReason||'单据已进入后续处理流程',operator:'Admin',time:row.updatedAt});
     else logs.push({type:row.status==='已驳回'?'驳回调拨单':'提交审核',content:row.status==='已驳回'?'库存校验未通过，请修改后重新提交':'单据已进入后续处理流程',operator:'Admin',time:row.updatedAt});
     return logs;
@@ -530,6 +548,55 @@
     modal.hidden=true;renderTabs();renderTable();
     toast(`调拨单 ${row.no} 已手动完结`);
   }
+  function exceptionRow(item){return `<tr data-sku="${escapeHtml(item.sku)}"><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left">${escapeHtml(item.name)}</td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.available}</td><td><input class="quantity-input required-input exception-qty" type="number" min="1" max="${item.available}" value="${item.quantity}" data-sku="${escapeHtml(item.sku)}"></td><td><button class="sku-remove" type="button" data-remove-sku="${escapeHtml(item.sku)}">删除</button></td></tr>`;}
+  function renderExceptionItems(modal,row){
+    const body=$('#exceptionItems',modal);
+    const items=shortageItems(row);
+    body.innerHTML=items.length?items.map(exceptionRow).join(''):'<tr><td colspan="7" class="detail-empty">暂无库存不足的 SKU</td></tr>';
+    body.querySelectorAll('[data-remove-sku]').forEach(btn=>btn.onclick=()=>{
+      row.items=row.items.filter(item=>item.sku!==btn.dataset.removeSku);
+      (row.exceptionDeleted=row.exceptionDeleted||[]).push(btn.dataset.removeSku);
+      renderExceptionItems(modal,row);
+    });
+  }
+  function renderExceptionEdit(row){
+    return `<div class="dialog"><header class="dialog-header"><div><h2>编辑调拨数量</h2><p>${escapeHtml(row.no)} · 库存不足，请调低数量后重新流转</p></div><button class="dialog-close" data-close="exception">×</button></header><div class="dialog-body"><section class="section"><div class="section-title">库存不足的 SKU</div><div class="section-body detail-table-wrap"><table class="detail-table editor-detail"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>可用库存</th><th class="required-column">调拨数量</th><th>操作</th></tr></thead><tbody id="exceptionItems"></tbody></table></div></section></div><footer class="dialog-footer"><button class="btn" data-close="exception">取消</button><button class="btn primary" data-exception-action="save">保存</button></footer></div>`;
+  }
+  function openExceptionEdit(row){
+    const modal=$('#editorModal');
+    modal.innerHTML=renderExceptionEdit(row);
+    modal.hidden=false;
+    modal.querySelectorAll('[data-close="exception"]').forEach(btn=>btn.onclick=()=>{modal.hidden=true;});
+    modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};
+    modal.querySelector('[data-exception-action="save"]').onclick=()=>submitExceptionEdit(row,modal);
+    renderExceptionItems(modal,row);
+  }
+  function submitExceptionEdit(row,modal){
+    if(!row.items.length){toast('请至少保留一个 SKU','error');return;}
+    const inputs=$$('.exception-qty',modal);
+    for(const input of inputs){
+      const value=Number(input.value),max=Number(input.max);
+      if(input.value===''||!Number.isInteger(value)||value<1||value>max){toast('调拨数量须为 1 - 可用库存 的整数','error');input.focus();return;}
+    }
+    const changes=[];
+    inputs.forEach(input=>{
+      const item=row.items.find(it=>it.sku===input.dataset.sku);
+      if(item){
+        const oldQty=Number(item.quantity),newQty=Number(input.value);
+        if(oldQty!==newQty)changes.push(`SKU ${item.sku} ${oldQty} → ${newQty}`);
+        item.quantity=newQty;
+      }
+    });
+    const deleted=row.exceptionDeleted||[];
+    row.reflowLog=([...deleted.map(sku=>`删除 SKU ${sku}`),...changes].filter(Boolean).join('；')||'编辑调拨数量')+'，重新流转待出库';
+    delete row.exceptionDeleted;
+    row.requestQty=row.items.reduce((sum,item)=>sum+Number(item.quantity||0),0);
+    row.skuCount=row.items.length;
+    row.status='待出库';
+    row.updatedAt=now();
+    modal.hidden=true;renderTabs();renderTable();
+    toast(`调拨单 ${row.no} 已重新流转待出库`);
+  }
   function openAudit(){
     const rows=auditRows();
     if(!rows)return;
@@ -543,11 +610,31 @@
     modal.querySelector('[data-audit-action="approve"]').onclick=()=>submitAudit(rows,'approve',modal);
     modal.querySelector('[data-audit-action="reject"]').onclick=()=>submitAudit(rows,'reject',modal);
   }
+  function shortageItems(row){return (row.items||[]).filter(item=>Number(item.quantity)>Number(item.available));}
   function submitAudit(rows,decision,modal){
     const reason=$('#auditReason',modal).value.trim(),error=$('#auditError',modal);
     if(decision==='reject'&&!reason){error.textContent='驳回时必须填写原因';$('#auditReason',modal).classList.add('is-error');$('#auditReason',modal).focus();return;}
-    rows.forEach(row=>{row.status=decision==='approve'?'待出库':'已驳回';row.auditDecision=decision;row.auditReason=reason;row.updatedAt=now();state.selected.delete(row.id);});
-    modal.hidden=true;renderTabs();renderTable();toast(decision==='approve'?`已通过 ${rows.length} 张调拨单`:`已驳回 ${rows.length} 张调拨单`);
+    if(decision==='approve'){
+      let abnormal=0;
+      rows.forEach(row=>{
+        if(!row.items.length)row.items=buildItems(row);
+        const shortage=shortageItems(row);
+        row.auditDecision=decision;row.auditReason=reason;row.updatedAt=now();state.selected.delete(row.id);
+        if(shortage.length){
+          row.status='异常';
+          row.abnormalReason=shortage.map(item=>`SKU ${item.sku} 需 ${item.quantity}，可用 ${item.available}，缺 ${Number(item.quantity)-Number(item.available)}`).join('；');
+          abnormal++;
+        }else{
+          row.status='待出库';
+          delete row.abnormalReason;
+        }
+      });
+      modal.hidden=true;renderTabs();renderTable();
+      toast(abnormal>0?`已通过审核：${rows.length-abnormal} 张待出库，${abnormal} 张因库存不足进入异常`:`已通过 ${rows.length} 张调拨单`);
+    }else{
+      rows.forEach(row=>{row.status='已驳回';row.auditDecision=decision;row.auditReason=reason;row.updatedAt=now();state.selected.delete(row.id);});
+      modal.hidden=true;renderTabs();renderTable();toast(`已驳回 ${rows.length} 张调拨单`);
+    }
   }
   function voidRows(){
     const selected=orders.filter(row=>state.selected.has(row.id));
@@ -559,9 +646,10 @@
   }
   function editorForm(row){
     const isEdit=Boolean(row),source=row?.source||'',target=row?.target||'',inheritAge=row?String(row.inheritAge?'是':'否'):'',items=buildItems(row||{items:[],skuCount:0,requestQty:0});
-    return `<div class="dialog editor-dialog"><header class="dialog-header"><div><h2>${isEdit?'编辑调拨单':'新建调拨单'}</h2></div><button class="dialog-close" data-close="editor">×</button></header><div class="dialog-body"><section class="section"><div class="section-title">基础信息</div><div class="section-body"><div class="form-grid"><div class="field"><label>调拨类型</label><select id="editType"><option>仓间调拨</option></select></div><div class="field"><label class="required">调出仓库</label><select id="editSource"><option value="">请选择调出仓库</option>${warehouses.map(item=>`<option ${item===source?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label class="required">调入仓库</label><select id="editTarget"><option value="">请选择调入仓库</option>${warehouses.map(item=>`<option ${item===target?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>预计到仓日期</label><input id="editEta" type="date" value="${row?.eta||'2026-09-25'}"></div><div class="field"><label class="required">是否继承库龄</label><select id="inheritAge"><option value="">请选择</option><option value="是" ${inheritAge==='是'?'selected':''}>是</option><option value="否" ${inheritAge==='否'?'selected':''}>否</option></select></div><div class="field"><label>物流渠道</label><select id="editChannel"><option value="">请选择物流渠道</option>${['快猫物流','中通','圆通','顺丰'].map(item=>`<option ${item===row?.channel?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>物流单号</label><input id="editWaybill" value="${row?.waybill==='—'?'':row?.waybill||''}" placeholder="可后续补录"></div><div class="field"><label>运费</label><div class="money-field"><input id="editFee" type="number" min="0" step="0.01" value="${row?.fee||''}" placeholder="请输入"><span>CNY</span></div></div><div class="field"><label>其他费用</label><div class="money-field"><input id="editOtherFee" type="number" min="0" step="0.01" value="${row?.otherFee||''}" placeholder="请输入"><span>CNY</span></div></div><div class="field span-2"><label>调拨备注</label><textarea id="editRemark" maxlength="500" placeholder="请输入备注（选填）">${escapeHtml(row?.remark||'')}</textarea></div></div></div></section><section class="section"><div class="section-title"><div class="editor-item-toolbar"><button class="btn primary small" id="addSkuBtn">＋ 添加SKU</button><div class="bulk-target-team"><select id="bulkTargetTeam"><option value="">批量选择调入团队</option>${teams.map(item=>`<option>${item}</option>`).join('')}</select><button class="btn small" id="applyTargetTeam">应用到全部</button></div></div></div><div class="section-body detail-table-wrap"><table class="detail-table editor-detail"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>在库量</th><th class="required-column">调拨数量</th><th class="required-column">调入团队</th><th>备注</th><th>操作</th></tr></thead><tbody id="editorItems">${items.map((item,index)=>editorItem(item,index)).join('')}</tbody></table><div class="empty editor-empty" ${items.length?'hidden':''}>请先选择调出仓库，再点击“添加SKU”</div></div></section></div><footer class="dialog-footer"><button class="btn" data-close="editor">取消</button><button class="btn primary" data-editor-action="submit">提交审核</button></footer></div>`;
+    const submitText=row?.status==='异常'?'保存并重新流转':'提交审核';
+    return `<div class="dialog editor-dialog"><header class="dialog-header"><div><h2>${isEdit?'编辑调拨单':'新建调拨单'}</h2></div><button class="dialog-close" data-close="editor">×</button></header><div class="dialog-body"><section class="section"><div class="section-title">基础信息</div><div class="section-body"><div class="form-grid"><div class="field"><label>调拨类型</label><select id="editType"><option>仓间调拨</option></select></div><div class="field"><label class="required">调出仓库</label><select id="editSource"><option value="">请选择调出仓库</option>${warehouses.map(item=>`<option ${item===source?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label class="required">调入仓库</label><select id="editTarget"><option value="">请选择调入仓库</option>${warehouses.map(item=>`<option ${item===target?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>预计到仓日期</label><input id="editEta" type="date" value="${row?.eta||'2026-09-25'}"></div><div class="field"><label class="required">是否继承库龄</label><select id="inheritAge"><option value="">请选择</option><option value="是" ${inheritAge==='是'?'selected':''}>是</option><option value="否" ${inheritAge==='否'?'selected':''}>否</option></select></div><div class="field"><label>物流渠道</label><select id="editChannel"><option value="">请选择物流渠道</option>${['快猫物流','中通','圆通','顺丰'].map(item=>`<option ${item===row?.channel?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>物流单号</label><input id="editWaybill" value="${row?.waybill==='—'?'':row?.waybill||''}" placeholder="可后续补录"></div><div class="field"><label>运费</label><div class="money-field"><input id="editFee" type="number" min="0" step="0.01" value="${row?.fee||''}" placeholder="请输入"><span>CNY</span></div></div><div class="field"><label>其他费用</label><div class="money-field"><input id="editOtherFee" type="number" min="0" step="0.01" value="${row?.otherFee||''}" placeholder="请输入"><span>CNY</span></div></div><div class="field span-2"><label>调拨备注</label><textarea id="editRemark" maxlength="500" placeholder="请输入备注（选填）">${escapeHtml(row?.remark||'')}</textarea></div></div></div></section><section class="section"><div class="section-title"><div class="editor-item-toolbar"><button class="btn primary small" id="addSkuBtn">＋ 添加SKU</button><div class="bulk-target-team"><select id="bulkTargetTeam"><option value="">批量选择调入团队</option>${teams.map(item=>`<option>${item}</option>`).join('')}</select><button class="btn small" id="applyTargetTeam">应用到全部</button></div></div></div><div class="section-body detail-table-wrap"><table class="detail-table editor-detail"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>在库量</th><th class="required-column">调拨数量</th><th>调拨金额</th><th class="required-column">调入团队</th><th>备注</th><th>操作</th></tr></thead><tbody id="editorItems">${items.map((item,index)=>editorItem(item,index)).join('')}</tbody></table><div class="empty editor-empty" ${items.length?'hidden':''}>请先选择调出仓库，再点击“添加SKU”</div></div></section></div><footer class="dialog-footer"><button class="btn" data-close="editor">取消</button><button class="btn primary" data-editor-action="submit">${submitText}</button></footer></div>`;
   }
-  function editorItem(item,index){return `<tr data-item-index="${index}"><td class="left"><b>${item.sku}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${item.available}</td><td><input class="quantity-input required-input" type="number" min="1" max="${item.available}" value="${item.quantity??''}" placeholder="请输入" required data-field="quantity"></td><td><select class="target-team-select required-input" required data-field="targetTeam"><option value="">请选择调入团队</option>${teams.map(team=>`<option ${team===item.targetTeam?'selected':''}>${team}</option>`).join('')}</select></td><td><textarea class="remark-input" maxlength="120" placeholder="请输入" data-field="remark">${escapeHtml(item.remark||'')}</textarea></td><td><button class="sku-remove" type="button" data-remove-item="${index}">移除</button></td></tr>`;}
+  function editorItem(item,index){return `<tr data-item-index="${index}"><td class="left"><b>${item.sku}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${item.available}</td><td><input class="quantity-input required-input" type="number" min="1" max="${item.available}" value="${item.quantity??''}" placeholder="请输入" required data-field="quantity"></td><td class="item-transfer-amount" data-item-amount>${formatMoney(itemTransferAmount(item))}</td><td><select class="target-team-select required-input" required data-field="targetTeam"><option value="">请选择调入团队</option>${teams.map(team=>`<option ${team===item.targetTeam?'selected':''}>${team}</option>`).join('')}</select></td><td><textarea class="remark-input" maxlength="120" placeholder="请输入" data-field="remark">${escapeHtml(item.remark||'')}</textarea></td><td><button class="sku-remove" type="button" data-remove-item="${index}">移除</button></td></tr>`;}
   function openEditor(row){const modal=$('#editorModal');state.editing=row?.id||null;state.editorItems=buildItems(row||{items:[],skuCount:0,requestQty:0});modal.innerHTML=editorForm(row);modal.hidden=false;bindEditor(modal,row);}
   function bindEditor(modal,row){
     modal.querySelectorAll('[data-close="editor"]').forEach(button=>button.onclick=()=>{modal.hidden=true;});modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};
@@ -571,11 +659,11 @@
     modal.querySelectorAll('[data-editor-action]').forEach(button=>button.onclick=()=>saveEditor(modal,row));
     renderEditorItems(modal);
   }
-  function renderEditorItems(modal){const body=$('#editorItems',modal);body.innerHTML=(state.editorItems||[]).map((item,index)=>editorItem(item,index)).join('');$('.editor-empty',modal).hidden=Boolean(state.editorItems.length);body.querySelectorAll('[data-remove-item]').forEach(button=>button.onclick=()=>{state.editorItems.splice(Number(button.dataset.removeItem),1);renderEditorItems(modal);});body.querySelectorAll('[data-field]').forEach(input=>{const syncField=()=>{const row=state.editorItems[Number(input.closest('tr').dataset.itemIndex)];row[input.dataset.field]=input.value;};input.oninput=syncField;input.onchange=syncField;});}
-  function saveEditor(modal,row){const source=$('#editSource',modal).value,target=$('#editTarget',modal).value,inheritAge=$('#inheritAge',modal).value;if(!source||!target||!inheritAge){toast('请填写调出仓库、调入仓库和是否继承库龄','error');return;}if(source===target){toast('调入仓库不能与调出仓库相同','error');return;}if(!state.editorItems.length){toast('请至少添加一个SKU','error');return;}for(const item of state.editorItems){if(item.quantity===''||item.quantity===null||item.quantity===undefined){toast(`请填写 SKU ${item.sku} 的调拨数量`,'error');return;}const quantity=Number(item.quantity);if(!Number.isInteger(quantity)||quantity<=0||quantity>item.available){toast(`SKU ${item.sku} 的调拨数量须为1-${item.available}的整数`,'error');return;}if(!item.targetTeam){toast(`请选择 SKU ${item.sku} 的调入团队`,'error');return;}}
+  function renderEditorItems(modal){const body=$('#editorItems',modal);body.innerHTML=(state.editorItems||[]).map((item,index)=>editorItem(item,index)).join('');$('.editor-empty',modal).hidden=Boolean(state.editorItems.length);body.querySelectorAll('[data-remove-item]').forEach(button=>button.onclick=()=>{state.editorItems.splice(Number(button.dataset.removeItem),1);renderEditorItems(modal);});body.querySelectorAll('[data-field]').forEach(input=>{const syncField=()=>{const row=state.editorItems[Number(input.closest('tr').dataset.itemIndex)];row[input.dataset.field]=input.value;if(input.dataset.field==='quantity')input.closest('tr').querySelector('[data-item-amount]').textContent=formatMoney(itemTransferAmount(row));};input.oninput=syncField;input.onchange=syncField;});}
+  function saveEditor(modal,row){const source=$('#editSource',modal).value,target=$('#editTarget',modal).value,inheritAge=$('#inheritAge',modal).value,isException=row?.status==='异常';if(!source||!target||!inheritAge){toast('请填写调出仓库、调入仓库和是否继承库龄','error');return;}if(source===target){toast('调入仓库不能与调出仓库相同','error');return;}if(!state.editorItems.length){toast('请至少添加一个SKU','error');return;}for(const item of state.editorItems){if(item.quantity===''||item.quantity===null||item.quantity===undefined){toast(`请填写 SKU ${item.sku} 的调拨数量`,'error');return;}const quantity=Number(item.quantity);if(!Number.isInteger(quantity)||quantity<=0||quantity>item.available){toast(`SKU ${item.sku} 的调拨数量须为1-${item.available}的整数`,'error');return;}if(!item.targetTeam){toast(`请选择 SKU ${item.sku} 的调入团队`,'error');return;}}
     const logistics=normalizeLogistics($('#editChannel',modal).value.trim(),$('#editWaybill',modal).value.trim());
     const payload={source,target,eta:$('#editEta',modal).value||'—',...logistics,fee:Number($('#editFee',modal).value||0),otherFee:Number($('#editOtherFee',modal).value||0),remark:$('#editRemark',modal).value.trim(),inheritAge:inheritAge==='是',items:state.editorItems.map(item=>({...item,quantity:Number(item.quantity)})),skuCount:state.editorItems.length,requestQty:state.editorItems.reduce((sum,item)=>sum+Number(item.quantity),0)};
-    if(row){Object.assign(row,payload);row.status='待审核';delete row.auditDecision;delete row.auditReason;row.updatedAt=now();toast('调拨单已提交审核');}else{const no=nextTransferNo();orders.unshift({...order(no,'待审核',source,target,payload.skuCount,payload.requestQty,0,payload.channel,payload.waybill,payload.eta,'库存管理','Admin'),...payload});toast('调拨单已提交审核');}
+    if(row){Object.assign(row,payload);row.status=isException?'待出库':'待审核';if(isException){row.reflowLog='编辑调拨单后库存校验通过，重新流转待出库';delete row.abnormalReason;}else{delete row.auditDecision;delete row.auditReason;}row.updatedAt=now();toast(isException?'调拨单已重新流转待出库':'调拨单已提交审核');}else{const no=nextTransferNo();orders.unshift({...order(no,'待审核',source,target,payload.skuCount,payload.requestQty,0,payload.channel,payload.waybill,payload.eta,'库存管理','Admin'),...payload});toast('调拨单已提交审核');}
     modal.hidden=true;state.page=1;renderTabs();renderTable();
   }
   function pickerKey(item){return `${item.sku}__${item.team}`;}
@@ -687,7 +775,6 @@
     $('#searchBtn').onclick=()=>{if(!validateQueryDates())return;state.page=1;renderTable();toast('查询完成');};['codeText','skuText'].forEach(id=>{$('#'+id).onkeydown=event=>{if(event.key==='Enter')$('#searchBtn').click();};});$('#resetBtn').onclick=resetFilters;$('#refreshBtn').onclick=()=>{renderTabs();renderTable();toast('列表已刷新');};$('#newBtn').onclick=()=>openEditor();$('#exportBtn').onclick=()=>toast('已生成调拨单导出文件');$('#auditBtn').onclick=openAudit;$('#voidBtn').onclick=voidRows;$('#pageSize').onchange=event=>{state.pageSize=Number(event.target.value);state.page=1;renderTable();};$('#prevPage').onclick=()=>{if(state.page>1){state.page--;renderTable();}};$('#nextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(filtered().length/state.pageSize));if(state.page<pages){state.page++;renderTable();}};$('#statusTabs').onclick=event=>{const tab=event.target.closest('[data-status]');if(!tab)return;state.status=tab.dataset.status;state.page=1;renderTabs();renderTable();};$('#selectAll').onchange=event=>{const visible=filtered().slice((state.page-1)*state.pageSize,state.page*state.pageSize);visible.forEach(row=>event.target.checked?state.selected.add(row.id):state.selected.delete(row.id));renderTable();};$('#tableBody').onclick=event=>{const check=event.target.closest('.row-check');if(check){check.checked?state.selected.add(check.dataset.id):state.selected.delete(check.dataset.id);$('#selectedCount').textContent=state.selected.size;return;}const button=event.target.closest('[data-action]');if(!button)return;const row=orders.find(item=>item.id===button.closest('tr').dataset.id);if(row)runAction(button.dataset.action,row);};$('#pageButtons').onclick=event=>{const button=event.target.closest('[data-page]');if(button){state.page=Number(button.dataset.page);renderTable();}};$('#addSkuBtn')?.addEventListener('click',openPicker);
     document.addEventListener('click',event=>{const button=event.target.closest('#tableBody [data-expand]');if(!button)return;const id=button.dataset.expand;state.expanded.has(id)?state.expanded.delete(id):state.expanded.add(id);renderTable();});
     document.addEventListener('input',event=>{const input=event.target.closest('#tableBody [data-list-remark]');if(!input)return;const row=orders.find(item=>item.id===input.closest('tr')?.dataset.id);if(row)row.remark=input.value;});
-    document.addEventListener('click',event=>{if(event.target.matches('[data-page-nav]')){const page=event.target.dataset.pageNav;const map={transferOrder:'../transfer-orders/index.html',inventoryQuery:'../inventory-query/index.html',processingOrder:'../processing-orders/index.html',forecast:'../demand-forecast/index.html',stock:'../stock-plan/index.html',purchase:'../purchase-plan/index.html',shipment:'../shipment-plan/index.html',purchaseOrder:'../purchase-orders/index.html',shipmentOrder:'../shipment-orders/index.html',skuFirstLegCost:'../sku-first-leg-cost/index.html'};if(window.parent!==window)window.parent.postMessage({type:'prototype:navigate',page},'*');else if(map[page])window.location.href=map[page];}});
   }
   init();
 })();
