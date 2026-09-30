@@ -179,6 +179,8 @@
 .outbound-logistics-item{display:flex;align-items:center;gap:10px;min-width:0}
 .outbound-logistics-item>label{flex:0 0 62px;color:#606266;font-size:12px}
 .outbound-logistics-item>.control{flex:1;min-width:0}
+.outbound-logistics-item>.input-clear{flex:1;min-width:0}
+.outbound-logistics-item>.input-clear>.control{width:100%}
 .outbound-channel-field{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
 .outbound-channel-field>.custom-select{flex:1;min-width:0;width:auto!important;height:34px}
 .outbound-icon-btn{display:inline-flex;flex:none;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;font-size:15px;line-height:1;cursor:pointer}
@@ -196,6 +198,13 @@
 .outbound-channel-editor-error{grid-column:1/-1;min-height:0;margin:0;color:var(--danger);font-size:11px;line-height:16px}
 .outbound-channel-editor-error:empty{display:none}
 .outbound-channel-select{height:34px}
+.editor-dialog .custom-select-option.is-add-channel{margin-top:4px;border-top:1px solid #ebeef5;color:var(--blue)}
+.editor-dialog .custom-select-option.is-add-channel:before{display:none}
+.editor-channel-editor{display:grid;grid-template-columns:minmax(0,1fr) 34px 34px;gap:8px;padding:8px 10px;border-top:1px solid #d9e4f2;background:#f5f8ff}
+.editor-channel-editor[hidden]{display:none}
+.editor-channel-editor>.control{width:100%;height:34px;min-width:0}
+.editor-channel-editor-error{grid-column:1/-1;min-height:0;margin:0;color:var(--danger);font-size:11px;line-height:16px}
+.editor-channel-editor-error:empty{display:none}
 .outbound-error{min-height:18px;margin:6px 0 0;color:var(--danger);font-size:12px}
 .outbound-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;flex:none}
 .outbound-result{white-space:nowrap}
@@ -228,3 +237,20 @@
 .complete-remark:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(64,158,255,.12)}
 .complete-error{min-height:20px;margin:7px 0 0;color:var(--danger);font-size:12px}
 .complete-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid var(--line);background:#fff;flex:none}
+
+/* 货权调拨：同仓转移的识别与编辑提示 */
+.doc-type{margin-top:5px;color:#909399;font-size:12px;line-height:16px}
+.editor-dialog .field input:disabled,.editor-dialog .field select:disabled{border-color:#e4e7ed;background:#f5f7fa;color:#a8abb2;cursor:not-allowed}
+.editor-dialog .money-field:has(input:disabled){background:#f5f7fa;border-color:#e4e7ed}
+/* 添加 SKU 前的基础必填校验：保留按钮可点击，缺项就地显示错误 */
+.editor-dialog .form-grid .field.has-error{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:start;row-gap:4px}
+.editor-dialog .form-grid .field.has-error>label{grid-column:1;grid-row:1;align-self:center}
+.editor-dialog .form-grid .field.has-error>input,.editor-dialog .form-grid .field.has-error>select{grid-column:2;grid-row:1;width:100%}
+.editor-dialog .form-grid .field.has-error>.field-validation{grid-column:2;grid-row:2;width:100%}
+.editor-dialog .field.has-error input:not(:disabled),.editor-dialog .field.has-error select:not(:disabled){border-color:#f56c6c}
+.editor-dialog .field.has-error input:not(:disabled):focus,.editor-dialog .field.has-error select:not(:disabled):focus{box-shadow:0 0 0 2px rgba(245,108,108,.12)}
+.editor-dialog .field-validation{margin:0;color:#f56c6c;font-size:12px;line-height:16px}
+/* 统一问号提示图标：16px 灰色描边圆形，支持悬停与键盘聚焦 */
+.form-help-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:4px;border:1px solid #c0c4cc;border-radius:50%;color:#909399;font-size:11px;font-weight:400;line-height:1;vertical-align:middle;cursor:help}
+.form-help-icon::after{content:attr(data-tooltip);position:absolute;left:50%;top:calc(100% + 8px);z-index:80;width:max-content;max-width:360px;padding:8px 10px;border-radius:4px;background:rgba(48,49,51,.96);box-shadow:0 4px 12px rgba(0,0,0,.18);color:#fff;font-size:12px;font-weight:400;line-height:18px;text-align:left;white-space:normal;opacity:0;pointer-events:none;transform:translate(-50%,-4px);transition:opacity .15s ease,transform .15s ease}
+.form-help-icon:hover::after,.form-help-icon:focus::after{opacity:1;transform:translate(-50%,0)}

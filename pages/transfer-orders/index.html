@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>调拨单</title>
-  <link rel="stylesheet" href="./styles.css?v=1.0.12">
+  <link rel="stylesheet" href="./styles.css?v=1.0.18">
   <link rel="stylesheet" href="../../document-list.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.60">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
@@ -40,6 +40,7 @@
               <select class="control query-type-select" id="skuType" aria-label="SKU 类型"><option value="sku">SKU</option><option value="name">产品名称</option></select>
               <input class="control query-combo-input" id="skuText" placeholder="请输入SKU，支持输入多个，用逗号、空格或换行隔开" aria-label="SKU查询">
             </div>
+            <div class="query-item"><select class="control" id="transferTypeQuery" aria-label="调拨类型"><option value="">调拨类型</option><option value="仓间调拨">仓间调拨</option><option value="货权调拨">货权调拨</option></select></div>
             <div class="query-item"><div class="multi" id="sourceWarehouseMulti"><div class="multi-trigger" data-trigger>请选择调出仓库（可多选）</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item"><div class="multi" id="targetWarehouseMulti"><div class="multi-trigger" data-trigger>请选择调入仓库（可多选）</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item"><div class="multi" id="sourceTeamMulti"><div class="multi-trigger" data-trigger>请选择调出团队（可多选）</div><div class="dropdown" data-menu></div></div></div>
@@ -74,7 +75,7 @@
   <div class="modal-mask" id="inboundModal" hidden></div>
   <div class="modal-mask" id="completeModal" hidden></div>
   <div class="toast" id="toast"></div>
-  <script src="./app.js?v=1.0.13"></script>
+  <script src="./app.js?v=1.0.20"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../navigation.js?v=1.7.65"></script>
 </body>

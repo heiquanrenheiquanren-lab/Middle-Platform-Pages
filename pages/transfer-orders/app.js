@@ -22,14 +22,16 @@
     try{ localStorage.setItem(logisticsChannelStorageKey, JSON.stringify(saved)); }catch(error){}
   }
   const teams = ['公共库存', 'Temu团队', '亚马逊北美团队', '独立站团队'];
+  const warehouseTransferHelp = '仓间调拨仅支持自营仓与物流中转之间的空间调拨，货权调拨支持全部类型仓库';
   const skuPool = [
-    {sku:'KBAB0057-009',name:'焊接面罩自动变光款',sourceSku:'KBAB0057-009',targetSku:'KBAB0057-009',available:312,price:6.4881,costBatches:[{quantity:160,unitCost:6.32},{quantity:152,unitCost:6.66}],team:'Temu团队'},
-    {sku:'34001001110',name:'焊接帽子迷彩 2-白色',sourceSku:'34001001110',targetSku:'34001001110',available:240,price:12.86,costBatches:[{quantity:120,unitCost:12.48},{quantity:120,unitCost:13.24}],team:'公共库存'},
-    {sku:'34001001206',name:'焊接手套加厚款',sourceSku:'34001001206',targetSku:'34001001206',available:186,price:18.5,costBatches:[{quantity:90,unitCost:18.12},{quantity:96,unitCost:18.86}],team:'亚马逊北美团队'},
-    {sku:'34001001401',name:'焊接护目镜防雾款',sourceSku:'34001001401',targetSku:'34001001401',available:154,price:25.2,costBatches:[{quantity:70,unitCost:24.8},{quantity:84,unitCost:25.53}],team:'独立站团队'},
-    {sku:'34001001501',name:'焊接面罩手持式',sourceSku:'34001001501',targetSku:'34001001501',available:128,price:32.8,costBatches:[{quantity:64,unitCost:32.15},{quantity:64,unitCost:33.45}],team:'亚马逊北美团队'}
+    {sku:'KBAB0057-009',name:'焊接面罩自动变光款',sourceSku:'KBAB0057-009',targetSku:'KBAB0057-009',available:312,price:6.4881,costBatches:[{quantity:160,unitCost:6.32},{quantity:152,unitCost:6.66}],team:'Temu团队',stockWarehouses:['华东实体仓','SZ01东莞仓']},
+    {sku:'34001001110',name:'焊接帽子迷彩 2-白色',sourceSku:'34001001110',targetSku:'34001001110',available:240,price:12.86,costBatches:[{quantity:120,unitCost:12.48},{quantity:120,unitCost:13.24}],team:'公共库存',stockWarehouses:['华东实体仓']},
+    {sku:'34001001206',name:'焊接手套加厚款',sourceSku:'34001001206',targetSku:'34001001206',available:186,price:18.5,costBatches:[{quantity:90,unitCost:18.12},{quantity:96,unitCost:18.86}],team:'亚马逊北美团队',stockWarehouses:['华东实体仓','Temu09-全托管平台仓']},
+    {sku:'34001001401',name:'焊接护目镜防雾款',sourceSku:'34001001401',targetSku:'34001001401',available:154,price:25.2,costBatches:[{quantity:70,unitCost:24.8},{quantity:84,unitCost:25.53}],team:'独立站团队',stockWarehouses:['SZ01东莞仓']},
+    {sku:'34001001501',name:'焊接面罩手持式',sourceSku:'34001001501',targetSku:'34001001501',available:128,price:32.8,costBatches:[{quantity:64,unitCost:32.15},{quantity:64,unitCost:33.45}],team:'亚马逊北美团队',stockWarehouses:['Temu09-全托管平台仓','快猫物流中转仓']}
   ];
   let orders = [
+    ownershipOrder('TF2609230001','已完成','华东实体仓','Admin'),
     order('TF2609220001','待审核','华东实体仓','快猫物流中转仓',3,620,0,'快猫物流','—','2026-09-25','采购部','Admin'),
     order('TF2609210001','在途','SZ01东莞仓','Temu09-全托管平台仓',2,180,0,'中通','ZT20260921008','2026-09-23','仓库部','张三'),
     order('TF2609200001','部分入库','华东实体仓','快猫物流中转仓',4,420,360,'快猫物流','KM20260920015','2026-09-22','仓库部','李四'),
@@ -53,10 +55,17 @@
     const hasLogistics=Boolean(channel&&channel!=='—'&&waybill&&waybill!=='—');
     const shipped=!['待审核','待出库','已驳回','已作废'].includes(status);
     const received=Number(inboundQty||0)>0;
-    return {id:no,no,status,source,target,skuCount,requestQty,outboundQty:shipped?requestQty:0,inboundQty,voidedQty:0,channel:hasLogistics?channel:'—',waybill:hasLogistics?waybill:'—',eta,department,creator,createdAt:`${transferDate(no)} 10:20`,updatedAt:now(),outboundAt:shipped?`${transferDate(no)} 14:30`:'',inboundAt:received?`${transferDate(no)} 18:10`:'',inheritAge:true,fee:0,otherFee:0,remark:'',items:[]};
+    return {id:no,no,status,transferType:'仓间调拨',source,target,skuCount,requestQty,outboundQty:shipped?requestQty:0,inboundQty,voidedQty:0,channel:hasLogistics?channel:'—',waybill:hasLogistics?waybill:'—',eta,department,creator,createdAt:`${transferDate(no)} 10:20`,updatedAt:now(),outboundAt:shipped?`${transferDate(no)} 14:30`:'',inboundAt:received?`${transferDate(no)} 18:10`:'',inheritAge:true,fee:0,otherFee:0,remark:'',items:[]};
+  }
+  function ownershipOrder(no,status,warehouse,creator){
+    const items=[
+      {...skuPool[0],sourceWarehouse:warehouse,team:'Temu团队',targetTeam:'亚马逊北美团队',quantity:100,remark:'团队货权调整'},
+      {...skuPool[1],sourceWarehouse:warehouse,team:'公共库存',targetTeam:'独立站团队',quantity:40,remark:''}
+    ];
+    return {...order(no,status,warehouse,warehouse,items.length,140,0,'—','—','—','库存管理',creator),transferType:'货权调拨',ownershipWarehouse:warehouse,items,remark:'同仓团队货权调整',ownershipCompleted:status==='已完成',auditDecision:status==='已完成'?'approve':'',outboundQty:0,inboundQty:0,voidedQty:0};
   }
   const CURRENT_USER = 'Admin';
-  const state = {status:'全部',page:1,pageSize:10,selected:new Set(),expanded:new Set(),editing:null,pickerRows:[],pickerSelected:new Set(),importFile:null,importRows:[],importErrors:[],sourceWarehouses:[],targetWarehouses:[],sourceTeams:[],targetTeams:[],channels:[],creators:[CURRENT_USER],queryExpanded:false};
+  const state = {status:'全部',page:1,pageSize:10,selected:new Set(),expanded:new Set(),editing:null,editorType:'仓间调拨',editorDraft:null,pickerRows:[],pickerSelected:new Set(),importFile:null,importRows:[],importErrors:[],sourceWarehouses:[],targetWarehouses:[],sourceTeams:[],targetTeams:[],channels:[],creators:[CURRENT_USER],transferType:'',queryExpanded:false};
   function defaultQueryValues(key){return key==='creators'?[CURRENT_USER]:[];}
   const importColumns = [
     {key:'sku',label:'SKU',required:true,description:'【必填】填写有效 SKU，SKU 必须存在且属于调出仓库库存。'},
@@ -165,6 +174,7 @@
     const skuType=$('#skuType')?.value||'sku';
     const skuValues=splitValues($('#skuText')?.value);
     const hasDiff=$('#hasDiff')?.value||'';
+    const transferType=$('#transferTypeQuery')?.value||'';
     const timeType=$('#timeType')?.value||'createdAt';
     const start=$('#startDate')?.value||'',end=$('#endDate')?.value||'';
     return orders.filter(row=>{
@@ -174,7 +184,7 @@
       const diff=Number(row.outboundQty||0)-Number(row.inboundQty||0);
       const hitCode=codeType==='waybill'?includesAny(row.waybill,codeValues):includesAny(row.no,codeValues);
       const hitSku=!skuValues.length||items.some(item=>skuValues.some(term=>String(skuType==='name'?item.name:item.sku||'').toLowerCase().includes(term)));
-      return (state.status==='全部'||row.status===state.status)&&hitCode&&hitSku&&
+      return (state.status==='全部'||row.status===state.status)&&(!transferType||row.transferType===transferType)&&hitCode&&hitSku&&
         equalsAny(row.source,state.sourceWarehouses)&&equalsAny(row.target,state.targetWarehouses)&&
         (!state.sourceTeams.length||items.some(item=>state.sourceTeams.includes(item.team)))&&
         (!state.targetTeams.length||items.some(item=>state.targetTeams.includes(item.targetTeam)))&&
@@ -204,14 +214,35 @@
       return currentIndex===index?{outbound,inbound,voided,inTransit:Math.max(outbound-inbound-voided,0),diff:outbound-inbound}:progress;
     },{outbound:0,inbound:0,voided:0,inTransit:0,diff:0});
   }
+  function isOwnershipTransfer(row){return row.transferType==='货权调拨';}
+  function directionMarkup(row){
+    return `<div class="direction"><span>${escapeHtml(row.source)}</span><span class="arrow">↓</span><span>${escapeHtml(row.target)}</span></div>`;
+  }
+  function progressMarkup(row){
+    const ownership=isOwnershipTransfer(row);
+    const outbound=ownership?0:row.outboundQty,inbound=ownership?0:row.inboundQty;
+    return `<div class="field-line"><span>出库数量：</span><span>${outbound}</span></div><div class="field-line"><span>入库数量：</span><span>${inbound}</span></div><div class="field-line"><span>在途数量：</span><span>${ownership?0:Math.max(row.outboundQty-row.inboundQty-Number(row.voidedQty||0),0)}</span></div><div class="field-line"><span>差异数量：</span><span>${ownership?0:row.outboundQty-row.inboundQty}</span></div>`;
+  }
+  function feeMarkup(row){
+    const amount=transferAmount(row);
+    return `<div class="field-line"><span>运费：</span><span>${formatMoney(row.fee)}</span></div><div class="field-line"><span>其他费用：</span><span>${formatMoney(row.otherFee)}</span></div><div class="field-line"><span>调拨总金额：</span><span>${formatMoney(amount)}</span></div>`;
+  }
+  function logisticsMarkup(row){
+    const ownership=isOwnershipTransfer(row);
+    return `<div class="field-line"><span>物流渠道：</span><span>${ownership?'—':escapeHtml(row.channel||'—')}</span></div><div class="field-line"><span>物流单号：</span><span>${ownership?'—':escapeHtml(row.waybill||'—')}</span></div><div class="field-line"><span>预计到仓：</span><span>${ownership?'—':row.eta}</span></div>`;
+  }
   function childDetailRow(row){
     const items=buildItems(row);
-    return `<tr class="detail-row"><td colspan="10"><div class="child-detail-box"><div class="child-table-wrap"><table class="child-detail-table"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th></tr></thead><tbody>${items.map((item,index)=>{const progress=itemProgress(items,row,index);return `<tr><td>${escapeHtml(item.sku)}</td><td class="left">${escapeHtml(item.name)}</td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td class="left">${escapeHtml(item.remark||'—')}</td></tr>`;}).join('')}</tbody></table></div></div></td></tr>`;
+    const ownership=isOwnershipTransfer(row);
+    const header='<th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th>';
+    const rows=items.map((item,index)=>{
+      const progress=ownership?{outbound:0,inbound:0,inTransit:0,diff:0}:itemProgress(items,row,index);return `<tr><td>${escapeHtml(item.sku)}</td><td class="left">${escapeHtml(item.name)}</td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td class="left">${escapeHtml(item.remark||'—')}</td></tr>`;
+    }).join('');
+    return `<tr class="detail-row"><td colspan="10"><div class="child-detail-box"><div class="child-table-wrap"><table class="child-detail-table"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></div></td></tr>`;
   }
   function renderTable(){
     const rows=filtered();const pages=Math.max(1,Math.ceil(rows.length/state.pageSize));state.page=Math.min(state.page,pages);const pageRows=rows.slice((state.page-1)*state.pageSize,state.page*state.pageSize);$('#totalCount').textContent=rows.length;$('#empty').hidden=pageRows.length>0;$('#selectAll').checked=pageRows.length>0&&pageRows.every(row=>state.selected.has(row.id));
-    $('#tableBody').innerHTML=pageRows.map(row=>{const expanded=state.expanded.has(row.id),amount=transferAmount(row);return `<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${row.id}"><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td><span class="expand-row ${expanded?'is-expanded':''}" data-expand="${row.id}" role="button" tabindex="0" aria-label="${expanded?'收起':'展开'}调拨明细"><span class="expand-chevron"></span></span></td><td><div class="doc-line doc-main"><button class="link doc-no" data-action="view">${row.no}</button><span class="status-tag status-${statusClass(row.status)}">${row.status}</span></div><div class="label-line"><span>调拨类型：</span><span>仓间调拨</span></div></td><td><div class="direction"><span>${escapeHtml(row.source)}</span><span class="arrow">↓</span><span>${escapeHtml(row.target)}</span></div></td><td><div class="field-line"><span>出库数量：</span><span>${row.outboundQty}</span></div><div class="field-line"><span>入库数量：</span><span>${row.inboundQty}</span></div><div class="field-line"><span>在途数量：</span><span>${Math.max(row.outboundQty-row.inboundQty-Number(row.voidedQty||0),0)}</span></div><div class="field-line"><span>差异数量：</span><span>${row.outboundQty-row.inboundQty}</span></div></td><td><div class="field-line"><span>运费：</span><span>${formatMoney(row.fee)}</span></div><div class="field-line"><span>其他费用：</span><span>${formatMoney(row.otherFee)}</span></div><div class="field-line"><span>调拨总金额：</span><span>${formatMoney(amount)}</span></div></td><td><div class="field-line"><span>物流渠道：</span><span>${escapeHtml(row.channel||'—')}</span></div><div class="field-line"><span>物流单号：</span><span>${escapeHtml(row.waybill||'—')}</span></div><div class="field-line"><span>预计到仓：</span><span>${row.eta}</span></div></td><td><input class="list-remark-input" data-list-remark placeholder="请输入备注" value="${escapeHtml(row.remark||'')}"></td><td><div class="field-line"><span>创建人：</span><span>${escapeHtml(row.creator)}</span></div><div class="field-line"><span>创建时间：</span><span>${escapeHtml(row.createdAt)}</span></div></td><td><div class="action-cell">${actionsFor(row)}</div></td></tr>${expanded?childDetailRow(row):''}`;}).join('');
-    $$('#tableBody .label-line').forEach(node=>node.remove());
+    $('#tableBody').innerHTML=pageRows.map(row=>{const expanded=state.expanded.has(row.id);return `<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${row.id}"><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td><span class="expand-row ${expanded?'is-expanded':''}" data-expand="${row.id}" role="button" tabindex="0" aria-label="${expanded?'收起':'展开'}调拨明细"><span class="expand-chevron"></span></span></td><td><div class="doc-line doc-main"><button class="link doc-no" data-action="view">${row.no}</button><span class="status-tag status-${statusClass(row.status)}">${row.status}</span></div><div class="doc-type">${escapeHtml(row.transferType||'仓间调拨')}</div></td><td>${directionMarkup(row)}</td><td>${progressMarkup(row)}</td><td>${feeMarkup(row)}</td><td>${logisticsMarkup(row)}</td><td><input class="list-remark-input" data-list-remark placeholder="请输入备注" value="${escapeHtml(row.remark||'')}"></td><td><div class="field-line"><span>创建人：</span><span>${escapeHtml(row.creator)}</span></div><div class="field-line"><span>创建时间：</span><span>${escapeHtml(row.createdAt)}</span></div></td><td><div class="action-cell">${actionsFor(row)}</div></td></tr>${expanded?childDetailRow(row):''}`;}).join('');
     $('#selectedCount').textContent=state.selected.size;renderPager(pages);
   }
   function actionsFor(row){
@@ -230,6 +261,7 @@
     ['startDate','endDate'].forEach(id=>{const node=$('#'+id);if(node)node.value='';});
     $('#timeType').value='createdAt';
     $('#hasDiff').value='';
+    $('#transferTypeQuery').value='';
     $('#codeType').value='no';
     $('#skuType').value='sku';
     $('#codeText').value='';
@@ -265,19 +297,23 @@
   }
   function renderDetail(row){
     const items=buildItems(row);
+    const ownership=isOwnershipTransfer(row);
     const amount=transferAmount(row);
     const value=(label,content)=>`<div class="transfer-detail-field"><span>${label}：</span><b>${content}</b></div>`;
     const status=`<span class="status-tag status-${statusClass(row.status)}">${escapeHtml(row.status)}</span>`;
-    const detailRows=items.map((item,index)=>{const progress=itemProgress(items,row,index);return `<tr><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td>${escapeHtml(item.remark||'—')}</td></tr>`;}).join('');
-    return `<div class="dialog detail-dialog"><header class="dialog-header"><div><h2>调拨单详情</h2><p>${escapeHtml(row.no)} · ${escapeHtml(row.source)} → ${escapeHtml(row.target)}</p></div><button class="dialog-close" data-close="detail" aria-label="关闭调拨单详情">×</button></header><div class="dialog-body transfer-detail-body"><section class="section transfer-detail-section"><div class="section-title">调拨信息</div><div class="transfer-detail-field-grid">${value('调拨单号',escapeHtml(row.no))}${value('单据状态',status)}${value('调拨类型','仓间调拨')}${value('调出仓库',escapeHtml(row.source))}${value('调入仓库',escapeHtml(row.target))}${value('预计到仓',escapeHtml(row.eta||'—'))}${value('是否继承库龄',row.inheritAge?'是':'否')}${value('物流渠道',escapeHtml(row.channel||'—'))}${value('物流单号',escapeHtml(row.waybill||'—'))}${value('运费',formatMoney(row.fee))}${value('其他费用',formatMoney(row.otherFee))}${value('调拨总金额',formatMoney(amount))}${value('创建人',escapeHtml(row.creator))}${value('创建时间',escapeHtml(row.createdAt))}</div><div class="transfer-detail-remark"><span>备注：</span><p>${escapeHtml(row.remark||'—')}</p></div></section><section class="section transfer-detail-section"><div class="section-title">调拨明细</div><div class="section-body transfer-detail-table-wrap"><table class="detail-table transfer-detail-table"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th></tr></thead><tbody>${detailRows}</tbody></table></div></section></div>`;
+    const detailRows=items.map((item,index)=>{const progress=ownership?{outbound:0,inbound:0,inTransit:0,diff:0}:itemProgress(items,row,index);return `<tr><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td>${escapeHtml(item.remark||'—')}</td></tr>`;}).join('');
+    const fields=ownership?`${value('调拨单号',escapeHtml(row.no))}${value('单据状态',status)}${value('调拨类型','货权调拨')}${value('所在仓库',escapeHtml(row.ownershipWarehouse||row.source))}${value('调拨总金额',formatMoney(amount))}${value('创建人',escapeHtml(row.creator))}${value('创建时间',escapeHtml(row.createdAt))}`:`${value('调拨单号',escapeHtml(row.no))}${value('单据状态',status)}${value('调拨类型','仓间调拨')}${value('调出仓库',escapeHtml(row.source))}${value('调入仓库',escapeHtml(row.target))}${value('预计到仓',escapeHtml(row.eta||'—'))}${value('是否继承库龄',row.inheritAge?'是':'否')}${value('物流渠道',escapeHtml(row.channel||'—'))}${value('物流单号',escapeHtml(row.waybill||'—'))}${value('运费',formatMoney(row.fee))}${value('其他费用',formatMoney(row.otherFee))}${value('调拨总金额',formatMoney(amount))}${value('创建人',escapeHtml(row.creator))}${value('创建时间',escapeHtml(row.createdAt))}`;
+    const headers='<th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th>';
+    const subtitle=ownership?`${escapeHtml(row.no)} · ${escapeHtml(row.ownershipWarehouse||row.source)}（同仓货权转移）`:`${escapeHtml(row.no)} · ${escapeHtml(row.source)} → ${escapeHtml(row.target)}`;
+    return `<div class="dialog detail-dialog"><header class="dialog-header"><div><h2>调拨单详情</h2><p>${subtitle}</p></div><button class="dialog-close" data-close="detail" aria-label="关闭调拨单详情">×</button></header><div class="dialog-body transfer-detail-body"><section class="section transfer-detail-section"><div class="section-title">调拨信息</div><div class="transfer-detail-field-grid">${fields}</div><div class="transfer-detail-remark"><span>备注：</span><p>${escapeHtml(row.remark||'—')}</p></div></section><section class="section transfer-detail-section"><div class="section-title">调拨明细</div><div class="section-body transfer-detail-table-wrap"><table class="detail-table transfer-detail-table"><thead><tr>${headers}</tr></thead><tbody>${detailRows}</tbody></table></div></section></div>`;
   }
   function openDetail(row){const modal=$('#detailModal');modal.innerHTML=renderDetail(row);modal.querySelector('.dialog-footer')?.remove();modal.hidden=false;bindDetail(modal,row);}
   function bindDetail(modal,row){modal.querySelectorAll('[data-close="detail"]').forEach(button=>button.onclick=()=>{modal.hidden=true;});modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};modal.querySelectorAll('[data-detail-action]').forEach(button=>button.onclick=()=>{modal.hidden=true;runAction(button.dataset.detailAction,row);});}
   function transferLogs(row){
-    const logs=[{type:'创建调拨单',content:'创建仓间调拨申请',operator:row.creator,time:row.createdAt}];
+    const logs=[{type:'创建调拨单',content:`创建${row.transferType||'仓间调拨'}申请`,operator:row.creator,time:row.createdAt}];
     if(row.abnormalReason)logs.push({type:'库存不足进入异常',content:row.abnormalReason,operator:'Admin',time:row.updatedAt});
     if(row.reflowLog)logs.push({type:'重新流转待出库',content:row.reflowLog,operator:'Admin',time:row.updatedAt});
-    if(row.auditDecision)logs.push({type:row.auditDecision==='approve'?'审核通过':'驳回调拨单',content:row.auditReason||'单据已进入后续处理流程',operator:'Admin',time:row.updatedAt});
+    if(row.auditDecision)logs.push({type:row.auditDecision==='approve'?'审核通过':'驳回调拨单',content:row.auditReason||(isOwnershipTransfer(row)&&row.status==='已完成'?'审核通过，已完成同仓货权转移':'单据已进入后续处理流程'),operator:'Admin',time:row.updatedAt});
     else logs.push({type:row.status==='已驳回'?'驳回调拨单':'提交审核',content:row.status==='已驳回'?'库存校验未通过，请修改后重新提交':'单据已进入后续处理流程',operator:'Admin',time:row.updatedAt});
     return logs;
   }
@@ -615,7 +651,7 @@
     const reason=$('#auditReason',modal).value.trim(),error=$('#auditError',modal);
     if(decision==='reject'&&!reason){error.textContent='驳回时必须填写原因';$('#auditReason',modal).classList.add('is-error');$('#auditReason',modal).focus();return;}
     if(decision==='approve'){
-      let abnormal=0;
+      let abnormal=0,ownershipCompleted=0;
       rows.forEach(row=>{
         if(!row.items.length)row.items=buildItems(row);
         const shortage=shortageItems(row);
@@ -624,13 +660,22 @@
           row.status='异常';
           row.abnormalReason=shortage.map(item=>`SKU ${item.sku} 需 ${item.quantity}，可用 ${item.available}，缺 ${Number(item.quantity)-Number(item.available)}`).join('；');
           abnormal++;
+        }else if(isOwnershipTransfer(row)){
+          row.items.forEach(item=>{item.ownershipOutQty=Number(item.quantity||0);item.ownershipInQty=Number(item.quantity||0);item.costAllocations=itemCostAllocations(item);});
+          row.status='已完成';
+          row.ownershipCompleted=true;
+          row.ownershipCompletedAt=now();
+          row.outboundQty=0;row.inboundQty=0;row.voidedQty=0;
+          delete row.abnormalReason;
+          ownershipCompleted++;
         }else{
           row.status='待出库';
           delete row.abnormalReason;
         }
       });
       modal.hidden=true;renderTabs();renderTable();
-      toast(abnormal>0?`已通过审核：${rows.length-abnormal} 张待出库，${abnormal} 张因库存不足进入异常`:`已通过 ${rows.length} 张调拨单`);
+      const physicalReady=rows.length-abnormal-ownershipCompleted;
+      toast(abnormal>0?`已通过审核：${physicalReady} 张待出库，${ownershipCompleted} 张货权调拨已完成，${abnormal} 张因库存不足进入异常`:(ownershipCompleted?`已通过审核：${ownershipCompleted} 张货权调拨已完成${physicalReady?`，${physicalReady} 张待出库`:''}`:`已通过 ${rows.length} 张调拨单`));
     }else{
       rows.forEach(row=>{row.status='已驳回';row.auditDecision=decision;row.auditReason=reason;row.updatedAt=now();state.selected.delete(row.id);});
       modal.hidden=true;renderTabs();renderTable();toast(`已驳回 ${rows.length} 张调拨单`);
@@ -645,32 +690,133 @@
     renderTabs();renderTable();toast(`已作废 ${selected.length} 张调拨单`);
   }
   function editorForm(row){
-    const isEdit=Boolean(row),source=row?.source||'',target=row?.target||'',inheritAge=row?String(row.inheritAge?'是':'否'):'',items=buildItems(row||{items:[],skuCount:0,requestQty:0});
+    const isEdit=Boolean(row),transferType=state.editorType||row?.transferType||'仓间调拨',ownership=transferType==='货权调拨',source=state.editorDraft?.source??row?.source??'',target=ownership?source:(state.editorDraft?.target??row?.target??''),inheritAge=row?String(row.inheritAge?'是':'否'):'是',items=buildItems(row||{items:[],skuCount:0,requestQty:0});
     const submitText=row?.status==='异常'?'保存并重新流转':'提交审核';
-    return `<div class="dialog editor-dialog"><header class="dialog-header"><div><h2>${isEdit?'编辑调拨单':'新建调拨单'}</h2></div><button class="dialog-close" data-close="editor">×</button></header><div class="dialog-body"><section class="section"><div class="section-title">基础信息</div><div class="section-body"><div class="form-grid"><div class="field"><label>调拨类型</label><select id="editType"><option>仓间调拨</option></select></div><div class="field"><label class="required">调出仓库</label><select id="editSource"><option value="">请选择调出仓库</option>${warehouses.map(item=>`<option ${item===source?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label class="required">调入仓库</label><select id="editTarget"><option value="">请选择调入仓库</option>${warehouses.map(item=>`<option ${item===target?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>预计到仓日期</label><input id="editEta" type="date" value="${row?.eta||'2026-09-25'}"></div><div class="field"><label class="required">是否继承库龄</label><select id="inheritAge"><option value="">请选择</option><option value="是" ${inheritAge==='是'?'selected':''}>是</option><option value="否" ${inheritAge==='否'?'selected':''}>否</option></select></div><div class="field"><label>物流渠道</label><select id="editChannel"><option value="">请选择物流渠道</option>${['快猫物流','中通','圆通','顺丰'].map(item=>`<option ${item===row?.channel?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>物流单号</label><input id="editWaybill" value="${row?.waybill==='—'?'':row?.waybill||''}" placeholder="可后续补录"></div><div class="field"><label>运费</label><div class="money-field"><input id="editFee" type="number" min="0" step="0.01" value="${row?.fee||''}" placeholder="请输入"><span>CNY</span></div></div><div class="field"><label>其他费用</label><div class="money-field"><input id="editOtherFee" type="number" min="0" step="0.01" value="${row?.otherFee||''}" placeholder="请输入"><span>CNY</span></div></div><div class="field span-2"><label>调拨备注</label><textarea id="editRemark" maxlength="500" placeholder="请输入备注（选填）">${escapeHtml(row?.remark||'')}</textarea></div></div></div></section><section class="section"><div class="section-title"><div class="editor-item-toolbar"><button class="btn primary small" id="addSkuBtn">＋ 添加SKU</button><div class="bulk-target-team"><select id="bulkTargetTeam"><option value="">批量选择调入团队</option>${teams.map(item=>`<option>${item}</option>`).join('')}</select><button class="btn small" id="applyTargetTeam">应用到全部</button></div></div></div><div class="section-body detail-table-wrap"><table class="detail-table editor-detail"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>在库量</th><th class="required-column">调拨数量</th><th>调拨金额</th><th class="required-column">调入团队</th><th>备注</th><th>操作</th></tr></thead><tbody id="editorItems">${items.map((item,index)=>editorItem(item,index)).join('')}</tbody></table><div class="empty editor-empty" ${items.length?'hidden':''}>请先选择调出仓库，再点击“添加SKU”</div></div></section></div><footer class="dialog-footer"><button class="btn" data-close="editor">取消</button><button class="btn primary" data-editor-action="submit">${submitText}</button></footer></div>`;
+    const disabled=ownership?'disabled aria-disabled="true"':'';
+    const inheritOptions=ownership?'<option selected>—</option><option value="是">是</option><option value="否">否</option>':`<option value="">请选择</option><option value="是" ${inheritAge==='是'?'selected':''}>是</option><option value="否" ${inheritAge==='否'?'selected':''}>否</option>`;
+    const channelOptions=ownership?'<option selected>—</option>':`<option value="">请选择物流渠道</option>${logisticsChannelList().map(item=>`<option ${item===row?.channel?'selected':''}>${item}</option>`).join('')}<option value="__add_channel__">＋ 新增渠道</option>`;
+    const warehouseHelpIcon=`<span class="form-help-icon" tabindex="0" role="img" aria-label="${warehouseTransferHelp}" data-tooltip="${warehouseTransferHelp}">?</span>`;
+    return `<div class="dialog editor-dialog"><header class="dialog-header"><div><h2>${isEdit?'编辑调拨单':'新建调拨单'}</h2></div><button class="dialog-close" data-close="editor">×</button></header><div class="dialog-body"><section class="section"><div class="section-title">基础信息</div><div class="section-body"><div class="form-grid"><div class="field"><label>调拨类型</label><select id="editType" ${isEdit?'disabled':''}><option ${transferType==='仓间调拨'?'selected':''}>仓间调拨</option><option ${transferType==='货权调拨'?'selected':''}>货权调拨</option></select></div><div class="field"><label class="required">调出仓库${warehouseHelpIcon}</label><select id="editSource"><option value="">请选择调出仓库</option>${warehouses.map(item=>`<option ${item===source?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label class="required">调入仓库${warehouseHelpIcon}</label><select id="editTarget" ${disabled}><option value="">请选择调入仓库</option>${warehouses.map(item=>`<option ${item===target?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>预计到仓日期</label><input id="editEta" type="date" value="${ownership?'':row?.eta||'2026-09-25'}" ${disabled}></div><div class="field"><label class="required">是否继承库龄</label><select id="inheritAge" ${disabled}>${inheritOptions}</select></div><div class="field"><label>物流渠道</label><select id="editChannel" ${disabled}>${channelOptions}</select></div><div class="field"><label>物流单号</label><input id="editWaybill" value="${ownership?'':row?.waybill==='—'?'':row?.waybill||''}" placeholder="${ownership?'不适用':'可后续补录'}" ${disabled}></div><div class="field"><label>运费</label><div class="money-field"><input id="editFee" type="number" min="0" step="0.01" value="${ownership?'':row?.fee||''}" placeholder="${ownership?'不适用':'请输入'}" ${disabled}><span>CNY</span></div></div><div class="field"><label>其他费用</label><div class="money-field"><input id="editOtherFee" type="number" min="0" step="0.01" value="${ownership?'':row?.otherFee||''}" placeholder="${ownership?'不适用':'请输入'}" ${disabled}><span>CNY</span></div></div><div class="field span-2"><label>调拨备注</label><textarea id="editRemark" maxlength="500" placeholder="请输入备注（选填）">${escapeHtml(row?.remark||'')}</textarea></div></div></div></section><section class="section"><div class="section-title"><div class="editor-item-toolbar"><button class="btn primary small" id="addSkuBtn">＋ 添加SKU</button><div class="bulk-target-team"><select id="bulkTargetTeam"><option value="">批量选择调入团队</option>${teams.map(item=>`<option>${item}</option>`).join('')}</select><button class="btn small" id="applyTargetTeam">应用到全部</button></div></div></div><div class="section-body detail-table-wrap"><table class="detail-table editor-detail"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>在库量</th><th class="required-column">调拨数量</th><th>调拨金额</th><th class="required-column">调入团队</th><th>备注</th><th>操作</th></tr></thead><tbody id="editorItems">${items.map((item,index)=>editorItem(item,index)).join('')}</tbody></table><div class="empty editor-empty" ${items.length?'hidden':''}>请先选择调出仓库，再点击“添加SKU”</div></div></section></div><footer class="dialog-footer"><button class="btn" data-close="editor">取消</button><button class="btn primary" data-editor-action="submit">${submitText}</button></footer></div>`;
   }
   function editorItem(item,index){return `<tr data-item-index="${index}"><td class="left"><b>${item.sku}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${item.available}</td><td><input class="quantity-input required-input" type="number" min="1" max="${item.available}" value="${item.quantity??''}" placeholder="请输入" required data-field="quantity"></td><td class="item-transfer-amount" data-item-amount>${formatMoney(itemTransferAmount(item))}</td><td><select class="target-team-select required-input" required data-field="targetTeam"><option value="">请选择调入团队</option>${teams.map(team=>`<option ${team===item.targetTeam?'selected':''}>${team}</option>`).join('')}</select></td><td><textarea class="remark-input" maxlength="120" placeholder="请输入" data-field="remark">${escapeHtml(item.remark||'')}</textarea></td><td><button class="sku-remove" type="button" data-remove-item="${index}">移除</button></td></tr>`;}
-  function openEditor(row){const modal=$('#editorModal');state.editing=row?.id||null;state.editorItems=buildItems(row||{items:[],skuCount:0,requestQty:0});modal.innerHTML=editorForm(row);modal.hidden=false;bindEditor(modal,row);}
+  function cloneEditorItems(row){return buildItems(row||{items:[],skuCount:0,requestQty:0}).map(item=>({...item,costBatches:Array.isArray(item.costBatches)?item.costBatches.map(batch=>({...batch})):item.costBatches,costAllocations:Array.isArray(item.costAllocations)?item.costAllocations.map(batch=>({...batch})):item.costAllocations}));}
+  function openEditor(row){const modal=$('#editorModal');state.editing=row?.id||null;state.editorType=row?.transferType||'仓间调拨';state.editorDraft={source:row?.source||'',target:row?.target||''};state.editorItems=cloneEditorItems(row);modal.innerHTML=editorForm(row);modal.hidden=false;bindEditor(modal,row);}
+  function setEditorFieldError(input,message){
+    const field=input?.closest('.field');
+    if(!field)return;
+    field.classList.add('has-error');
+    let hint=field.querySelector('.field-validation');
+    if(!hint){hint=document.createElement('p');hint.className='field-validation';field.append(hint);}
+    hint.textContent=message;
+  }
+  function clearEditorFieldError(input){
+    const field=input?.closest('.field');
+    if(!field)return;
+    field.classList.remove('has-error');
+    field.querySelector('.field-validation')?.remove();
+  }
+  function validateEditorForSku(modal){
+    const ownership=$('#editType',modal)?.value==='货权调拨';
+    const requiredFields=[[$('#editSource',modal),'请选择调出仓库']];
+    if(!ownership)requiredFields.push([$('#editTarget',modal),'请选择调入仓库'],[$('#inheritAge',modal),'请选择是否继承库龄']);
+    let firstInvalid=null;
+    requiredFields.forEach(([input,message])=>{
+      if(!input?.value){setEditorFieldError(input,message);firstInvalid||=input;}
+      else clearEditorFieldError(input);
+    });
+    if(firstInvalid){firstInvalid.focus();return false;}
+    return true;
+  }
+  function setupEditorChannelMenu(modal){
+    window.enhanceCustomSelects?.();
+    const select=$('#editChannel',modal);
+    const wrapper=select?.closest('.custom-select');
+    const menu=wrapper?.querySelector('.custom-select-menu');
+    if(!select||select.disabled||!wrapper||!menu)return;
+    const addIndex=[...select.options].findIndex(option=>option.value==='__add_channel__');
+    const addOption=menu.querySelector(`.custom-select-option[data-index="${addIndex}"]`);
+    if(addOption){
+      addOption.classList.add('is-add-channel');
+      addOption.onclick=event=>{event.preventDefault();event.stopPropagation();toggleEditorNewChannel(modal,true);};
+    }
+    let editor=menu.querySelector('.editor-channel-editor');
+    if(!editor){
+      editor=document.createElement('div');
+      editor.className='editor-channel-editor';
+      editor.hidden=true;
+      editor.innerHTML=`<input class="control" id="editorNewChannel" maxlength="30" placeholder="请输入内容"><button class="outbound-icon-btn is-confirm" type="button" data-editor-channel-action="save" aria-label="确认新增渠道">✓</button><button class="outbound-icon-btn is-cancel" type="button" data-editor-channel-action="cancel" aria-label="取消新增渠道">×</button><p class="editor-channel-editor-error" aria-live="polite"></p>`;
+      menu.append(editor);
+    }
+    editor.onclick=event=>event.stopPropagation();
+    editor.querySelector('[data-editor-channel-action="save"]').onclick=event=>{event.stopPropagation();saveEditorNewChannel(modal);};
+    editor.querySelector('[data-editor-channel-action="cancel"]').onclick=event=>{event.stopPropagation();toggleEditorNewChannel(modal,false);};
+    editor.querySelector('#editorNewChannel').onkeydown=event=>{
+      if(event.key==='Enter'){event.preventDefault();saveEditorNewChannel(modal);}
+      if(event.key==='Escape'){event.preventDefault();toggleEditorNewChannel(modal,false);}
+    };
+  }
+  function toggleEditorNewChannel(modal,show){
+    const editor=modal.querySelector('.editor-channel-editor');
+    const wrapper=$('#editChannel',modal)?.closest('.custom-select');
+    if(!editor||!wrapper)return;
+    editor.hidden=!show;
+    wrapper.classList.add('is-open');
+    wrapper.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded','true');
+    const input=editor.querySelector('#editorNewChannel');
+    const error=editor.querySelector('.editor-channel-editor-error');
+    error.textContent='';
+    if(show)requestAnimationFrame(()=>input.focus());
+    else{input.value='';wrapper.querySelector('.custom-select-trigger')?.focus();}
+  }
+  function saveEditorNewChannel(modal){
+    const input=$('#editorNewChannel',modal),error=modal.querySelector('.editor-channel-editor-error');
+    const value=input.value.trim();
+    if(!value){error.textContent='请输入物流渠道名称';input.focus();return;}
+    const isNew=!logisticsChannelList().includes(value);
+    persistLogisticsChannel(value);
+    const select=$('#editChannel',modal);
+    select.innerHTML=`<option value="">请选择物流渠道</option>${logisticsChannelList().map(item=>`<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('')}<option value="__add_channel__">＋ 新增渠道</option>`;
+    select.value=value;
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    requestAnimationFrame(()=>{
+      setupEditorChannelMenu(modal);
+      const wrapper=$('#editChannel',modal)?.closest('.custom-select');
+      wrapper?.classList.remove('is-open');
+      wrapper?.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded','false');
+    });
+    toast(isNew?`已新增物流渠道「${value}」`:`已选择物流渠道「${value}」`);
+  }
   function bindEditor(modal,row){
     modal.querySelectorAll('[data-close="editor"]').forEach(button=>button.onclick=()=>{modal.hidden=true;});modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};
-    const source=$('#editSource',modal),target=$('#editTarget',modal),add=$('#addSkuBtn',modal),bulkTargetTeam=$('#bulkTargetTeam',modal);source.onchange=()=>{if(state.editorItems.length){if(!confirm('修改调出仓库将清空当前调拨明细，确认继续吗？')){source.value=row?.source||'';return;}state.editorItems=[];renderEditorItems(modal);}add.disabled=!source.value;};add.disabled=!source.value;add.onclick=openPicker;
-    target.onchange=()=>{if(source.value&&source.value===target.value){toast('调入仓库不能与调出仓库相同');target.value='';}};
+    const source=$('#editSource',modal),target=$('#editTarget',modal),type=$('#editType',modal),add=$('#addSkuBtn',modal),bulkTargetTeam=$('#bulkTargetTeam',modal);
+    type.onchange=()=>{state.editorType=type.value;state.editorItems=[];state.editorDraft={source:source.value,target:type.value==='货权调拨'?source.value:''};modal.innerHTML=editorForm(row);bindEditor(modal,row);};
+    source.onchange=()=>{if(state.editorItems.length){if(!confirm('修改调出仓库将清空当前调拨明细，确认继续吗？')){source.value=state.editorDraft?.source||row?.source||'';return;}state.editorItems=[];renderEditorItems(modal);}const targetValue=state.editorType==='货权调拨'?source.value:(target?.value||'');state.editorDraft={...(state.editorDraft||{}),source:source.value,target:targetValue};if(state.editorType==='货权调拨'&&target)target.value=source.value;clearEditorFieldError(source);if(state.editorType==='货权调拨')clearEditorFieldError(target);};add.onclick=()=>{if(validateEditorForSku(modal))openPicker();};
+    if(target)target.onchange=()=>{if(source.value&&source.value===target.value){toast('调入仓库不能与调出仓库相同');target.value='';}state.editorDraft={...(state.editorDraft||{}),target:target.value};if(target.value)clearEditorFieldError(target);};
+    const inheritAge=$('#inheritAge',modal);if(inheritAge)inheritAge.onchange=()=>{if(inheritAge.value)clearEditorFieldError(inheritAge);};
     $('#applyTargetTeam',modal).onclick=()=>{if(!bulkTargetTeam.value){toast('请选择要批量设置的调入团队');return;}if(!state.editorItems.length){toast('请先添加调拨SKU');return;}state.editorItems.forEach(item=>{item.targetTeam=bulkTargetTeam.value;});renderEditorItems(modal);toast('已应用到全部调拨SKU');};
     modal.querySelectorAll('[data-editor-action]').forEach(button=>button.onclick=()=>saveEditor(modal,row));
+    setupEditorChannelMenu(modal);
     renderEditorItems(modal);
   }
   function renderEditorItems(modal){const body=$('#editorItems',modal);body.innerHTML=(state.editorItems||[]).map((item,index)=>editorItem(item,index)).join('');$('.editor-empty',modal).hidden=Boolean(state.editorItems.length);body.querySelectorAll('[data-remove-item]').forEach(button=>button.onclick=()=>{state.editorItems.splice(Number(button.dataset.removeItem),1);renderEditorItems(modal);});body.querySelectorAll('[data-field]').forEach(input=>{const syncField=()=>{const row=state.editorItems[Number(input.closest('tr').dataset.itemIndex)];row[input.dataset.field]=input.value;if(input.dataset.field==='quantity')input.closest('tr').querySelector('[data-item-amount]').textContent=formatMoney(itemTransferAmount(row));};input.oninput=syncField;input.onchange=syncField;});}
-  function saveEditor(modal,row){const source=$('#editSource',modal).value,target=$('#editTarget',modal).value,inheritAge=$('#inheritAge',modal).value,isException=row?.status==='异常';if(!source||!target||!inheritAge){toast('请填写调出仓库、调入仓库和是否继承库龄','error');return;}if(source===target){toast('调入仓库不能与调出仓库相同','error');return;}if(!state.editorItems.length){toast('请至少添加一个SKU','error');return;}for(const item of state.editorItems){if(item.quantity===''||item.quantity===null||item.quantity===undefined){toast(`请填写 SKU ${item.sku} 的调拨数量`,'error');return;}const quantity=Number(item.quantity);if(!Number.isInteger(quantity)||quantity<=0||quantity>item.available){toast(`SKU ${item.sku} 的调拨数量须为1-${item.available}的整数`,'error');return;}if(!item.targetTeam){toast(`请选择 SKU ${item.sku} 的调入团队`,'error');return;}}
-    const logistics=normalizeLogistics($('#editChannel',modal).value.trim(),$('#editWaybill',modal).value.trim());
-    const payload={source,target,eta:$('#editEta',modal).value||'—',...logistics,fee:Number($('#editFee',modal).value||0),otherFee:Number($('#editOtherFee',modal).value||0),remark:$('#editRemark',modal).value.trim(),inheritAge:inheritAge==='是',items:state.editorItems.map(item=>({...item,quantity:Number(item.quantity)})),skuCount:state.editorItems.length,requestQty:state.editorItems.reduce((sum,item)=>sum+Number(item.quantity),0)};
-    if(row){Object.assign(row,payload);row.status=isException?'待出库':'待审核';if(isException){row.reflowLog='编辑调拨单后库存校验通过，重新流转待出库';delete row.abnormalReason;}else{delete row.auditDecision;delete row.auditReason;}row.updatedAt=now();toast(isException?'调拨单已重新流转待出库':'调拨单已提交审核');}else{const no=nextTransferNo();orders.unshift({...order(no,'待审核',source,target,payload.skuCount,payload.requestQty,0,payload.channel,payload.waybill,payload.eta,'库存管理','Admin'),...payload});toast('调拨单已提交审核');}
+  function saveEditor(modal,row){
+    const transferType=$('#editType',modal).value,ownership=transferType==='货权调拨',source=$('#editSource',modal).value,target=ownership?source:$('#editTarget',modal).value,inheritAge=ownership?'是':$('#inheritAge',modal).value,isException=row?.status==='异常';
+    if(!source||(!ownership&&(!target||!inheritAge))){toast(ownership?'请填写调出仓库':'请填写调出仓库、调入仓库和是否继承库龄','error');return;}
+    if(!ownership&&source===target){toast('调入仓库不能与调出仓库相同','error');return;}
+    if(!state.editorItems.length){toast('请至少添加一个SKU','error');return;}
+    for(const item of state.editorItems){if(item.quantity===''||item.quantity===null||item.quantity===undefined){toast(`请填写 SKU ${item.sku} 的调拨数量`,'error');return;}const quantity=Number(item.quantity);if(!Number.isInteger(quantity)||quantity<=0||quantity>item.available){toast(`SKU ${item.sku} 的调拨数量须为1-${item.available}的整数`,'error');return;}if(!item.targetTeam){toast(`请选择 SKU ${item.sku} 的调入团队`,'error');return;}if(ownership&&item.team===item.targetTeam){toast(`货权调拨中 SKU ${item.sku} 的调入团队不能与调出团队相同`,'error');return;}}
+    const logistics=ownership?{channel:'—',waybill:'—'}:normalizeLogistics($('#editChannel',modal).value.trim(),$('#editWaybill',modal).value.trim());
+    const payload={transferType,ownershipWarehouse:ownership?source:'',source,target,eta:ownership?'—':$('#editEta',modal).value||'—',...logistics,fee:ownership?0:Number($('#editFee',modal).value||0),otherFee:ownership?0:Number($('#editOtherFee',modal).value||0),remark:$('#editRemark',modal).value.trim(),inheritAge:ownership?true:inheritAge==='是',items:state.editorItems.map(item=>({...item,quantity:Number(item.quantity)})),skuCount:state.editorItems.length,requestQty:state.editorItems.reduce((sum,item)=>sum+Number(item.quantity),0)};
+    if(row){Object.assign(row,payload);row.status=isException&&!ownership?'待出库':'待审核';if(isException&&!ownership){row.reflowLog='编辑调拨单后库存校验通过，重新流转待出库';delete row.abnormalReason;}else{delete row.auditDecision;delete row.auditReason;}row.updatedAt=now();toast(isException&&!ownership?'调拨单已重新流转待出库':'调拨单已提交审核');}else{const no=nextTransferNo();orders.unshift({...order(no,'待审核',source,target,payload.skuCount,payload.requestQty,0,payload.channel,payload.waybill,payload.eta,'库存管理','Admin'),...payload});toast('调拨单已提交审核');}
     modal.hidden=true;state.page=1;renderTabs();renderTable();
   }
   function pickerKey(item){return `${item.sku}__${item.team}`;}
   function openPicker(){
     const modal=$('#skuPickerModal');
+    const editorModal=$('#editorModal'),source=$('#editSource',editorModal)?.value;
+    if(!source){toast('请先选择调出仓库','error');return;}
     state.pickerSelected=new Set();
-    state.pickerRows=skuPool.filter(item=>!state.editorItems.some(selected=>pickerKey(selected)===pickerKey(item)));
+    state.pickerRows=skuPool.filter(item=>item.stockWarehouses?.includes(source)&&!state.editorItems.some(selected=>pickerKey(selected)===pickerKey(item)));
     modal.innerHTML=`<div class="dialog picker-dialog"><header class="dialog-header"><div><h2>添加调拨SKU</h2></div><button class="dialog-close" data-close="picker">×</button></header><div class="dialog-body"><div class="picker-search"><input id="pickerSku" placeholder="SKU（支持多个，逗号或空格分隔）"><input id="pickerProductName" placeholder="产品名称"><select id="pickerTeam" class="picker-team"><option value="">团队</option>${teams.map(team=>`<option>${team}</option>`).join('')}</select><button class="btn primary" id="pickerSearch">查询</button></div><div class="detail-table-wrap"><table class="picker-table"><thead><tr><th width="46"><input type="checkbox" id="pickerAll"></th><th>SKU</th><th>产品名称</th><th>团队</th><th>在库量</th></tr></thead><tbody id="pickerBody"></tbody></table></div></div><footer class="picker-footer"><button class="btn" data-close="picker">取消</button><button class="btn primary" id="pickerConfirm">添加选中SKU</button></footer></div>`;
     modal.hidden=false;
     window.enhanceCustomSelects?.();
@@ -698,7 +844,7 @@
     ['#pickerSku','#pickerProductName'].forEach(selector=>{$(selector,modal).onkeydown=event=>{if(event.key==='Enter')renderPickerRows();};});
     $('#pickerTeam',modal).onchange=renderPickerRows;
     $('.picker-table',modal).onchange=event=>{if(event.target.id==='pickerAll'){pickerFilteredRows().forEach(item=>event.target.checked?state.pickerSelected.add(pickerKey(item)):state.pickerSelected.delete(pickerKey(item)));renderPickerRows();return;}const check=event.target.closest('.picker-check');if(!check)return;check.checked?state.pickerSelected.add(check.dataset.key):state.pickerSelected.delete(check.dataset.key);const all=$('#pickerAll',modal),rows=pickerFilteredRows();all.checked=rows.length>0&&rows.every(item=>state.pickerSelected.has(pickerKey(item)));};
-    $('#pickerConfirm',modal).onclick=()=>{const selected=state.pickerRows.filter(item=>state.pickerSelected.has(pickerKey(item))),bulkTargetTeam=$('#bulkTargetTeam',$('#editorModal'))?.value||'';if(!selected.length){toast('请至少选择一个SKU');return;}state.editorItems.push(...selected.map(item=>({...item,quantity:'',targetTeam:bulkTargetTeam,remark:''})));modal.hidden=true;renderEditorItems($('#editorModal'));};
+    $('#pickerConfirm',modal).onclick=()=>{const editorModal=$('#editorModal'),selected=state.pickerRows.filter(item=>state.pickerSelected.has(pickerKey(item))),bulkTargetTeam=$('#bulkTargetTeam',editorModal)?.value||'',transferType=$('#editType',editorModal)?.value||state.editorType,source=$('#editSource',editorModal)?.value||'';if(!selected.length){toast('请至少选择一个SKU');return;}state.editorItems.push(...selected.map(item=>({...item,sourceWarehouse:source,quantity:'',targetTeam:bulkTargetTeam||(transferType==='仓间调拨'?item.team:''),remark:''})));modal.hidden=true;renderEditorItems(editorModal);};
   }
   function importParseCsvLine(line){const out=[];let current='',quoted=false;for(let index=0;index<line.length;index++){const char=line[index];if(quoted){if(char==='"'){if(line[index+1]==='"'){current+='"';index++;}else quoted=false;}else current+=char;}else if(char==='"')quoted=true;else if(char===','){out.push(current.trim());current='';}else current+=char;}out.push(current.trim());return out;}
   function importReadRows(text){

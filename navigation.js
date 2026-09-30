@@ -69,7 +69,8 @@
     { label: '系统日志', icon: 'log' },
     { label: '工作台', icon: 'dashboard' },
     { label: '权限管理', icon: 'account' },
-    { label: '基础配置', icon: 'settings' }
+    { label: '基础配置', icon: 'settings' },
+    { label: '产品管理', icon: 'product' }
   ];
 
   function createIcon(name) {
@@ -85,7 +86,7 @@
       if (!button.querySelector('.menu-icon')) button.insertBefore(createIcon(modules[index].icon), button.firstChild);
     });
 
-    var selector = '.nav-group-title, .nav-section-title, .supplier-nav-title, .supplier-nav-section, .side-nav > .nav-section, .workbench-nav-title, .nav-item.standalone';
+    var selector = '.nav-group-title, .nav-section-title, .supplier-nav-title, .supplier-nav-section, .side-nav > .nav-section, .workbench-nav-title, .product-sidebar > .nav-section, .nav-item.standalone';
     document.querySelectorAll(selector).forEach(function (item) {
       if (item.querySelector('.menu-icon')) return;
       var text = (item.textContent || '').replace(/[\s⌓⌄]/g, '');
@@ -257,7 +258,7 @@
   }
 
   function mountSidebarCollapse() {
-    var sidebar = document.querySelector('.sidebar, .workbench-sidebar, .supplier-sidebar, .side-nav');
+    var sidebar = document.querySelector('.sidebar, .workbench-sidebar, .supplier-sidebar, .side-nav, .product-sidebar');
     if (!sidebar) return;
     var button = sidebar.querySelector('.collapse, .side-footer, .nav-collapse-button');
     if (!button) {
@@ -287,7 +288,7 @@
     try { collapsed = window.localStorage.getItem('middle-platform-nav-collapsed') === '1'; } catch (error) { /* local file fallback */ }
     setCollapsed(collapsed);
 
-    var selector = '.nav-group-title, .nav-section-title, .supplier-nav-title, .supplier-nav-section, .side-nav > .nav-section, .workbench-nav-title';
+    var selector = '.nav-group-title, .nav-section-title, .supplier-nav-title, .supplier-nav-section, .side-nav > .nav-section, .workbench-nav-title, .product-sidebar > .nav-section';
     document.querySelectorAll(selector).forEach(function (title) {
       title.addEventListener('click', function (event) {
         if (!document.documentElement.classList.contains('nav-collapsed')) return;
