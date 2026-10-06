@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../../vendor/element-plus.css">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.67">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.0.2">
+  <link rel="stylesheet" href="./styles.css?v=1.0.18">
 </head>
 <body>
   <div id="app" v-cloak>
@@ -22,6 +22,8 @@
           <div class="nav-scroll">
             <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
             <div class="nav-item active" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
+            <div class="nav-item" data-page-nav="inventoryFlow"><span class="mini">▦</span>库存流水</div>
+            <div class="nav-item" data-page-nav="batchInventory"><span class="mini">▤</span>批次库存</div>
             <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
             <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
             <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
@@ -37,7 +39,7 @@
               <el-input v-model="filters.keyword" clearable placeholder="SKU / 产品名称" @keyup.enter="query"></el-input>
               <el-select v-model="filters.warehouse" clearable filterable placeholder="仓库"><el-option v-for="item in warehouses" :key="item" :label="item" :value="item"></el-option></el-select>
               <el-select v-model="filters.team" clearable filterable placeholder="团队"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select>
-              <el-select v-model="filters.developer" clearable placeholder="开发员"><el-option v-for="item in developers" :key="item" :label="item" :value="item"></el-option></el-select>
+              <el-select v-model="filters.developer" clearable placeholder="产品负责人"><el-option v-for="item in developers" :key="item" :label="item" :value="item"></el-option></el-select>
               <el-select v-model="filters.buyer" clearable placeholder="采购员"><el-option v-for="item in buyers" :key="item" :label="item" :value="item"></el-option></el-select>
               <el-select v-model="filters.stockState" clearable placeholder="库存状态"><el-option v-for="item in stockStates" :key="item.value" :label="item.label" :value="item.value"></el-option></el-select>
               <div class="zero-switch"><el-switch v-model="filters.showZero" @change="query"></el-switch><span>显示零库存</span></div>
@@ -46,25 +48,24 @@
           </section>
 
           <section class="action-strip">
-            <div class="update-note"><span class="sync-dot"></span>库存更新时间：{{ updatedAt }}<el-tooltip content="不同仓库同步时间可能存在差异，具体时间可在库存明细中查看" placement="top"><span class="help">?</span></el-tooltip></div>
             <div class="action-right"><el-button>导出</el-button><el-button @click="refresh">刷新</el-button></div>
           </section>
 
           <section class="table-area">
-            <el-table :data="pagedRows" border height="100%" row-key="rowKey" class="inventory-table">
-              <el-table-column prop="warehouse" label="仓库名称" min-width="190" fixed="left" show-overflow-tooltip><template #default="scope"><div class="warehouse-cell"><span>{{ scope.row.warehouse }}</span><small>{{ scope.row.warehouseType }} · {{ scope.row.updatedAt.slice(5,16) }}</small></div></template></el-table-column>
-              <el-table-column prop="sku" label="SKU" width="168" fixed="left"><template #default="scope"><div class="sku-cell"><el-button link type="primary" @click="openMetric(scope.row,'team')">{{ scope.row.sku }}</el-button><button class="copy-sku-button" :class="{copied:copiedRowKey===scope.row.rowKey}" type="button" :title="copiedRowKey===scope.row.rowKey?'已复制':'复制 SKU'" :aria-label="copiedRowKey===scope.row.rowKey?`已复制 SKU ${scope.row.sku}`:`复制 SKU ${scope.row.sku}`" @click.stop="copySku(scope.row.sku,scope.row.rowKey)"><svg v-if="copiedRowKey===scope.row.rowKey" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7"></path></svg><svg v-else viewBox="0 0 16 16" aria-hidden="true"><rect x="5.25" y="5.25" width="8" height="8" rx="1.25"></rect><path d="M10.75 4V3.25A1.25 1.25 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6a1.25 1.25 0 0 0 1.25 1.25H4"></path></svg></button></div></template></el-table-column>
-              <el-table-column prop="name" label="产品名称" min-width="220" show-overflow-tooltip><template #default="scope"><div class="product-cell"><span>{{ scope.row.name }}</span></div></template></el-table-column>
-              <el-table-column prop="team" label="团队" width="130" show-overflow-tooltip></el-table-column>
-              <el-table-column label="可用库存" width="104" align="right"><template #default="scope"><span :class="quantityClass(scope.row.available)">{{ qty(scope.row.available) }}</span></template></el-table-column>
-              <el-table-column label="占用库存" width="104" align="right"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'occupied')">{{ qty(scope.row.occupied) }}</button></template></el-table-column>
-              <el-table-column label="在途库存" width="104" align="right"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'inTransit')">{{ qty(scope.row.inTransit) }}</button></template></el-table-column>
-              <el-table-column label="冻结库存" width="104" align="right"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'frozen')">{{ qty(scope.row.frozen) }}</button></template></el-table-column>
-              <el-table-column label="在库库存" width="104" align="right"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'batch')">{{ qty(scope.row.onHand) }}</button></template></el-table-column>
-              <el-table-column label="待确认库存" width="112" align="right"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'pending')">{{ qty(scope.row.pending) }}</button></template></el-table-column>
-              <el-table-column label="加权库龄（天）" width="132" align="right"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'batch')">{{ ageText(scope.row.weightedAge) }}</button></template></el-table-column>
-              <el-table-column prop="developer" label="开发员" width="100"></el-table-column>
-              <el-table-column prop="buyer" label="采购员" width="100"></el-table-column>
+            <el-table :data="pagedRows" height="100%" row-key="rowKey" class="inventory-table" show-summary :summary-method="getSummaries">
+              <el-table-column prop="warehouse" label="仓库名称" min-width="190" fixed="left" show-overflow-tooltip><template #default="scope"><div class="warehouse-cell"><span>{{ scope.row.warehouse }}</span><small>{{ scope.row.warehouseCode }}</small></div></template></el-table-column>
+              <el-table-column prop="sku" label="SKU" width="198" fixed="left"><template #default="scope"><div class="sku-cell"><div class="sku-values"><div class="sku-primary"><el-button link type="primary" @click="openMetric(scope.row,'team')">{{ scope.row.sku }}</el-button><button class="copy-sku-button" :class="{copied:copiedRowKey===scope.row.rowKey}" type="button" :title="copiedRowKey===scope.row.rowKey?'已复制':'复制 SKU'" :aria-label="copiedRowKey===scope.row.rowKey?`已复制 SKU ${scope.row.sku}`:`复制 SKU ${scope.row.sku}`" @click.stop="copySku(scope.row.sku,scope.row.rowKey)"><svg v-if="copiedRowKey===scope.row.rowKey" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7"></path></svg><svg v-else viewBox="0 0 16 16" aria-hidden="true"><rect x="5.25" y="5.25" width="8" height="8" rx="1.25"></rect><path d="M10.75 4V3.25A1.25 1.25 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6a1.25 1.25 0 0 0 1.25 1.25H4"></path></svg></button></div><div class="sku-secondary">领星 SKU：{{ scope.row.lingxingSku }}</div></div></div></template></el-table-column>
+              <el-table-column label="海外仓/FNSKU" width="206" fixed="left"><template #default="scope"><div class="sku-mapping-cell"><div><span>海外仓 SKU：</span><b>{{ scope.row.overseasSku }}</b></div><div><span>FNSKU：</span><b>{{ scope.row.fnsku }}</b></div></div></template></el-table-column>
+              <el-table-column prop="team" label="团队" width="130" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="name" label="产品名称" min-width="260"><template #default="scope"><el-tooltip :content="scope.row.name" placement="top" :show-after="300"><div class="product-cell"><div class="product-thumb" role="img" :aria-label="`${scope.row.name}图片占位符`"><svg class="image-placeholder-icon" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="19" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="m8 22 5-5 4 4 3-3 4 4"></path></svg></div><span class="product-name">{{ scope.row.name }}</span></div></el-tooltip></template></el-table-column>
+              <el-table-column prop="available" label="可用库存" width="104" align="right"><template #default="scope"><span :class="quantityClass(scope.row.available)">{{ qty(scope.row.available) }}</span></template></el-table-column>
+              <el-table-column prop="occupied" label="占用库存" width="104" align="right"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'occupied')">{{ qty(scope.row.occupied) }}</button></template></el-table-column>
+              <el-table-column prop="inTransit" label="在途库存" width="104" align="right"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'inTransit')">{{ qty(scope.row.inTransit) }}</button></template></el-table-column>
+              <el-table-column prop="inStockTotal" width="128" align="right"><template #header><span class="header-with-help">在库总量<el-tooltip content="在库总量=可用库存+占用库存" placement="top"><span class="header-help">?</span></el-tooltip></span></template><template #default="scope"><span class="qty-normal">{{ qty(scope.row.inStockTotal) }}</span></template></el-table-column>
+              <el-table-column prop="virtual" label="虚拟库存" width="104" align="right"><template #default="scope"><span class="qty-normal">{{ qty(scope.row.virtual) }}</span></template></el-table-column>
+              <el-table-column prop="frozen" label="冻结库存" width="104" align="right"><template #default="scope"><span class="qty-normal">{{ qty(scope.row.frozen) }}</span></template></el-table-column>
+              <el-table-column label="负责人/采购员" width="166" align="left"><template #default="scope"><div class="owner-cell"><div><span>产品负责人：</span><b>{{ scope.row.developer }}</b></div><div><span>采购员：</span><b>{{ scope.row.buyer }}</b></div></div></template></el-table-column>
+              <el-table-column label="操作" width="108" fixed="right" align="center"><template #default="scope"><el-button link type="primary" @click="openMetric(scope.row,'flow')">库存流水</el-button></template></el-table-column>
               <template #empty><el-empty description="暂无符合条件的库存记录"></el-empty></template>
             </el-table>
           </section>
@@ -76,37 +77,63 @@
         </main>
       </div>
 
-      <el-drawer v-model="detailVisible" size="760px" class="inventory-drawer">
-        <template #header><div class="drawer-title"><div><h2>{{ currentRow?.sku }}｜{{ detailTitle }}</h2><p>{{ currentRow?.warehouse }} · {{ currentRow?.name }}<span v-if="detailTeam"> · {{ detailTeam }}</span></p></div><el-tag effect="plain">只读查询</el-tag></div></template>
+      <el-dialog v-model="detailVisible" :width="detailMode==='flow' ? '1280px' : '920px'" align-center destroy-on-close :class="['inventory-modal',{'inventory-modal--flow':detailMode==='flow'}]">
+        <template #header><div class="modal-title"><div><h2>{{ currentRow?.sku }}｜{{ detailTitle }}</h2><p>{{ currentRow?.warehouse }} · {{ currentRow?.name }}<span v-if="detailTeam"> · {{ detailTeam }}</span></p></div></div></template>
         <template v-if="currentRow">
-          <div class="drawer-summary">
+          <div class="modal-summary" v-if="detailMode!=='flow'">
             <div><span>可用库存</span><b :class="quantityClass(detailSummary.available)">{{ qty(detailSummary.available) }}</b></div><div><span>占用库存</span><b>{{ qty(detailSummary.occupied) }}</b></div><div><span>在途库存</span><b>{{ qty(detailSummary.inTransit) }}</b></div><div><span>冻结库存</span><b>{{ qty(detailSummary.frozen) }}</b></div><div><span>在库库存</span><b>{{ qty(detailSummary.onHand) }}</b></div><div><span>待确认库存</span><b>{{ qty(detailSummary.pending) }}</b></div>
           </div>
 
-          <section v-if="detailMode==='team' || detailMode==='available'" class="drawer-section">
+          <section v-if="detailMode==='team' || detailMode==='available'" class="modal-section">
             <h3>团队库存明细</h3>
             <el-table :data="detailTeams" border><el-table-column prop="team" label="团队" min-width="110"></el-table-column><el-table-column prop="available" label="可用库存" width="96" align="right"></el-table-column><el-table-column prop="occupied" label="占用库存" width="96" align="right"></el-table-column><el-table-column prop="inTransit" label="在途库存" width="96" align="right"></el-table-column><el-table-column prop="frozen" label="冻结库存" width="96" align="right"></el-table-column><el-table-column prop="onHand" label="在库库存" width="96" align="right"></el-table-column><el-table-column prop="pending" label="待确认库存" width="106" align="right"></el-table-column><el-table-column prop="weightedAge" label="库龄" width="78" align="right"><template #default="scope">{{ ageText(scope.row.weightedAge) }}</template></el-table-column></el-table>
           </section>
 
-          <section v-else-if="detailMode==='batch'" class="drawer-section">
+          <section v-else-if="detailMode==='batch'" class="modal-section">
             <h3>有效批次</h3>
             <el-alert type="info" :closable="false" title="加权库龄按当前剩余在库数量计算；占用和冻结库存仍在仓内，参与库龄计算。"></el-alert>
             <el-table :data="detailRows" border><el-table-column prop="team" label="团队" min-width="110"></el-table-column><el-table-column prop="batchNo" label="批次号" min-width="150"></el-table-column><el-table-column prop="source" label="来源" min-width="120"></el-table-column><el-table-column prop="receivedAt" label="入库日期" width="112"></el-table-column><el-table-column prop="qty" label="剩余数量" width="96" align="right"></el-table-column><el-table-column prop="age" label="库龄（天）" width="96" align="right"></el-table-column></el-table>
           </section>
 
-          <section v-else class="drawer-section">
+          <section v-else-if="detailMode==='flow'" class="modal-section flow-modal-section">
+            <h3>库存流水</h3>
+            <div class="flow-query-grid">
+              <div class="flow-query-item"><el-select v-model="flowFilters.warehouses" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择仓库（可多选）" class="query-select"><el-option v-for="item in flowWarehouses" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="flow-query-item"><el-select v-model="flowFilters.opTypes" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择变动类型（可多选）" class="query-select"><el-option v-for="item in flowOpTypes" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="flow-query-item"><el-select v-model="flowFilters.direction" clearable placeholder="请选择出库/入库" class="query-select"><el-option v-for="item in flowDirections" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="flow-query-item"><el-input v-model="flowFilters.no" clearable placeholder="操作单号/来源单据" @keyup.enter="flowQuery"></el-input></div>
+              <div class="flow-query-item flow-date-item"><el-date-picker v-model="flowFilters.dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" class="query-date-picker"></el-date-picker></div>
+              <div class="flow-query-item flow-action-item"><div class="query-actions"><el-button type="primary" @click="flowQuery">查询</el-button><el-button @click="flowReset">重置</el-button></div></div>
+            </div>
+            <el-table :data="flowPagedRows" height="480" row-key="opNo" class="flow-table">
+              <el-table-column prop="sku" label="SKU" width="128" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="warehouse" label="仓库" min-width="170" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="direction" label="出库/入库" width="96" align="center"></el-table-column>
+              <el-table-column prop="opType" label="变动类型" min-width="110" show-overflow-tooltip></el-table-column>
+              <el-table-column label="操作前" width="88" align="right"><template #default="scope">{{ qty(scope.row.before) }}</template></el-table-column>
+              <el-table-column label="操作数量" width="96" align="right"><template #default="scope"><span :class="{'qty-plus': scope.row.after - scope.row.before > 0, 'qty-minus': scope.row.after - scope.row.before < 0}">{{ signed(scope.row.after - scope.row.before) }}</span></template></el-table-column>
+              <el-table-column label="操作后" width="88" align="right"><template #default="scope">{{ qty(scope.row.after) }}</template></el-table-column>
+              <el-table-column prop="bizNo" label="来源单据" min-width="140" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="operator" label="操作人" width="84" align="center"></el-table-column>
+              <el-table-column prop="operatedAt" label="操作时间" min-width="140" show-overflow-tooltip></el-table-column>
+              <template #empty><el-empty description="暂无符合条件的库存流水记录"></el-empty></template>
+            </el-table>
+            <div class="flow-pagination"><span>共 {{ flowFilteredRows.length }} 条流水记录</span><el-pagination v-model:current-page="flowPage" v-model:page-size="flowPageSize" layout="sizes, prev, pager, next, jumper" :page-sizes="[10,20,50]" :total="flowFilteredRows.length"></el-pagination></div>
+          </section>
+
+          <section v-else class="modal-section">
             <h3>{{ detailTitle }}</h3>
-            <el-table :data="detailRows" border><el-table-column prop="team" label="团队" min-width="120"></el-table-column><el-table-column prop="type" label="业务类型" min-width="120"></el-table-column><el-table-column prop="docNo" label="来源单据" min-width="170"></el-table-column><el-table-column prop="qty" label="数量" width="96" align="right"></el-table-column><el-table-column prop="note" label="说明" min-width="180" show-overflow-tooltip></el-table-column></el-table>
+            <el-table :data="detailRows" border><el-table-column prop="team" label="团队" min-width="120"></el-table-column><el-table-column label="来源单据" min-width="200"><template #default="scope"><div class="source-doc-cell"><el-tag v-if="docTypeLabel(scope.row.type)" size="small" effect="light">{{ docTypeLabel(scope.row.type) }}</el-tag><span>{{ scope.row.docNo }}</span></div></template></el-table-column><el-table-column prop="qty" label="数量" width="96" align="right"></el-table-column></el-table>
           </section>
         </template>
-      </el-drawer>
+      </el-dialog>
     </div>
   </div>
 
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
-  <script src="./app.js?v=1.0.1"></script>
+  <script src="./app.js?v=1.0.14"></script>
   <script src="../../global-export.js?v=1.0.0"></script>
-  <script src="../../navigation.js?v=1.7.67"></script>
+  <script src="../../navigation.js?v=1.7.69"></script>
 </body>
 </html>

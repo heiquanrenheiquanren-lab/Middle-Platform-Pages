@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>批次库存</title>
+  <link rel="stylesheet" href="../../vendor/element-plus.css">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.68">
+  <link rel="stylesheet" href="./styles.css?v=1.0.3">
+</head>
+<body>
+  <div id="app" v-cloak>
+    <div class="app">
+      <header class="global-bar">
+        <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button></div>
+        <div class="global-right"><span class="admin">Admin⌄</span></div>
+      </header>
+
+      <div class="shell">
+        <aside class="sidebar">
+          <div class="nav-scroll">
+            <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+            <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
+            <div class="nav-item" data-page-nav="inventoryFlow"><span class="mini">▦</span>库存流水</div>
+            <div class="nav-item active" data-page-nav="batchInventory"><span class="mini">▤</span>批次库存</div>
+            <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+            <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+            <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+            <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+            <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div><div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
+          </div>
+          <div class="collapse">≡</div>
+        </aside>
+
+        <main class="main">
+          <section class="query-panel">
+            <div class="query-grid">
+              <div class="query-item keyword-combo"><el-select v-model="filters.keywordType" class="keyword-type"><el-option label="批次号" value="batchNo"></el-option><el-option label="来源单据" value="bizNo"></el-option></el-select><el-input v-model="filters.keyword" clearable placeholder="请输入" @keyup.enter="query" class="keyword-input"></el-input></div>
+              <div class="query-item sku-query"><el-input v-model="filters.skus" clearable placeholder="支持多个，以逗号、空格或换行隔开" @keyup.enter="query"></el-input></div>
+              <div class="query-item"><el-select v-model="filters.warehouses" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择仓库（可多选）"><el-option v-for="item in warehouses" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="filters.inboundTypes" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择入库类型（可多选）"><el-option v-for="item in inboundTypes" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item query-date-item"><el-date-picker v-model="filters.inboundRange" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" class="query-date-picker"></el-date-picker></div>
+              <div class="query-actions"><el-button type="primary" @click="query">查询</el-button><el-button @click="resetFilters">重置</el-button></div>
+            </div>
+          </section>
+
+          <section class="toolbar"><div class="toolbar-left"><el-button @click="exportPlaceholder">导出</el-button><span v-if="selectedRows.length" class="selected-hint">已选 {{ selectedRows.length }} 条</span></div></section>
+
+          <section class="table-area">
+            <el-table :data="pagedRows" height="100%" row-key="id" class="batch-table" show-summary :summary-method="getSummaries" @selection-change="selectedRows = $event">
+              <el-table-column type="selection" width="48" fixed="left"></el-table-column>
+              <el-table-column label="批次号" width="168" fixed="left" show-overflow-tooltip><template #default="scope"><el-button link type="primary" @click="openDetail(scope.row)">{{ scope.row.batchNo }}</el-button></template></el-table-column>
+              <el-table-column prop="warehouse" label="仓库" min-width="176" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="sku" label="SKU" width="142" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="name" label="产品名称" min-width="290"><template #default="scope"><el-tooltip :content="scope.row.name" placement="top" :show-after="300"><div class="product-cell"><div class="product-thumb" role="img" :aria-label="`${scope.row.name}图片占位符`"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="19" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="m8 22 5-5 4 4 3-3 4 4"></path></svg></div><span class="product-name">{{ scope.row.name }}</span></div></el-tooltip></template></el-table-column>
+              <el-table-column prop="inboundType" label="入库类型" width="116" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="bizNo" label="来源单据" width="154" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="receivedQty" label="批次入库数量" width="126" align="right"><template #default="scope">{{ fmtQty(scope.row.receivedQty) }}</template></el-table-column>
+              <el-table-column prop="remainingAvailableQty" label="批次剩余可用库存" width="146" align="right"><template #default="scope"><span :class="scope.row.remainingAvailableQty===0?'zero-qty':'remaining-qty'">{{ fmtQty(scope.row.remainingAvailableQty) }}</span></template></el-table-column>
+              <el-table-column prop="purchasePrice" label="采购单价" width="112" align="right"><template #default="scope">{{ fmtMoney(scope.row.purchasePrice) }}</template></el-table-column>
+              <el-table-column prop="unitInventoryCost" label="单位库存成本" width="128" align="right"><template #default="scope">{{ fmtMoney(scope.row.unitInventoryCost) }}</template></el-table-column>
+              <el-table-column prop="inboundAt" label="入库时间" width="164" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="storageAge" label="在库库龄（天）" width="122" align="right"><template #default="scope">{{ scope.row.storageAge }}</template></el-table-column>
+              <template #empty><el-empty description="暂无符合条件的批次库存"></el-empty></template>
+            </el-table>
+          </section>
+
+          <footer class="bottom-bar"><span>共 {{ filteredRows.length }} 条批次库存</span><el-pagination v-model:current-page="page" v-model:page-size="pageSize" layout="sizes, prev, pager, next, jumper" :page-sizes="[10,20,50]" :total="filteredRows.length"></el-pagination></footer>
+        </main>
+      </div>
+    </div>
+
+    <el-drawer v-model="detailVisible" direction="rtl" size="620px" class="batch-drawer" destroy-on-close>
+      <template #header><div class="drawer-title"><h2>批次库存详情</h2><p>{{ currentRow?.batchNo || '—' }}</p></div></template>
+      <template v-if="currentRow"><el-descriptions :column="2" border><el-descriptions-item label="批次号">{{ currentRow.batchNo }}</el-descriptions-item><el-descriptions-item label="仓库">{{ currentRow.warehouse }}</el-descriptions-item><el-descriptions-item label="SKU">{{ currentRow.sku }}</el-descriptions-item><el-descriptions-item label="产品名称">{{ currentRow.name }}</el-descriptions-item><el-descriptions-item label="入库类型">{{ currentRow.inboundType }}</el-descriptions-item><el-descriptions-item label="来源单据">{{ currentRow.bizNo }}</el-descriptions-item><el-descriptions-item label="批次入库数量">{{ fmtQty(currentRow.receivedQty) }}</el-descriptions-item><el-descriptions-item label="批次剩余可用库存">{{ fmtQty(currentRow.remainingAvailableQty) }}</el-descriptions-item><el-descriptions-item label="采购单价">{{ fmtMoney(currentRow.purchasePrice) }}</el-descriptions-item><el-descriptions-item label="单位库存成本">{{ fmtMoney(currentRow.unitInventoryCost) }}</el-descriptions-item><el-descriptions-item label="入库时间">{{ currentRow.inboundAt }}</el-descriptions-item><el-descriptions-item label="在库库龄（天）">{{ currentRow.storageAge }}</el-descriptions-item></el-descriptions><section class="drawer-section"><h3>批次来源</h3><p>来源单据：{{ currentRow.bizNo }}；入库时间：{{ currentRow.inboundAt }}；当前剩余可用库存将按先进先出规则参与出库或加工消耗。</p></section></template>
+    </el-drawer>
+  </div>
+
+  <script src="../../vendor/vue.global.prod.js"></script>
+  <script src="../../vendor/element-plus.js"></script>
+  <script src="./app.js?v=1.0.3"></script>
+  <script src="../../navigation.js?v=1.7.69"></script>
+</body>
+</html>

@@ -23,6 +23,8 @@
     shipmentOrder: '../shipment-orders/index.html',
     skuFirstLegCost: '../sku-first-leg-cost/index.html',
     inventoryQuery: '../inventory-query/index.html',
+    inventoryFlow: '../inventory-flow/index.html',
+    batchInventory: '../batch-inventory/index.html',
     processingOrder: '../processing-orders/index.html',
     transferOrder: '../transfer-orders/index.html',
     supplierList: '../supplier-list/index.html',
@@ -237,6 +239,40 @@
     });
   }
 
+  function mountInventoryFlowNav() {
+    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title'));
+    titles.forEach(function (title) {
+      if ((title.textContent || '').indexOf('库存管理') < 0) return;
+      var container = title.parentElement;
+      if (!container || container.querySelector('[data-page-nav="inventoryFlow"]')) return;
+      var source = container.querySelector('[data-page-nav="inventoryQuery"]');
+      if (!source) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'inventoryFlow');
+      item.classList.remove('active');
+      if (location.pathname.indexOf('/inventory-flow/') >= 0) item.classList.add('active');
+      item.innerHTML = '<span class="mini">▦</span>库存流水';
+      source.insertAdjacentElement('afterend', item);
+    });
+  }
+
+  function mountBatchInventoryNav() {
+    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title'));
+    titles.forEach(function (title) {
+      if ((title.textContent || '').indexOf('库存管理') < 0) return;
+      var container = title.parentElement;
+      if (!container || container.querySelector('[data-page-nav="batchInventory"]')) return;
+      var source = container.querySelector('[data-page-nav="inventoryFlow"]');
+      if (!source) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'batchInventory');
+      item.classList.remove('active');
+      if (location.pathname.indexOf('/batch-inventory/') >= 0) item.classList.add('active');
+      item.innerHTML = '<span class="mini">▤</span>批次库存';
+      source.insertAdjacentElement('afterend', item);
+    });
+  }
+
   function mountSupplierNav() {
     var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .side-nav > .nav-section'));
     titles.forEach(function (title) {
@@ -282,6 +318,8 @@
 
     mountThemeSwitcher(sidebar);
     mountTransferNav();
+    mountInventoryFlowNav();
+    mountBatchInventoryNav();
     mountSupplierNav();
 
     var collapsed = false;

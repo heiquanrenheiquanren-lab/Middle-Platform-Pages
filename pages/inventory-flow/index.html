@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>库存流水</title>
+  <link rel="stylesheet" href="../../vendor/element-plus.css">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.68">
+  <link rel="stylesheet" href="./styles.css?v=1.0.5">
+</head>
+<body>
+  <div id="app" v-cloak>
+    <div class="app">
+      <header class="global-bar">
+        <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
+        <div class="global-right"><span class="admin">Admin⌄</span></div>
+      </header>
+
+      <div class="shell">
+        <aside class="sidebar">
+          <div class="nav-scroll">
+            <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+            <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
+            <div class="nav-item active" data-page-nav="inventoryFlow"><span class="mini">▦</span>库存流水</div>
+            <div class="nav-item" data-page-nav="batchInventory"><span class="mini">▤</span>批次库存</div>
+            <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+            <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+            <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+            <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+            <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div><div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
+          </div>
+          <div class="collapse">≡</div>
+        </aside>
+
+        <main class="main">
+          <section class="query-panel">
+            <div class="query-grid">
+              <div class="query-item sku-combo"><el-select v-model="filters.skuType" class="sku-type-select"><el-option label="SKU" value="sku"></el-option><el-option label="领星SKU" value="lingxingSku"></el-option><el-option label="海外仓SKU" value="overseasSku"></el-option><el-option label="FNSKU" value="fnsku"></el-option></el-select><el-input v-model="filters.sku" clearable placeholder="请输入" @keyup.enter="query" class="sku-combo-input"></el-input></div>
+              <div class="query-item"><el-select v-model="filters.warehouses" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择仓库（可多选）" class="query-select"><el-option v-for="item in warehouses" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="filters.opTypes" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择变动类型（可多选）" class="query-select"><el-option v-for="item in opTypes" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="filters.direction" clearable placeholder="请选择出库/入库" class="query-select"><el-option v-for="item in directions" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-input v-model="filters.no" clearable placeholder="请输入操作单号/来源单据，支持输入多个，用逗号、空格或换行隔开" @keyup.enter="query"></el-input></div>
+              <div class="query-item query-date-item"><el-date-picker v-model="filters.dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" class="query-date-picker"></el-date-picker></div>
+              <div class="query-item query-action-item"><div class="query-actions"><el-button type="primary" @click="query">查询</el-button><el-button @click="resetFilters">重置</el-button></div></div>
+            </div>
+          </section>
+
+          <section class="toolbar">
+            <el-button class="export-btn" @click="exportPlaceholder">导出</el-button>
+          </section>
+
+          <section class="table-area">
+            <el-table :data="pagedRows" height="100%" row-key="opNo" class="flow-table">
+              <el-table-column prop="sku" label="SKU" width="150" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="warehouse" label="仓库" min-width="180" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="direction" label="出库/入库" width="100" align="center"></el-table-column>
+              <el-table-column prop="opType" label="变动类型" min-width="120" show-overflow-tooltip></el-table-column>
+              <el-table-column label="操作前" width="100" align="right"><template #default="scope">{{ fmt(scope.row.before) }}</template></el-table-column>
+              <el-table-column label="操作数量" width="100" align="right"><template #default="scope"><span :class="{'qty-plus': scope.row.after - scope.row.before > 0, 'qty-minus': scope.row.after - scope.row.before < 0}">{{ signed(scope.row.after - scope.row.before) }}</span></template></el-table-column>
+              <el-table-column label="操作后" width="100" align="right"><template #default="scope">{{ fmt(scope.row.after) }}</template></el-table-column>
+              <el-table-column prop="bizNo" label="来源单据" min-width="150" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="operator" label="操作人" width="90" align="center"></el-table-column>
+              <el-table-column prop="operatedAt" label="操作时间" min-width="150" show-overflow-tooltip></el-table-column>
+              <template #empty><el-empty description="暂无符合条件的库存流水记录"></el-empty></template>
+            </el-table>
+          </section>
+
+          <footer class="bottom-bar">
+            <span>共 {{ filteredRows.length }} 条流水记录</span>
+            <el-pagination v-model:current-page="page" v-model:page-size="pageSize" layout="sizes, prev, pager, next, jumper" :page-sizes="[10,20,50]" :total="filteredRows.length"></el-pagination>
+          </footer>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../vendor/vue.global.prod.js"></script>
+  <script src="../../vendor/element-plus.js"></script>
+  <script src="./app.js?v=1.0.3"></script>
+  <script src="../../navigation.js?v=1.7.69"></script>
+</body>
+</html>
