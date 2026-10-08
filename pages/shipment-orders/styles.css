@@ -62,3 +62,8 @@
     .muted-text{color:#909399;font-size:13px}
     .sub-detail-table{margin-bottom:4px}
     .sub-ratio{color:#909399;font-size:12px;margin-left:4px}
+
+/* 统一操作日志白色卡片容器 */
+.shipment-log-dialog .el-dialog__body{padding:16px 22px;background:#f7f9fc}
+.shipment-log-table-card{padding:0;border:1px solid #e5eaf1;border-radius:6px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(31,45,61,.04)}
+.shipment-log-table-card .log-table{margin:0}

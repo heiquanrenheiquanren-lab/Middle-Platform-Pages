@@ -106,6 +106,8 @@ function initQueryExpand(){const panel=$('.query-panel'),button=$('#queryExpand'
 const planLogs={};
 function addPlanLog(planId,type,content){
   if(!planLogs[planId])planLogs[planId]=[];
+  const typeMap={'关联FBA货件':'同步','预关联FBA货件':'同步','解除关联':'取消','创建':'新增','更新':'编辑','审核通过':'审核','作废':'作废','取消':'取消'};
+  type=typeMap[type]||(['新增','编辑','审核','作废','同步','取消'].includes(type)?type:'编辑');
   const now=new Date();
   const pad=n=>String(n).padStart(2,'0');
   const time=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
@@ -116,6 +118,7 @@ function openPlanLogDialog(planId){
   if(!plan)return;
   const logs=planLogs[planId]||[];
   $('#planLogTitle').textContent=`操作日志｜${plan.plan}`;
+  $('#planLogCount').textContent=`共 ${logs.length} 条`;
   const tbody=$('#planLogBody');
   if(!logs.length){tbody.innerHTML='<tr><td colspan="4" style="padding:24px;text-align:center;color:#909399">暂无操作记录</td></tr>';}
   else{tbody.innerHTML=logs.map(log=>`<tr><td style="width:100px;text-align:center;color:#606266">${log.type}</td><td style="min-width:280px;color:#606266">${log.content}</td><td style="width:120px;text-align:center;color:#606266">${log.operator}</td><td style="width:170px;text-align:center;color:#606266">${log.time}</td></tr>`).join('');}

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>海外仓 SKU 映射｜产品</title>
+  <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
+  <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
+  <link rel="stylesheet" href="./styles.css?v=1.0.0">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.70">
+</head>
+<body data-ui-kit-page="standard" class="ui-page-canvas">
+  <div class="mapping-page ui-page-canvas">
+    <header class="mapping-topbar product-topbar">
+      <div class="global-left" aria-label="全局导航">
+        <span class="brand-shield" aria-label="品牌标识"></span>
+        <button class="top-icon" type="button">工作台</button>
+        <button class="top-icon" type="button">财务</button>
+        <button class="top-icon" type="button">供应链</button>
+        <button class="top-icon" type="button">运营</button>
+        <button class="top-icon active" type="button">产品</button>
+      </div>
+      <div class="global-right"><span class="admin">Admin⌄</span></div>
+    </header>
+
+    <div class="mapping-body">
+      <aside class="mapping-sidebar product-sidebar">
+        <div class="nav-section"><span class="nav-symbol">▦</span><span>产品管理</span><span class="nav-chevron">⌃</span></div>
+        <button class="nav-item" type="button" data-page-nav="productList"><span class="nav-symbol">▤</span><span>产品列表</span></button>
+        <button class="nav-item active" type="button" data-page-nav="overseasSkuMapping"><span class="nav-symbol">▥</span><span>海外仓 SKU 映射</span></button>
+      </aside>
+
+      <main class="mapping-main">
+        <section class="mapping-query-card ui-query-card" aria-label="海外仓 SKU 映射查询条件">
+          <div class="mapping-query-row ui-query-flow">
+            <div class="mapping-query-combo mapping-query-combo-wide">
+              <select id="skuSearchType" aria-label="SKU 查询类型"><option value="sku">SKU</option><option value="lingxingSku">领星 SKU</option><option value="overseasSku">海外仓 SKU</option><option value="fnsku">FNSKU</option></select>
+              <input id="skuKeyword" placeholder="请输入 SKU，支持多个，用逗号或空格隔开">
+            </div>
+            <select id="warehouseFilter" class="mapping-warehouse-filter" aria-label="仓库名称"><option value="">仓库名称（全部）</option><option>美通物流中转仓</option><option>亚马逊欧洲仓</option><option>深圳海外仓</option><option>东莞海外仓</option></select>
+            <input id="productNameKeyword" class="mapping-text-control" placeholder="产品名称">
+            <select id="creatorFilter" aria-label="创建人"><option value="">创建人（全部）</option><option>Admin</option><option>张三</option><option>李四</option></select>
+            <div class="mapping-date-range" aria-label="创建时间">
+              <input id="startDate" type="date" aria-label="开始日期">
+              <span>至</span>
+              <input id="endDate" type="date" aria-label="结束日期">
+            </div>
+            <div class="mapping-query-actions ui-query-actions"><button id="resetButton" class="mapping-button ui-button" type="button">重置</button><button id="searchButton" class="mapping-button primary ui-button ui-button--primary" type="button">查询</button></div>
+          </div>
+        </section>
+
+        <section class="mapping-actions ui-action-row"><button id="addMappingButton" class="mapping-button primary ui-button ui-button--primary" type="button">新增映射关系</button><button id="importMappingButton" class="mapping-button ui-button" type="button">导入映射关系</button></section>
+
+        <section class="mapping-table-card ui-list-card">
+          <div class="mapping-table-wrap ui-table-wrap">
+            <table class="mapping-table ui-table">
+              <thead><tr><th class="mapping-sku-col">SKU</th><th class="mapping-product-col">产品名称</th><th class="mapping-warehouse-col">仓库名称</th><th class="mapping-overseas-col">海外仓 SKU</th><th class="mapping-created-col">创建信息</th><th class="mapping-operation-col">操作</th></tr></thead>
+              <tbody id="mappingTableBody"></tbody>
+            </table>
+          </div>
+          <div id="emptyState" class="mapping-empty" hidden>暂无符合条件的映射关系</div>
+          <footer class="mapping-table-footer"><span id="mappingCount">共 0 条</span><div class="mapping-pager"><button type="button" disabled>‹</button><button class="current" type="button">1</button><button type="button" disabled>›</button></div></footer>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="../../custom-select.js?v=1.0.0"></script>
+  <script src="../../ui-kit.js?v=1.0.0"></script>
+  <script src="./app.js?v=1.0.0"></script>
+  <script src="../../global-export.js?v=1.7.37"></script>
+  <script src="../../navigation.js?v=1.7.70"></script>
+</body>
+</html>

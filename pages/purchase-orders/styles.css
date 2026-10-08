@@ -265,15 +265,19 @@
 .purchase-batch-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;flex:none}
 .purchase-batch-footer b{color:var(--dark)}.purchase-batch-footer>div{display:flex;gap:8px}
 @media(max-width:760px){.purchase-batch-receive-modal{padding:12px}.purchase-batch-dialog{width:calc(100vw - 24px);height:calc(100vh - 24px)}.purchase-batch-header,.purchase-batch-footer{padding-left:14px;padding-right:14px}.purchase-batch-body{padding:14px}.purchase-batch-footer{align-items:flex-start;flex-direction:column}.purchase-batch-query{flex-wrap:wrap}}
-.purchase-batch-table{min-width:1260px}
+.purchase-batch-table{min-width:1380px}
 .purchase-batch-query{flex:none;display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .purchase-batch-query .control{flex:1 1 150px;min-width:120px;height:32px}
+.purchase-batch-sku-query{width:320px;min-width:260px;max-width:320px;flex:0 1 320px;display:grid;grid-template-columns:96px minmax(0,1fr);align-items:center}
+.purchase-batch-sku-query select{width:100%;height:32px;padding:0 28px 0 10px;border:1px solid #dcdfe6;border-radius:4px 0 0 4px;background:#fff;color:#606266;font-size:12px;outline:0}
+.purchase-batch-sku-query .control{width:100%;max-width:none;min-width:0;box-sizing:border-box;flex:none;border-left:0;border-radius:0 4px 4px 0}
+.purchase-batch-sku-query:focus-within select,.purchase-batch-sku-query:focus-within .control{border-color:var(--blue)}
 .purchase-batch-query .multi{flex:1 1 150px;min-width:120px}
 .purchase-batch-query-actions{flex:none;display:flex;align-items:center;gap:8px}
 .purchase-batch-query .btn{flex:none}
 .purchase-batch-table tr[hidden]{display:none!important}
 .purchase-batch-no-results td{height:80px;color:var(--muted);text-align:center}
-.purchase-batch-table th:nth-child(1){width:125px}.purchase-batch-table th:nth-child(2){width:115px}.purchase-batch-table th:nth-child(3){width:160px}.purchase-batch-table th:nth-child(4){width:120px}.purchase-batch-table th:nth-child(5){width:120px}.purchase-batch-table th:nth-child(6){width:120px}.purchase-batch-table th:nth-child(7){width:95px}.purchase-batch-table th:nth-child(n+8):nth-child(-n+10){width:85px}.purchase-batch-table th:nth-child(11){width:150px}
+.purchase-batch-table th:nth-child(1){width:125px}.purchase-batch-table th:nth-child(2){width:115px}.purchase-batch-table th:nth-child(3){width:125px}.purchase-batch-table th:nth-child(4){width:160px}.purchase-batch-table th:nth-child(5){width:120px}.purchase-batch-table th:nth-child(6){width:120px}.purchase-batch-table th:nth-child(7){width:120px}.purchase-batch-table th:nth-child(8){width:95px}.purchase-batch-table th:nth-child(n+9):nth-child(-n+11){width:85px}.purchase-batch-table th:nth-child(12){width:150px}
 .purchase-batch-table th:last-child{position:sticky;top:0;right:0;z-index:3;background:#f5f7fa;box-shadow:-1px 0 0 #e5edf7}
 .purchase-batch-table .purchase-batch-item-row td:last-child{position:sticky;right:0;z-index:2;background:#fff;box-shadow:-1px 0 0 #e5edf7}
 .purchase-batch-table .purchase-batch-item-row.is-unavailable td:last-child{background:#fbfcfd}
@@ -286,3 +290,24 @@
 .purchase-receive-table th:nth-child(1),.purchase-receive-table td:nth-child(1){width:48px}
 .purchase-receive-table th:nth-child(2){width:145px}.purchase-receive-table th:nth-child(3){width:210px}.purchase-receive-table th:nth-child(4){width:150px}.purchase-receive-table th:nth-child(5){width:130px}.purchase-receive-table th:nth-child(n+6):nth-child(-n+8){width:95px}.purchase-receive-table th:nth-child(9){width:155px}
 .status-tag.status-partial{background:#fff7e6;color:#d48806}
+
+/* 批量收货选项卡与导入收货 */
+.purchase-batch-tabs{height:46px;display:flex;align-items:flex-end;gap:24px;padding:0 22px;border-bottom:1px solid var(--line);background:#fff;flex:none}
+.purchase-batch-tabs button{position:relative;height:46px;padding:0 4px;border:0;background:transparent;color:#606266;font-size:14px;cursor:pointer}
+.purchase-batch-tabs button:hover,.purchase-batch-tabs button.active{color:var(--blue)}
+.purchase-batch-tabs button.active:after{content:"";position:absolute;right:0;bottom:0;left:0;height:2px;border-radius:2px 2px 0 0;background:var(--blue)}
+.purchase-batch-import-panel{flex:1 1 0;min-height:0;overflow:auto;padding:18px 22px;background:#fff}
+.purchase-batch-import-panel[hidden],.purchase-batch-footer[hidden],.purchase-batch-body[hidden],.purchase-batch-import-footer[hidden]{display:none!important}
+.purchase-batch-import-type{display:flex;align-items:center;gap:22px;margin-bottom:18px;padding:11px 14px;border:1px solid #ebeef5;border-radius:5px;background:#fafafa;color:#606266;font-size:13px}
+.purchase-batch-import-type>span{font-weight:600;color:#303133}.purchase-batch-import-type label{display:flex;align-items:center;gap:6px;cursor:pointer}.purchase-batch-import-type input{accent-color:var(--blue)}
+.purchase-batch-import-steps{display:flex;align-items:center;justify-content:center;gap:10px;max-width:720px;margin:0 auto 20px}
+.purchase-batch-import-step{display:flex;align-items:center;gap:8px;color:#c0c4cc;white-space:nowrap}.purchase-batch-import-step span{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:2px solid currentColor;border-radius:50%;font-size:14px}.purchase-batch-import-step b{font-size:14px;font-weight:500}.purchase-batch-import-step.active{color:var(--blue)}.purchase-batch-import-steps>i{flex:1;height:1px;background:#dcdfe6}
+.purchase-batch-import-guide{padding:14px 16px;margin-bottom:14px;border:1px solid #c6e2ff;border-radius:6px;background:#f5faff}.purchase-batch-import-guide>b{display:block;margin-bottom:6px;color:#303133;font-size:14px}.purchase-batch-import-guide p{margin:0 0 8px;color:#909399;font-size:12px;line-height:20px}.purchase-batch-import-guide p.purchase-batch-import-rule{color:#f56c6c}.purchase-batch-import-guide .btn.plain{margin-top:4px;border-color:#b3d8ff;background:#ecf5ff;color:var(--blue)}
+.purchase-batch-import-drop{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:1px dashed #cfd7e6;border-radius:6px;background:#fff;color:#606266;font-size:13px;cursor:pointer;transition:.15s}.purchase-batch-import-drop:hover,.purchase-batch-import-drop.drag-over{border-color:var(--blue);background:#f5faff}.purchase-batch-import-drop.has-error{border-color:#f56c6c}.purchase-batch-import-icon{color:#aab2c1;font-size:38px;line-height:1}.purchase-batch-import-drop button{padding:0;border:0;background:transparent;color:var(--blue);font:inherit;cursor:pointer;text-decoration:underline}
+.purchase-batch-import-tip{margin:10px 0 0;color:#909399;font-size:12px}.purchase-batch-import-preview{display:flex;flex-direction:column;gap:6px;margin-top:14px;padding:12px 14px;border:1px solid #e4e9f2;border-radius:6px;background:#fafcff;color:#606266;font-size:12px}.purchase-batch-import-preview b{color:#303133;font-size:13px}.purchase-batch-import-error{margin:10px 0 0;color:#f56c6c;font-size:12px}
+.purchase-batch-import-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;flex:none}.purchase-batch-import-footer>div{display:flex;gap:8px}.purchase-batch-import-footer .btn:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:760px){.purchase-batch-tabs{padding:0 14px}.purchase-batch-import-panel{padding:14px}.purchase-batch-import-footer{align-items:flex-start;flex-direction:column;padding:12px 14px}.purchase-batch-import-step b{font-size:12px}.purchase-batch-import-type{margin-bottom:14px}}
+
+/* 统一操作日志白色卡片容器 */
+.purchase-log-table-card{padding:0;border:1px solid #e5eaf1;border-radius:6px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(31,45,61,.04)}
+.purchase-log-table-card .purchase-log-table{border:0}

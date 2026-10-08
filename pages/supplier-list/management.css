@@ -96,3 +96,9 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
 .toast{position:fixed;z-index:3000;left:50%;top:62px;transform:translateX(-50%);padding:9px 18px;border:1px solid #b8e5c3;border-radius:4px;background:#f0f9eb;color:#32a05c;box-shadow:0 4px 18px rgba(0,0,0,.08);opacity:0;pointer-events:none;transition:opacity .2s}.toast.show{opacity:1}
 @media(max-width:1450px){.query-item{width:150px;flex-basis:150px}.query-item.query-code-item{width:230px;flex-basis:230px}.query-item.settlement-filter{width:190px;flex-basis:190px}}
 @media(max-width:1050px){.query-item,.query-item.query-code-item,.query-item.settlement-filter{width:auto;flex-basis:calc(25% - 8px)}.query-item.query-code-item{flex-basis:calc(50% - 6px)}.edit-modal{height:min(760px,calc(100vh - 24px));width:calc(100vw - 24px)}.modal-scroll{padding:8px 20px 24px}.modal-anchor-nav{width:118px;padding:18px 8px}.modal-anchor-nav button{padding:0 8px;font-size:12px}.form-grid{grid-template-columns:1fr}.span-2{grid-column:auto}.repeat-list{overflow:auto}.repeat-row,.contact-head{min-width:930px}.repeat-row.contact,.contact-head{grid-template-columns:115px 180px repeat(3,125px) 104px}.repeat-row.address{min-width:760px;grid-template-columns:repeat(3,120px) 190px 104px}.upload-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* 统一操作日志白色卡片容器 */
+.supplier-log-table-card{padding:0;border:1px solid #e5eaf1;border-radius:6px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(31,45,61,.04)}
+.supplier-log-table-card .supplier-log-table{margin:0;border:0}
+
+.row-action:last-child{color:#606266}

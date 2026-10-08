@@ -1,0 +1,81 @@
+/*
+ * Middle Platform UI Kit
+ * Only this file owns cross-page visual tokens and reusable structural classes.
+ * Page CSS may configure business columns, but must not redefine these primitives.
+ */
+:root{
+  --ui-color-primary:#1677ff;
+  --ui-color-primary-hover:#4096ff;
+  --ui-color-text:#303133;
+  --ui-color-text-regular:#606266;
+  --ui-color-text-secondary:#909399;
+  --ui-color-border:#dcdfe6;
+  --ui-color-divider:#e5e9ef;
+  --ui-color-canvas:#f5f7fa;
+  --ui-color-card:#fff;
+  --ui-color-header:#f5f7fa;
+  --ui-color-danger:#f56c6c;
+  --ui-color-success:#67c23a;
+  --ui-color-info:#909399;
+  --ui-radius-control:4px;
+  --ui-radius-card:8px;
+  --ui-radius-dialog:8px;
+  --ui-control-height:32px;
+  --ui-query-gap:10px;
+  --ui-button-gap:10px;
+  --ui-card-padding:16px;
+  --ui-dialog-header-height:62px;
+  --ui-shadow-dialog:0 14px 42px rgba(0,0,0,.28);
+  --ui-shadow-fixed-left:8px 0 10px -12px rgba(31,45,61,.55);
+  --ui-shadow-fixed-right:-8px 0 10px -12px rgba(31,45,61,.55);
+}
+
+/* Page skeleton: query card → transparent action row → list card. */
+.ui-page-canvas{background:var(--ui-color-canvas)}
+.ui-query-card{min-width:0;padding:14px var(--ui-card-padding);border:1px solid var(--ui-color-divider);border-radius:var(--ui-radius-card);background:var(--ui-color-card)}
+.ui-query-flow{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-query-gap);min-width:0}
+.ui-query-actions{display:flex;flex:none;align-items:center;gap:8px;white-space:nowrap}
+.ui-action-row{display:flex;align-items:center;gap:var(--ui-button-gap);min-width:0;background:transparent;border:0;box-shadow:none}
+.ui-list-card{min-width:0;border:1px solid var(--ui-color-divider);border-radius:var(--ui-radius-card);background:var(--ui-color-card)}
+
+/* Buttons and text actions. */
+.ui-button{height:var(--ui-control-height);padding:0 14px;border:1px solid var(--ui-color-border);border-radius:var(--ui-radius-control);background:#fff;color:var(--ui-color-text-regular);font:inherit;line-height:30px;white-space:nowrap;cursor:pointer}
+.ui-button:hover{border-color:var(--ui-color-primary);color:var(--ui-color-primary)}
+.ui-button--primary{border-color:var(--ui-color-primary);background:var(--ui-color-primary);color:#fff}
+.ui-button--primary:hover{border-color:var(--ui-color-primary-hover);background:var(--ui-color-primary-hover);color:#fff}
+.ui-button--danger{border-color:var(--ui-color-danger);background:var(--ui-color-danger);color:#fff}
+.ui-button--danger:hover{border-color:#f78989;background:#f78989;color:#fff}
+.ui-text-action{padding:0;border:0;background:transparent;color:var(--ui-color-primary);font:inherit;cursor:pointer;white-space:nowrap}
+.ui-text-action--danger{color:var(--ui-color-danger)}
+.ui-text-action--log{color:var(--ui-color-info)}
+.ui-text-action:hover,.ui-text-action--log:hover{color:var(--ui-color-primary)}
+
+/* Table primitives retain only horizontal rules. */
+.ui-table-wrap{min-width:0;overflow:auto}
+.ui-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;color:var(--ui-color-text-regular)}
+.ui-table th{height:44px;padding:0 14px;border:0;border-bottom:1px solid var(--ui-color-divider);background:var(--ui-color-header);color:var(--ui-color-text);font-weight:600;text-align:left;white-space:nowrap}
+.ui-table td{height:64px;padding:10px 14px;border:0;border-bottom:1px solid #ebeef5;background:#fff;vertical-align:middle}
+.ui-table tbody tr:hover td{background:#f5faff}
+.ui-status-tag{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:28px;padding:0 8px;border-radius:3px;line-height:20px;white-space:nowrap;font-size:12px}
+.ui-status-tag--new{background:#ecf5ff;color:#1677ff}.ui-status-tag--regular{background:#edf8f1;color:#2fa66a}.ui-status-tag--clearance{background:#fef0f0;color:#f56c6c}.ui-status-tag--stopped{background:#f4f4f5;color:#909399}
+
+/* Dialog primitives. */
+.ui-dialog-mask{position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(31,35,41,.42)}
+.ui-dialog{display:flex;flex-direction:column;overflow:hidden;border-radius:var(--ui-radius-dialog);background:#fff;box-shadow:var(--ui-shadow-dialog)}
+.ui-dialog__header{height:var(--ui-dialog-header-height);display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid #ebeef5;flex:none}
+.ui-dialog__header h2{margin:0;color:var(--ui-color-text);font-size:18px;font-weight:600}.ui-dialog__header p,.ui-dialog__header span{display:block;margin:4px 0 0;color:var(--ui-color-text-secondary);font-size:12px}
+.ui-dialog__close{width:30px;height:30px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--ui-color-text-secondary);font-size:25px;line-height:26px;cursor:pointer}.ui-dialog__close:hover{background:#f5f7fa;color:var(--ui-color-text)}
+.ui-dialog__body{min-height:0;overflow:auto;padding:16px 22px;background:#f7f9fc}.ui-dialog__footer{min-height:58px;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 22px;border-top:1px solid #ebeef5;background:#fff;flex:none}
+.ui-dialog--form{width:min(760px,calc(100vw - 48px));height:min(520px,calc(100vh - 48px))}.ui-dialog--confirm{width:min(500px,calc(100vw - 48px))}.ui-dialog--log{width:min(960px,calc(100vw - 48px));max-height:76vh}.ui-dialog--import{width:min(680px,calc(100vw - 48px));max-height:calc(100vh - 72px);border-radius:6px}.ui-dialog--progress{width:min(1000px,calc(100vw - 48px));height:min(640px,calc(100vh - 48px))}
+
+/* Import dialog is the transfer-order standard. */
+.ui-import__header{height:64px;padding:0 24px}.ui-import__header h2{font-size:18px}.ui-import__body{padding:18px 22px;background:#fff}.ui-import__steps{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto 22px;max-width:760px}.ui-import__step{display:flex;align-items:center;gap:8px;min-width:130px;color:#c0c4cc;font-size:16px;white-space:nowrap}.ui-import__step.is-active{color:var(--ui-color-primary)}.ui-import__step-number{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:2px solid #c0c4cc;border-radius:50%;background:#fff;font-size:16px;font-weight:600}.ui-import__step.is-active .ui-import__step-number{border-color:var(--ui-color-primary);color:var(--ui-color-primary)}.ui-import__line{height:2px;flex:1;background:#dcdfe6}.ui-import__guide{margin-bottom:14px;padding:12px 14px;border:1px solid #c6e2ff;border-radius:6px;background:#f5faff}.ui-import__guide strong{display:block;color:var(--ui-color-text-regular);font-size:14px}.ui-import__guide p{margin:6px 0 12px;color:var(--ui-color-text-secondary);font-size:12px;line-height:20px}.ui-import__upload{min-height:148px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;border:1px dashed #cfd7e6;border-radius:6px;background:#fff;color:var(--ui-color-text-regular);font-size:13px;cursor:pointer}.ui-import__upload:hover,.ui-import__upload.is-drag-over{border-color:var(--ui-color-primary);background:#f5faff}.ui-import__upload-icon{color:#aab2c1;font-size:40px;line-height:1}.ui-import__link{color:var(--ui-color-primary);font-weight:400;text-decoration:underline}.ui-import__tip{margin:10px 0 0;color:var(--ui-color-text-secondary);font-size:12px}.ui-import__preview{margin-top:12px;padding:10px 12px;border:1px solid #e4e9f2;border-radius:4px;background:#fafcff;color:var(--ui-color-text-regular);font-size:12px}.ui-import__footer{min-height:58px;justify-content:space-between;padding:12px 18px 14px;color:var(--ui-color-text-secondary);font-size:13px}.ui-import__footer>div{display:flex;gap:8px}.ui-import__footer .ui-button:disabled{border-color:#a0cfff;background:#a0cfff;color:#fff;cursor:not-allowed}
+
+/* Shared form alignment. */
+.ui-form-card{padding:20px;border:1px solid #e5eaf1;border-radius:6px;background:#fff}.ui-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 22px}.ui-field{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:10px;min-width:0;color:var(--ui-color-text-regular);line-height:20px}.ui-field--wide{grid-column:1 / -1}.ui-field__label{position:relative;white-space:nowrap}.ui-field__required{position:absolute;left:-12px;top:50%;margin:0;transform:translateY(-50%);color:var(--ui-color-danger);font-style:normal;line-height:1}.ui-field input,.ui-field select{width:100%;min-width:0;height:34px;padding:0 10px;border:1px solid var(--ui-color-border);border-radius:var(--ui-radius-control);background:#fff;color:var(--ui-color-text-regular);font:inherit;outline:0}.ui-field input:focus,.ui-field select:focus{border-color:var(--ui-color-primary);box-shadow:0 0 0 2px rgba(64,158,255,.12)}.ui-field .is-readonly{background:#f5f7fa;color:#909399}
+
+/* Batch task progress dialog: use this for push, sync, import validation and similar async tasks. */
+.ui-progress-summary{display:flex;align-items:center;gap:22px;margin-bottom:14px;padding:12px 14px;border:1px solid #b3d8ff;border-radius:6px;background:linear-gradient(135deg,#f0f7ff 0%,#ecf5ff 100%);color:var(--ui-color-text-regular);font-size:13px}.ui-progress-summary__item{display:flex;align-items:baseline;gap:5px;white-space:nowrap}.ui-progress-summary__item b{color:var(--ui-color-text);font-size:16px}.ui-progress-summary__item--success b{color:var(--ui-color-success)}.ui-progress-summary__item--failed b{color:var(--ui-color-danger)}
+.ui-progress-card{overflow:hidden;border:1px solid #e5eaf1;border-radius:6px;background:#fff;box-shadow:0 1px 2px rgba(31,45,61,.04)}.ui-progress-card .ui-table th{height:40px;font-size:12px}.ui-progress-card .ui-table td{height:54px;font-size:12px}.ui-progress-product{display:flex;align-items:center;gap:8px;min-width:0}.ui-progress-product__image{display:grid;place-items:center;width:36px;height:36px;flex:none;border:1px solid #edf0f4;border-radius:4px;background:#f7f8fa;color:#aeb7c3;font-size:18px}.ui-progress-product__name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ui-color-text)}.ui-progress-targets,.ui-progress-statuses{display:grid;gap:4px;line-height:18px}.ui-progress-targets span,.ui-progress-statuses span{white-space:nowrap}.ui-progress-status{display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:20px;padding:0 6px;border-radius:3px;font-size:12px;line-height:18px}.ui-progress-status--pending{background:#f4f4f5;color:#909399}.ui-progress-status--running{background:#ecf5ff;color:#1677ff}.ui-progress-status--success{background:#edf8f1;color:#2fa66a}.ui-progress-status--failed{background:#fef0f0;color:#f56c6c}.ui-progress-result{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ui-color-text-secondary)}.ui-progress-result.is-failed{color:var(--ui-color-danger)}.ui-progress-footer{justify-content:space-between}.ui-progress-footer__text{color:var(--ui-color-text-secondary);font-size:12px}.ui-progress-footer__actions{display:flex;gap:8px}
+
+@media(max-width:760px){.ui-dialog-mask{padding:12px}.ui-dialog--form,.ui-dialog--confirm,.ui-dialog--log,.ui-dialog--import{width:calc(100vw - 24px);max-height:calc(100vh - 24px)}.ui-dialog__header{height:58px;padding:0 18px}.ui-dialog__body{padding:14px}.ui-dialog__footer{padding:12px 14px}.ui-import__steps{gap:3px}.ui-import__step{min-width:0;flex:1;gap:4px;font-size:12px}.ui-import__step-number{width:24px;height:24px;font-size:13px}.ui-form-grid{grid-template-columns:1fr}.ui-field--wide{grid-column:auto}}

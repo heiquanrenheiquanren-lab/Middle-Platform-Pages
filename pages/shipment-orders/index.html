@@ -10,9 +10,9 @@
   <link rel="stylesheet" href="styles.css?v=1.7.23">
   <link rel="stylesheet" href="../../document-list.css?v=1.0.0">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.67">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.70">
 </head>
-<body>
+<body data-ui-kit-page="standard" class="ui-page-canvas">
 <div id="app" v-cloak>
   <div class="app">
     <header class="global-bar">
@@ -472,14 +472,16 @@
     <template #footer><el-button @click="batchVisible=false">取消</el-button><el-button type="primary" @click="saveBatch">保存批次</el-button></template>
   </el-dialog>
 
-  <el-dialog v-model="logVisible" title="操作日志" width="960px" append-to-body>
+  <el-dialog v-model="logVisible" class="shipment-log-dialog" title="操作日志" width="960px" append-to-body>
     <div v-if="logDoc">
-      <el-table :data="logRows" border size="small" class="log-table">
+      <div class="shipment-log-table-card">
+        <el-table :data="logRows" border size="small" class="log-table">
         <el-table-column prop="type" label="操作类型" width="100" align="center"></el-table-column>
         <el-table-column prop="content" label="日志内容" min-width="280" show-overflow-tooltip></el-table-column>
         <el-table-column prop="operator" label="操作人" width="120" align="center"></el-table-column>
         <el-table-column prop="time" label="操作时间" width="170" align="center"></el-table-column>
-      </el-table>
+        </el-table>
+      </div>
       <div class="log-pagination"><el-pagination v-model:current-page="logPage" background layout="total, prev, pager, next" :total="logDoc?.logs?.length||0" :page-size="logPageSize"></el-pagination></div>
     </div>
   </el-dialog>
@@ -573,6 +575,6 @@
 <script src="../../vendor/element-plus.js"></script>
 <script src="app.js?v=1.7.27"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
-  <script src="../../navigation.js?v=1.7.69"></script>
+  <script src="../../navigation.js?v=1.7.70"></script>
 </body>
 </html>

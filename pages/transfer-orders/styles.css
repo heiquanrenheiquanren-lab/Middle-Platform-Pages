@@ -72,6 +72,9 @@
 .transfer-table .action-cell{flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;text-align:left}
 .transfer-table .action-cell .link{display:block}
 .transfer-table .fee-col{width:205px}
+.transfer-table .inbound-time-col{width:220px}
+.inbound-outbound-time{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:19px;white-space:nowrap;color:#606266;font-size:12px}
+.inbound-outbound-time span{color:#303133}
 
 /* 查看弹窗采用采购单详情的只读字段布局，不复用编辑态输入组件。 */
 .dialog.detail-dialog{width:min(1320px,calc(100vw - 56px));height:min(88vh,860px)}
@@ -254,3 +257,15 @@
 .form-help-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:4px;border:1px solid #c0c4cc;border-radius:50%;color:#909399;font-size:11px;font-weight:400;line-height:1;vertical-align:middle;cursor:help}
 .form-help-icon::after{content:attr(data-tooltip);position:absolute;left:50%;top:calc(100% + 8px);z-index:80;width:max-content;max-width:360px;padding:8px 10px;border-radius:4px;background:rgba(48,49,51,.96);box-shadow:0 4px 12px rgba(0,0,0,.18);color:#fff;font-size:12px;font-weight:400;line-height:18px;text-align:left;white-space:normal;opacity:0;pointer-events:none;transform:translate(-50%,-4px);transition:opacity .15s ease,transform .15s ease}
 .form-help-icon:hover::after,.form-help-icon:focus::after{opacity:1;transform:translate(-50%,0)}
+
+/* 统一操作日志白色卡片容器 */
+.transfer-log-table-card{padding:0;border:1px solid #e5eaf1;border-radius:6px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(31,45,61,.04)}
+.transfer-log-table-card .transfer-log-table{border:0}
+
+/* 列表细节：产品缩略图不撑高二级列表行，备注输入框在一级行高内加高 */
+.child-product-cell{display:flex;align-items:center;gap:7px;min-width:0;text-align:left}
+.child-product-thumb{display:inline-flex;align-items:center;justify-content:center;flex:0 0 24px;width:24px;height:24px;border-radius:3px;background:linear-gradient(135deg,#e6eef8,#bbc9db);color:#fff;font-size:11px;line-height:1}
+.child-product-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-remark-input{height:48px}
+.table-help-icon{vertical-align:-3px}
+.table-help-icon::after{white-space:pre-line}

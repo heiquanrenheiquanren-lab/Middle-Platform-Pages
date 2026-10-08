@@ -139,3 +139,12 @@
     .import-result-table tr.success td:first-child{color:#67c23a;font-weight:600}
     .import-result-table tr.fail td:first-child{color:#f56c6c;font-weight:600}
     .import-result-table tr.prelink td:first-child{color:#e6a23c;font-weight:600}
+
+/* 统一操作日志白色卡片容器 */
+.plan-log-dialog{border-radius:8px;box-shadow:0 14px 42px rgba(0,0,0,.28)}
+.plan-log-head{height:62px;padding:0 22px}
+.plan-log-body{padding:16px 22px;background:#f7f9fc;overflow:auto}
+.plan-log-table-card{padding:0;border:1px solid #e5eaf1;border-radius:6px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(31,45,61,.04)}
+.plan-log-table-card .plan-log-table{border:0}
+
+.plan-log-footer{display:flex;align-items:center;justify-content:flex-start;padding:12px 22px;border-top:1px solid #ebeef5;background:#fff;color:#909399;font-size:12px;flex:none}

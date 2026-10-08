@@ -169,7 +169,6 @@
       const getSummaries=({columns})=>columns.map((column,index)=>index===0?'合计':summaryFields.includes(column.property)?qty(filteredRows.value.reduce((sum,row)=>sum+Number(row[column.property]||0),0)):'');
       const query=()=>{Object.assign(applied,clone(filters));page.value=1;ElMessage.success(`查询完成，共 ${filteredRows.value.length} 条库存记录`)};
       const resetFilters=()=>{Object.assign(filters,{keyword:'',warehouse:'',team:'',developer:'',buyer:'',stockState:'',showZero:false});Object.assign(applied,clone(filters));page.value=1};
-      const refresh=()=>{updatedAt.value=nowText();rows.value=clone(rows.value);ElMessage.success('库存数据已刷新')};
       const openMetric=(row,mode,team=row.team||'')=>{
         currentRow.value=row;detailMode.value=mode;detailTeam.value=team;
         if(mode==='flow'){Object.assign(flowFilters,{skuType:'sku',sku:row.sku,warehouses:[row.warehouse],opTypes:[],direction:'',no:'',dateRange:[]});Object.assign(flowApplied,clone(flowFilters));flowPage.value=1;}
@@ -178,7 +177,7 @@
       const fallbackCopy=text=>{const input=document.createElement('textarea');input.value=text;input.setAttribute('readonly','');input.style.position='fixed';input.style.left='-9999px';input.style.top='0';input.style.opacity='0';document.body.appendChild(input);input.focus();input.select();input.setSelectionRange(0,text.length);const copied=document.execCommand('copy');document.body.removeChild(input);if(!copied)throw new Error('copy failed')};
       const copySku=async(sku,rowKey)=>{try{let copied=false;if(navigator.clipboard&&window.isSecureContext){try{await navigator.clipboard.writeText(sku);copied=true}catch(error){copied=false}}if(!copied)fallbackCopy(sku);copiedRowKey.value=rowKey;window.setTimeout(()=>{if(copiedRowKey.value===rowKey)copiedRowKey.value=''},1500);ElMessage.success(`已复制 SKU：${sku}`)}catch(error){ElMessage.error('复制失败，请手动复制 SKU')}};
 
-      return{filters,warehouses,teams,developers,buyers,stockStates,page,pageSize,updatedAt,filteredRows,pagedRows,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailRows,productThumbnail,qty,docTypeLabel,ageText,quantityClass,getSummaries,query,resetFilters,refresh,openMetric,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
+      return{filters,warehouses,teams,developers,buyers,stockStates,page,pageSize,updatedAt,filteredRows,pagedRows,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailRows,productThumbnail,qty,docTypeLabel,ageText,quantityClass,getSummaries,query,resetFilters,openMetric,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
     }
   }).use(window.ElementPlus).mount('#app');
 })();

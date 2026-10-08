@@ -29,7 +29,8 @@
     transferOrder: '../transfer-orders/index.html',
     supplierList: '../supplier-list/index.html',
     warehouseSku: '../warehouse-sku/index.html',
-    productList: '../product-list/index.html'
+    productList: '../product-list/index.html',
+    overseasSkuMapping: '../overseas-sku-mapping/index.html'
   });
 
   var icons = {

@@ -23,6 +23,8 @@
   }
   const teams = ['公共库存', 'Temu团队', '亚马逊北美团队', '独立站团队'];
   const warehouseTransferHelp = '仓间调拨仅支持自营仓与物流中转之间的空间调拨，货权调拨支持全部类型仓库';
+  const inboundDifferenceHelp = '入库差异数量表示调拨单实际入库数量与实际出库数量之间的差额，仅在调拨单完成后统计。\n入库差异数量 = 累计入库数量 − 累计出库数量。';
+  const inboundDifferenceHelpIcon = `<span class="form-help-icon table-help-icon" tabindex="0" role="img" aria-label="${inboundDifferenceHelp.replace(/\n/g,' ')}" data-tooltip="${inboundDifferenceHelp}">?</span>`;
   const skuPool = [
     {sku:'KBAB0057-009',name:'焊接面罩自动变光款',sourceSku:'KBAB0057-009',targetSku:'KBAB0057-009',available:312,price:6.4881,costBatches:[{quantity:160,unitCost:6.32},{quantity:152,unitCost:6.66}],team:'Temu团队',stockWarehouses:['华东实体仓','SZ01东莞仓']},
     {sku:'34001001110',name:'焊接帽子迷彩 2-白色',sourceSku:'34001001110',targetSku:'34001001110',available:240,price:12.86,costBatches:[{quantity:120,unitCost:12.48},{quantity:120,unitCost:13.24}],team:'公共库存',stockWarehouses:['华东实体仓']},
@@ -65,8 +67,8 @@
     return {...order(no,status,warehouse,warehouse,items.length,140,0,'—','—','—','库存管理',creator),transferType:'货权调拨',ownershipWarehouse:warehouse,items,remark:'同仓团队货权调整',ownershipCompleted:status==='已完成',auditDecision:status==='已完成'?'approve':'',outboundQty:0,inboundQty:0,voidedQty:0};
   }
   const CURRENT_USER = 'Admin';
-  const state = {status:'全部',page:1,pageSize:10,selected:new Set(),expanded:new Set(),editing:null,editorType:'仓间调拨',editorDraft:null,pickerRows:[],pickerSelected:new Set(),importFile:null,importRows:[],importErrors:[],sourceWarehouses:[],targetWarehouses:[],sourceTeams:[],targetTeams:[],channels:[],creators:[CURRENT_USER],transferType:'',queryExpanded:false};
-  function defaultQueryValues(key){return key==='creators'?[CURRENT_USER]:[];}
+  const state = {status:'全部',page:1,pageSize:10,selected:new Set(),expanded:new Set(),editing:null,editorType:'仓间调拨',editorDraft:null,pickerRows:[],pickerSelected:new Set(),importFile:null,importRows:[],importErrors:[],sourceWarehouses:[],targetWarehouses:[],sourceTeams:[],targetTeams:[],channels:[],creators:[],transferType:'',queryExpanded:false};
+  function defaultQueryValues(){return [];}
   const importColumns = [
     {key:'sku',label:'SKU',required:true,description:'【必填】填写有效 SKU，SKU 必须存在且属于调出仓库库存。'},
     {key:'sourceWarehouse',label:'调出仓库',required:true,description:'【必填】填写调出库存的仓库名称，必须与系统仓库一致。'},
@@ -93,7 +95,7 @@
       ['#sourceTeamMulti',teams,'sourceTeams','请选择调出团队（可多选）'],
       ['#targetTeamMulti',teams,'targetTeams','请选择调入团队（可多选）'],
       ['#channelMulti',logisticsChannelList(),'channels','请选择物流渠道（可多选）'],
-      ['#creatorMulti',[...new Set(orders.map(row=>row.creator))],'creators','请选择创建人（默认当前账号，可多选）']
+      ['#creatorMulti',[...new Set(orders.map(row=>row.creator))],'creators','请选择创建人（可多选）']
     ];
   }
   function closeQueryMenus(except){$$('.multi').forEach(node=>{if(node===except)return;node.querySelector('[data-menu]')?.classList.remove('show');node.querySelector('[data-trigger]')?.classList.remove('open');});}
@@ -181,7 +183,7 @@
       const items=buildItems(row);
       const timeValue=String(row[timeType]||'');
       const timeKey=/^\d{4}-\d{2}-\d{2}/.test(timeValue)?timeValue.slice(0,10):'';
-      const diff=Number(row.outboundQty||0)-Number(row.inboundQty||0);
+      const diff=Number(row.inboundQty||0)-Number(row.outboundQty||0);
       const hitCode=codeType==='waybill'?includesAny(row.waybill,codeValues):includesAny(row.no,codeValues);
       const hitSku=!skuValues.length||items.some(item=>skuValues.some(term=>String(skuType==='name'?item.name:item.sku||'').toLowerCase().includes(term)));
       return (state.status==='全部'||row.status===state.status)&&(!transferType||row.transferType===transferType)&&hitCode&&hitSku&&
@@ -190,7 +192,7 @@
         (!state.targetTeams.length||items.some(item=>state.targetTeams.includes(item.targetTeam)))&&
         equalsAny(row.channel,state.channels)&&equalsAny(row.creator,state.creators)&&
         (!start||(timeKey&&timeKey>=start))&&(!end||(timeKey&&timeKey<=end))&&
-        (!hasDiff||(hasDiff==='是')===(diff>0));
+        (!hasDiff||(hasDiff==='是')===(row.status==='已完成'&&diff!==0));
     });
   }
   function renderTabs(){
@@ -204,14 +206,14 @@
       const outbound=typeof item.outboundQty==='number'?Number(item.outboundQty):Number(item.quantity||0);
       const inbound=typeof item.inboundQty==='number'?Number(item.inboundQty):0;
       const voided=typeof item.voidedQty==='number'?Number(item.voidedQty):0;
-      return {outbound,inbound,voided,inTransit:Math.max(outbound-inbound-voided,0),diff:outbound-inbound};
+      return {outbound,inbound,voided,inTransit:Math.max(outbound-inbound-voided,0),diff:inbound-outbound};
     }
     let outboundRemaining=row.outboundQty,inboundRemaining=row.inboundQty,voidedRemaining=Number(row.voidedQty||0);
     return items.slice(0,index+1).reduce((progress,item,currentIndex)=>{
       const outbound=Math.min(item.quantity,Math.max(0,outboundRemaining));outboundRemaining-=outbound;
       const inbound=Math.min(outbound,Math.max(0,inboundRemaining));inboundRemaining-=inbound;
       const voided=Math.min(outbound-inbound,Math.max(0,voidedRemaining));voidedRemaining-=voided;
-      return currentIndex===index?{outbound,inbound,voided,inTransit:Math.max(outbound-inbound-voided,0),diff:outbound-inbound}:progress;
+      return currentIndex===index?{outbound,inbound,voided,inTransit:Math.max(outbound-inbound-voided,0),diff:inbound-outbound}:progress;
     },{outbound:0,inbound:0,voided:0,inTransit:0,diff:0});
   }
   function isOwnershipTransfer(row){return row.transferType==='货权调拨';}
@@ -221,7 +223,8 @@
   function progressMarkup(row){
     const ownership=isOwnershipTransfer(row);
     const outbound=ownership?0:row.outboundQty,inbound=ownership?0:row.inboundQty;
-    return `<div class="field-line"><span>出库数量：</span><span>${outbound}</span></div><div class="field-line"><span>入库数量：</span><span>${inbound}</span></div><div class="field-line"><span>在途数量：</span><span>${ownership?0:Math.max(row.outboundQty-row.inboundQty-Number(row.voidedQty||0),0)}</span></div><div class="field-line"><span>差异数量：</span><span>${ownership?0:row.outboundQty-row.inboundQty}</span></div>`;
+    const inboundDiff=row.status==='已完成'?(inbound-outbound):'—';
+    return `<div class="field-line"><span>出库数量：</span><span>${outbound}</span></div><div class="field-line"><span>入库数量：</span><span>${inbound}</span></div><div class="field-line"><span>在途数量：</span><span>${ownership?0:Math.max(row.outboundQty-row.inboundQty-Number(row.voidedQty||0),0)}</span></div><div class="field-line"><span>入库差异数量：</span><span>${inboundDiff}</span></div>`;
   }
   function feeMarkup(row){
     const amount=transferAmount(row);
@@ -231,18 +234,27 @@
     const ownership=isOwnershipTransfer(row);
     return `<div class="field-line"><span>物流渠道：</span><span>${ownership?'—':escapeHtml(row.channel||'—')}</span></div><div class="field-line"><span>物流单号：</span><span>${ownership?'—':escapeHtml(row.waybill||'—')}</span></div><div class="field-line"><span>预计到仓：</span><span>${ownership?'—':row.eta}</span></div>`;
   }
+  function earliestTime(values){
+    return values.map(value=>String(value||'').trim()).filter(Boolean).sort()[0]||'—';
+  }
+  function inboundOutboundTimeMarkup(row){
+    if(isOwnershipTransfer(row))return '<div class="inbound-outbound-time"><div>出库时间：<span>—</span></div><div>入库时间：<span>—</span></div></div>';
+    const outbound=earliestTime([row.outboundAt,...(row.outboundEvents||[]).map(event=>event?.time||event)]);
+    const inbound=earliestTime([row.inboundAt,...(row.inboundEvents||[]).map(event=>event?.time||event)]);
+    return `<div class="inbound-outbound-time"><div>出库时间：<span>${escapeHtml(outbound)}</span></div><div>入库时间：<span>${escapeHtml(inbound)}</span></div></div>`;
+  }
   function childDetailRow(row){
     const items=buildItems(row);
     const ownership=isOwnershipTransfer(row);
-    const header='<th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th>';
+    const header=`<th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>入库差异数量${inboundDifferenceHelpIcon}</th><th>备注</th>`;
     const rows=items.map((item,index)=>{
-      const progress=ownership?{outbound:0,inbound:0,inTransit:0,diff:0}:itemProgress(items,row,index);return `<tr><td>${escapeHtml(item.sku)}</td><td class="left">${escapeHtml(item.name)}</td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td class="left">${escapeHtml(item.remark||'—')}</td></tr>`;
+      const progress=ownership?{outbound:0,inbound:0,inTransit:0,diff:0}:itemProgress(items,row,index);const inboundDiff=row.status==='已完成'?progress.diff:'—';return `<tr><td>${escapeHtml(item.sku)}</td><td class="left"><div class="child-product-cell"><span class="child-product-thumb" aria-hidden="true">▧</span><span class="child-product-name">${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${inboundDiff}</td><td class="left">${escapeHtml(item.remark||'—')}</td></tr>`;
     }).join('');
     return `<tr class="detail-row"><td colspan="10"><div class="child-detail-box"><div class="child-table-wrap"><table class="child-detail-table"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></div></td></tr>`;
   }
   function renderTable(){
     const rows=filtered();const pages=Math.max(1,Math.ceil(rows.length/state.pageSize));state.page=Math.min(state.page,pages);const pageRows=rows.slice((state.page-1)*state.pageSize,state.page*state.pageSize);$('#totalCount').textContent=rows.length;$('#empty').hidden=pageRows.length>0;$('#selectAll').checked=pageRows.length>0&&pageRows.every(row=>state.selected.has(row.id));
-    $('#tableBody').innerHTML=pageRows.map(row=>{const expanded=state.expanded.has(row.id);return `<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${row.id}"><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td><span class="expand-row ${expanded?'is-expanded':''}" data-expand="${row.id}" role="button" tabindex="0" aria-label="${expanded?'收起':'展开'}调拨明细"><span class="expand-chevron"></span></span></td><td><div class="doc-line doc-main"><button class="link doc-no" data-action="view">${row.no}</button><span class="status-tag status-${statusClass(row.status)}">${row.status}</span></div><div class="doc-type">${escapeHtml(row.transferType||'仓间调拨')}</div></td><td>${directionMarkup(row)}</td><td>${progressMarkup(row)}</td><td>${feeMarkup(row)}</td><td>${logisticsMarkup(row)}</td><td><input class="list-remark-input" data-list-remark placeholder="请输入备注" value="${escapeHtml(row.remark||'')}"></td><td><div class="field-line"><span>创建人：</span><span>${escapeHtml(row.creator)}</span></div><div class="field-line"><span>创建时间：</span><span>${escapeHtml(row.createdAt)}</span></div></td><td><div class="action-cell">${actionsFor(row)}</div></td></tr>${expanded?childDetailRow(row):''}`;}).join('');
+    $('#tableBody').innerHTML=pageRows.map(row=>{const expanded=state.expanded.has(row.id);return `<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${row.id}"><td><input class="row-check" type="checkbox" data-id="${row.id}" ${state.selected.has(row.id)?'checked':''}></td><td><span class="expand-row ${expanded?'is-expanded':''}" data-expand="${row.id}" role="button" tabindex="0" aria-label="${expanded?'收起':'展开'}调拨明细"><span class="expand-chevron"></span></span></td><td><div class="doc-line doc-main"><button class="link doc-no" data-action="view">${row.no}</button><span class="status-tag status-${statusClass(row.status)}">${row.status}</span></div><div class="doc-type">${escapeHtml(row.transferType||'仓间调拨')}</div></td><td>${directionMarkup(row)}</td><td>${progressMarkup(row)}</td><td>${feeMarkup(row)}</td><td>${logisticsMarkup(row)}</td><td><input class="list-remark-input" data-list-remark placeholder="请输入备注" value="${escapeHtml(row.remark||'')}"></td><td>${inboundOutboundTimeMarkup(row)}</td><td><div class="field-line"><span>创建人：</span><span>${escapeHtml(row.creator)}</span></div><div class="field-line"><span>创建时间：</span><span>${escapeHtml(row.createdAt)}</span></div></td><td><div class="action-cell">${actionsFor(row)}</div></td></tr>${expanded?childDetailRow(row):''}`;}).join('');
     $('#selectedCount').textContent=state.selected.size;renderPager(pages);
   }
   function actionsFor(row){
@@ -250,7 +262,8 @@
     const voidBtn='<button class="link danger-link" data-action="void">作废</button>';
     if(row.status==='待审核')return `<button class="link" data-action="edit">编辑</button>${voidBtn}${log}`;
     if(row.status==='待出库')return `<button class="link" data-action="outbound">确认出库</button>${voidBtn}${log}`;
-    if(row.status==='在途'||row.status==='部分入库')return `<button class="link" data-action="inbound">入库收货</button><button class="link" data-action="complete">手动完结</button>${log}`;
+    if(row.status==='在途')return `<button class="link" data-action="inbound">入库收货</button>${log}`;
+    if(row.status==='部分入库')return `<button class="link" data-action="inbound">入库收货</button><button class="link" data-action="complete">手动完结</button>${log}`;
     if(row.status==='已驳回')return `<button class="link" data-action="edit">编辑</button>${log}`;
     if(row.status==='已作废')return `<button class="link" data-action="edit">编辑</button>${log}`;
     if(row.status==='异常')return `<button class="link" data-action="edit">编辑</button>${log}`;
@@ -301,23 +314,23 @@
     const amount=transferAmount(row);
     const value=(label,content)=>`<div class="transfer-detail-field"><span>${label}：</span><b>${content}</b></div>`;
     const status=`<span class="status-tag status-${statusClass(row.status)}">${escapeHtml(row.status)}</span>`;
-    const detailRows=items.map((item,index)=>{const progress=ownership?{outbound:0,inbound:0,inTransit:0,diff:0}:itemProgress(items,row,index);return `<tr><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${progress.diff}</td><td>${escapeHtml(item.remark||'—')}</td></tr>`;}).join('');
+    const detailRows=items.map((item,index)=>{const progress=ownership?{outbound:0,inbound:0,inTransit:0,diff:0}:itemProgress(items,row,index);const inboundDiff=row.status==='已完成'?progress.diff:'—';return `<tr><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.quantity}</td><td>${formatMoney(itemTransferAmount(item))}</td><td>${progress.outbound}</td><td>${progress.inbound}</td><td>${progress.inTransit}</td><td>${inboundDiff}</td><td>${escapeHtml(item.remark||'—')}</td></tr>`;}).join('');
     const fields=ownership?`${value('调拨单号',escapeHtml(row.no))}${value('单据状态',status)}${value('调拨类型','货权调拨')}${value('所在仓库',escapeHtml(row.ownershipWarehouse||row.source))}${value('调拨总金额',formatMoney(amount))}${value('创建人',escapeHtml(row.creator))}${value('创建时间',escapeHtml(row.createdAt))}`:`${value('调拨单号',escapeHtml(row.no))}${value('单据状态',status)}${value('调拨类型','仓间调拨')}${value('调出仓库',escapeHtml(row.source))}${value('调入仓库',escapeHtml(row.target))}${value('预计到仓',escapeHtml(row.eta||'—'))}${value('是否继承库龄',row.inheritAge?'是':'否')}${value('物流渠道',escapeHtml(row.channel||'—'))}${value('物流单号',escapeHtml(row.waybill||'—'))}${value('运费',formatMoney(row.fee))}${value('其他费用',formatMoney(row.otherFee))}${value('调拨总金额',formatMoney(amount))}${value('创建人',escapeHtml(row.creator))}${value('创建时间',escapeHtml(row.createdAt))}`;
-    const headers='<th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>差异数量</th><th>备注</th>';
+    const headers=`<th>SKU</th><th>产品名称</th><th>调出团队</th><th>调入团队</th><th>调拨数量</th><th>调拨金额</th><th>已出库数量</th><th>已入库数量</th><th>在途数量</th><th>入库差异数量${inboundDifferenceHelpIcon}</th><th>备注</th>`;
     const subtitle=ownership?`${escapeHtml(row.no)} · ${escapeHtml(row.ownershipWarehouse||row.source)}（同仓货权转移）`:`${escapeHtml(row.no)} · ${escapeHtml(row.source)} → ${escapeHtml(row.target)}`;
     return `<div class="dialog detail-dialog"><header class="dialog-header"><div><h2>调拨单详情</h2><p>${subtitle}</p></div><button class="dialog-close" data-close="detail" aria-label="关闭调拨单详情">×</button></header><div class="dialog-body transfer-detail-body"><section class="section transfer-detail-section"><div class="section-title">调拨信息</div><div class="transfer-detail-field-grid">${fields}</div><div class="transfer-detail-remark"><span>备注：</span><p>${escapeHtml(row.remark||'—')}</p></div></section><section class="section transfer-detail-section"><div class="section-title">调拨明细</div><div class="section-body transfer-detail-table-wrap"><table class="detail-table transfer-detail-table"><thead><tr>${headers}</tr></thead><tbody>${detailRows}</tbody></table></div></section></div>`;
   }
   function openDetail(row){const modal=$('#detailModal');modal.innerHTML=renderDetail(row);modal.querySelector('.dialog-footer')?.remove();modal.hidden=false;bindDetail(modal,row);}
   function bindDetail(modal,row){modal.querySelectorAll('[data-close="detail"]').forEach(button=>button.onclick=()=>{modal.hidden=true;});modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};modal.querySelectorAll('[data-detail-action]').forEach(button=>button.onclick=()=>{modal.hidden=true;runAction(button.dataset.detailAction,row);});}
   function transferLogs(row){
-    const logs=[{type:'创建调拨单',content:`创建${row.transferType||'仓间调拨'}申请`,operator:row.creator,time:row.createdAt}];
-    if(row.abnormalReason)logs.push({type:'库存不足进入异常',content:row.abnormalReason,operator:'Admin',time:row.updatedAt});
-    if(row.reflowLog)logs.push({type:'重新流转待出库',content:row.reflowLog,operator:'Admin',time:row.updatedAt});
-    if(row.auditDecision)logs.push({type:row.auditDecision==='approve'?'审核通过':'驳回调拨单',content:row.auditReason||(isOwnershipTransfer(row)&&row.status==='已完成'?'审核通过，已完成同仓货权转移':'单据已进入后续处理流程'),operator:'Admin',time:row.updatedAt});
-    else logs.push({type:row.status==='已驳回'?'驳回调拨单':'提交审核',content:row.status==='已驳回'?'库存校验未通过，请修改后重新提交':'单据已进入后续处理流程',operator:'Admin',time:row.updatedAt});
+    const logs=[{type:'新增',content:`创建${row.transferType||'仓间调拨'}申请`,operator:row.creator,time:row.createdAt}];
+    if(row.abnormalReason)logs.push({type:'同步',content:row.abnormalReason,operator:'Admin',time:row.updatedAt});
+    if(row.reflowLog)logs.push({type:'同步',content:row.reflowLog,operator:'Admin',time:row.updatedAt});
+    if(row.auditDecision)logs.push({type:'审核',content:row.auditReason||(isOwnershipTransfer(row)&&row.status==='已完成'?'审核通过，已完成同仓货权转移':'单据已进入后续处理流程'),operator:'Admin',time:row.updatedAt});
+    else logs.push({type:'审核',content:row.status==='已驳回'?'库存校验未通过，请修改后重新提交':'单据已进入后续处理流程',operator:'Admin',time:row.updatedAt});
     return logs;
   }
-  function renderLog(row,page=1){const logs=transferLogs(row),pageSize=10,pages=Math.max(1,Math.ceil(logs.length/pageSize)),current=Math.min(page,pages),rows=logs.slice((current-1)*pageSize,current*pageSize);return `<div class="transfer-log-dialog"><header class="transfer-log-header"><div><h2>操作日志</h2><span>调拨单：${escapeHtml(row.no)}</span></div><button class="transfer-log-close" type="button" aria-label="关闭操作日志">×</button></header><div class="transfer-log-body"><table class="transfer-log-table"><thead><tr><th>操作类型</th><th>日志内容</th><th>操作人</th><th>操作时间</th></tr></thead><tbody>${rows.length?rows.map(log=>`<tr><td>${escapeHtml(log.type)}</td><td class="transfer-log-content">${escapeHtml(log.content)}</td><td>${escapeHtml(log.operator)}</td><td>${escapeHtml(log.time)}</td></tr>`).join(''):'<tr><td colspan="4" class="detail-empty">暂无操作日志</td></tr>'}</tbody></table></div><footer class="transfer-log-footer"><span>共 ${logs.length} 条</span><div><button class="transfer-log-page" data-page="${Math.max(1,current-1)}" ${current<=1?'disabled':''}>‹</button>${Array.from({length:pages},(_,index)=>`<button class="transfer-log-page ${current===index+1?'active':''}" data-page="${index+1}">${index+1}</button>`).join('')}<button class="transfer-log-page" data-page="${Math.min(pages,current+1)}" ${current>=pages?'disabled':''}>›</button></div></footer></div>`;}
+  function renderLog(row,page=1){const logs=transferLogs(row),pageSize=10,pages=Math.max(1,Math.ceil(logs.length/pageSize)),current=Math.min(page,pages),rows=logs.slice((current-1)*pageSize,current*pageSize);return `<div class="transfer-log-dialog"><header class="transfer-log-header"><div><h2>操作日志</h2><span>调拨单：${escapeHtml(row.no)}</span></div><button class="transfer-log-close" type="button" aria-label="关闭操作日志">×</button></header><div class="transfer-log-body"><div class="transfer-log-table-card"><table class="transfer-log-table"><thead><tr><th>操作类型</th><th>日志内容</th><th>操作人</th><th>操作时间</th></tr></thead><tbody>${rows.length?rows.map(log=>`<tr><td>${escapeHtml(log.type)}</td><td class="transfer-log-content">${escapeHtml(log.content)}</td><td>${escapeHtml(log.operator)}</td><td>${escapeHtml(log.time)}</td></tr>`).join(''):'<tr><td colspan="4" class="detail-empty">暂无操作日志</td></tr>'}</tbody></table></div></div><footer class="transfer-log-footer"><span>共 ${logs.length} 条</span><div><button class="transfer-log-page" data-page="${Math.max(1,current-1)}" ${current<=1?'disabled':''}>‹</button>${Array.from({length:pages},(_,index)=>`<button class="transfer-log-page ${current===index+1?'active':''}" data-page="${index+1}">${index+1}</button>`).join('')}<button class="transfer-log-page" data-page="${Math.min(pages,current+1)}" ${current>=pages?'disabled':''}>›</button></div></footer></div>`;}
   function openLog(row,page=1){const modal=$('#logModal');modal.innerHTML=renderLog(row,page);modal.hidden=false;modal.querySelector('.transfer-log-close').onclick=()=>{modal.hidden=true;};modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};modal.querySelectorAll('.transfer-log-page').forEach(button=>button.onclick=()=>{if(button.disabled)return;openLog(row,Number(button.dataset.page));});}
   function auditRows(){
     const selected=orders.filter(row=>state.selected.has(row.id));
@@ -691,7 +704,7 @@
   }
   function editorForm(row){
     const isEdit=Boolean(row),transferType=state.editorType||row?.transferType||'仓间调拨',ownership=transferType==='货权调拨',source=state.editorDraft?.source??row?.source??'',target=ownership?source:(state.editorDraft?.target??row?.target??''),inheritAge=row?String(row.inheritAge?'是':'否'):'是',items=buildItems(row||{items:[],skuCount:0,requestQty:0});
-    const submitText=row?.status==='异常'?'保存并重新流转':'提交审核';
+    const submitText=row?.status==='异常'?'保存到待出库':'提交审核';
     const disabled=ownership?'disabled aria-disabled="true"':'';
     const inheritOptions=ownership?'<option selected>—</option><option value="是">是</option><option value="否">否</option>':`<option value="">请选择</option><option value="是" ${inheritAge==='是'?'selected':''}>是</option><option value="否" ${inheritAge==='否'?'selected':''}>否</option>`;
     const channelOptions=ownership?'<option selected>—</option>':`<option value="">请选择物流渠道</option>${logisticsChannelList().map(item=>`<option ${item===row?.channel?'selected':''}>${item}</option>`).join('')}<option value="__add_channel__">＋ 新增渠道</option>`;

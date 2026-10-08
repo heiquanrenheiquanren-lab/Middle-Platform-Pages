@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>批次库存</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.68">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.70">
   <link rel="stylesheet" href="./styles.css?v=1.0.3">
 </head>
-<body>
+<body data-ui-kit-page="standard" class="ui-page-canvas">
   <div id="app" v-cloak>
     <div class="app">
       <header class="global-bar">
@@ -38,6 +38,7 @@
               <div class="query-item keyword-combo"><el-select v-model="filters.keywordType" class="keyword-type"><el-option label="批次号" value="batchNo"></el-option><el-option label="来源单据" value="bizNo"></el-option></el-select><el-input v-model="filters.keyword" clearable placeholder="请输入" @keyup.enter="query" class="keyword-input"></el-input></div>
               <div class="query-item sku-query"><el-input v-model="filters.skus" clearable placeholder="支持多个，以逗号、空格或换行隔开" @keyup.enter="query"></el-input></div>
               <div class="query-item"><el-select v-model="filters.warehouses" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择仓库（可多选）"><el-option v-for="item in warehouses" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="filters.teams" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择团队（可多选）"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select></div>
               <div class="query-item"><el-select v-model="filters.inboundTypes" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择入库类型（可多选）"><el-option v-for="item in inboundTypes" :key="item" :label="item" :value="item"></el-option></el-select></div>
               <div class="query-item query-date-item"><el-date-picker v-model="filters.inboundRange" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" class="query-date-picker"></el-date-picker></div>
               <div class="query-actions"><el-button type="primary" @click="query">查询</el-button><el-button @click="resetFilters">重置</el-button></div>
@@ -51,7 +52,8 @@
               <el-table-column type="selection" width="48" fixed="left"></el-table-column>
               <el-table-column label="批次号" width="168" fixed="left" show-overflow-tooltip><template #default="scope"><el-button link type="primary" @click="openDetail(scope.row)">{{ scope.row.batchNo }}</el-button></template></el-table-column>
               <el-table-column prop="warehouse" label="仓库" min-width="176" fixed="left" show-overflow-tooltip></el-table-column>
-              <el-table-column prop="sku" label="SKU" width="142" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="team" label="团队" width="120" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="sku" label="SKU" width="142" show-overflow-tooltip></el-table-column>
               <el-table-column prop="name" label="产品名称" min-width="290"><template #default="scope"><el-tooltip :content="scope.row.name" placement="top" :show-after="300"><div class="product-cell"><div class="product-thumb" role="img" :aria-label="`${scope.row.name}图片占位符`"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="19" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="m8 22 5-5 4 4 3-3 4 4"></path></svg></div><span class="product-name">{{ scope.row.name }}</span></div></el-tooltip></template></el-table-column>
               <el-table-column prop="inboundType" label="入库类型" width="116" show-overflow-tooltip></el-table-column>
               <el-table-column prop="bizNo" label="来源单据" width="154" show-overflow-tooltip></el-table-column>
@@ -72,13 +74,13 @@
 
     <el-drawer v-model="detailVisible" direction="rtl" size="620px" class="batch-drawer" destroy-on-close>
       <template #header><div class="drawer-title"><h2>批次库存详情</h2><p>{{ currentRow?.batchNo || '—' }}</p></div></template>
-      <template v-if="currentRow"><el-descriptions :column="2" border><el-descriptions-item label="批次号">{{ currentRow.batchNo }}</el-descriptions-item><el-descriptions-item label="仓库">{{ currentRow.warehouse }}</el-descriptions-item><el-descriptions-item label="SKU">{{ currentRow.sku }}</el-descriptions-item><el-descriptions-item label="产品名称">{{ currentRow.name }}</el-descriptions-item><el-descriptions-item label="入库类型">{{ currentRow.inboundType }}</el-descriptions-item><el-descriptions-item label="来源单据">{{ currentRow.bizNo }}</el-descriptions-item><el-descriptions-item label="批次入库数量">{{ fmtQty(currentRow.receivedQty) }}</el-descriptions-item><el-descriptions-item label="批次剩余可用库存">{{ fmtQty(currentRow.remainingAvailableQty) }}</el-descriptions-item><el-descriptions-item label="采购单价">{{ fmtMoney(currentRow.purchasePrice) }}</el-descriptions-item><el-descriptions-item label="单位库存成本">{{ fmtMoney(currentRow.unitInventoryCost) }}</el-descriptions-item><el-descriptions-item label="入库时间">{{ currentRow.inboundAt }}</el-descriptions-item><el-descriptions-item label="在库库龄（天）">{{ currentRow.storageAge }}</el-descriptions-item></el-descriptions><section class="drawer-section"><h3>批次来源</h3><p>来源单据：{{ currentRow.bizNo }}；入库时间：{{ currentRow.inboundAt }}；当前剩余可用库存将按先进先出规则参与出库或加工消耗。</p></section></template>
+      <template v-if="currentRow"><el-descriptions :column="2" border><el-descriptions-item label="批次号">{{ currentRow.batchNo }}</el-descriptions-item><el-descriptions-item label="仓库">{{ currentRow.warehouse }}</el-descriptions-item><el-descriptions-item label="团队">{{ currentRow.team }}</el-descriptions-item><el-descriptions-item label="SKU">{{ currentRow.sku }}</el-descriptions-item><el-descriptions-item label="产品名称">{{ currentRow.name }}</el-descriptions-item><el-descriptions-item label="入库类型">{{ currentRow.inboundType }}</el-descriptions-item><el-descriptions-item label="来源单据">{{ currentRow.bizNo }}</el-descriptions-item><el-descriptions-item label="批次入库数量">{{ fmtQty(currentRow.receivedQty) }}</el-descriptions-item><el-descriptions-item label="批次剩余可用库存">{{ fmtQty(currentRow.remainingAvailableQty) }}</el-descriptions-item><el-descriptions-item label="采购单价">{{ fmtMoney(currentRow.purchasePrice) }}</el-descriptions-item><el-descriptions-item label="单位库存成本">{{ fmtMoney(currentRow.unitInventoryCost) }}</el-descriptions-item><el-descriptions-item label="入库时间">{{ currentRow.inboundAt }}</el-descriptions-item><el-descriptions-item label="在库库龄（天）">{{ currentRow.storageAge }}</el-descriptions-item></el-descriptions><section class="drawer-section"><h3>批次来源</h3><p>来源单据：{{ currentRow.bizNo }}；入库时间：{{ currentRow.inboundAt }}；当前剩余可用库存将按先进先出规则参与出库或加工消耗。</p></section></template>
     </el-drawer>
   </div>
 
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
-  <script src="./app.js?v=1.0.3"></script>
-  <script src="../../navigation.js?v=1.7.69"></script>
+  <script src="./app.js?v=1.0.4"></script>
+  <script src="../../navigation.js?v=1.7.70"></script>
 </body>
 </html>

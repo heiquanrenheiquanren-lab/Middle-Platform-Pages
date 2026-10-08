@@ -1,0 +1,33 @@
+/* Final processing-order surface: follow transfer-order document list styles exactly. */
+.main{grid-template-rows:auto 48px 47px minmax(0,1fr) 53px!important}
+.processing-table{min-width:1540px}
+.processing-table th{height:47px;background:#f5f7fa;color:#303133;border-right:0;border-bottom:1px solid #ebeef5;font-weight:600}
+.processing-table th:first-child{background:#f5f7fa}
+.processing-table td{height:70px;border-right:0}
+.processing-table .parent-row>td:nth-child(3){position:sticky;left:92px;z-index:3;background:#fff;text-align:left}
+.processing-table thead th:nth-child(3){position:sticky;left:92px;z-index:6;background:#f5f7fa}
+.processing-table .parent-row>td:last-child{position:sticky;right:0;z-index:3;background:#fff}
+.processing-table thead th:last-child{position:sticky;right:0;z-index:6;background:#f5f7fa}
+.processing-table tbody tr:hover>td:nth-child(3),.processing-table tbody tr:hover>td:last-child{background:#f5faff}
+.child-row>td{position:static!important;display:table-cell;height:auto;padding:0!important;white-space:normal!important;overflow:visible!important;background:#fff!important;border:0!important}
+.child-panel{margin:0 28px 12px;padding:10px 0 12px;background:transparent}
+.child-table{min-width:1040px;border-collapse:separate;border-spacing:0}
+.child-table th,.child-table td{height:40px;padding:0 12px;border:0;border-bottom:1px solid #e6ebf2;color:#606266;font-size:13px}
+.child-table th{border-top:1px solid #e6ebf2;background:#f3f6fa;color:#303133;font-weight:600}
+.child-table td.left{text-align:left}
+.status-bar{height:50px;padding:0 16px}
+.status-tabs,.status-tab{height:48px}
+.status-tab{font-weight:500}
+.status-tab.active{color:#409eff}
+.status-tab.active:after{height:2px;background:#409eff}
+.status-tab em{display:inline-flex;min-width:22px;height:18px;padding:0 6px;margin-left:6px;align-items:center;justify-content:center;border-radius:10px;background:#f2f4f7;color:#606266;font-size:12px}
+.status-tab.active em{background:#ecf5ff;color:#409eff}
+.action-strip .head-actions .btn{border:1px solid #dcdfe6;border-radius:7px;box-shadow:none;font-weight:400}
+.action-strip .head-actions .btn.primary{border-color:#409eff;background:#409eff;color:#fff}
+.action-strip .head-actions .btn.danger{border-color:#f56c6c;background:#f56c6c;color:#fff}
+.action-strip .head-actions .btn:disabled{border-color:#ebeef5;background:#f5f7fa;color:#c0c4cc}
+.processing-editor .ui-dialog__body{background:#fff}
+.processing-editor-table{margin-top:16px;overflow:auto}
+.processing-editor .editor-table{border-collapse:separate;border-spacing:0}
+.processing-editor .editor-table th,.processing-editor .editor-table td{border:0;border-bottom:1px solid #e6ebf2}
+.processing-editor .editor-table th{border-top:1px solid #e6ebf2;background:#f5f7fa}

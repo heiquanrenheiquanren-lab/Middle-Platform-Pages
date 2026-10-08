@@ -2446,7 +2446,7 @@ createApp({
       }
       if (['待加工', '待发货', '待收货', '部分收货', '已完成'].includes(doc.status)) {
         logs.push({
-          type: '出库',
+          type: '同步',
           content: `出库成功，虚拟货位2A01-A0101，减少库存${doc.pick || doc.declare || 0}个`,
           operator: '仓库用户',
           time: time('14:20:00'),
@@ -2462,7 +2462,7 @@ createApp({
       }
       if (['待收货', '部分收货', '已完成'].includes(doc.status)) {
         logs.push({
-          type: '发货',
+          type: '同步',
           content: `确认发货 ${doc.ship || doc.declare || 0} 件，物流单号 ${doc.logisticsNo || '—'}`,
           operator: '运营用户',
           time: time('09:15:00'),
@@ -2470,7 +2470,7 @@ createApp({
       }
       if (['部分收货', '已完成'].includes(doc.status)) {
         logs.push({
-          type: '收货',
+          type: '同步',
           content: `确认收货 ${doc.receive || 0} 件`,
           operator: '仓库用户',
           time: time('11:20:00'),
@@ -3776,7 +3776,7 @@ createApp({
       });
       if (!row.logs) row.logs = [];
       row.logs.unshift({
-        type: '取消发货',
+        type: '取消',
         content: `取消发货单，关联发货计划已同步作废${remark ? `，取消原因：${remark}` : '（未填写取消原因）'}`,
         operator: 'Admin',
         time: formatOperationTime(),
@@ -3971,7 +3971,7 @@ createApp({
       refreshStatusAfterQuantityAdjust(doc);
       if (!doc.logs) doc.logs = buildLogs(doc);
       doc.logs.unshift({
-        type: '数量调整',
+        type: '编辑',
         content: `调整${typeLabel}：${logDetails.join('；')}。原因：${quantityAdjustReason.value}${quantityAdjustRemark.value.trim() ? `，备注：${quantityAdjustRemark.value.trim()}` : ''}`,
         operator: 'Admin',
         time: formatOperationTime(),
