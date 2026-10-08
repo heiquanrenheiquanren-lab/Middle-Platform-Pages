@@ -530,15 +530,11 @@ function purchaseBatchReceiveImportSteps(){
 }
 function renderPurchaseBatchReceiveImport(){
   const state=purchaseBatchReceiveImportState,hasFile=Boolean(state.file);
-  return `<section class="purchase-batch-import-panel" data-batch-panel="import" hidden><div class="purchase-batch-import-type"><span>导入类型</span><label><input type="radio" name="purchaseBatchImportType" value="按单导入" checked> 按单导入</label></div>${purchaseBatchReceiveImportSteps()}<div class="purchase-batch-import-guide"><b>第一步：使用标准模板整理收货数据</b><p>1. 请勿修改模板表头。支持 .xlsx、.xls、.csv 文件，单次仅导入一个文件。</p><p class="purchase-batch-import-rule">2. 系统将根据采购单及 SKU 关联团队的剩余可收数量进行平均分配，单个团队的分配数量不得超过其剩余可收数量；如无法整除，余数将优先分配至剩余可收数量较大的团队，确保各团队分配数量之和等于本次收货数量。</p><button class="btn plain" type="button" data-batch-import-action="download">下载模板</button></div><div class="purchase-batch-import-drop ${state.error?'has-error':''}" data-batch-import-drop><input type="file" accept=".xlsx,.xls,.csv" data-batch-import-file hidden><span class="purchase-batch-import-icon">↑</span><div>将 Excel 文件拖到此处，或<button type="button" data-batch-import-action="choose">点击选择文件</button></div></div><p class="purchase-batch-import-tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</p>${hasFile?`<div class="purchase-batch-import-preview"><b>已选择文件：${escapeHtml(state.file.name)}</b><span>识别到 ${state.rowCount} 条待校验收货明细</span></div>`:''}${state.error?`<p class="purchase-batch-import-error">${escapeHtml(state.error)}</p>`:''}</section>`;
+  return `<section class="purchase-batch-import-panel" data-batch-panel="import" hidden><div class="purchase-batch-import-type"><span>导入类型</span><label><input type="radio" name="purchaseBatchImportType" value="按单导入" checked> 按单导入</label></div>${purchaseBatchReceiveImportSteps()}<div class="purchase-batch-import-guide"><b>第一步：使用标准模板整理收货数据</b><p>1. 请勿修改模板表头。支持 .xlsx、.xls、.csv 文件，单次仅导入一个文件。</p><p class="purchase-batch-import-rule">2. 系统将按采购单号、SKU 及团队匹配可收货明细：填写团队时，仅在该团队对应的采购明细间分配；未填写团队时，在该采购单及 SKU 对应的全部可收货明细间分配。单条明细的分配数量不得超过其剩余可收数量；如无法整除，余数优先分配至剩余可收数量较大的明细，确保各明细分配数量之和等于本次收货数量。</p><a class="btn plain" href="https://www.kdocs.cn/l/caigDqifgmQq" target="_blank" rel="noopener noreferrer">下载模板</a></div><div class="purchase-batch-import-drop ${state.error?'has-error':''}" data-batch-import-drop><input type="file" accept=".xlsx,.xls,.csv" data-batch-import-file hidden><span class="purchase-batch-import-icon">↑</span><div>将 Excel 文件拖到此处，或<button type="button" data-batch-import-action="choose">点击选择文件</button></div></div><p class="purchase-batch-import-tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</p>${hasFile?`<div class="purchase-batch-import-preview"><b>已选择文件：${escapeHtml(state.file.name)}</b><span>识别到 ${state.rowCount} 条待校验收货明细</span></div>`:''}${state.error?`<p class="purchase-batch-import-error">${escapeHtml(state.error)}</p>`:''}</section>`;
 }
 function renderPurchaseBatchReceiveImportFooter(){
   const state=purchaseBatchReceiveImportState,hasFile=Boolean(state.file);
   return `<footer class="purchase-batch-import-footer" data-batch-footer="import" hidden><span>${hasFile?`当前文件：${escapeHtml(state.file.name)}`:'尚未选择文件'}</span><div><button class="btn" type="button" data-batch-import-action="cancel">取消</button><button class="btn primary" type="button" data-batch-import-action="confirm" ${hasFile&&!state.error?'':'disabled'}>确认导入</button></div></footer>`;
-}
-function downloadPurchaseBatchReceiveTemplate(){
-  const html='<!doctype html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,"Microsoft YaHei",sans-serif}th,td{border:1px solid #c9d6e3;padding:8px 12px;min-width:130px}th{background:#075985;color:#fff}td{background:#fff6df;color:#606266}</style></head><body><table><tr><th>采购单号*</th><th>SKU*</th><th>本次收货数量*</th></tr><tr><td>填写中台采购单号</td><td>填写采购单内的 SKU</td><td>填写大于 0 的正整数</td></tr></table></body></html>';
-  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download='采购单批量收货导入模板.xls';document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url);toast('模板已下载');
 }
 function loadPurchaseBatchReceiveFile(file,modal){
   if(!file)return;
@@ -565,7 +561,6 @@ function switchPurchaseBatchReceiveTab(modal,tab){
 }
 function bindPurchaseBatchReceiveImport(modal){
   const panel=modal.querySelector('[data-batch-panel="import"]');if(!panel)return;
-  panel.querySelector('[data-batch-import-action="download"]').onclick=downloadPurchaseBatchReceiveTemplate;
   const input=panel.querySelector('[data-batch-import-file]'),drop=panel.querySelector('[data-batch-import-drop]');
   panel.querySelector('[data-batch-import-action="choose"]').onclick=event=>{event.stopPropagation();input.click();};
   drop.onclick=event=>{if(!event.target.closest('button'))input.click();};
