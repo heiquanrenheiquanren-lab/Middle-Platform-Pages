@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>供应商列表｜供应链</title>
-  <link rel="stylesheet" href="./management.css?v=1.0.9">
+  <link rel="stylesheet" href="./management.css?v=1.0.13">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.71">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.72">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="app">
@@ -30,8 +30,9 @@
         <section class="query-panel" aria-label="供应商查询">
           <div class="query-grid">
             <div class="query-item query-code-item"><input id="filterCode" class="control" placeholder="供应商编码，支持多个精确匹配" aria-label="供应商编码"></div>
-            <div class="query-item"><input id="filterName" class="control" placeholder="供应商名称" aria-label="供应商名称"></div>
+            <div class="query-item"><input id="filterName" class="control" placeholder="供应商名称、简称" aria-label="供应商名称、简称"></div>
             <div class="query-item"><select id="filterBuyer" class="control" aria-label="采购员"><option value="">采购员（全部）</option></select></div>
+            <div class="query-item level-filter" id="filterLevelWrap"><button id="filterLevelButton" class="level-filter-trigger" type="button" aria-haspopup="menu" aria-expanded="false">供应商等级（全部）<span>⌄</span></button><div id="filterLevelMenu" class="level-filter-menu" role="menu" hidden><label><input type="checkbox" value="S级">S级</label><label><input type="checkbox" value="A级">A级</label><label><input type="checkbox" value="B级">B级</label><label><input type="checkbox" value="C级">C级</label><label><input type="checkbox" value="D级">D级</label></div></div>
             <div class="query-item settlement-filter"><select id="filterSettlement" class="control" aria-label="结算方式"><option value="">结算方式（全部）</option><option>月结30天</option><option>月结90天</option><option>月结150天</option><option>月结180天</option><option>款到发货</option><option>预款20%，余款80%款到发货</option><option>预款30%，余款70%款到发货</option></select></div>
             <div class="query-item"><select id="filterPayment" class="control" aria-label="支付方式"><option value="">支付方式（全部）</option><option>线上支付宝</option><option>线下银行卡</option><option>跨境宝</option></select></div>
             <div class="query-actions"><button id="searchButton" class="btn primary" type="button">查询</button><button id="resetButton" class="btn" type="button">重置</button></div>
@@ -41,7 +42,7 @@
           <div class="action-strip">
             <button id="addButton" class="btn primary" type="button">新增供应商</button>
           </div>
-          <div class="table-scroll"><table class="supplier-table"><thead><tr><th class="name-col">供应商名称</th><th class="code-col">供应商编码</th><th class="status-col">合作状态</th><th class="buyer-col">跟进采购员</th><th class="settlement-col">结算方式</th><th class="payment-col">支付方式</th><th class="invoice-col">开票类型</th><th class="creator-col">创建人</th><th class="time-col">创建时间</th><th class="updater-col">更新人</th><th class="time-col">更新时间</th><th class="operation-col">操作</th></tr></thead><tbody id="tableBody"></tbody></table><div id="emptyState" class="empty-state" hidden>暂无符合条件的供应商</div></div>
+          <div class="table-scroll"><table class="supplier-table"><thead><tr><th class="name-col">供应商名称</th><th class="code-col">供应商编码</th><th class="short-name-col">简称</th><th class="level-col">供应商等级</th><th class="status-col">合作状态</th><th class="buyer-col">跟进采购员</th><th class="settlement-col">结算方式</th><th class="payment-col">支付方式</th><th class="invoice-col">开票类型</th><th class="creator-col">创建人</th><th class="time-col">创建时间</th><th class="operation-col">操作</th></tr></thead><tbody id="tableBody"></tbody></table><div id="emptyState" class="empty-state" hidden>暂无符合条件的供应商</div></div>
           <footer class="table-footer"><span id="resultCount">共 0 条</span><div class="pager"><button id="prevPage" type="button" aria-label="上一页">‹</button><span id="pageNumber">1</span><button id="nextPage" type="button" aria-label="下一页">›</button></div></footer>
         </section>
       </main>
@@ -53,32 +54,34 @@
     <div class="modal-layout"><div id="editScroll" class="modal-scroll"><form id="supplierForm" novalidate>
       <section id="companyInfo" class="form-section"><h3>公司基本信息</h3><div class="form-grid">
         <label class="field"><span class="field-label required">供应商名称</span><input name="name" required placeholder="请输入供应商名称"></label>
+        <label class="field"><span class="field-label required">供应商简称</span><input name="shortName" required placeholder="请输入供应商简称"></label>
         <label class="field"><span class="field-label">供应商编码</span><input name="code" readonly></label>
         <label class="field"><span class="field-label">创建日期</span><input name="createdAt" readonly></label>
         <label class="field"><span class="field-label required">信用代码</span><input name="creditCode" required placeholder="请输入统一社会信用代码"></label>
-        <label class="field"><span class="field-label required">注册资金</span><span class="with-unit"><span class="input-unit"><input name="capital" type="number" min="0" step="0.01" required placeholder="请输入金额"><small>万元</small></span></span></label>
-        <label class="field"><span class="field-label required">注册日期</span><input name="registrationDate" type="date" required></label>
-        <label class="field"><span class="field-label">供应商类目</span><select name="category"><option value="">请选择</option><option>焊接设备</option><option>焊接耗材</option><option>防护用品</option><option>包装辅料</option></select></label>
-        <label class="field"><span class="field-label required">可无理由退货</span><select name="returns" required><option>否</option><option>是</option></select></label>
-        <label class="field"><span class="field-label required">可退货周期</span><span class="with-unit"><span class="input-unit"><input name="returnDays" type="number" min="0" required><small>天</small></span></span></label>
+        <label class="field"><span class="field-label">注册资金</span><span class="with-unit"><span class="input-unit"><input name="capital" type="number" min="0" step="0.01" placeholder="请输入金额"><small>万元</small></span></span></label>
+        <label class="field"><span class="field-label">注册日期</span><input name="registrationDate" type="date"></label>
+        <label class="field"><span class="field-label">供应商类目</span><input name="category" placeholder="请输入供应商类目"></label>
+        <label class="field"><span class="field-label">可无理由退货</span><select name="returns"><option>否</option><option>是</option></select></label>
+        <label class="field"><span class="field-label">可退货周期</span><span class="with-unit"><span class="input-unit"><input name="returnDays" type="number" min="0" placeholder="请输入天数"><small>天</small></span></span></label>
         <label class="field"><span class="field-label required">跟进采购员</span><select name="buyer" required><option value="">请选择</option><option>采购员A</option><option>采购员B</option><option>采购员C</option><option>采购员D</option></select></label>
         <label class="field"><span class="field-label required">合作状态</span><select name="status" required><option>合作中</option><option>禁用</option></select></label>
+        <label class="field status-level"><span class="field-label required">供应商等级</span><select name="supplierLevel" required><option value="">请选择</option><option>S级</option><option>A级</option><option>B级</option><option>C级</option><option>D级</option></select></label>
         <div class="field span-2"><span class="field-label required">注册地址</span><div class="address-inputs"><input name="province" placeholder="省" required><input name="city" placeholder="市" required><input name="district" placeholder="区" required><input name="registeredAddress" placeholder="详细地址" required></div></div>
       </div></section>
       <section id="contactInfo" class="form-section"><h3>供应商联系方式</h3><div class="contact-head"><span>联系人</span><span>手机号码</span><span>联系电话</span><span>微信号</span><span>电子邮箱</span><span>操作</span></div><div id="contacts" class="repeat-list"></div><button class="add-line" type="button" data-add="contact"><span>＋</span>添加联系人</button></section>
       <section id="shippingInfo" class="form-section"><h3>发货地址</h3><div id="shippingAddresses" class="repeat-list"></div><button class="add-line" type="button" data-add="shipping"><span>＋</span>添加发货地址</button></section>
       <section id="returnInfo" class="form-section"><h3>退货地址</h3><div id="returnAddresses" class="repeat-list"></div><button class="add-line" type="button" data-add="return"><span>＋</span>添加退货地址</button></section>
       <section id="financeInfo" class="form-section"><h3>财务结算</h3><div class="form-grid">
-        <label class="field"><span class="field-label required">是否包邮</span><select name="freeShipping"><option>否</option><option>是</option></select></label>
-        <label class="field"><span class="field-label required">结算币种</span><select name="currency"><option>RMB</option><option>USD</option><option>EUR</option></select></label>
+        <label class="field"><span class="field-label">是否包邮</span><select name="freeShipping"><option>否</option><option>是</option></select></label>
+        <label class="field"><span class="field-label required">结算币种</span><select name="currency"><option>人民币（CNY）</option><option>美元（USD）</option><option>欧元（EUR）</option><option>港币（HKD）</option><option>英镑（GBP）</option><option>日元（JPY）</option><option>澳元（AUD）</option><option>加元（CAD）</option></select></label>
         <label class="field"><span class="field-label required">开票类型</span><select id="invoiceType" name="invoice"><option>否</option><option>增值税普通发票</option><option>增值税专用发票</option></select></label>
-        <label id="invoiceTaxField" class="field" hidden><span class="field-label">开票税点</span><span class="with-unit"><span class="input-unit"><input name="invoiceTaxRate" type="number" min="0" max="100" step="0.01" placeholder="请输入税点"><small>%</small></span></span></label>
-        <label id="receivedTaxField" class="field" hidden><span class="field-label">实收税点</span><span class="with-unit"><span class="input-unit"><input name="receivedTaxRate" type="number" min="0" max="100" step="0.01" placeholder="请输入税点"><small>%</small></span></span></label>
+        <label id="invoiceTaxField" class="field" hidden><span class="field-label">开票税点</span><select name="invoiceTaxRate"><option value="">请选择</option><option>免税</option><option>1%</option><option>3%</option><option>6%</option><option>9%</option><option>13%</option></select></label>
+        <label id="receivedTaxField" class="field" hidden><span class="field-label">实收税点</span><select name="receivedTaxRate"><option value="">请选择</option><option>1%</option><option>3%</option><option>6%</option><option>9%</option><option>13%</option></select></label>
         <label class="field"><span class="field-label required">结算方式</span><select name="paymentMethod"><option>月结30天</option><option>月结90天</option><option>月结150天</option><option>月结180天</option><option>款到发货</option><option>预款20%，余款80%款到发货</option><option>预款30%，余款70%款到发货</option></select></label>
         <label class="field"><span class="field-label required">支付方式</span><select name="paymentChannel"><option>线上支付宝</option><option>线下银行卡</option><option>跨境宝</option></select></label>
         <label class="field span-2 textarea-field"><span class="field-label">结算备注</span><textarea name="settlementNote" maxlength="300" placeholder="请输入结算备注"></textarea></label>
       </div></section>
-      <section id="credentialInfo" class="form-section"><h3>相关证明资料</h3><div class="upload-grid"><label>营业执照<input type="file" name="license" accept="image/*,.pdf"><span class="upload-box">＋</span></label><label>收款确认函<input type="file" name="confirmation" accept="image/*,.pdf"><span class="upload-box">＋</span></label><label>框架协议<input type="file" name="framework" accept="image/*,.pdf"><span class="upload-box">＋</span></label><label>品质协议<input type="file" name="quality" accept="image/*,.pdf"><span class="upload-box">＋</span></label></div></section>
+      <section id="credentialInfo" class="form-section"><h3>相关证明资料 <span class="upload-tip">支持 PDF 及 JPG、PNG文件格式，不超过 10MB</span></h3><div class="upload-grid"><label>营业执照<input type="file" name="license" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><span class="upload-box">＋</span></label><label>收款确认函<input type="file" name="confirmation" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><span class="upload-box">＋</span></label><label>框架协议<input type="file" name="framework" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><span class="upload-box">＋</span></label><label>品质协议<input type="file" name="quality" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><span class="upload-box">＋</span></label></div></section>
       <section id="remarkInfo" class="form-section"><h3>备注信息</h3><label class="field textarea-field"><span class="field-label">备注</span><textarea name="remark" maxlength="500" placeholder="请输入备注信息"></textarea></label></section>
       <p id="formError" class="form-error" role="alert"></p>
     </form></div><nav class="modal-anchor-nav" aria-label="供应商信息导航"><button class="active" type="button" data-modal-anchor="companyInfo">公司信息</button><button type="button" data-modal-anchor="contactInfo">联系方式</button><button type="button" data-modal-anchor="shippingInfo">发货地址</button><button type="button" data-modal-anchor="returnInfo">退货地址</button><button type="button" data-modal-anchor="financeInfo">财务结算</button><button type="button" data-modal-anchor="credentialInfo">证明资料</button><button type="button" data-modal-anchor="remarkInfo">备注信息</button></nav></div>
@@ -87,7 +90,7 @@
   <div id="logMask" class="modal-mask supplier-log-modal" hidden><section class="supplier-log-dialog" role="dialog" aria-modal="true" aria-labelledby="logTitle"><header class="supplier-log-header"><div><h2 id="logTitle">操作日志</h2><span id="logSupplierName"></span></div><button class="supplier-log-close" type="button" data-close="log" aria-label="关闭">×</button></header><div class="supplier-log-body"><div class="supplier-log-table-card"><table class="supplier-log-table"><thead><tr><th>操作类型</th><th>日志内容</th><th>操作人</th><th>操作时间</th></tr></thead><tbody id="logBody"></tbody></table></div><footer class="supplier-log-footer"><span id="logCount">共 0 条</span><div id="logPager"></div></footer></section></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="../../custom-select.js?v=1.0.0"></script>
-  <script src="./management.js?v=1.0.8"></script>
-  <script src="../../navigation.js?v=1.7.71"></script>
+  <script src="./management.js?v=1.0.13"></script>
+  <script src="../../navigation.js?v=1.7.72"></script>
 </body>
 </html>

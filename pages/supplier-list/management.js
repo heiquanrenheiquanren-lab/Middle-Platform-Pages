@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  var storageKey = 'middle-platform-supplier-management-v9';
+  var storageKey = 'middle-platform-supplier-management-v12';
   var seed = [
     ['苏州赛美体育用品有限公司','GYS15354','焊接耗材','采购员A,采购员B','创建人A',1],
     ['深圳市康仕达科技有限公司','GYS15353','焊接设备','采购员A,采购员B','创建人A',0],
@@ -17,7 +17,7 @@
   ];
   function example(row, index) {
     var createdAt='2026-09-'+String(28-index).padStart(2,'0')+' 09:00:00';
-    return {name:row[0],code:row[1],category:row[2],buyer:row[3].split(',')[0],status:'合作中',creator:row[4],editor:row[4],skuCount:row[5],amount:0,paymentChannel:'线上支付宝',developer:'开发员A',createdAt:createdAt,updatedAt:createdAt,creditCode:'91320594MAK22J3668',capital:'5',registrationDate:'2025-11-28',returns:'否',returnDays:'7',province:'江苏省',city:'苏州市',district:'工业园区',registeredAddress:row[0],freeShipping:'否',currency:'RMB',invoice:'否',invoiceTaxRate:'',receivedTaxRate:'',paymentMethod:'款到发货',settlementNote:'',remark:'',contacts:[{name:'联系人A',phone:'17751242848',telephone:'',wechat:'',email:'',default:true}],shipping:[{province:'江苏省',city:'苏州市',district:'工业园区',detail:'',default:true}],returnsAddresses:[{province:'江苏省',city:'苏州市',district:'工业园区',detail:'',default:true}],logs:[{type:'新增',content:'新增供应商信息',operator:row[4],time:createdAt}]};
+    return {name:row[0],shortName:row[0].replace(/(有限责任公司|有限公司)$/,''),code:row[1],category:row[2],buyer:row[3].split(',')[0],status:'合作中',supplierLevel:'',creator:row[4],editor:row[4],skuCount:row[5],amount:0,paymentChannel:'线上支付宝',developer:'开发员A',createdAt:createdAt,updatedAt:createdAt,creditCode:'91320594MAK22J3668',capital:'5',registrationDate:'2025-11-28',returns:'否',returnDays:'7',province:'江苏省',city:'苏州市',district:'工业园区',registeredAddress:row[0],freeShipping:'否',currency:'人民币（CNY）',invoice:'否',invoiceTaxRate:'',receivedTaxRate:'',paymentMethod:'款到发货',settlementNote:'',remark:'',contacts:[{name:'联系人A',phone:'17751242848',telephone:'',wechat:'',email:'',default:true}],shipping:[{province:'江苏省',city:'苏州市',district:'工业园区',detail:'',default:true}],returnsAddresses:[{province:'江苏省',city:'苏州市',district:'工业园区',detail:'',default:true}],logs:[{type:'新增',content:'新增供应商信息',operator:row[4],time:createdAt}]};
   }
   var suppliers;
   try { suppliers = JSON.parse(localStorage.getItem(storageKey)); } catch (error) { suppliers = null; }
@@ -40,14 +40,17 @@
     updateSelect('#filterBuyer',suppliers.flatMap(function(row){return (row.buyer||'').split(',');}));
   }
   function filtersFromPage() {
-    return {code:$('#filterCode').value.trim(),name:$('#filterName').value.trim(),buyer:$('#filterBuyer').value,settlement:$('#filterSettlement').value,payment:$('#filterPayment').value};
+    return {code:$('#filterCode').value.trim(),name:$('#filterName').value.trim(),buyer:$('#filterBuyer').value,levels:selectedLevels(),settlement:$('#filterSettlement').value,payment:$('#filterPayment').value};
   }
+  function selectedLevels() { return Array.from(document.querySelectorAll('#filterLevelMenu input:checked')).map(function(input){return input.value;}); }
+  function syncLevelFilter() { var levels=selectedLevels(), button=$('#filterLevelButton');button.firstChild.textContent=levels.length?'供应商等级（'+levels.join('、')+'）':'供应商等级（全部）'; }
   function filtered() {
     var codes=applied.code?applied.code.split(/[\s,，;；]+/).filter(Boolean):[];
     return suppliers.filter(function(row){
       if (codes.length && codes.indexOf(row.code)<0) return false;
-      if (applied.name && row.name.indexOf(applied.name)<0) return false;
+      if (applied.name && row.name.indexOf(applied.name)<0 && (row.shortName||'').indexOf(applied.name)<0) return false;
       if (applied.buyer && (row.buyer||'').indexOf(applied.buyer)<0) return false;
+      if (applied.levels && applied.levels.length && applied.levels.indexOf(row.supplierLevel)<0) return false;
       if (applied.settlement && row.paymentMethod!==applied.settlement) return false;
       if (applied.payment && row.paymentChannel!==applied.payment) return false;
       return true;
@@ -60,7 +63,7 @@
     $('#tableBody').innerHTML=visible.map(function(row){
       return '<tr><td><span class="cell-copy"><button class="row-link" data-action="edit" data-code="'+clean(row.code)+'">'+clean(row.name)+'</button><button class="copy-icon" type="button" data-copy="'+clean(row.name)+'" aria-label="复制供应商名称" title="复制供应商名称"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="2.5" width="7.5" height="9" rx="1"/><path d="M10.5 11.5v1.1a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1h2"/></svg></button></span></td>'+
         '<td><span class="cell-copy"><span>'+clean(row.code)+'</span><button class="copy-icon" type="button" data-copy="'+clean(row.code)+'" aria-label="复制供应商编码" title="复制供应商编码"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="2.5" width="7.5" height="9" rx="1"/><path d="M10.5 11.5v1.1a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1h2"/></svg></button></span></td>'+
-        '<td>'+clean(row.status||'合作中')+'</td><td>'+clean(row.buyer||'—')+'</td><td>'+clean(row.paymentMethod||'—')+'</td><td>'+clean(row.paymentChannel||'—')+'</td><td>'+clean(row.invoice||'—')+'</td><td>'+clean(row.creator||'—')+'</td><td>'+clean(row.createdAt||'—')+'</td><td>'+clean(row.editor||'—')+'</td><td>'+clean(row.updatedAt||row.createdAt||'—')+'</td>'+
+        '<td>'+clean(row.shortName||'')+'</td><td>'+clean(row.supplierLevel||'')+'</td><td>'+clean(row.status||'合作中')+'</td><td>'+clean(row.buyer||'')+'</td><td>'+clean(row.paymentMethod||'—')+'</td><td>'+clean(row.paymentChannel||'—')+'</td><td>'+clean(row.invoice||'—')+'</td><td>'+clean(row.creator||'—')+'</td><td>'+clean(row.createdAt||'—')+'</td>'+
         '<td><button class="row-action" data-action="edit" data-code="'+clean(row.code)+'">编辑</button><button class="row-action" data-action="log" data-code="'+clean(row.code)+'">日志</button></td></tr>';
     }).join('');
     $('#emptyState').hidden=rows.length>0;
@@ -74,6 +77,13 @@
     var invoice=getField('invoice');
     $('#invoiceTaxField').hidden=invoice!=='增值税普通发票'&&invoice!=='增值税专用发票';
     $('#receivedTaxField').hidden=invoice!=='增值税专用发票';
+    var invoiceTax=form.elements.namedItem('invoiceTaxRate'),receivedTax=form.elements.namedItem('receivedTaxRate');
+    var syncOptions=function(select,values){var current=select.value;select.innerHTML='<option value="">请选择</option>'+values.map(function(value){return '<option>'+value+'</option>';}).join('');select.value=values.indexOf(current)>=0?current:'';};
+    if(invoice==='增值税普通发票')syncOptions(invoiceTax,['免税','1%','3%','6%','9%','13%']);
+    if(invoice==='增值税专用发票')syncOptions(invoiceTax,['1%','3%','6%','9%','13%']);
+    syncOptions(receivedTax,['1%','3%','6%','9%','13%']);
+    if(invoice==='否'){invoiceTax.value='';receivedTax.value='';}
+    if(invoice!=='增值税专用发票')receivedTax.value='';
   }
   function contactRow(data) {
     data=data||{};return '<div class="repeat-row contact" data-repeat="contact"><input data-key="name" placeholder="联系人" value="'+clean(data.name||'')+'"><input data-key="phone" placeholder="手机号码" value="'+clean(data.phone||'')+'"><input data-key="telephone" placeholder="联系电话" value="'+clean(data.telephone||'')+'"><input data-key="wechat" placeholder="微信号" value="'+clean(data.wechat||'')+'"><input data-key="email" placeholder="电子邮箱" value="'+clean(data.email||'')+'"><span class="repeat-actions"><label class="default-radio"><input type="radio" name="defaultContact" '+(data.default?'checked':'')+'><i></i>设为默认</label><button class="delete-line" type="button" data-remove aria-label="删除联系人" title="删除"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 4.5h9M6 2.5h4m-5 2v8.5h6V4.5M6.8 7v3.5m2.4-3.5v3.5"/></svg></button></span></div>';
@@ -90,7 +100,7 @@
   function openEdit(row) {
     editingCode=row?row.code:null;form.reset();$('#formError').textContent='';
     $('#editTitle').textContent=row?'编辑供应商信息':'新增供应商信息';
-    var data=row||{code:nextCode(),createdAt:clock(),returns:'否',returnDays:'7',buyer:'',status:'合作中',freeShipping:'否',currency:'RMB',invoice:'否',invoiceTaxRate:'',receivedTaxRate:'',paymentMethod:'款到发货',paymentChannel:'线上支付宝',contacts:[{}],shipping:[{}],returnsAddresses:[{}]};
+    var data=row||{code:nextCode(),createdAt:clock(),returns:'否',returnDays:'',buyer:'',status:'合作中',supplierLevel:'',freeShipping:'否',currency:'人民币（CNY）',invoice:'否',invoiceTaxRate:'',receivedTaxRate:'',paymentMethod:'款到发货',paymentChannel:'线上支付宝',contacts:[{}],shipping:[{}],returnsAddresses:[{}]};
     Array.from(form.querySelectorAll('[name]')).forEach(function(input){if(input.type!=='file')setField(input.name,data[input.name]);});
     $('#contacts').innerHTML=(data.contacts||[{}]).map(contactRow).join('');
     $('#shippingAddresses').innerHTML=(data.shipping||[{}]).map(function(address){return addressRow(address,'shipping');}).join('');
@@ -169,15 +179,18 @@
     var close=event.target.closest('[data-close]');if(close){$('#'+close.dataset.close+'Mask').hidden=true;return;}
   });
   $('#searchButton').addEventListener('click',function(){applied=filtersFromPage();page=1;render();});
-  $('#resetButton').addEventListener('click',function(){document.querySelectorAll('.query-grid input,.query-grid select').forEach(function(input){input.value='';});applied={};page=1;render();});
+  $('#filterLevelButton').addEventListener('click',function(event){event.stopPropagation();var menu=$('#filterLevelMenu'), opening=menu.hidden;menu.hidden=!opening;this.setAttribute('aria-expanded',String(opening));});
+  document.querySelectorAll('#filterLevelMenu input').forEach(function(input){input.addEventListener('change',syncLevelFilter);});
+  document.addEventListener('click',function(event){var wrap=$('#filterLevelWrap');if(!wrap.contains(event.target)){$('#filterLevelMenu').hidden=true;$('#filterLevelButton').setAttribute('aria-expanded','false');}});
+  $('#resetButton').addEventListener('click',function(){document.querySelectorAll('.query-grid input,.query-grid select').forEach(function(input){if(input.type==='checkbox')input.checked=false;else input.value='';});syncLevelFilter();applied={};page=1;render();});
   $('#filterCode').addEventListener('keydown',function(event){if(event.key==='Enter')$('#searchButton').click();});
   $('#filterName').addEventListener('keydown',function(event){if(event.key==='Enter')$('#searchButton').click();});
   $('#prevPage').addEventListener('click',function(){page--;render();});
   $('#nextPage').addEventListener('click',function(){page++;render();});
   $('#addButton').addEventListener('click',function(){openEdit(null);});
   $('#saveButton').addEventListener('click',saveForm);
-  form.elements.namedItem('invoice').addEventListener('change',updateInvoiceFields);
-  form.querySelectorAll('input[type=file]').forEach(function(input){input.addEventListener('change',function(){var box=input.closest('label').querySelector('.upload-box');box.textContent=input.files[0]?input.files[0].name:'＋';input.closest('label').classList.toggle('has-file',!!input.files[0]);});});
+  form.elements.namedItem('invoice').addEventListener('change',function(){setField('invoiceTaxRate','');setField('receivedTaxRate','');updateInvoiceFields();});
+  form.querySelectorAll('input[type=file]').forEach(function(input){input.addEventListener('change',function(){var file=input.files[0], box=input.closest('label').querySelector('.upload-box'), valid=/\.(pdf|jpe?g|png)$/i.test(file&&file.name||'');if(file&&(!valid||file.size>10*1024*1024)){input.value='';box.textContent='＋';input.closest('label').classList.remove('has-file');toast(!valid?'仅支持 PDF、JPG、PNG 文件':'单个文件不能超过 10MB');return;}box.textContent=file?file.name:'＋';input.closest('label').classList.toggle('has-file',!!file);});});
   document.addEventListener('keydown',function(event){if(event.key==='Escape')document.querySelectorAll('.modal-mask').forEach(function(mask){mask.hidden=true;});});
   render();
 })();
