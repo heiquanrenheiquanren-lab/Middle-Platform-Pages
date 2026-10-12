@@ -27,6 +27,8 @@
     batchInventory: '../batch-inventory/index.html',
     processingOrder: '../processing-orders/index.html',
     transferOrder: '../transfer-orders/index.html',
+    inventoryAdjustment: '../inventory-adjustments/index.html',
+    pickupOrder: '../pickup-orders/index.html',
     supplierList: '../supplier-list/index.html',
     warehouseSku: '../warehouse-sku/index.html',
     productList: '../product-list/index.html',
@@ -62,7 +64,7 @@
   ];
 
   var sideIcons = [
-    { label: '库存管理', icon: 'inventory' },
+    { label: '仓储管理', icon: 'inventory' },
     { label: '计划管理', icon: 'plan' },
     { label: '供应链协同', icon: 'collaboration' },
     { label: '供应商管理', icon: 'company' },
@@ -227,7 +229,7 @@
   function mountTransferNav() {
     var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title'));
     titles.forEach(function (title) {
-      if ((title.textContent || '').indexOf('库存管理') < 0) return;
+      if (!/(库存|仓储)管理/.test(title.textContent || '')) return;
       var container = title.parentElement;
       if (!container || container.querySelector('[data-page-nav="transferOrder"]')) return;
       var source = container.querySelector('[data-page-nav="processingOrder"]');
@@ -240,10 +242,44 @@
     });
   }
 
+  function mountInventoryAdjustmentNav() {
+    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title'));
+    titles.forEach(function (title) {
+      if (!/(库存|仓储)管理/.test(title.textContent || '')) return;
+      var container = title.parentElement;
+      if (!container || container.querySelector('[data-page-nav="inventoryAdjustment"]')) return;
+      var source = container.querySelector('[data-page-nav="transferOrder"]');
+      if (!source) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'inventoryAdjustment');
+      item.classList.remove('active');
+      if (location.pathname.indexOf('/inventory-adjustments/') >= 0) item.classList.add('active');
+      item.innerHTML = '<span class="mini">±</span>损益单';
+      source.insertAdjacentElement('afterend', item);
+    });
+  }
+
+  function mountPickupOrderNav() {
+    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title'));
+    titles.forEach(function (title) {
+      if (!/(库存|仓储)管理/.test(title.textContent || '')) return;
+      var container = title.parentElement;
+      if (!container || container.querySelector('[data-page-nav="pickupOrder"]')) return;
+      var source = container.querySelector('[data-page-nav="inventoryAdjustment"]');
+      if (!source) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'pickupOrder');
+      item.classList.remove('active');
+      if (location.pathname.indexOf('/pickup-orders/') >= 0) item.classList.add('active');
+      item.innerHTML = '<span class="mini">↗</span>提货单';
+      source.insertAdjacentElement('afterend', item);
+    });
+  }
+
   function mountInventoryFlowNav() {
     var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title'));
     titles.forEach(function (title) {
-      if ((title.textContent || '').indexOf('库存管理') < 0) return;
+      if (!/(库存|仓储)管理/.test(title.textContent || '')) return;
       var container = title.parentElement;
       if (!container || container.querySelector('[data-page-nav="inventoryFlow"]')) return;
       var source = container.querySelector('[data-page-nav="inventoryQuery"]');
@@ -260,7 +296,7 @@
   function mountBatchInventoryNav() {
     var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title'));
     titles.forEach(function (title) {
-      if ((title.textContent || '').indexOf('库存管理') < 0) return;
+      if (!/(库存|仓储)管理/.test(title.textContent || '')) return;
       var container = title.parentElement;
       if (!container || container.querySelector('[data-page-nav="batchInventory"]')) return;
       var source = container.querySelector('[data-page-nav="inventoryFlow"]');
@@ -294,6 +330,155 @@
     });
   }
 
+  function renameWarehouseNavigation() {
+    var selector = '.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title, .supplier-nav-title, .supplier-nav-section';
+    document.querySelectorAll(selector).forEach(function (title) {
+      if ((title.textContent || '').indexOf('库存管理') < 0) return;
+      var walker = document.createTreeWalker(title, NodeFilter.SHOW_TEXT);
+      var node;
+      while ((node = walker.nextNode())) node.nodeValue = node.nodeValue.replace('库存管理', '仓储管理');
+    });
+  }
+
+  function profileToast(message, error) {
+    var toast = document.querySelector('.profile-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'profile-toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.className = 'profile-toast is-visible' + (error ? ' is-error' : '');
+    clearTimeout(profileToast.timer);
+    profileToast.timer = setTimeout(function () { toast.className = 'profile-toast'; }, 2200);
+  }
+
+  function closeAccountMenu() {
+    var menu = document.querySelector('.account-menu');
+    var trigger = document.querySelector('.account-trigger');
+    if (menu) menu.hidden = true;
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function openProfileDrawer() {
+    closeAccountMenu();
+    var old = document.querySelector('.profile-mask');
+    if (old) old.remove();
+    var savedAvatar = '';
+    try { savedAvatar = window.localStorage.getItem('middle-platform-user-avatar') || ''; } catch (error) { /* local file fallback */ }
+    var mask = document.createElement('div');
+    mask.className = 'profile-mask is-visible';
+    mask.innerHTML = '<aside class="profile-drawer" role="dialog" aria-modal="true" aria-label="个人设置"><header class="profile-drawer__header"><div><h2>个人设置</h2><p>管理当前账号的头像与登录密码</p></div><button class="profile-close" type="button" aria-label="关闭">×</button></header><div class="profile-drawer__body"><section class="profile-section"><h3>基本信息</h3><div class="profile-avatar-row"><div class="profile-avatar-preview">' + (savedAvatar ? '<img src="' + savedAvatar + '" alt="当前头像">' : '<span>A</span>') + '</div><div><strong>Admin</strong><p>支持 JPG、PNG 图片，大小不超过 2 MB</p><button class="profile-upload-button" type="button">更换头像</button><input class="profile-file-input" type="file" accept="image/png,image/jpeg" hidden></div></div></section><section class="profile-section"><h3>修改密码</h3><label class="profile-field"><span><em>*</em>当前密码</span><div class="profile-password"><input type="password" data-profile-field="current" placeholder="请输入当前密码"><button type="button" aria-label="显示当前密码">◉</button></div></label><label class="profile-field"><span><em>*</em>新密码</span><div class="profile-password"><input type="password" data-profile-field="next" placeholder="请输入 6–20 位新密码"><button type="button" aria-label="显示新密码">◉</button></div></label><label class="profile-field"><span><em>*</em>确认新密码</span><div class="profile-password"><input type="password" data-profile-field="confirm" placeholder="请再次输入新密码"><button type="button" aria-label="显示确认密码">◉</button></div></label><p class="profile-form-error"></p></section></div><footer class="profile-drawer__footer"><button class="profile-button profile-cancel" type="button">取消</button><button class="profile-button profile-save" type="button">保存修改</button></footer></aside>';
+    document.body.appendChild(mask);
+    var close = function () { mask.remove(); };
+    mask.querySelector('.profile-close').addEventListener('click', close);
+    mask.querySelector('.profile-cancel').addEventListener('click', close);
+    mask.addEventListener('click', function (event) { if (event.target === mask) close(); });
+    mask.querySelectorAll('.profile-password button').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var input = button.previousElementSibling;
+        input.type = input.type === 'password' ? 'text' : 'password';
+        button.classList.toggle('is-visible', input.type === 'text');
+      });
+    });
+    var fileInput = mask.querySelector('.profile-file-input');
+    var pendingAvatar = savedAvatar;
+    mask.querySelector('.profile-upload-button').addEventListener('click', function () { fileInput.click(); });
+    fileInput.addEventListener('change', function () {
+      var file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      if (!/^image\/(png|jpeg)$/.test(file.type) || file.size > 2 * 1024 * 1024) {
+        profileToast('请选择不超过 2 MB 的 JPG 或 PNG 图片', true);
+        fileInput.value = '';
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function () {
+        pendingAvatar = String(reader.result || '');
+        mask.querySelector('.profile-avatar-preview').innerHTML = '<img src="' + pendingAvatar + '" alt="新头像预览">';
+      };
+      reader.readAsDataURL(file);
+    });
+    mask.querySelector('.profile-save').addEventListener('click', function () {
+      var current = mask.querySelector('[data-profile-field="current"]').value;
+      var next = mask.querySelector('[data-profile-field="next"]').value;
+      var confirm = mask.querySelector('[data-profile-field="confirm"]').value;
+      var error = mask.querySelector('.profile-form-error');
+      error.textContent = '';
+      mask.querySelectorAll('.profile-password input').forEach(function (input) { input.classList.remove('is-error'); });
+      if (current || next || confirm) {
+        if (!current) { error.textContent = '请输入当前密码'; mask.querySelector('[data-profile-field="current"]').classList.add('is-error'); return; }
+        if (next.length < 6 || next.length > 20) { error.textContent = '新密码长度应为 6–20 位'; mask.querySelector('[data-profile-field="next"]').classList.add('is-error'); return; }
+        if (next !== confirm) { error.textContent = '两次输入的新密码不一致'; mask.querySelector('[data-profile-field="confirm"]').classList.add('is-error'); return; }
+      }
+      try { if (pendingAvatar) window.localStorage.setItem('middle-platform-user-avatar', pendingAvatar); } catch (storageError) { /* local file fallback */ }
+      document.querySelectorAll('.account-avatar').forEach(function (avatar) { avatar.innerHTML = pendingAvatar ? '<img src="' + pendingAvatar + '" alt="Admin 头像">' : '<span>A</span>'; });
+      close();
+      profileToast('个人设置已保存');
+    });
+  }
+
+  function openLogoutConfirm() {
+    closeAccountMenu();
+    var mask = document.createElement('div');
+    mask.className = 'logout-mask';
+    mask.innerHTML = '<section class="logout-dialog" role="alertdialog" aria-modal="true" aria-label="退出登录"><header><h2>退出登录</h2><button type="button" data-logout="cancel" aria-label="关闭">×</button></header><div class="logout-dialog__body"><span class="logout-warning">!</span><div><strong>确定退出当前账号吗？</strong><p>退出后需要重新登录才能继续访问供应链中台。</p></div></div><footer><button class="profile-button" type="button" data-logout="cancel">取消</button><button class="profile-button logout-confirm" type="button" data-logout="confirm">退出登录</button></footer></section>';
+    document.body.appendChild(mask);
+    mask.querySelectorAll('[data-logout="cancel"]').forEach(function (button) { button.addEventListener('click', function () { mask.remove(); }); });
+    mask.addEventListener('click', function (event) { if (event.target === mask) mask.remove(); });
+    mask.querySelector('[data-logout="confirm"]').addEventListener('click', function () { mask.remove(); profileToast('已退出登录（原型演示）'); });
+  }
+
+  function mountAccountMenu() {
+    var container = document.querySelector('.global-right') || document.querySelector('.header-user');
+    if (!container || container.querySelector('.account-trigger')) return;
+    var admin = container.querySelector('.admin');
+    if (!admin) return;
+    var savedAvatar = '';
+    try { savedAvatar = window.localStorage.getItem('middle-platform-user-avatar') || ''; } catch (error) { /* local file fallback */ }
+    var wrap = document.createElement('div');
+    wrap.className = 'account-control';
+    wrap.innerHTML = '<button class="account-trigger" type="button" aria-label="Admin 账号菜单" aria-haspopup="menu" aria-expanded="false"><span class="account-avatar">' + (savedAvatar ? '<img src="' + savedAvatar + '" alt="Admin 头像">' : '<span>A</span>') + '</span><span class="account-name">Admin</span><span class="account-chevron">⌄</span></button><div class="account-menu" role="menu" hidden><button type="button" role="menuitem" data-account-action="profile">个人设置</button><button type="button" role="menuitem" data-account-action="logout">退出登录</button></div>';
+    admin.replaceWith(wrap);
+    var trigger = wrap.querySelector('.account-trigger');
+    var menu = wrap.querySelector('.account-menu');
+    trigger.addEventListener('click', function (event) {
+      event.stopPropagation();
+      var open = menu.hidden;
+      closeAccountMenu();
+      menu.hidden = !open;
+      trigger.setAttribute('aria-expanded', String(open));
+    });
+    wrap.querySelector('[data-account-action="profile"]').addEventListener('click', openProfileDrawer);
+    wrap.querySelector('[data-account-action="logout"]').addEventListener('click', openLogoutConfirm);
+    document.addEventListener('click', function (event) { if (!event.target.closest('.account-control')) closeAccountMenu(); });
+  }
+
+  function normalizeGlobalActionOrder() {
+    var container = document.querySelector('.global-right') || document.querySelector('.header-user');
+    if (!container) return;
+    var todo = container.querySelector('.tdc-entry');
+    var exportEntry = container.querySelector('.gx-entry');
+    var account = container.querySelector('.account-control, .admin');
+    var desired = [todo, exportEntry, account].filter(Boolean);
+    var current = Array.prototype.slice.call(container.children).filter(function (node) { return desired.indexOf(node) >= 0; });
+    if (current.length === desired.length && current.every(function (node, index) { return node === desired[index]; })) return;
+    desired.forEach(function (node) { container.appendChild(node); });
+  }
+
+  function ensureGlobalExportCenter() {
+    if (window.GlobalExportWorkbench || document.querySelector('script[data-global-export-loader]')) {
+      normalizeGlobalActionOrder();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = '../../global-export.js?v=1.7.37';
+    script.async = false;
+    script.dataset.globalExportLoader = 'true';
+    script.addEventListener('load', normalizeGlobalActionOrder);
+    document.body.appendChild(script);
+  }
+
   function mountSidebarCollapse() {
     var sidebar = document.querySelector('.sidebar, .workbench-sidebar, .supplier-sidebar, .side-nav, .product-sidebar');
     if (!sidebar) return;
@@ -319,9 +504,12 @@
 
     mountThemeSwitcher(sidebar);
     mountTransferNav();
+    mountInventoryAdjustmentNav();
+    mountPickupOrderNav();
     mountInventoryFlowNav();
     mountBatchInventoryNav();
     mountSupplierNav();
+    renameWarehouseNavigation();
 
     var collapsed = false;
     try { collapsed = window.localStorage.getItem('middle-platform-nav-collapsed') === '1'; } catch (error) { /* local file fallback */ }
@@ -415,6 +603,14 @@
     mountSidebarCollapse();
     mountMenuIcons(buttons);
     mountPageNavigation();
+    mountAccountMenu();
+    ensureGlobalExportCenter();
+    normalizeGlobalActionOrder();
+    var actionContainer = document.querySelector('.global-right') || document.querySelector('.header-user');
+    if (actionContainer && !actionContainer.dataset.globalOrderObserved) {
+      actionContainer.dataset.globalOrderObserved = '1';
+      new MutationObserver(normalizeGlobalActionOrder).observe(actionContainer, { childList: true });
+    }
 
     buttons.slice(0, modules.length).forEach(function (button, index) {
       button.type = 'button';
@@ -446,4 +642,131 @@
   } else {
     mountTopNavigation();
   }
+})();
+
+/* Global todo center: shared by every business page through navigation.js. */
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'middle-platform-todo-center-v1';
+  var activeTab = 'pending';
+  var selectedId = '';
+  var filters = { keyword: '', business: '', urgency: '' };
+
+  var seedItems = [
+    { id: 'TD20261010001', scope: 'pending', title: '采购单 PO20261010086 待审核', summary: '采购金额 ¥286,420.00，共 18 个 SKU', business: '采购单', taskType: '审核', node: '采购负责人审核', initiator: '林小雨', createdAt: '2026-10-10 09:32', due: '剩余 3 小时', urgency: 'urgent', status: 'pending', feishu: 'pushed', amount: '¥286,420.00', detail: '华东区 10 月备货采购，供应商：苏州锐达电子有限公司。', history: ['林小雨 提交申请  09:32', '系统分配至 Admin  09:32', '已推送飞书卡片  09:33'] },
+    { id: 'TD20261010002', scope: 'pending', title: '发货单 SO20261010031 待审核', summary: '海外仓发货，32 箱 / 1,240 件', business: '发货单', taskType: '审核', node: '物流负责人审核', initiator: '周杭', createdAt: '2026-10-10 08:48', due: '剩余 6 小时', urgency: 'normal', status: 'pending', feishu: 'pushed', amount: '32 箱', detail: '由华南中转仓发往波兰华沙仓，计划发货日期 2026-10-12。', history: ['周杭 提交申请  08:48', '系统分配至 Admin  08:48', '已推送飞书卡片  08:49'] },
+    { id: 'TD20261009018', scope: 'pending', title: '库存损益单 IA20261009008 待确认', summary: '盘点差异 -126 件，需确认调整', business: '损益单', taskType: '确认', node: '库存负责人确认', initiator: '王倩', createdAt: '2026-10-09 14:16', due: '已超时 2 小时', urgency: 'overdue', status: 'pending', feishu: 'pushed', amount: '-126 件', detail: '深圳龙岗仓月度盘点差异，涉及 6 个 SKU，请核对后确认。', history: ['王倩 提交差异确认  10-09 14:16', '已推送飞书卡片  10-09 14:17', '系统超时提醒  10:00'] },
+    { id: 'TD20261010004', scope: 'pending', title: '调拨单 TR20261010012 待审核', summary: '上海仓 → 苏州仓，8 个 SKU', business: '调拨单', taskType: '审核', node: '仓储主管审核', initiator: '陈默', createdAt: '2026-10-10 10:06', due: '剩余 8 小时', urgency: 'normal', status: 'pending', feishu: 'failed', amount: '860 件', detail: '因苏州仓安全库存不足，申请从上海仓调拨。', history: ['陈默 提交申请  10:06', '飞书推送失败，等待重试  10:06'] },
+    { id: 'TD20261008011', scope: 'initiated', title: '采购单 PO20261008042', summary: '已进入财务审核节点', business: '采购单', taskType: '审批进度', node: '财务审核', initiator: 'Admin', createdAt: '2026-10-08 16:22', due: '审批中', urgency: 'normal', status: 'processing', feishu: 'pushed', amount: '¥98,600.00', detail: '华南区常规备货采购。', history: ['Admin 提交申请  10-08 16:22', '刘慧 审核通过  10-09 09:18', '等待财务审核'] },
+    { id: 'TD20261007009', scope: 'cc', title: '发货单 SO20261007019 已审批通过', summary: '报关资料已齐全，计划 10 月 11 日出库', business: '发货单', taskType: '抄送', node: '审批完成', initiator: '赵雯', createdAt: '2026-10-10 09:14', due: '已通过', urgency: 'normal', status: 'done', feishu: 'pushed', amount: '48 箱', detail: '发货审批已完成，请知悉。', history: ['赵雯 提交申请', '所有审批节点已通过', '抄送给 Admin'] },
+    { id: 'MSG20261010007', scope: 'notice', title: '易仓库存同步异常', summary: '3 个 SKU 同步失败，请检查映射关系', business: '库存', taskType: '系统通知', node: '同步异常', initiator: '系统', createdAt: '2026-10-10 10:18', due: '待查看', urgency: 'urgent', status: 'unread', feishu: 'pushed', amount: '3 个 SKU', detail: '易仓返回仓库 SKU 不存在，请检查海外仓 SKU 映射。', history: ['系统检测到同步异常  10:18', '已推送飞书通知  10:18'] },
+    { id: 'MSG20261010003', scope: 'notice', title: '导出任务已完成', summary: '库存流水导出文件可下载', business: '系统', taskType: '系统通知', node: '导出完成', initiator: '系统', createdAt: '2026-10-10 09:40', due: '待查看', urgency: 'normal', status: 'unread', feishu: 'none', amount: '12,480 条', detail: '你发起的库存流水导出任务已完成。', history: ['导出任务已完成  09:40'] }
+  ];
+
+  function readItems() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || seedItems; } catch (error) { return seedItems; }
+  }
+  var items = readItems();
+  function saveItems() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (error) { /* prototype fallback */ } }
+  function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function isAttention(item) { return (item.scope === 'pending' && item.status === 'pending') || (item.scope === 'notice' && item.status === 'unread' && item.urgency === 'urgent'); }
+  function countAttention() { return items.filter(isAttention).length; }
+  function tabItems() { return items.filter(function (item) { return item.scope === activeTab; }).filter(function (item) { return !filters.keyword || (item.title + item.summary + item.id + item.initiator).toLowerCase().indexOf(filters.keyword.toLowerCase()) >= 0; }).filter(function (item) { return !filters.business || item.business === filters.business; }).filter(function (item) { return !filters.urgency || item.urgency === filters.urgency; }); }
+  function urgencyText(item) { if (item.urgency === 'overdue') return '<span class="tdc-time is-overdue">' + esc(item.due) + '</span>'; if (item.urgency === 'urgent') return '<span class="tdc-time is-urgent">' + esc(item.due) + '</span>'; return '<span class="tdc-time">' + esc(item.due) + '</span>'; }
+  function feishuTag(item) { if (item.feishu === 'pushed') return '<span class="tdc-feishu is-synced"><i>✓</i> 已同步飞书</span>'; if (item.feishu === 'failed') return '<button class="tdc-feishu is-failed" data-todo-action="retry-feishu" data-id="' + item.id + '">推送失败·重试</button>'; return '<span class="tdc-feishu">仅站内</span>'; }
+
+  function mountEntry() {
+    if (document.querySelector('.tdc-entry')) return;
+    var container = document.querySelector('.global-right') || document.querySelector('.header-user');
+    if (!container) return;
+    var entry = document.createElement('button');
+    entry.type = 'button'; entry.className = 'tdc-entry'; entry.setAttribute('aria-label', '打开待办中心');
+    entry.innerHTML = '<span class="tdc-entry-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5V3h6v2M7 5h10a2 2 0 0 1 2 2v14H5V7a2 2 0 0 1 2-2Z"/><path d="m8 13 2 2 5-5M8 18h8"/></svg></span><span>待办中心</span><sup class="tdc-entry-badge"></sup>';
+    var exportEntry = container.querySelector('.gx-entry');
+    var account = container.querySelector('.account-control, .admin');
+    container.insertBefore(entry, exportEntry || account || null);
+    entry.addEventListener('click', openCenter);
+    updateBadge();
+  }
+
+  function updateBadge() {
+    var badge = document.querySelector('.tdc-entry-badge'); if (!badge) return;
+    var count = countAttention(); badge.textContent = count > 99 ? '99+' : count; badge.hidden = count === 0;
+  }
+
+  function counts() {
+    return { pending: items.filter(function (x) { return x.scope === 'pending' && x.status === 'pending'; }).length, initiated: items.filter(function (x) { return x.scope === 'initiated'; }).length, cc: items.filter(function (x) { return x.scope === 'cc'; }).length, notice: items.filter(function (x) { return x.scope === 'notice' && x.status === 'unread'; }).length };
+  }
+
+  function renderCenter() {
+    var modal = document.querySelector('.tdc-modal'); if (!modal) return;
+    var c = counts();
+    modal.querySelectorAll('[data-todo-tab]').forEach(function (button) { button.classList.toggle('active', button.dataset.todoTab === activeTab); var count = c[button.dataset.todoTab]; button.querySelector('b').textContent = count || ''; });
+    var stats = modal.querySelector('.tdc-stats');
+    var pending = items.filter(function (x) { return x.scope === 'pending' && x.status === 'pending'; });
+    stats.innerHTML = '<article><span>待我审核</span><strong>' + pending.length + '</strong><small>需要你审核的全部单据</small></article><article class="is-feishu"><span>飞书触达</span><strong>' + pending.filter(function (x) { return x.feishu === 'pushed'; }).length + '</strong><small>已同步至飞书卡片</small></article>';
+    stats.hidden = activeTab !== 'pending';
+    var list = modal.querySelector('.tdc-list'); var current = tabItems();
+    list.innerHTML = current.length ? current.map(function (item) {
+      var unread = item.status === 'unread' ? ' is-unread' : '';
+      return '<article class="tdc-item' + unread + '"><div class="tdc-item-mark ' + item.urgency + '"></div><div class="tdc-item-main"><div class="tdc-item-title"><span class="tdc-business">' + esc(item.business) + '</span><strong>' + esc(item.title) + '</strong>' + (item.status === 'unread' ? '<i class="tdc-unread-dot"></i>' : '') + '</div><p>' + esc(item.summary) + '</p><div class="tdc-item-meta"><span>发起人：' + esc(item.initiator) + '</span><span>当前节点：' + esc(item.node) + '</span><span>' + esc(item.createdAt) + '</span>' + feishuTag(item) + '</div></div><div class="tdc-item-side">' + urgencyText(item) + '<div class="tdc-item-actions">' + (item.scope === 'pending' && item.status === 'pending' ? '<button class="tdc-btn tdc-btn-link" data-todo-action="origin" data-id="' + item.id + '">查看</button><button class="tdc-btn tdc-btn-primary" data-todo-action="origin" data-id="' + item.id + '">审核</button>' : '<button class="tdc-btn tdc-btn-link" data-todo-action="read-notice" data-id="' + item.id + '">查看</button>') + '</div></div></article>';
+    }).join('') : '<div class="tdc-empty"><span>✓</span><strong>当前没有符合条件的内容</strong><p>新的待办和通知会在这里出现</p></div>';
+    modal.querySelector('.tdc-result-count').textContent = '共 ' + current.length + ' 条';
+  }
+
+  function mountCenter() {
+    if (document.querySelector('.tdc-mask')) return;
+    var mask = document.createElement('div'); mask.className = 'tdc-mask';
+    mask.innerHTML = '<section class="tdc-modal" role="dialog" aria-modal="true" aria-label="待办中心"><header class="tdc-head"><div><h2>待办中心</h2><p>集中处理中台审批和重要消息</p></div><div class="tdc-head-tools"><span class="tdc-sync"><i></i>飞书已连接</span><button class="tdc-close" aria-label="关闭">×</button></div></header><nav class="tdc-tabs"><button class="active" data-todo-tab="pending">待我审核 <b></b></button><button data-todo-tab="notice">消息通知 <b></b></button></nav><main class="tdc-body"><section class="tdc-stats"></section><section class="tdc-filter"><label class="tdc-search"><span>⌕</span><input placeholder="搜索单号、标题或发起人"></label><select class="tdc-business-filter"><option value="">全部业务类型</option><option>采购单</option><option>发货单</option><option>调拨单</option><option>损益单</option><option>库存</option><option>系统</option></select><select class="tdc-urgency-filter"><option value="">全部紧急程度</option><option value="urgent">紧急</option><option value="overdue">已超时</option><option value="normal">普通</option></select><button class="tdc-btn tdc-btn-primary" data-todo-action="search">查询</button><button class="tdc-btn" data-todo-action="reset">重置</button><button class="tdc-mark-all" data-todo-action="read-all">全部标为已读</button></section><section class="tdc-list"></section><footer class="tdc-foot"><span class="tdc-result-count"></span><span>仅展示当前账号有权限查看的业务数据</span></footer></main></section>';
+    document.body.appendChild(mask);
+    mask.addEventListener('click', handleClick);
+  }
+
+  function openCenter() { mountCenter(); document.querySelector('.tdc-mask').classList.add('is-visible'); renderCenter(); }
+  function closeCenter() { var mask = document.querySelector('.tdc-mask'); if (mask) mask.classList.remove('is-visible'); closeDrawer(); }
+  function closeDrawer() { var drawer = document.querySelector('.tdc-drawer'); if (drawer) drawer.classList.remove('is-visible'); selectedId = ''; }
+  function toast(message, error) { var node = document.querySelector('.tdc-toast'); if (!node) { node = document.createElement('div'); node.className = 'tdc-toast'; document.body.appendChild(node); } node.textContent = message; node.className = 'tdc-toast is-visible' + (error ? ' is-error' : ''); clearTimeout(toast.timer); toast.timer = setTimeout(function () { node.className = 'tdc-toast'; }, 2200); }
+
+  function openDrawer(id, focusAction) {
+    var item = items.find(function (x) { return x.id === id; }); if (!item) return;
+    selectedId = id;
+    if (item.status === 'unread') { item.status = 'read'; saveItems(); updateBadge(); renderCenter(); }
+    var drawer = document.querySelector('.tdc-drawer');
+    drawer.innerHTML = '<header><div><span class="tdc-business">' + esc(item.business) + '</span><h3>' + esc(item.title) + '</h3><p>' + esc(item.id) + '</p></div><button class="tdc-drawer-close" aria-label="关闭">×</button></header><div class="tdc-drawer-body"><section class="tdc-summary"><div><span>关键数据</span><strong>' + esc(item.amount) + '</strong></div><div><span>当前节点</span><strong>' + esc(item.node) + '</strong></div><div><span>发起人</span><strong>' + esc(item.initiator) + '</strong></div><div><span>发起时间</span><strong>' + esc(item.createdAt) + '</strong></div></section><section class="tdc-detail-section"><h4>申请说明</h4><p>' + esc(item.detail) + '</p></section><section class="tdc-detail-section"><h4>审批进度</h4><div class="tdc-timeline">' + item.history.map(function (h, i) { return '<div class="' + (i === item.history.length - 1 ? 'current' : '') + '"><i></i><span>' + esc(h) + '</span></div>'; }).join('') + '</div></section><section class="tdc-detail-section"><h4>飞书同步</h4><div class="tdc-feishu-card"><span class="tdc-feishu-logo">飞</span><div><strong>' + (item.feishu === 'pushed' ? '已推送待办卡片' : item.feishu === 'failed' ? '飞书推送失败' : '未推送至飞书') + '</strong><p>任一端处理后，状态将自动同步</p></div>' + (item.feishu === 'failed' ? '<button class="tdc-btn" data-todo-action="retry-feishu" data-id="' + item.id + '">重新推送</button>' : '') + '</div></section>' + (item.scope === 'pending' && item.status === 'pending' ? '<section class="tdc-opinion"><label>审批意见</label><textarea placeholder="请输入处理意见（驳回时必填）"></textarea></section>' : '') + '</div><footer>' + (item.scope === 'pending' && item.status === 'pending' ? '<button class="tdc-btn tdc-btn-danger" data-todo-action="reject" data-id="' + item.id + '">驳回</button><button class="tdc-btn" data-todo-action="transfer" data-id="' + item.id + '">转交</button><span></span><button class="tdc-btn" data-todo-action="origin" data-id="' + item.id + '">查看原单据</button><button class="tdc-btn tdc-btn-primary" data-todo-action="approve-confirm" data-id="' + item.id + '">通过</button>' : '<span></span><button class="tdc-btn tdc-btn-primary" data-todo-action="origin" data-id="' + item.id + '">查看原单据</button>') + '</footer>';
+    drawer.classList.add('is-visible');
+    if (focusAction) setTimeout(function () { var textarea = drawer.querySelector('textarea'); if (textarea) textarea.focus(); }, 120);
+  }
+
+  function decide(id, result) {
+    var item = items.find(function (x) { return x.id === id; }); if (!item) return;
+    var textarea = document.querySelector('.tdc-drawer textarea');
+    if (result === 'rejected' && textarea && !textarea.value.trim()) { textarea.classList.add('is-error'); textarea.placeholder = '驳回时请填写原因'; textarea.focus(); return; }
+    item.status = result; item.scope = 'cc'; item.due = result === 'approved' ? '已通过' : '已驳回'; item.history.push('Admin ' + (result === 'approved' ? '审核通过' : '驳回申请') + '  刚刚', '处理结果已同步至飞书  刚刚');
+    saveItems(); updateBadge(); closeDrawer(); renderCenter(); toast(result === 'approved' ? '审核已通过，飞书状态已同步' : '已驳回并通知发起人');
+  }
+
+  function handleClick(event) {
+    if (event.target.classList.contains('tdc-mask') || event.target.closest('.tdc-close')) { closeCenter(); return; }
+    if (event.target.closest('.tdc-drawer-close')) { closeDrawer(); return; }
+    var tab = event.target.closest('[data-todo-tab]'); if (tab) { activeTab = tab.dataset.todoTab; filters = { keyword: '', business: '', urgency: '' }; var modal = document.querySelector('.tdc-modal'); modal.querySelector('.tdc-search input').value = ''; modal.querySelector('.tdc-business-filter').value = ''; modal.querySelector('.tdc-urgency-filter').value = ''; renderCenter(); return; }
+    var actionNode = event.target.closest('[data-todo-action]');
+    if (actionNode) {
+      event.stopPropagation(); var action = actionNode.dataset.todoAction; var id = actionNode.dataset.id;
+      if (action === 'read-notice') { var notice = items.find(function (x) { return x.id === id; }); if (notice) { notice.status = 'read'; saveItems(); updateBadge(); renderCenter(); toast('消息已标为已读'); } }
+      if (action === 'approve-confirm') decide(id, 'approved');
+      if (action === 'reject') decide(id, 'rejected');
+      if (action === 'search') { var modal2 = document.querySelector('.tdc-modal'); filters.keyword = modal2.querySelector('.tdc-search input').value.trim(); filters.business = modal2.querySelector('.tdc-business-filter').value; filters.urgency = modal2.querySelector('.tdc-urgency-filter').value; renderCenter(); }
+      if (action === 'reset') { filters = { keyword: '', business: '', urgency: '' }; var m = document.querySelector('.tdc-modal'); m.querySelector('.tdc-search input').value = ''; m.querySelector('.tdc-business-filter').value = ''; m.querySelector('.tdc-urgency-filter').value = ''; renderCenter(); }
+      if (action === 'read-all') { items.forEach(function (x) { if (x.scope === 'notice') x.status = 'read'; }); saveItems(); updateBadge(); renderCenter(); toast('消息已全部标为已读'); }
+      if (action === 'retry-feishu') { var item = items.find(function (x) { return x.id === id; }); if (item) { item.feishu = 'pushed'; item.history.push('飞书卡片重试成功  刚刚'); saveItems(); renderCenter(); if (selectedId === id) openDrawer(id); toast('飞书待办卡片已重新推送'); } }
+      if (action === 'transfer') toast('已打开转交人选择（原型演示）');
+      if (action === 'origin') toast('正在进入原单据审核页');
+      return;
+    }
+  }
+
+  document.addEventListener('keydown', function (event) { if (event.key === 'Escape') { if (selectedId) closeDrawer(); else closeCenter(); } });
+  window.GlobalTodoCenter = { open: openCenter, getItems: function () { return items.slice(); } };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(mountEntry, 0); }); else setTimeout(mountEntry, 0);
 })();

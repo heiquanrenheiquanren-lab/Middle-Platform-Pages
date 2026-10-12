@@ -7,6 +7,7 @@ const files = {
   kit: 'ui-kit.css',
   kitScript: 'ui-kit.js',
   navigation: 'navigation.css',
+  documentList: 'document-list.css',
   product: 'pages/product-list/index.html',
   mapping: 'pages/overseas-sku-mapping/index.html',
   mappingApp: 'pages/overseas-sku-mapping/app.js'
@@ -22,6 +23,7 @@ Object.values(files).forEach((file) => { if (!existsSync(resolve(root, file))) e
 if (!errors.length) {
   const kit = read(files.kit);
   const navigation = read(files.navigation);
+  const documentList = read(files.documentList);
   const product = read(files.product);
   const mapping = read(files.mapping);
   const mappingApp = read(files.mappingApp);
@@ -29,6 +31,13 @@ if (!errors.length) {
     if (!kit.includes(token)) errors.push(`UI Kit 未定义必需组件或变量：${token}`);
   });
   if (!navigation.includes('@import url("./ui-kit.css")')) errors.push('navigation.css 未加载 ui-kit.css。');
+  if (!/\.document-list\s+th:nth-child\(2\)[\s\S]*?text-overflow:\s*clip\s*!important/.test(documentList)) errors.push('document-list.css 未禁用展开辅助列的省略号。');
+  if (!/\.document-list\s+\.document-expand::after[\s\S]*?content:\s*none\s*!important/.test(documentList)) errors.push('document-list.css 未清除展开控件的尾随内容。');
+  ['pickup-orders', 'processing-orders', 'transfer-orders', 'inventory-adjustments'].forEach((pageName) => {
+    const html = read(`pages/${pageName}/index.html`);
+    if (!html.includes('document-list.css?v=1.0.1')) errors.push(`${pageName} 未加载当前版本的单据列表共享样式。`);
+    if (!html.includes('document-list')) errors.push(`${pageName} 的主列表未使用 document-list 共享类。`);
+  });
   ['ui-page-canvas', 'ui-query-card', 'ui-query-flow', 'ui-action-row', 'ui-list-card'].forEach((className) => {
     if (!product.includes(className)) errors.push(`产品列表未接入共享组件：${className}`);
     if (!mapping.includes(className)) errors.push(`海外仓 SKU 映射未接入共享组件：${className}`);
@@ -43,7 +52,7 @@ if (!errors.length) {
     const html = read(page);
     if (!html.includes('data-ui-kit-page="standard"')) errors.push(`${page} 未标记为 UI Kit 页面。`);
     if (!html.includes('class="ui-page-canvas"')) errors.push(`${page} 未接入 UI Kit 页面底色。`);
-    if (!html.includes('navigation.css?v=1.7.70')) errors.push(`${page} 未加载当前版本的共享导航和 UI Kit。`);
+    if (!html.includes('navigation.css?v=1.7.72')) errors.push(`${page} 未加载当前版本的共享导航和 UI Kit。`);
   });
 }
 if (errors.length) {

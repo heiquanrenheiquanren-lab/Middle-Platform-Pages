@@ -5,9 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>发货计划｜查询区域交互原型</title>
-  <link rel="stylesheet" href="./styles.css?v=2.3.1">
+  <link rel="stylesheet" href="./styles.css?v=2.4.0">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.72">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.73">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
@@ -61,9 +61,11 @@
           <button class="query-expand" id="queryExpand" type="button"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button>
         </section>
         <section class="action-strip"><div class="head-actions"><button class="btn primary">新建发货计划</button><button class="btn primary badge-button">发货计划管理清单<span class="badge">4</span></button><button class="btn" id="linkShipmentBtn" type="button" style="display:none">关联货件</button><button class="btn soft" id="importLinkShipmentBtn" type="button" style="display:none">↥ 导入关联FBA货件</button></div></section>
-        <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><label class="compare"><input id="compareToggle" type="checkbox" checked>显示销量环比</label><span class="tool" title="筛选">▽</span><span class="tool" title="搜索">⌕</span><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="上传">↥</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
-        <section class="table-area" id="tableArea"><table class="stock-table"><thead><tr><th class="check"><input class="head-check" id="selectAll" type="checkbox"></th><th class="plan">计划号</th><th class="sku">SKU</th><th class="status-col">状态</th><th class="updated-col">更新时间</th><th class="creator-col">创建人</th><th class="remark-col">发货计划备注&nbsp; ✎</th><th class="delivery-col">预计发货日期&nbsp; ✎</th><th class="delivery-col">预计到货日期&nbsp; ✎</th><th class="box-col">箱数</th><th class="plan-op-col">操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
-        <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft" id="voidBtn" title="已关联 FBA 货件的计划不可作废">作废</button><button class="btn soft">加入计划管理清单</button><button class="btn soft" id="genShipBtn" title="已关联 FBA 货件或非待发货状态的计划不可生成发货单">生成发货单</button></div><div class="bottom-right"><span>共 <b id="totalCount">62</b> 条</span><select class="control page-size" id="pageSize"><option value="15">15条/页</option><option value="30">30条/页</option><option value="50">50条/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
+        <section class="plan-list-card">
+          <section class="status-bar"><div class="status-tabs" id="statusTabs"></div><div class="status-tools"><label class="compare"><input id="compareToggle" type="checkbox" checked>显示销量环比</label><span class="tool" title="筛选">▽</span><span class="tool" title="搜索">⌕</span><span class="tool" title="设置">⚙</span><span class="tool" title="刷新" id="refreshBtn">↻</span><span class="tool" title="上传">↥</span><span class="tool" title="下载">↧</span><span class="tool" title="文档">▧</span></div></section>
+          <section class="table-area" id="tableArea"><table class="stock-table"><thead><tr><th class="check"><input class="head-check" id="selectAll" type="checkbox"></th><th class="plan">计划号</th><th class="sku">SKU</th><th class="status-col">状态</th><th class="updated-col">更新时间</th><th class="creator-col">创建人</th><th class="remark-col">发货计划备注&nbsp; ✎</th><th class="delivery-col">预计发货日期&nbsp; ✎</th><th class="delivery-col">预计到货日期&nbsp; ✎</th><th class="box-col">箱数</th><th class="plan-op-col">操作</th></tr></thead><tbody id="tableBody"></tbody></table></section>
+          <footer class="bottom-bar"><div class="bottom-left"><span class="selected-count">已选 <b id="selectedCount">0</b> 条结果</span><button class="btn soft" id="voidBtn" title="已关联 FBA 货件的计划不可作废">作废</button><button class="btn soft">加入计划管理清单</button><button class="btn soft" id="genShipBtn" title="已关联 FBA 货件或非待发货状态的计划不可生成发货单">生成发货单</button></div><div class="bottom-right"><span>共 <b id="totalCount">62</b> 条</span><select class="control page-size" id="pageSize"><option value="15">15条/页</option><option value="30">30条/页</option><option value="50">50条/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button><span>前往</span><input class="control jump" id="jumpPage" value="1"><span>页</span></div></footer>
+        </section>
         </div>
         <div class="module-view fba-view hidden" id="fbaShipmentView">
           <section class="query-panel fba-query-panel" aria-label="FBA货件查询区域">
@@ -195,6 +197,6 @@
   <script src="./app-link.js?v=1.0.0"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
-  <script src="../../navigation.js?v=1.7.72"></script>
+  <script src="../../navigation.js?v=1.7.73"></script>
 </body>
 </html>

@@ -90,7 +90,17 @@
   color: var(--document-label-color);
   font-size: 0;
   line-height: 0;
+  overflow: hidden;
   transform: none !important;
+}
+
+/* Keep the expand control arrow-only. Some page-level button rules add a
+   trailing marker through ::after, which otherwise appears as a tiny dot. */
+.document-list .document-expand::after,
+.document-list .expand-row::after,
+.document-list .expand-btn::after {
+  content: none !important;
+  display: none !important;
 }
 
 .document-list .document-expand::before {
@@ -118,6 +128,14 @@
   display: none !important;
 }
 
+/* The second column only contains the expand affordance. Document tables use
+   ellipsis on body cells by default; in this narrow column that ellipsis was
+   clipped down to a single visible dot beside the arrow. */
+.document-list th:nth-child(2),
+.document-list td:nth-child(2) {
+  text-overflow: clip !important;
+}
+
 /* Compatibility selectors keep existing page markup on the same shared component. */
 .document-list .expand-row,
 .document-list .expand-btn {
@@ -133,6 +151,7 @@
   color: var(--document-label-color);
   font-size: 0;
   line-height: 0;
+  overflow: hidden;
   transform: none !important;
 }
 

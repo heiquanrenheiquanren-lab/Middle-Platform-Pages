@@ -76,3 +76,35 @@
 .audit-target-item{font-size:13px;color:#303133;line-height:22px;padding:2px 0}
     @media(max-width:1100px){.stock-business .form-grid{grid-template-columns:repeat(2,minmax(220px,1fr))}}
  .forecast-dialog.is-view-mode .el-dialog__footer .el-button{display:none}
+
+/* 采购计划列表与调拨单、提货单、损益单共用同一张“查询 + 操作 + 单据卡片”骨架。 */
+.purchase-plan-main{grid-template-rows:auto minmax(0,1fr);gap:12px;padding:14px;background:#f5f7fa}
+.purchase-plan-main>.query-card{padding:12px 12px 34px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;overflow:visible}
+.purchase-plan-main .query-row{min-width:0;flex-wrap:wrap;gap:12px}
+.purchase-plan-main .query-row:nth-child(2){min-width:0}
+.purchase-plan-main .query-row>*{flex:0 1 auto}
+.purchase-plan-main .query-expand{bottom:5px}
+.purchase-plan-main .stock-business{display:grid;grid-template-rows:48px minmax(0,1fr);gap:12px;min-height:0;padding:0;overflow:hidden;background:transparent}
+.purchase-plan-main .stock-business>.action-strip{height:48px;padding:0;border:0;background:transparent}
+.purchase-plan-main .head-actions{display:flex;align-items:center;gap:10px}
+.purchase-plan-main .head-actions .el-button{margin-left:0}
+.purchase-list-card{min-width:0;min-height:0;display:grid;grid-template-rows:50px minmax(0,1fr);border:1px solid #e5e7eb;border-radius:8px;background:#fff;overflow:hidden}
+.purchase-plan-main .purchase-list-card>.status-bar{height:50px;padding:0 16px;border:0;border-bottom:1px solid #ebeef5;overflow-x:auto}
+.purchase-plan-main .status-tabs{height:49px;gap:25px}
+.purchase-plan-main .status-tab{height:49px;font-weight:500}
+.purchase-plan-main .status-tab em{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:18px;margin-left:6px;padding:0 6px;border-radius:10px;background:#f2f4f7;color:#909399;font-size:12px;font-style:normal}
+.purchase-plan-main .status-tab.active em{background:#ecf5ff;color:#409eff}
+.purchase-plan-main .stock-business-table{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) 53px;border:0;border-radius:0;overflow:hidden}
+.purchase-plan-main .stock-business-table>.el-table{min-height:0;height:100%;border:0;border-radius:0}
+.purchase-plan-main .stock-business-table>.el-table .el-table__inner-wrapper:before{display:none}
+.purchase-plan-main .stock-business-table .el-table th.el-table__cell{height:47px;padding:0;background:#f5f7fa;color:#606266;font-weight:500;border-right:0}
+.purchase-plan-main .stock-business-table .el-table td.el-table__cell{height:78px;padding:8px 0;border-right:0}
+.purchase-plan-main .stock-business-table .el-table--border .el-table__cell{border-right:0}
+.purchase-plan-main .stock-business-table .el-table__row:hover>td.el-table__cell{background:#f5faff}
+.purchase-plan-main .stock-business-table .document-table table{min-width:1180px!important;width:100%!important}
+.purchase-plan-main .stock-business-table .pagination-bar{height:53px;padding:0 16px;border-top:1px solid #e4e9f2;align-items:center;background:#fff}
+.purchase-plan-main .document-no{font-weight:500}
+.purchase-plan-main .operation-links{gap:6px 10px}
+.purchase-plan-main .operation-links .el-button{font-size:12px}
+.purchase-plan-main .detail-box{margin:4px 18px 12px;background:#f7f9fc}
+@media(max-width:1200px){.purchase-plan-main{padding:12px}.purchase-plan-main .code-box{width:250px}.purchase-plan-main .plan-input{width:220px}}

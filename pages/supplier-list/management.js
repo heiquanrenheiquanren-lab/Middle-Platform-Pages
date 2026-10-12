@@ -34,7 +34,7 @@
   function clock() { var date=new Date(), pad=function(value){return String(value).padStart(2,'0');};return date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate())+' '+pad(date.getHours())+':'+pad(date.getMinutes())+':'+pad(date.getSeconds()); }
   function toast(message) { var node=$('#toast');node.textContent=message;node.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(function(){node.classList.remove('show');},2600); }
   function log(supplier,type,content) { var time=clock();supplier.logs=supplier.logs||[];supplier.logs.unshift({type:type,content:content,operator:'系统用户',time:time});supplier.editor='系统用户';supplier.updatedAt=time; }
-  function nextCode() { var max=suppliers.reduce(function(acc,row){var match=String(row.code).match(/\d+$/);return Math.max(acc,match?Number(match[0]):0);},15354);return 'GYS'+String(max+1); }
+  function nextCode() { var max=suppliers.reduce(function(acc,row){var match=String(row.code||'').match(/^GYS(\d{4})$/);return Math.max(acc,match?Number(match[1]):0);},0);return max<9999?'GYS'+String(max+1).padStart(4,'0'):''; }
   function updateSelect(selector,values) { var select=$(selector), current=select.value;var initial=select.options[0].outerHTML;select.innerHTML=initial+Array.from(new Set(values.filter(Boolean))).sort().map(function(value){return '<option>'+clean(value)+'</option>';}).join('');select.value=current; }
   function updateFilterChoices() {
     updateSelect('#filterBuyer',suppliers.flatMap(function(row){return (row.buyer||'').split(',');}));
@@ -115,14 +115,16 @@
     if(missing){$('#formError').textContent='请填写完整的必填信息';missing.focus();missing.scrollIntoView({block:'center',behavior:'smooth'});return false;}
     var name=getField('name');
     if(suppliers.some(function(row){return row.name===name&&row.code!==editingCode;})){$('#formError').textContent='供应商名称已存在';form.elements.namedItem('name').focus();return false;}
+    var code=getField('code');
+    if(suppliers.some(function(row){return row.code===code&&row.code!==editingCode;})){$('#formError').textContent='供应商编码已存在，请修改后重试';form.elements.namedItem('code').focus();return false;}
     $('#formError').textContent='';return true;
   }
   function saveForm() {
     if(!validate())return;
     var row=editingCode?suppliers.find(function(item){return item.code===editingCode;}):null;
     var previous=row;
-    if(!row){row={code:nextCode(),creator:'系统用户',skuCount:0,amount:0,logs:[]};suppliers.unshift(row);}
-    Array.from(form.querySelectorAll('[name]')).forEach(function(input){if(input.type!=='file'&&input.name!=='code')row[input.name]=String(input.value).trim();});
+    if(!row){row={creator:'系统用户',skuCount:0,amount:0,logs:[]};suppliers.unshift(row);}
+    Array.from(form.querySelectorAll('[name]')).forEach(function(input){if(input.type!=='file')row[input.name]=String(input.value).trim();});
     row.contacts=rowsFrom($('#contacts'));row.shipping=rowsFrom($('#shippingAddresses'));row.returnsAddresses=rowsFrom($('#returnAddresses'));
     log(row,editingCode?'编辑':'新增',editingCode?'编辑供应商信息':'新增供应商信息');
     if(!previous)row.createdAt=getField('createdAt');

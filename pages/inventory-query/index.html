@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>库存查询</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.72">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.73">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.0.18">
+  <link rel="stylesheet" href="./styles.css?v=1.0.19">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div id="app" v-cloak>
@@ -64,6 +64,7 @@
               <el-table-column prop="inStockTotal" width="128" align="right"><template #header><span class="header-with-help">在库总量<el-tooltip content="在库总量=可用库存+占用库存" placement="top"><span class="header-help">?</span></el-tooltip></span></template><template #default="scope"><span class="qty-normal">{{ qty(scope.row.inStockTotal) }}</span></template></el-table-column>
               <el-table-column prop="virtual" label="虚拟库存" width="104" align="right"><template #default="scope"><span class="qty-normal">{{ qty(scope.row.virtual) }}</span></template></el-table-column>
               <el-table-column prop="frozen" label="冻结库存" width="104" align="right"><template #default="scope"><span class="qty-normal">{{ qty(scope.row.frozen) }}</span></template></el-table-column>
+              <el-table-column prop="weightedAge" width="118" align="right"><template #header><span class="header-with-help">加权库龄<el-tooltip content="按当前剩余可用库存加权计算，不含占用、冻结、在途及虚拟库存" placement="top"><span class="header-help">?</span></el-tooltip></span></template><template #default="scope"><button v-if="scope.row.weightedAge!=null" class="number-link weighted-age-link" @click="openMetric(scope.row,'age')">{{ ageText(scope.row.weightedAge) }}</button><span v-else class="qty-muted">—</span></template></el-table-column>
               <el-table-column label="负责人/采购员" width="166" align="left"><template #default="scope"><div class="owner-cell"><div><span>产品负责人：</span><b>{{ scope.row.developer }}</b></div><div><span>采购员：</span><b>{{ scope.row.buyer }}</b></div></div></template></el-table-column>
               <el-table-column label="操作" width="108" fixed="right" align="center"><template #default="scope"><el-button link type="primary" @click="openMetric(scope.row,'flow')">库存流水</el-button></template></el-table-column>
               <template #empty><el-empty description="暂无符合条件的库存记录"></el-empty></template>
@@ -80,9 +81,16 @@
       <el-dialog v-model="detailVisible" :width="detailMode==='flow' ? '1280px' : '920px'" align-center destroy-on-close :class="['inventory-modal',{'inventory-modal--flow':detailMode==='flow'}]">
         <template #header><div class="modal-title"><div><h2>{{ currentRow?.sku }}｜{{ detailTitle }}</h2><p>{{ currentRow?.warehouse }} · {{ currentRow?.name }}<span v-if="detailTeam"> · {{ detailTeam }}</span></p></div></div></template>
         <template v-if="currentRow">
-          <div class="modal-summary" v-if="detailMode!=='flow'">
+          <div class="modal-summary" v-if="detailMode!=='flow' && detailMode!=='age'">
             <div><span>可用库存</span><b :class="quantityClass(detailSummary.available)">{{ qty(detailSummary.available) }}</b></div><div><span>占用库存</span><b>{{ qty(detailSummary.occupied) }}</b></div><div><span>在途库存</span><b>{{ qty(detailSummary.inTransit) }}</b></div><div><span>冻结库存</span><b>{{ qty(detailSummary.frozen) }}</b></div><div><span>在库库存</span><b>{{ qty(detailSummary.onHand) }}</b></div><div><span>待确认库存</span><b>{{ qty(detailSummary.pending) }}</b></div>
           </div>
+
+          <section v-else-if="detailMode==='age'" class="modal-section age-section">
+            <div class="age-overview"><div><span>加权库龄</span><b>{{ ageText(detailSummary.weightedAge) }}</b></div><div><span>剩余可用库存</span><b>{{ qty(detailSummary.available) }}</b></div></div>
+            <div class="age-note"><span class="age-note-icon">i</span><span>按入库批次的剩余可用库存统计；不含占用、冻结、在途及虚拟库存。</span></div>
+            <div class="age-bucket-grid"><div v-for="bucket in ageBuckets" :key="bucket.key" class="age-bucket-card"><span>{{ bucket.label }}</span><b>{{ qty(bucket.qty) }}</b><small>占可用库存 {{ bucket.ratio }}%</small></div></div>
+            <div class="age-formula">加权库龄 = Σ（批次剩余可用库存 × 批次库龄）÷ 剩余可用库存合计</div>
+          </section>
 
           <section v-if="detailMode==='team' || detailMode==='available'" class="modal-section">
             <h3>团队库存明细</h3>
@@ -121,7 +129,7 @@
             <div class="flow-pagination"><span>共 {{ flowFilteredRows.length }} 条流水记录</span><el-pagination v-model:current-page="flowPage" v-model:page-size="flowPageSize" layout="sizes, prev, pager, next, jumper" :page-sizes="[10,20,50]" :total="flowFilteredRows.length"></el-pagination></div>
           </section>
 
-          <section v-else class="modal-section">
+          <section v-else-if="detailMode!=='age'" class="modal-section">
             <h3>{{ detailTitle }}</h3>
             <el-table :data="detailRows" border><el-table-column prop="team" label="团队" min-width="120"></el-table-column><el-table-column label="来源单据" min-width="200"><template #default="scope"><div class="source-doc-cell"><el-tag v-if="docTypeLabel(scope.row.type)" size="small" effect="light">{{ docTypeLabel(scope.row.type) }}</el-tag><span>{{ scope.row.docNo }}</span></div></template></el-table-column><el-table-column prop="qty" label="数量" width="96" align="right"></el-table-column></el-table>
           </section>
@@ -132,8 +140,8 @@
 
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
-  <script src="./app.js?v=1.0.14"></script>
+  <script src="./app.js?v=1.0.15"></script>
   <script src="../../global-export.js?v=1.0.0"></script>
-  <script src="../../navigation.js?v=1.7.72"></script>
+  <script src="../../navigation.js?v=1.7.73"></script>
 </body>
 </html>

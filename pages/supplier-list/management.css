@@ -28,7 +28,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
 .btn.danger:hover{border-color:#f56c6c;background:#fff6f6;color:#e64545}
 .btn:disabled,.btn:disabled:hover{cursor:not-allowed;border-color:#ebeef5;background:#f5f7fa;color:#c0c4cc;box-shadow:none}
 .business-card{min-height:0;flex:1;display:flex;flex-direction:column;padding:0 18px}
-.action-strip{display:flex;align-items:center;gap:8px;min-height:58px;overflow-x:auto;white-space:nowrap;border-bottom:1px solid #f0f2f5}
+.page-action-bar{min-height:34px;display:flex;align-items:center;gap:8px;padding:0 18px;overflow-x:auto;white-space:nowrap;background:transparent}
 .action-spacer{flex:1}.selection-hint{color:#9aa2ad;font-size:12px}
 .table-scroll{min-width:0;min-height:0;flex:1;overflow:auto}
 .supplier-table{min-width:1720px;width:100%;border-collapse:collapse;table-layout:fixed}
@@ -68,6 +68,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
 .field.status-level{grid-column:1}
 .field[hidden]{display:none!important}
 .field-label{width:100px;flex:0 0 100px;text-align:right;font-size:13px;white-space:nowrap;color:#505965}
+.field-help{position:relative;width:16px;height:16px;flex:0 0 16px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #aeb8c4;border-radius:50%;color:#7f8a98;font-size:11px;line-height:1;cursor:help;outline:0}.field-help:hover,.field-help:focus{border-color:#409eff;color:#409eff}.field-help:after{content:attr(data-tooltip);position:absolute;z-index:30;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:220px;padding:6px 9px;border-radius:4px;background:rgba(31,35,41,.92);color:#fff;font-size:12px;font-weight:400;line-height:18px;white-space:nowrap;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s}.field-help:before{content:"";position:absolute;z-index:31;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(31,35,41,.92);opacity:0;visibility:hidden}.field-help:hover:after,.field-help:hover:before,.field-help:focus:after,.field-help:focus:before{opacity:1;visibility:visible}
 .required:before{content:"*";color:#f56c6c;margin-right:4px}
 .field>input,.field>select,.field>textarea,.field .with-unit{min-width:0;flex:1}
 .field input,.field select,.field textarea,.repeat-list input,.repeat-list select{height:34px;padding:0 10px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;outline:0}

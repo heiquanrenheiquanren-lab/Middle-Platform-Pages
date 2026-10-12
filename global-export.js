@@ -233,9 +233,9 @@
     var container = document.querySelector('.global-right') || document.querySelector('.header-user');
     if (!container) return;
     var entry = document.createElement('button'); entry.type = 'button'; entry.className = 'gx-entry'; entry.innerHTML = '<span class="gx-entry-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg></span><span>导出中心</span><sup class="gx-entry-badge" hidden>0</sup>';
-    var admin = container.querySelector('.admin');
-    if (!admin) admin = Array.prototype.slice.call(container.children).find(function (child) { return /Admin/.test(child.textContent || ''); });
-    if (admin) container.insertBefore(entry, admin); else container.appendChild(entry);
+    var account = container.querySelector('.account-control, .admin');
+    if (!account) account = Array.prototype.slice.call(container.children).find(function (child) { return /Admin/.test(child.textContent || ''); });
+    if (account) container.insertBefore(entry, account); else container.appendChild(entry);
     entry.addEventListener('click', openWorkbench); updateBadge();
   }
 
