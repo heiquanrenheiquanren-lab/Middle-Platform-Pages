@@ -38,6 +38,17 @@
 
 ## 二、版本变更记录（倒序）
 
+### 2026-10-12 · 产品列表编辑器新增 HS code 与申报价值字段（版本 1.7.74）
+
+1. **产品列表（pages/product-list）**：
+   - 报关与物流信息区新增「HS code」字段：仅允许纯数字输入（`inputmode="numeric"`、`pattern="[0-9]*"`、`maxlength="10"`），输入时自动过滤非数字字符；默认值 `85153900`（去除点号）。
+   - 新增「申报价值」必填字段：`type="number"`、`min="0"`、`step="0.01"`，保存时校验非空。
+   - 保存数据结构同步增加 `hsCode` 和 `declarationValue` 字段。
+
+2. **版本号统一**：根 app.js `VER` 递增至 1.7.74，全站 18 个页面的 navigation.js / navigation.css 引用同步至 1.7.74，`scripts/validate-ui.mjs` 校验版本同步更新。
+
+---
+
 ### 2026-10-12 · 新增损益单/提货单 + 全局账号菜单 + 库存查询库龄分布（版本 1.7.73）
 
 1. **新增损益单页面（pages/inventory-adjustments）**：库存损益调整单列表，注册根路由（`inventoryAdjustment`）与侧边导航（仓储管理分组下）。
