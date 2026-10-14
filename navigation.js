@@ -22,6 +22,7 @@
     purchaseOrder: '../purchase-orders/index.html',
     shipmentOrder: '../shipment-orders/index.html',
     skuFirstLegCost: '../sku-first-leg-cost/index.html',
+    historicalPurchasePrice: '../historical-purchase-price/index.html',
     inventoryQuery: '../inventory-query/index.html',
     inventoryFlow: '../inventory-flow/index.html',
     batchInventory: '../batch-inventory/index.html',
@@ -330,6 +331,19 @@
     });
   }
 
+  function mountHistoricalPurchasePriceNav() {
+    document.querySelectorAll('[data-page-nav="skuFirstLegCost"]').forEach(function (source) {
+      var container = source.parentElement;
+      if (!container || container.querySelector('[data-page-nav="historicalPurchasePrice"]')) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'historicalPurchasePrice');
+      item.classList.remove('active');
+      if (location.pathname.indexOf('/historical-purchase-price/') >= 0) item.classList.add('active');
+      item.innerHTML = '<span class="mini">⌁</span>历史采购价';
+      source.insertAdjacentElement('afterend', item);
+    });
+  }
+
   function renameWarehouseNavigation() {
     var selector = '.nav-group-title, .nav-section-title, .side-nav > .nav-section, .workbench-nav-title, .supplier-nav-title, .supplier-nav-section';
     document.querySelectorAll(selector).forEach(function (title) {
@@ -509,6 +523,7 @@
     mountInventoryFlowNav();
     mountBatchInventoryNav();
     mountSupplierNav();
+    mountHistoricalPurchasePriceNav();
     renameWarehouseNavigation();
 
     var collapsed = false;

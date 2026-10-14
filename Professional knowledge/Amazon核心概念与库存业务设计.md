@@ -170,6 +170,99 @@ Amazon Seller Account
 + 商品状态
 ```
 
+#### 4.2.1 问题一：同一个 FBA 仓库是否只能存在一个唯一的 FNSKU
+
+**结论：不是。一个 FBA 履约中心可以同时存放很多个不同的 FNSKU；同一个 FNSKU 也可能被 Amazon 分布到多个不同的履约中心。**
+
+需要区分以下两件事：
+
+1. 某一件使用 Amazon Barcode 管理的实物，只能贴其对应的一个 FNSKU；
+2. 但一个 FBA 履约中心并不只服务一个 FNSKU，它可以同时存放大量店铺、Offer 和 FNSKU 对应的库存。
+
+例如，同一个 Amazon 店铺、同一个本地 SKU，可能因为建立了不同的 Seller SKU/FBA Offer，产生不同的 FNSKU：
+
+```text
+Amazon 店铺 A
+本地 SKU：FF123456
+
+Seller SKU：FF123456-US-01 → FNSKU：X001AAA
+Seller SKU：FF123456-US-02 → FNSKU：X001BBB
+```
+
+这两个 FNSKU 可以同时存放在同一个履约中心：
+
+```text
+LAS1
+X001AAA：100 件
+X001BBB：50 件
+```
+
+同一个 FNSKU 也可能分布在多个履约中心：
+
+```text
+FNSKU：X001AAA
+LAS1：60 件
+ONT8：40 件
+```
+
+因此，不能建立“一个 FBA 仓库只能对应一个 FNSKU”的一对一关系。FBA 外部库存明细建议至少按以下组合保存：
+
+```text
+Seller Account / 店铺
++ Marketplace / 站点
++ FNSKU
++ Fulfillment Center / FBA仓库
+```
+
+然后再通过 FNSKU 映射归集到中台的本地 SKU 和亚马逊团队。
+
+**信息来源：**
+
+- Amazon《Manage FBA Inventory report》字段定义：报告同时提供 `sku`、`fnsku` 及对应库存数量，FNSKU 是 Amazon 为存放并由履约中心配送的商品分配的标识。[原文链接](https://sellercentral.amazon.com/help/hub/reference/external/200740930?locale=en-GB)
+- Amazon Selling Partner API《listInboundPlanItems》：单个入库计划可以包含多个商品项，每个商品项分别包含 `msku`、`asin` 和 `fnsku`。[原文链接](https://developer-docs.amazon.com/sp-api/lang-en_EN/reference/listinboundplanitems)
+
+#### 4.2.2 问题二：不同 FNSKU 的库存能否共用
+
+**结论：默认不能共用。A 店铺的 FNSKU 库存不足时，不能直接调用 B 店铺另一个 FNSKU 的库存发货。**
+
+例如：
+
+```text
+A 店铺：FNSKU-A，可售库存 0
+B 店铺：FNSKU-B，可售库存 100
+```
+
+即使两个店铺：
+
+- 属于同一家公司和同一个亚马逊团队；
+- 销售相同的本地 SKU 或相同 ASIN；
+- 库存在同一个 FBA 履约中心；
+
+A 店铺也不能把 `FNSKU-B` 的 100 件直接作为自己的库存销售。FNSKU 对应具体卖家账号/FBA Listing 的库存识别和货权上下文，仓库相同不会自动改变库存归属。
+
+如果确实需要把 B 店铺库存转给 A 店铺，通常需要执行：
+
+```text
+B 店铺创建移除订单
+→ 库存退出 FBA
+→ 每件商品重新贴 A 店铺对应的 FNSKU
+→ 以 A 店铺创建新货件并重新入仓
+```
+
+Amazon 官方社区工作人员说明，卖家账户之间转移库存时，仅更换外箱标签不够；商品需要从原账户移除、逐件更换为接收账户的 FNSKU，再以接收账户重新入仓。[原文链接](https://sellercentral.amazon.com/seller-forums/discussions/t/3587b4cf-5278-46a4-b420-95c9b430486d)
+
+需要注意制造商条码和混合库存的特殊场景：Amazon 可能把相同 ASIN、相同状态且符合条件的商品作为可互换实物进行履约，但这属于 Amazon 内部履约机制，不代表 A 店铺获得了 B 店铺的账面库存，也不能据此在中台把不同店铺库存设计成共享库存。[Amazon 关于混合库存的说明](https://sellercentral.amazon.com/seller-forums/discussions/t/6aea6a69-b699-4033-9a96-0d93adca6f7a)
+
+对应的中台规则应为：
+
+```text
+库存隔离维度：Seller Account / 店铺 + FNSKU
+团队归属维度：统一归属亚马逊团队
+共享规则：不同店铺/FNSKU之间默认不共享
+```
+
+因此，“亚马逊只有一个团队”只能说明不需要通过订单号再次识别团队，不能取消 Seller Account、店铺和 FNSKU 的库存隔离。
+
 ### 4.3 FNSKU 是否等于库存主键
 
 不建议把 FNSKU 作为中台库存主键。
