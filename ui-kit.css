@@ -50,6 +50,9 @@
 .ui-text-action--log{color:var(--ui-color-info)}
 .ui-text-action:hover,.ui-text-action--log:hover{color:var(--ui-color-primary)}
 
+/* Compact secondary tabs for grouped form content. */
+.ui-tabs{display:flex;align-items:center;gap:24px;height:40px;border-bottom:1px solid var(--ui-color-divider);background:#fff}.ui-tabs button{position:relative;height:40px;padding:0 2px;border:0;background:transparent;color:var(--ui-color-text-regular);font:inherit;cursor:pointer}.ui-tabs button:hover{color:var(--ui-color-primary)}.ui-tabs button.is-active{color:var(--ui-color-primary);font-weight:600}.ui-tabs button.is-active:after{content:"";position:absolute;right:0;bottom:-1px;left:0;height:2px;background:var(--ui-color-primary)}
+
 /* Table primitives retain only horizontal rules. */
 .ui-table-wrap{min-width:0;overflow:auto}
 .ui-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;color:var(--ui-color-text-regular)}
@@ -73,6 +76,8 @@
 
 /* Shared form alignment. */
 .ui-form-card{padding:20px;border:1px solid #e5eaf1;border-radius:6px;background:#fff}.ui-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 22px}.ui-field{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:10px;min-width:0;color:var(--ui-color-text-regular);line-height:20px}.ui-field--wide{grid-column:1 / -1}.ui-field__label{position:relative;white-space:nowrap}.ui-field__required{position:absolute;left:-12px;top:50%;margin:0;transform:translateY(-50%);color:var(--ui-color-danger);font-style:normal;line-height:1}.ui-field input,.ui-field select{width:100%;min-width:0;height:34px;padding:0 10px;border:1px solid var(--ui-color-border);border-radius:var(--ui-radius-control);background:#fff;color:var(--ui-color-text-regular);font:inherit;outline:0}.ui-field input:focus,.ui-field select:focus{border-color:var(--ui-color-primary);box-shadow:0 0 0 2px rgba(64,158,255,.12)}.ui-field .is-readonly{background:#f5f7fa;color:#909399}
+
+.ui-help-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:4px;border:1px solid #c0c4cc;border-radius:50%;color:var(--ui-color-text-secondary);font-size:11px;font-weight:400;line-height:1;vertical-align:middle;cursor:help}.ui-help-icon::after{content:attr(data-tooltip);position:absolute;left:50%;top:calc(100% + 8px);z-index:240;width:max-content;max-width:360px;padding:8px 10px;border-radius:var(--ui-radius-control);background:rgba(48,49,51,.96);box-shadow:0 4px 12px rgba(0,0,0,.18);color:#fff;font-size:12px;font-weight:400;line-height:18px;text-align:left;white-space:normal;opacity:0;pointer-events:none;transform:translate(-50%,-4px);transition:opacity .15s ease,transform .15s ease}.ui-help-icon:hover::after,.ui-help-icon:focus::after{opacity:1;transform:translate(-50%,0)}
 
 /* Batch task progress dialog: use this for push, sync, import validation and similar async tasks. */
 .ui-progress-summary{display:flex;align-items:center;gap:22px;margin-bottom:14px;padding:12px 14px;border:1px solid #b3d8ff;border-radius:6px;background:linear-gradient(135deg,#f0f7ff 0%,#ecf5ff 100%);color:var(--ui-color-text-regular);font-size:13px}.ui-progress-summary__item{display:flex;align-items:baseline;gap:5px;white-space:nowrap}.ui-progress-summary__item b{color:var(--ui-color-text);font-size:16px}.ui-progress-summary__item--success b{color:var(--ui-color-success)}.ui-progress-summary__item--failed b{color:var(--ui-color-danger)}

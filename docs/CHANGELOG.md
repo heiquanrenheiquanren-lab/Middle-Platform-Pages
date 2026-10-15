@@ -38,6 +38,22 @@
 
 ## 二、版本变更记录（倒序）
 
+### 2026-10-15 · 产品列表查询重构 + UI Kit 新增可维护下拉/紧凑页签/导入流程（版本 1.7.78）
+
+1. **产品列表页（pages/product-list）**：
+   - 查询区重构：关键字查询类型新增「关联 SPU」「型号」「识别码」，新增产品名称、是否组合品、配合类型（多选）、物流属性（多选）、创建人筛选项；销售状态枚举补充「在售」「未上市」；时间查询支持创建时间/更新时间切换；
+   - 移除「导入」按钮与「列设置」面板，新增「更新信息」列；
+   - custom-select / ui-kit / 页面资源版本同步更新（custom-select 1.0.2、ui-kit 1.0.1、app.js 1.0.36、styles 1.0.40）。
+
+2. **UI Kit 与通用组件（ui-kit.js/css、custom-select.js/css）**：
+   - 新增可维护枚举的单选下拉 `data-custom-select-addable`；
+   - 新增紧凑内容页签 `.ui-tabs`；
+   - 导入弹窗扩展：独立导入 `UIKit.openImportDialog()` 与既有弹窗内导入 `UIKit.createImportFlow()`，支持切换页签后另开弹窗。
+
+3. **文档**：新增《产品 SKU 主数据统一维护及对外 ERP 推送 PRD》；UI_SPEC.md 同步更新 UI Kit 新增能力说明与 SKU 基础信息表单项。
+
+4. **版本号统一**：根 app.js `VER` 递增至 1.7.78，全站 19 个页面 navigation.js / navigation.css 引用同步至 1.7.78，`scripts/validate-ui.mjs` 校验版本同步更新。
+
 ### 2026-10-15 · 库存查询弹窗口径调整 + 批次库存列表精简（版本 1.7.77）
 
 1. **批次库存页（pages/batch-inventory）**：

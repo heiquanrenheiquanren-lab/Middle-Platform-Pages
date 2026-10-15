@@ -44,6 +44,49 @@
       };
       menu.append(item);
     });
+    if(select.dataset.customSelectAddable==='true'&&!select.disabled){
+      const addLabel=select.dataset.customSelectAddLabel||'新增选项';
+      const option=document.createElement('button');
+      option.type='button';
+      option.className='custom-select-option is-add-option';
+      option.textContent=`＋ ${addLabel}`;
+      option.addEventListener('click',event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        let editor=menu.querySelector('.custom-select-add-editor');
+        if(!editor){
+          const name=addLabel.replace(/^新增/,'')||'选项';
+          editor=document.createElement('div');
+          editor.className='custom-select-add-editor';
+          editor.innerHTML=`<input type="text" maxlength="30" placeholder="${select.dataset.customSelectAddPlaceholder||`请输入${name}名称`}"><button type="button" class="custom-select-add-confirm" aria-label="确认新增${name}">✓</button><button type="button" class="custom-select-add-cancel" aria-label="取消新增${name}">×</button><p class="custom-select-add-error" aria-live="polite"></p>`;
+          menu.append(editor);
+          const input=editor.querySelector('input');
+          const error=editor.querySelector('.custom-select-add-error');
+          const closeEditor=()=>{editor.hidden=true;input.value='';error.textContent='';wrapper.querySelector('.custom-select-trigger')?.focus();};
+          const save=()=>{
+            const value=input.value.trim();
+            if(!value){error.textContent=`请输入${name}名称`;input.focus();return;}
+            const existing=[...select.options].find(item=>item.value===value||item.textContent.trim()===value);
+            const isNew=!existing;
+            if(existing)select.value=existing.value;
+            else{const next=document.createElement('option');next.value=value;next.textContent=value;select.append(next);select.value=value;}
+            select.dispatchEvent(new Event('input',{bubbles:true}));
+            select.dispatchEvent(new Event('change',{bubbles:true}));
+            select.dispatchEvent(new CustomEvent('ui-select-option-added',{bubbles:true,detail:{value:value,isNew:isNew}}));
+            buildOptions(select);
+            close(select);
+          };
+          editor.querySelector('.custom-select-add-confirm').addEventListener('click',event=>{event.stopPropagation();save();});
+          editor.querySelector('.custom-select-add-cancel').addEventListener('click',event=>{event.stopPropagation();closeEditor();});
+          input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();save();}if(event.key==='Escape'){event.preventDefault();closeEditor();}});
+        }
+        editor.hidden=false;
+        wrapper.classList.add('is-open');
+        wrapper.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded','true');
+        requestAnimationFrame(()=>editor.querySelector('input')?.focus());
+      });
+      menu.append(option);
+    }
     sync(select);
   };
 
@@ -127,6 +170,45 @@
       box.append(clear);
     });
   };
+  const createUiMultiSelect=config=>{
+    const box=typeof config.root==='string'?document.querySelector(config.root):config.root;
+    if(!box)return null;
+    const trigger=box.querySelector('.multi-trigger[data-trigger]');
+    const menu=box.querySelector('[data-menu]');
+    if(!trigger||!menu)return null;
+    const state={options:config.options||[],values:[...(config.values||[])],placeholder:config.placeholder||'请选择',onChange:config.onChange};
+    const sync=()=>{
+      state.values=[...menu.querySelectorAll('input:checked')].map(input=>input.value);
+      trigger.textContent=state.values.length?state.values.join('、'):state.placeholder;
+      trigger.classList.toggle('has-value',state.values.length>0);
+      box.classList.toggle('has-value',state.values.length>0);
+      state.onChange?.([...state.values]);
+    };
+    const render=()=>{
+      menu.innerHTML='';
+      state.options.forEach(option=>{
+        const label=document.createElement('label');
+        const input=document.createElement('input');
+        const text=document.createElement('span');
+        input.type='checkbox';input.value=option;input.checked=state.values.includes(option);text.textContent=option;
+        label.append(input,text);menu.append(label);
+      });
+      sync();
+    };
+    if(!box.dataset.uiMultiSelectReady){
+      box.dataset.uiMultiSelectReady='1';
+      trigger.addEventListener('click',event=>{
+        event.stopPropagation();
+        document.querySelectorAll('.ui-multi-select .dropdown.show').forEach(dropdown=>{if(dropdown!==menu)dropdown.classList.remove('show');});
+        document.querySelectorAll('.ui-multi-select .multi-trigger.open').forEach(item=>{if(item!==trigger)item.classList.remove('open');});
+        const opening=!menu.classList.contains('show');
+        menu.classList.toggle('show',opening);trigger.classList.toggle('open',opening);trigger.setAttribute('aria-expanded',String(opening));
+      });
+      menu.addEventListener('change',sync);
+    }
+    render();
+    return {getValues:()=>[...state.values],setValues:values=>{state.values=[...(values||[])];render();}};
+  };
   const enhanceInputClear=root=>{
     root.querySelectorAll?.('input.control').forEach(input=>{
       if(input.dataset.inputClearReady)return;
@@ -153,7 +235,7 @@
   };
   const enhanceClearAll=root=>{enhanceMultiClear(root);enhanceInputClear(root);};
   const enhanceAll=root=>{root.querySelectorAll?.(`select:not([${ready}])`).forEach(enhance);enhanceClearAll(root);};
-  document.addEventListener('click',event=>{if(openSelect&&!openSelect.closest('.custom-select')?.contains(event.target))close(openSelect);});
+  document.addEventListener('click',event=>{if(openSelect&&!openSelect.closest('.custom-select')?.contains(event.target))close(openSelect);if(!event.target.closest('.ui-multi-select')){document.querySelectorAll('.ui-multi-select .dropdown.show').forEach(dropdown=>dropdown.classList.remove('show'));document.querySelectorAll('.ui-multi-select .multi-trigger.open').forEach(trigger=>{trigger.classList.remove('open');trigger.setAttribute('aria-expanded','false');});}});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&openSelect)close(openSelect);});
   new MutationObserver(records=>{
     records.forEach(record=>{
@@ -167,4 +249,5 @@
   }).observe(document.documentElement,{childList:true,subtree:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>enhanceAll(document));else enhanceAll(document);
   window.enhanceCustomSelects=()=>enhanceAll(document);
+  window.createUiMultiSelect=createUiMultiSelect;
 })();

@@ -52,7 +52,7 @@ if (!errors.length) {
     const html = read(page);
     if (!html.includes('data-ui-kit-page="standard"')) errors.push(`${page} 未标记为 UI Kit 页面。`);
     if (!html.includes('class="ui-page-canvas"')) errors.push(`${page} 未接入 UI Kit 页面底色。`);
-    if (!html.includes('navigation.css?v=1.7.77')) errors.push(`${page} 未加载当前版本的共享导航和 UI Kit。`);
+    if (!html.includes('navigation.css?v=1.7.78')) errors.push(`${page} 未加载当前版本的共享导航和 UI Kit。`);
   });
 }
 if (errors.length) {
