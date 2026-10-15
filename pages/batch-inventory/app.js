@@ -24,7 +24,7 @@
       const rows=ref(clone(batchRows).map(row=>({...row,...externalCodes(row),warehouseCode:window.WarehouseAttributes.codeOf(row.warehouse)})));
       const filters=reactive({keywordType:'batchNo',keyword:'',skuType:'sku',skus:'',productName:'',warehouses:[],teams:[],inboundTypes:[],inboundRange:[]});
       const applied=reactive(clone(filters));
-      const page=ref(1),pageSize=ref(20),selectedRows=ref([]),detailVisible=ref(false),currentRow=ref(null);
+      const page=ref(1),pageSize=ref(20),selectedRows=ref([]);
       const sortState=reactive({prop:'',order:''});
       const warehouses=[...new Set(batchRows.map(row=>row.warehouse))];
       const warehouseOptions=warehouses.map(value=>({value,label:`${value}（${window.WarehouseAttributes.codeOf(value)||'-'}）`}));
@@ -64,8 +64,7 @@
       const query=()=>{Object.assign(applied,clone(filters));page.value=1;selectedRows.value=[];ElMessage.success(`查询完成，共 ${filteredRows.value.length} 条批次库存`);};
       const resetFilters=()=>{Object.assign(filters,{keywordType:'batchNo',keyword:'',skuType:'sku',skus:'',productName:'',warehouses:[],teams:[],inboundTypes:[],inboundRange:[]});Object.assign(applied,clone(filters));page.value=1;selectedRows.value=[];};
       const exportPlaceholder=()=>ElMessage.info(`已按当前筛选条件准备导出 ${filteredRows.value.length} 条批次库存`);
-      const openDetail=row=>{currentRow.value=row;detailVisible.value=true;};
-      return{filters,warehouses,warehouseOptions,teams,inboundTypes,page,pageSize,selectedRows,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,fmtQty,getSummaries,query,resetFilters,exportPlaceholder,openDetail};
+      return{filters,warehouses,warehouseOptions,teams,inboundTypes,page,pageSize,selectedRows,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,fmtQty,getSummaries,query,resetFilters,exportPlaceholder};
     }
   }).use(window.ElementPlus).mount('#app');
 })();

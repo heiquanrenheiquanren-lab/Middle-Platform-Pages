@@ -18,7 +18,7 @@
 @media(max-width:1500px){.query-grid{grid-template-columns:minmax(200px,1.5fr) repeat(4,minmax(120px,1fr))}.page-note{display:none}}
 
 /* SKU 关联编码改为在同一列分行展示 */
-.sku-cell{align-items:flex-start;gap:0}.sku-values{display:flex;flex-direction:column;gap:3px;min-width:0}.sku-primary{display:flex;align-items:center;gap:4px;min-width:0}.sku-primary>.el-button{min-width:0;overflow:hidden;text-overflow:ellipsis}.sku-secondary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8a94a1;font-size:12px;line-height:16px}
+.sku-cell{align-items:flex-start;gap:0}.sku-values{display:flex;flex-direction:column;gap:3px;min-width:0}.sku-primary{display:flex;align-items:center;gap:4px;min-width:0}.sku-code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1677ff}.sku-secondary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8a94a1;font-size:12px;line-height:16px}
 
 /* 列表行高与产品图片占位符 */
 .inventory-table td.el-table__cell{height:72px}.product-cell{gap:8px}.product-thumb{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:0 0 44px;background:#f7f8fa;color:#aeb7c3}.image-placeholder-icon{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
