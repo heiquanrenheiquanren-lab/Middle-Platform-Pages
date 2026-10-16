@@ -67,9 +67,9 @@
     return {...order(no,status,warehouse,warehouse,items.length,140,0,'—','—','—','库存管理',creator),transferType:'货权调拨',ownershipWarehouse:warehouse,items,remark:'同仓团队货权调整',ownershipCompleted:status==='已完成',auditDecision:status==='已完成'?'approve':'',outboundQty:0,inboundQty:0,voidedQty:0};
   }
   const CURRENT_USER = 'Admin';
-  const state = {status:'全部',page:1,pageSize:10,selected:new Set(),expanded:new Set(),editing:null,editorType:'仓间调拨',editorDraft:null,pickerRows:[],pickerSelected:new Set(),importFile:null,importRows:[],importErrors:[],sourceWarehouses:[],targetWarehouses:[],sourceTeams:[],targetTeams:[],channels:[],creators:[],transferType:'',queryExpanded:false};
+  const state = {status:'全部',page:1,pageSize:10,selected:new Set(),expanded:new Set(),editing:null,editorType:'仓间调拨',editorDraft:null,pickerRows:[],pickerSelected:new Set(),importFile:null,importRows:[],importErrors:[],importType:'仓间调拨',sourceWarehouses:[],targetWarehouses:[],sourceTeams:[],targetTeams:[],channels:[],creators:[],transferType:'',queryExpanded:false};
   function defaultQueryValues(){return [];}
-  const importColumns = [
+  const warehouseImportColumns = [
     {key:'sku',label:'SKU',required:true,description:'【必填】填写有效 SKU，SKU 必须存在且属于调出仓库库存。'},
     {key:'sourceWarehouse',label:'调出仓库',required:true,description:'【必填】填写调出库存的仓库名称，必须与系统仓库一致。'},
     {key:'targetWarehouse',label:'调入仓库',required:true,description:'【必填】填写接收库存的仓库名称，不能与调出仓库相同。'},
@@ -77,13 +77,21 @@
     {key:'targetTeam',label:'调入团队',required:true,description:'【必填】填写本次调拨的目标团队。'},
     {key:'quantity',label:'调拨数量',required:true,description:'【必填】填写大于 0 的整数，不能超过对应 SKU 的在库量。'},
     {key:'eta',label:'预计到仓',required:false,description:'【选填】填写预计到仓日期，格式为 YYYY-MM-DD。'},
-    {key:'inheritAge',label:'是否继承库龄',required:true,description:'【必填】只能填写“是”或“否”。'},
     {key:'channel',label:'物流渠道',required:false,description:'【选填】填写物流渠道名称；填写物流单号时必须同时填写物流渠道。'},
     {key:'waybill',label:'物流单号',required:false,description:'【选填】填写物流单号；填写物流渠道时必须同时填写物流单号。'},
     {key:'fee',label:'运费',required:false,description:'【选填】填写大于等于 0 的数字，最多保留两位小数。'},
     {key:'otherFee',label:'其他费用',required:false,description:'【选填】填写大于等于 0 的数字，最多保留两位小数。'},
     {key:'remark',label:'SKU备注',required:false,description:'【选填】填写该 SKU 的备注，最多 120 个字符。'}
   ];
+  const ownershipImportColumns = [
+    {key:'sourceWarehouse',label:'所在仓库',required:true,description:'【必填】填写库存当前所在仓库；系统将其作为调出仓和调入仓。'},
+    {key:'sku',label:'SKU',required:true,description:'【必填】填写有效 SKU，且在所在仓库和调出团队下有可用库存。'},
+    {key:'sourceTeam',label:'调出团队',required:true,description:'【必填】填写当前库存归属团队，必须与库存归属一致。'},
+    {key:'targetTeam',label:'调入团队',required:true,description:'【必填】填写目标货权团队，不能与调出团队相同。'},
+    {key:'quantity',label:'调拨数量',required:true,description:'【必填】填写大于 0 的整数，不能超过可用库存。'},
+    {key:'remark',label:'SKU备注',required:false,description:'【选填】填写该 SKU 的货权调整说明，最多 120 个字符。'}
+  ];
+  function currentImportColumns(){return state.importType==='货权调拨'?ownershipImportColumns:warehouseImportColumns;}
   const statusList = ['全部','待审核','待出库','在途','部分入库','已完成','已驳回','已作废','异常'];
   function splitValues(value){return [...new Set(String(value||'').trim().toLowerCase().split(/[\s,，;；]+/).filter(Boolean))];}
   function equalsAny(value,values){return !values.length||values.includes(value);}
@@ -308,6 +316,13 @@
     const total=Number(row.requestQty||0),base=Math.floor(total/count),remainder=total%count;
     return skuPool.slice(0,count).map((item,index)=>({...item,sourceWarehouse:row.source,team:item.team,quantity:base+(index<remainder?1:0),targetTeam:teams[(index+2)%teams.length],remark:''}));
   }
+  // 所有审核、编辑和出库校验都读取当前库存服务口径，避免使用创建单据时的库存快照。
+  function currentAvailable(item){
+    const sourceWarehouse=item.sourceWarehouse||item.warehouse||'';
+    const current=skuPool.find(candidate=>candidate.sku===item.sku&&candidate.team===item.team&&(!sourceWarehouse||candidate.stockWarehouses?.includes(sourceWarehouse)));
+    // 已明确仓库但库存服务找不到对应库存时按 0 处理，不能回退到单据快照绕过校验。
+    return Math.max(0,Number(current?.available??(sourceWarehouse?0:item.available))||0);
+  }
   function renderDetail(row){
     const items=buildItems(row);
     const ownership=isOwnershipTransfer(row);
@@ -344,9 +359,8 @@
   function outboundItemRows(row){
     return buildItems(row).map(item=>{
       const quantity=Number(item.quantity)||0;
-      const available=Number(item.available);
-      const stock=Number.isFinite(available)&&available>0?available:quantity;
-      return {...item,quantity,stock,maxQty:Math.max(Math.min(stock,quantity),1)};
+      const stock=currentAvailable(item);
+      return {...item,quantity,stock,maxQty:Math.min(stock,quantity)};
     });
   }
   function renderOutbound(row){
@@ -462,6 +476,12 @@
   function submitOutbound(row,modal){
     const error=$('#outboundError',modal);
     error.textContent='';
+    const items=buildItems(row);
+    const shortage=items.filter(item=>currentAvailable(item)<Number(item.quantity||0));
+    if(shortage.length){
+      error.textContent=shortage.map(item=>`SKU${item.sku} 在库量小于调拨数量，库存不足`).join('；');
+      return;
+    }
     const inputs=$$('.outbound-input',modal);
     const invalidInputs=inputs.filter(input=>!checkOutboundInput(input));
     syncOutboundTotal(modal);
@@ -475,7 +495,6 @@
     if(Boolean(channel)!==Boolean(waybill)){error.textContent='物流渠道和物流单号需同时填写';return;}
     const values=inputs.map(input=>Number(input.value));
     const logistics=normalizeLogistics(channel,waybill);
-    const items=buildItems(row);
     if(!row.items.length)row.items=items;
     items.forEach((item,index)=>{if(Number.isInteger(values[index]))item.outboundQty=values[index];});
     row.channel=logistics.channel;row.waybill=logistics.waybill;
@@ -597,7 +616,10 @@
     modal.hidden=true;renderTabs();renderTable();
     toast(`调拨单 ${row.no} 已手动完结`);
   }
-  function exceptionRow(item){return `<tr data-sku="${escapeHtml(item.sku)}"><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left">${escapeHtml(item.name)}</td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${item.available}</td><td><input class="quantity-input required-input exception-qty" type="number" min="1" max="${item.available}" value="${item.quantity}" data-sku="${escapeHtml(item.sku)}"></td><td><button class="sku-remove" type="button" data-remove-sku="${escapeHtml(item.sku)}">删除</button></td></tr>`;}
+  function exceptionRow(item){
+    const available=currentAvailable(item);
+    return `<tr data-sku="${escapeHtml(item.sku)}"><td class="left"><b>${escapeHtml(item.sku)}</b></td><td class="left">${escapeHtml(item.name)}</td><td>${escapeHtml(item.team||'—')}</td><td>${escapeHtml(item.targetTeam||'—')}</td><td>${available}</td><td><input class="quantity-input required-input exception-qty" type="number" min="1" max="${available}" value="${item.quantity}" data-sku="${escapeHtml(item.sku)}"></td><td><button class="sku-remove" type="button" data-remove-sku="${escapeHtml(item.sku)}">删除</button></td></tr>`;
+  }
   function renderExceptionItems(modal,row){
     const body=$('#exceptionItems',modal);
     const items=shortageItems(row);
@@ -624,7 +646,8 @@
     if(!row.items.length){toast('请至少保留一个 SKU','error');return;}
     const inputs=$$('.exception-qty',modal);
     for(const input of inputs){
-      const value=Number(input.value),max=Number(input.max);
+      const item=row.items.find(candidate=>candidate.sku===input.dataset.sku);
+      const value=Number(input.value),max=item?currentAvailable(item):0;
       if(input.value===''||!Number.isInteger(value)||value<1||value>max){toast('调拨数量须为 1 - 可用库存 的整数','error');input.focus();return;}
     }
     const changes=[];
@@ -659,7 +682,7 @@
     modal.querySelector('[data-audit-action="approve"]').onclick=()=>submitAudit(rows,'approve',modal);
     modal.querySelector('[data-audit-action="reject"]').onclick=()=>submitAudit(rows,'reject',modal);
   }
-  function shortageItems(row){return (row.items||[]).filter(item=>Number(item.quantity)>Number(item.available));}
+  function shortageItems(row){return (row.items||[]).filter(item=>Number(item.quantity)>currentAvailable(item));}
   function submitAudit(rows,decision,modal){
     const reason=$('#auditReason',modal).value.trim(),error=$('#auditError',modal);
     if(decision==='reject'&&!reason){error.textContent='驳回时必须填写原因';$('#auditReason',modal).classList.add('is-error');$('#auditReason',modal).focus();return;}
@@ -671,7 +694,7 @@
         row.auditDecision=decision;row.auditReason=reason;row.updatedAt=now();state.selected.delete(row.id);
         if(shortage.length){
           row.status='异常';
-          row.abnormalReason=shortage.map(item=>`SKU ${item.sku} 需 ${item.quantity}，可用 ${item.available}，缺 ${Number(item.quantity)-Number(item.available)}`).join('；');
+          row.abnormalReason=shortage.map(item=>`SKU ${item.sku} 需 ${item.quantity}，可用 ${currentAvailable(item)}，缺 ${Number(item.quantity)-currentAvailable(item)}`).join('；');
           abnormal++;
         }else if(isOwnershipTransfer(row)){
           row.items.forEach(item=>{item.ownershipOutQty=Number(item.quantity||0);item.ownershipInQty=Number(item.quantity||0);item.costAllocations=itemCostAllocations(item);});
@@ -703,15 +726,17 @@
     renderTabs();renderTable();toast(`已作废 ${selected.length} 张调拨单`);
   }
   function editorForm(row){
-    const isEdit=Boolean(row),transferType=state.editorType||row?.transferType||'仓间调拨',ownership=transferType==='货权调拨',source=state.editorDraft?.source??row?.source??'',target=ownership?source:(state.editorDraft?.target??row?.target??''),inheritAge=row?String(row.inheritAge?'是':'否'):'是',items=buildItems(row||{items:[],skuCount:0,requestQty:0});
+    const isEdit=Boolean(row),transferType=state.editorType||row?.transferType||'仓间调拨',ownership=transferType==='货权调拨',source=state.editorDraft?.source??row?.source??'',target=ownership?source:(state.editorDraft?.target??row?.target??''),items=buildItems(row||{items:[],skuCount:0,requestQty:0});
     const submitText=row?.status==='异常'?'保存到待出库':'提交审核';
     const disabled=ownership?'disabled aria-disabled="true"':'';
-    const inheritOptions=ownership?'<option selected>—</option><option value="是">是</option><option value="否">否</option>':`<option value="">请选择</option><option value="是" ${inheritAge==='是'?'selected':''}>是</option><option value="否" ${inheritAge==='否'?'selected':''}>否</option>`;
     const channelOptions=ownership?'<option selected>—</option>':`<option value="">请选择物流渠道</option>${logisticsChannelList().map(item=>`<option ${item===row?.channel?'selected':''}>${item}</option>`).join('')}<option value="__add_channel__">＋ 新增渠道</option>`;
     const warehouseHelpIcon=`<span class="form-help-icon" tabindex="0" role="img" aria-label="${warehouseTransferHelp}" data-tooltip="${warehouseTransferHelp}">?</span>`;
-    return `<div class="dialog editor-dialog"><header class="dialog-header"><div><h2>${isEdit?'编辑调拨单':'新建调拨单'}</h2></div><button class="dialog-close" data-close="editor">×</button></header><div class="dialog-body"><section class="section"><div class="section-title">基础信息</div><div class="section-body"><div class="form-grid"><div class="field"><label>调拨类型</label><select id="editType" ${isEdit?'disabled':''}><option ${transferType==='仓间调拨'?'selected':''}>仓间调拨</option><option ${transferType==='货权调拨'?'selected':''}>货权调拨</option></select></div><div class="field"><label class="required">调出仓库${warehouseHelpIcon}</label><select id="editSource"><option value="">请选择调出仓库</option>${warehouses.map(item=>`<option ${item===source?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label class="required">调入仓库${warehouseHelpIcon}</label><select id="editTarget" ${disabled}><option value="">请选择调入仓库</option>${warehouses.map(item=>`<option ${item===target?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>预计到仓日期</label><input id="editEta" type="date" value="${ownership?'':row?.eta||'2026-09-25'}" ${disabled}></div><div class="field"><label class="required">是否继承库龄</label><select id="inheritAge" ${disabled}>${inheritOptions}</select></div><div class="field"><label>物流渠道</label><select id="editChannel" ${disabled}>${channelOptions}</select></div><div class="field"><label>物流单号</label><input id="editWaybill" value="${ownership?'':row?.waybill==='—'?'':row?.waybill||''}" placeholder="${ownership?'不适用':'可后续补录'}" ${disabled}></div><div class="field"><label>运费</label><div class="money-field"><input id="editFee" type="number" min="0" step="0.01" value="${ownership?'':row?.fee||''}" placeholder="${ownership?'不适用':'请输入'}" ${disabled}><span>CNY</span></div></div><div class="field"><label>其他费用</label><div class="money-field"><input id="editOtherFee" type="number" min="0" step="0.01" value="${ownership?'':row?.otherFee||''}" placeholder="${ownership?'不适用':'请输入'}" ${disabled}><span>CNY</span></div></div><div class="field span-2"><label>调拨备注</label><textarea id="editRemark" maxlength="500" placeholder="请输入备注（选填）">${escapeHtml(row?.remark||'')}</textarea></div></div></div></section><section class="section"><div class="section-title"><div class="editor-item-toolbar"><button class="btn primary small" id="addSkuBtn">＋ 添加SKU</button><div class="bulk-target-team"><select id="bulkTargetTeam"><option value="">批量选择调入团队</option>${teams.map(item=>`<option>${item}</option>`).join('')}</select><button class="btn small" id="applyTargetTeam">应用到全部</button></div></div></div><div class="section-body detail-table-wrap"><table class="detail-table editor-detail"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>在库量</th><th class="required-column">调拨数量</th><th>调拨金额</th><th class="required-column">调入团队</th><th>备注</th><th>操作</th></tr></thead><tbody id="editorItems">${items.map((item,index)=>editorItem(item,index)).join('')}</tbody></table><div class="empty editor-empty" ${items.length?'hidden':''}>请先选择调出仓库，再点击“添加SKU”</div></div></section></div><footer class="dialog-footer"><button class="btn" data-close="editor">取消</button><button class="btn primary" data-editor-action="submit">${submitText}</button></footer></div>`;
+    return `<div class="dialog editor-dialog"><header class="dialog-header"><div><h2>${isEdit?'编辑调拨单':'新建调拨单'}</h2></div><button class="dialog-close" data-close="editor">×</button></header><div class="dialog-body"><section class="section"><div class="section-title">基础信息</div><div class="section-body"><div class="form-grid"><div class="field"><label>调拨类型</label><select id="editType" ${isEdit?'disabled':''}><option ${transferType==='仓间调拨'?'selected':''}>仓间调拨</option><option ${transferType==='货权调拨'?'selected':''}>货权调拨</option></select></div><div class="field"><label class="required">调出仓库${warehouseHelpIcon}</label><select id="editSource"><option value="">请选择调出仓库</option>${warehouses.map(item=>`<option ${item===source?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label class="required">调入仓库${warehouseHelpIcon}</label><select id="editTarget" ${disabled}><option value="">请选择调入仓库</option>${warehouses.map(item=>`<option ${item===target?'selected':''}>${item}</option>`).join('')}</select></div><div class="field"><label>预计到仓日期</label><input id="editEta" type="date" value="${ownership?'':row?.eta||'2026-09-25'}" ${disabled}></div><div class="field"><label>物流渠道</label><select id="editChannel" ${disabled}>${channelOptions}</select></div><div class="field"><label>物流单号</label><input id="editWaybill" value="${ownership?'':row?.waybill==='—'?'':row?.waybill||''}" placeholder="${ownership?'不适用':'可后续补录'}" ${disabled}></div><div class="field"><label>运费</label><div class="money-field"><input id="editFee" type="number" min="0" step="0.01" value="${ownership?'':row?.fee||''}" placeholder="${ownership?'不适用':'请输入'}" ${disabled}><span>CNY</span></div></div><div class="field"><label>其他费用</label><div class="money-field"><input id="editOtherFee" type="number" min="0" step="0.01" value="${ownership?'':row?.otherFee||''}" placeholder="${ownership?'不适用':'请输入'}" ${disabled}><span>CNY</span></div></div><div class="field span-2"><label>调拨备注</label><textarea id="editRemark" maxlength="500" placeholder="请输入备注（选填）">${escapeHtml(row?.remark||'')}</textarea></div></div></div></section><section class="section"><div class="section-title"><div class="editor-item-toolbar"><button class="btn primary small" id="addSkuBtn">＋ 添加SKU</button><div class="bulk-target-team"><select id="bulkTargetTeam"><option value="">批量选择调入团队</option>${teams.map(item=>`<option>${item}</option>`).join('')}</select><button class="btn small" id="applyTargetTeam">应用到全部</button></div></div></div><div class="section-body detail-table-wrap"><table class="detail-table editor-detail"><thead><tr><th>SKU</th><th>产品名称</th><th>调出团队</th><th>在库量</th><th class="required-column">调拨数量</th><th>调拨金额</th><th class="required-column">调入团队</th><th>备注</th><th>操作</th></tr></thead><tbody id="editorItems">${items.map((item,index)=>editorItem(item,index)).join('')}</tbody></table><div class="empty editor-empty" ${items.length?'hidden':''}>请先选择调出仓库，再点击“添加SKU”</div></div></section></div><footer class="dialog-footer"><button class="btn" data-close="editor">取消</button><button class="btn primary" data-editor-action="submit">${submitText}</button></footer></div>`;
   }
-  function editorItem(item,index){return `<tr data-item-index="${index}"><td class="left"><b>${item.sku}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${item.available}</td><td><input class="quantity-input required-input" type="number" min="1" max="${item.available}" value="${item.quantity??''}" placeholder="请输入" required data-field="quantity"></td><td class="item-transfer-amount" data-item-amount>${formatMoney(itemTransferAmount(item))}</td><td><select class="target-team-select required-input" required data-field="targetTeam"><option value="">请选择调入团队</option>${teams.map(team=>`<option ${team===item.targetTeam?'selected':''}>${team}</option>`).join('')}</select></td><td><textarea class="remark-input" maxlength="120" placeholder="请输入" data-field="remark">${escapeHtml(item.remark||'')}</textarea></td><td><button class="sku-remove" type="button" data-remove-item="${index}">移除</button></td></tr>`;}
+  function editorItem(item,index){
+    const available=currentAvailable(item);
+    return `<tr data-item-index="${index}"><td class="left"><b>${item.sku}</b></td><td class="left"><div class="product-cell"><span class="product-thumb">▧</span><span>${escapeHtml(item.name)}</span></div></td><td>${escapeHtml(item.team||'—')}</td><td>${available}</td><td><input class="quantity-input required-input" type="number" min="1" max="${available}" value="${item.quantity??''}" placeholder="请输入" required data-field="quantity"></td><td class="item-transfer-amount" data-item-amount>${formatMoney(itemTransferAmount(item))}</td><td><select class="target-team-select required-input" required data-field="targetTeam"><option value="">请选择调入团队</option>${teams.map(team=>`<option ${team===item.targetTeam?'selected':''}>${team}</option>`).join('')}</select></td><td><textarea class="remark-input" maxlength="120" placeholder="请输入" data-field="remark">${escapeHtml(item.remark||'')}</textarea></td><td><button class="sku-remove" type="button" data-remove-item="${index}">移除</button></td></tr>`;
+  }
   function cloneEditorItems(row){return buildItems(row||{items:[],skuCount:0,requestQty:0}).map(item=>({...item,costBatches:Array.isArray(item.costBatches)?item.costBatches.map(batch=>({...batch})):item.costBatches,costAllocations:Array.isArray(item.costAllocations)?item.costAllocations.map(batch=>({...batch})):item.costAllocations}));}
   function openEditor(row){const modal=$('#editorModal');state.editing=row?.id||null;state.editorType=row?.transferType||'仓间调拨';state.editorDraft={source:row?.source||'',target:row?.target||''};state.editorItems=cloneEditorItems(row);modal.innerHTML=editorForm(row);modal.hidden=false;bindEditor(modal,row);}
   function setEditorFieldError(input,message){
@@ -731,7 +756,7 @@
   function validateEditorForSku(modal){
     const ownership=$('#editType',modal)?.value==='货权调拨';
     const requiredFields=[[$('#editSource',modal),'请选择调出仓库']];
-    if(!ownership)requiredFields.push([$('#editTarget',modal),'请选择调入仓库'],[$('#inheritAge',modal),'请选择是否继承库龄']);
+    if(!ownership)requiredFields.push([$('#editTarget',modal),'请选择调入仓库']);
     let firstInvalid=null;
     requiredFields.forEach(([input,message])=>{
       if(!input?.value){setEditorFieldError(input,message);firstInvalid||=input;}
@@ -805,7 +830,6 @@
     type.onchange=()=>{state.editorType=type.value;state.editorItems=[];state.editorDraft={source:source.value,target:type.value==='货权调拨'?source.value:''};modal.innerHTML=editorForm(row);bindEditor(modal,row);};
     source.onchange=()=>{if(state.editorItems.length){if(!confirm('修改调出仓库将清空当前调拨明细，确认继续吗？')){source.value=state.editorDraft?.source||row?.source||'';return;}state.editorItems=[];renderEditorItems(modal);}const targetValue=state.editorType==='货权调拨'?source.value:(target?.value||'');state.editorDraft={...(state.editorDraft||{}),source:source.value,target:targetValue};if(state.editorType==='货权调拨'&&target)target.value=source.value;clearEditorFieldError(source);if(state.editorType==='货权调拨')clearEditorFieldError(target);};add.onclick=()=>{if(validateEditorForSku(modal))openPicker();};
     if(target)target.onchange=()=>{if(source.value&&source.value===target.value){toast('调入仓库不能与调出仓库相同');target.value='';}state.editorDraft={...(state.editorDraft||{}),target:target.value};if(target.value)clearEditorFieldError(target);};
-    const inheritAge=$('#inheritAge',modal);if(inheritAge)inheritAge.onchange=()=>{if(inheritAge.value)clearEditorFieldError(inheritAge);};
     $('#applyTargetTeam',modal).onclick=()=>{if(!bulkTargetTeam.value){toast('请选择要批量设置的调入团队');return;}if(!state.editorItems.length){toast('请先添加调拨SKU');return;}state.editorItems.forEach(item=>{item.targetTeam=bulkTargetTeam.value;});renderEditorItems(modal);toast('已应用到全部调拨SKU');};
     modal.querySelectorAll('[data-editor-action]').forEach(button=>button.onclick=()=>saveEditor(modal,row));
     setupEditorChannelMenu(modal);
@@ -813,13 +837,13 @@
   }
   function renderEditorItems(modal){const body=$('#editorItems',modal);body.innerHTML=(state.editorItems||[]).map((item,index)=>editorItem(item,index)).join('');$('.editor-empty',modal).hidden=Boolean(state.editorItems.length);body.querySelectorAll('[data-remove-item]').forEach(button=>button.onclick=()=>{state.editorItems.splice(Number(button.dataset.removeItem),1);renderEditorItems(modal);});body.querySelectorAll('[data-field]').forEach(input=>{const syncField=()=>{const row=state.editorItems[Number(input.closest('tr').dataset.itemIndex)];row[input.dataset.field]=input.value;if(input.dataset.field==='quantity')input.closest('tr').querySelector('[data-item-amount]').textContent=formatMoney(itemTransferAmount(row));};input.oninput=syncField;input.onchange=syncField;});}
   function saveEditor(modal,row){
-    const transferType=$('#editType',modal).value,ownership=transferType==='货权调拨',source=$('#editSource',modal).value,target=ownership?source:$('#editTarget',modal).value,inheritAge=ownership?'是':$('#inheritAge',modal).value,isException=row?.status==='异常';
-    if(!source||(!ownership&&(!target||!inheritAge))){toast(ownership?'请填写调出仓库':'请填写调出仓库、调入仓库和是否继承库龄','error');return;}
+    const transferType=$('#editType',modal).value,ownership=transferType==='货权调拨',source=$('#editSource',modal).value,target=ownership?source:$('#editTarget',modal).value,isException=row?.status==='异常';
+    if(!source||(!ownership&&!target)){toast(ownership?'请填写调出仓库':'请填写调出仓库和调入仓库','error');return;}
     if(!ownership&&source===target){toast('调入仓库不能与调出仓库相同','error');return;}
     if(!state.editorItems.length){toast('请至少添加一个SKU','error');return;}
-    for(const item of state.editorItems){if(item.quantity===''||item.quantity===null||item.quantity===undefined){toast(`请填写 SKU ${item.sku} 的调拨数量`,'error');return;}const quantity=Number(item.quantity);if(!Number.isInteger(quantity)||quantity<=0||quantity>item.available){toast(`SKU ${item.sku} 的调拨数量须为1-${item.available}的整数`,'error');return;}if(!item.targetTeam){toast(`请选择 SKU ${item.sku} 的调入团队`,'error');return;}if(ownership&&item.team===item.targetTeam){toast(`货权调拨中 SKU ${item.sku} 的调入团队不能与调出团队相同`,'error');return;}}
+    for(const item of state.editorItems){const available=currentAvailable(item);if(item.quantity===''||item.quantity===null||item.quantity===undefined){toast(`请填写 SKU ${item.sku} 的调拨数量`,'error');return;}const quantity=Number(item.quantity);if(!Number.isInteger(quantity)||quantity<=0||quantity>available){toast(`SKU ${item.sku} 的调拨数量须为1-${available}的整数`,'error');return;}if(!item.targetTeam){toast(`请选择 SKU ${item.sku} 的调入团队`,'error');return;}if(ownership&&item.team===item.targetTeam){toast(`货权调拨中 SKU ${item.sku} 的调入团队不能与调出团队相同`,'error');return;}}
     const logistics=ownership?{channel:'—',waybill:'—'}:normalizeLogistics($('#editChannel',modal).value.trim(),$('#editWaybill',modal).value.trim());
-    const payload={transferType,ownershipWarehouse:ownership?source:'',source,target,eta:ownership?'—':$('#editEta',modal).value||'—',...logistics,fee:ownership?0:Number($('#editFee',modal).value||0),otherFee:ownership?0:Number($('#editOtherFee',modal).value||0),remark:$('#editRemark',modal).value.trim(),inheritAge:ownership?true:inheritAge==='是',items:state.editorItems.map(item=>({...item,quantity:Number(item.quantity)})),skuCount:state.editorItems.length,requestQty:state.editorItems.reduce((sum,item)=>sum+Number(item.quantity),0)};
+    const payload={transferType,ownershipWarehouse:ownership?source:'',source,target,eta:ownership?'—':$('#editEta',modal).value||'—',...logistics,fee:ownership?0:Number($('#editFee',modal).value||0),otherFee:ownership?0:Number($('#editOtherFee',modal).value||0),remark:$('#editRemark',modal).value.trim(),inheritAge:true,items:state.editorItems.map(item=>({...item,quantity:Number(item.quantity)})),skuCount:state.editorItems.length,requestQty:state.editorItems.reduce((sum,item)=>sum+Number(item.quantity),0)};
     if(row){Object.assign(row,payload);row.status=isException&&!ownership?'待出库':'待审核';if(isException&&!ownership){row.reflowLog='编辑调拨单后库存校验通过，重新流转待出库';delete row.abnormalReason;}else{delete row.auditDecision;delete row.auditReason;}row.updatedAt=now();toast(isException&&!ownership?'调拨单已重新流转待出库':'调拨单已提交审核');}else{const no=nextTransferNo();orders.unshift({...order(no,'待审核',source,target,payload.skuCount,payload.requestQty,0,payload.channel,payload.waybill,payload.eta,'库存管理','Admin'),...payload});toast('调拨单已提交审核');}
     modal.hidden=true;state.page=1;renderTabs();renderTable();
   }
@@ -867,53 +891,73 @@
   }
   function importCell(row,key,header){const index=header.indexOf(key);return index<0?'':String(row[index]??'').trim();}
   function validateImportRows(parsed){
+    const columns=currentImportColumns(), ownership=state.importType==='货权调拨';
     const header=parsed.header.map(value=>String(value).trim().replace(/^\*/,''));
-    const missing=importColumns.filter(column=>!header.includes(column.label));
+    const missing=columns.filter(column=>!header.includes(column.label));
     if(missing.length)return {rows:[],errors:[`模板缺少字段：${missing.map(column=>column.label).join('、')}`]};
     if(!parsed.data.length)return {rows:[],errors:['模板中没有可导入的 SKU 明细']};
-    const first=parsed.data[0], sharedKeys=['sourceWarehouse','targetWarehouse','eta','inheritAge','channel','waybill','fee','otherFee'];
-    const normalized=[];const errors=[];
+    const first=parsed.data[0], sharedKeys=ownership?[]:['sourceWarehouse','targetWarehouse','eta','channel','waybill','fee','otherFee'];
+    const normalized=[],errors=[];
     parsed.data.forEach((row,index)=>{
       if(!row.some(value=>String(value||'').trim()))return;
-      const read=key=>{const value=importCell(row,importColumns.find(column=>column.key===key)?.label||'',header);if(value)return value;return sharedKeys.includes(key)?importCell(first,importColumns.find(column=>column.key===key)?.label||'',header):'';};
-      const item={sku:read('sku'),sourceWarehouse:read('sourceWarehouse'),targetWarehouse:read('targetWarehouse'),sourceTeam:read('sourceTeam'),targetTeam:read('targetTeam'),quantity:read('quantity'),eta:read('eta'),inheritAge:read('inheritAge'),channel:read('channel'),waybill:read('waybill'),fee:read('fee'),otherFee:read('otherFee'),remark:read('remark')};
-      const missingRequired=importColumns.filter(column=>column.required&&!item[column.key]).map(column=>column.label);
+      const read=key=>{const column=columns.find(item=>item.key===key),value=importCell(row,column?.label||'',header);if(value)return value;return sharedKeys.includes(key)?importCell(first,column?.label||'',header):'';};
+      const item={sku:read('sku'),sourceWarehouse:read('sourceWarehouse'),targetWarehouse:read('targetWarehouse'),sourceTeam:read('sourceTeam'),targetTeam:read('targetTeam'),quantity:read('quantity'),eta:read('eta'),channel:read('channel'),waybill:read('waybill'),fee:read('fee'),otherFee:read('otherFee'),remark:read('remark')};
+      const missingRequired=columns.filter(column=>column.required&&!item[column.key]).map(column=>column.label);
       if(missingRequired.length){errors.push(`第 ${index+3} 行缺少必填字段：${missingRequired.join('、')}`);return;}
-      if(item.sourceWarehouse===item.targetWarehouse){errors.push(`第 ${index+3} 行调出仓库和调入仓库不能相同`);return;}
-      if(!['是','否'].includes(item.inheritAge)){errors.push(`第 ${index+3} 行“是否继承库龄”只能填写是或否`);return;}
-      if(Boolean(item.channel)!==Boolean(item.waybill)){errors.push(`第 ${index+3} 行物流渠道和物流单号需同时填写`);return;}
-      const product=skuPool.find(candidate=>candidate.sku===item.sku&&candidate.team===item.sourceTeam);
-      if(!product){errors.push(`第 ${index+3} 行 SKU 或调出团队不存在，或不属于对应库存`);return;}
+      if(!warehouses.includes(item.sourceWarehouse)){errors.push(`第 ${index+3} 行所在仓库不存在，请填写系统仓库名称`);return;}
+      if(ownership){
+        if(item.sourceTeam===item.targetTeam){errors.push(`第 ${index+3} 行调出团队和调入团队不能相同`);return;}
+      }else{
+        if(item.sourceWarehouse===item.targetWarehouse){errors.push(`第 ${index+3} 行调出仓库和调入仓库不能相同`);return;}
+        if(!warehouses.includes(item.targetWarehouse)){errors.push(`第 ${index+3} 行调入仓库不存在，请填写系统仓库名称`);return;}
+        if(Boolean(item.channel)!==Boolean(item.waybill)){errors.push(`第 ${index+3} 行物流渠道和物流单号需同时填写`);return;}
+      }
+      const product=skuPool.find(candidate=>candidate.sku===item.sku&&candidate.team===item.sourceTeam&&candidate.stockWarehouses?.includes(item.sourceWarehouse));
+      if(!product){errors.push(`第 ${index+3} 行 SKU、调出团队或所在仓库不存在对应库存`);return;}
       const quantity=Number(item.quantity);if(!Number.isInteger(quantity)||quantity<=0||quantity>product.available){errors.push(`第 ${index+3} 行调拨数量须为 1-${product.available} 的整数`);return;}
-      const fee=Number(item.fee||0),otherFee=Number(item.otherFee||0);if(!Number.isFinite(fee)||fee<0||!Number.isFinite(otherFee)||otherFee<0){errors.push(`第 ${index+3} 行费用必须为大于等于 0 的数字`);return;}
+      const fee=ownership?0:Number(item.fee||0),otherFee=ownership?0:Number(item.otherFee||0);if(!Number.isFinite(fee)||fee<0||!Number.isFinite(otherFee)||otherFee<0){errors.push(`第 ${index+3} 行费用必须为大于等于 0 的数字`);return;}
       normalized.push({...item,product,quantity,fee,otherFee});
     });
+    const inventoryTotals=new Map();
+    normalized.forEach(item=>{const key=[item.sku,item.sourceWarehouse,item.sourceTeam].join('__');inventoryTotals.set(key,(inventoryTotals.get(key)||0)+item.quantity);});
+    inventoryTotals.forEach((total,key)=>{const [sku,warehouse,team]=key.split('__'),product=skuPool.find(item=>item.sku===sku&&item.team===team&&item.stockWarehouses?.includes(warehouse));if(product&&total>product.available)errors.push(`SKU ${sku} 在${warehouse}/${team}的导入总数量为 ${total}，超过可用库存 ${product.available}`);});
     return {rows:normalized,errors};
   }
+  function mergeImportGroups(rows){
+    const ownership=state.importType==='货权调拨',groups=new Map();
+    rows.forEach(row=>{
+      const headerKey=ownership?row.sourceWarehouse:[row.sourceWarehouse,row.targetWarehouse,row.eta||'',row.channel||'',row.waybill||'',Number(row.fee||0),Number(row.otherFee||0)].join('__');
+      if(!groups.has(headerKey))groups.set(headerKey,{first:row,items:new Map()});
+      const group=groups.get(headerKey),itemKey=[row.sku,row.sourceTeam,row.targetTeam,row.remark||''].join('__');
+      if(group.items.has(itemKey))group.items.get(itemKey).quantity+=row.quantity;else group.items.set(itemKey,{...row,quantity:row.quantity});
+    });
+    return [...groups.values()].map(group=>({...group,items:[...group.items.values()]}));
+  }
+  function importPreview(rows){const groups=mergeImportGroups(rows);return {orders:groups.length,details:groups.reduce((sum,group)=>sum+group.items.length,0)};}
   function importStepMarkup(active){return `<div class="import-steps"><div class="import-step ${active>=1?'active':''} ${active>1?'done':''}"><span class="import-step-num">1</span><span class="import-step-text">下载模板</span></div><div class="import-step-line"></div><div class="import-step ${active>=2?'active':''} ${active>2?'done':''}"><span class="import-step-num">2</span><span class="import-step-text">选择文件</span></div><div class="import-step-line"></div><div class="import-step ${active>=3?'active':''}"><span class="import-step-num">3</span><span class="import-step-text">确认导入</span></div></div>`;}
   function renderImport(){
-    const hasFile=Boolean(state.importFile),errorText=state.importErrors.join('；');
-    return `<div class="dialog import-dialog"><header class="dialog-header"><div><h2>导入新建调拨单</h2></div><button class="dialog-close" data-close="import" aria-label="关闭导入新建弹窗">×</button></header><div class="dialog-body import-body">${importStepMarkup(hasFile?2:1)}<div class="import-guide"><div class="import-guide-title">第一步：使用标准模板整理数据</div><div class="import-guide-tip">请勿修改模板表头。支持 .xlsx、.xls、.csv 文件，单次仅导入一个文件。</div><button class="btn primary plain" id="downloadImportTemplate" type="button">下载模板</button></div><div class="import-upload" id="importDropArea"><input type="file" id="importFileInput" accept=".xls,.xlsx,.csv" hidden><div class="import-upload-icon">↥</div><div class="import-upload-text">将 Excel 文件拖到此处，或<span class="import-upload-link" id="chooseImportFile">点击选择文件</span></div></div><div class="import-upload-tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</div>${hasFile?`<div class="import-preview"><div class="import-preview-title">已选择文件：${escapeHtml(state.importFile.name)}</div><div class="import-preview-meta">识别到 ${state.importRows.length} 条有效明细${errorText?`，${state.importErrors.length} 条校验提示`:''}</div>${errorText?`<div class="import-preview-error">${escapeHtml(errorText)}</div>`:''}</div>`:''}</div><footer class="import-footer"><span class="import-file-info">${hasFile?`当前文件：${escapeHtml(state.importFile.name)}`:'尚未选择文件'}</span><div><button class="btn" data-close="import">取消</button><button class="btn primary" id="confirmImport" type="button" ${hasFile?'':'disabled'}>确认导入</button></div></footer></div>`;
+    const hasFile=Boolean(state.importFile),errorText=state.importErrors.join('；'),preview=state.importRows.length?importPreview(state.importRows):null,type=state.importType;
+    return `<div class="dialog import-dialog"><header class="dialog-header"><div><h2>导入新建调拨单</h2></div><button class="dialog-close" data-close="import" aria-label="关闭导入新建弹窗">×</button></header><div class="dialog-body import-body">${importStepMarkup(hasFile?2:1)}<div class="import-guide"><div class="import-guide-title">第一步：使用标准模板整理数据</div><div class="import-type-row"><label for="importTypeSelect">调拨类型</label><select id="importTypeSelect" class="control"><option value="仓间调拨" ${type==='仓间调拨'?'selected':''}>仓间调拨</option><option value="货权调拨" ${type==='货权调拨'?'selected':''}>货权调拨</option></select><button class="btn primary plain" id="downloadImportTemplate" type="button">下载模板</button></div><div class="import-guide-tip">1. 请勿修改模板表头。支持.xlsx文件，单次仅导入一个文件；模板第二行是字段说明<br>2. 调拨类型不同下载的导入模板不同</div></div><div class="import-upload" id="importDropArea"><input type="file" id="importFileInput" accept=".xlsx" hidden><div class="import-upload-icon">↥</div><div class="import-upload-text">将 Excel 文件拖到此处，或<span class="import-upload-link" id="chooseImportFile">点击选择文件</span></div></div><div class="import-upload-tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</div>${hasFile?`<div class="import-preview"><div class="import-preview-title">已选择文件：${escapeHtml(state.importFile.name)}</div><div class="import-preview-meta">预计生成 ${preview?.orders||0} 张调拨单、${preview?.details||0} 条 SKU 明细${errorText?`，${state.importErrors.length} 条校验提示`:''}</div>${errorText?`<div class="import-preview-error">${escapeHtml(errorText)}</div>`:''}</div>`:''}</div><footer class="import-footer"><span class="import-file-info">${hasFile?`当前文件：${escapeHtml(state.importFile.name)}`:'尚未选择文件'}</span><div><button class="btn" data-close="import">取消</button><button class="btn primary" id="confirmImport" type="button" ${hasFile&&!state.importErrors.length?'':'disabled'}>确认导入</button></div></footer></div>`;
   }
   function downloadImportTemplate(){
-    const headers=importColumns.map(column=>`${column.label}${column.required?'*':''}`),descriptions=importColumns.map(column=>column.description);
+    const columns=currentImportColumns(),headers=columns.map(column=>`${column.label}${column.required?'*':''}`),descriptions=columns.map(column=>column.description);
     const html=`<!doctype html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:14px}th,td{border:1px solid #c9d6e3;padding:8px 12px;vertical-align:top;white-space:normal}th{background:#075985;color:#fff;font-weight:600;min-width:120px;height:38px}td{background:#fff6df;color:#606266;line-height:20px;width:180px;height:72px}</style></head><body><table><tr>${headers.map(header=>`<th>${header}</th>`).join('')}</tr><tr>${descriptions.map(description=>`<td>${description}</td>`).join('')}</tr></table></body></html>`;
-    const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download='调拨单导入模板.xls';document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url);toast('模板已下载，请按模板填写后导入');
+    const blob=new Blob([html],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=`${state.importType}导入模板.xlsx`;document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url);toast(`${state.importType}模板已下载，请按模板填写后导入`);
   }
   function loadImportFile(file){
-    if(!file)return;const name=(file.name||'').toLowerCase();if(!['.xls','.xlsx','.csv'].some(extension=>name.endsWith(extension))){toast('文件格式不正确，请上传 .xls、.xlsx 或 .csv 文件','error');return;}if(name.endsWith('.xlsx')){toast('当前原型暂支持 .xls 或 .csv 模板，请先另存为 .xls 或 .csv','error');return;}
+    if(!file)return;const name=(file.name||'').toLowerCase();if(!name.endsWith('.xlsx')){toast('文件格式不正确，请上传 .xlsx 文件','error');return;}
     const reader=new FileReader();reader.onload=()=>{const parsed=importReadRows(reader.result),validated=validateImportRows(parsed);state.importFile=file;state.importRows=validated.rows;state.importErrors=validated.errors;const modal=$('#importModal');modal.innerHTML=renderImport();modal.hidden=false;bindImport(modal);if(validated.errors.length)toast(validated.errors[0],'error');};reader.onerror=()=>toast('文件读取失败，请重试','error');reader.readAsText(file);
   }
   function submitImport(){
     if(!state.importFile){toast('请先选择需要导入的文件','error');return;}if(state.importErrors.length){toast(state.importErrors[0],'error');return;}if(!state.importRows.length){toast('模板中没有可导入的 SKU 明细','error');return;}
-    const first=state.importRows[0],logistics=normalizeLogistics(first.channel,first.waybill),items=state.importRows.map(row=>({...row.product,sourceWarehouse:row.sourceWarehouse,team:row.sourceTeam,quantity:row.quantity,targetTeam:row.targetTeam,remark:row.remark})),no=nextTransferNo();
-    orders.unshift({...order(no,'待审核',first.sourceWarehouse,first.targetWarehouse,items.length,items.reduce((sum,item)=>sum+item.quantity,0),0,logistics.channel,logistics.waybill,first.eta||'—','库存管理','Admin'),...first,channel:logistics.channel,waybill:logistics.waybill,items,skuCount:items.length,requestQty:items.reduce((sum,item)=>sum+item.quantity,0),inheritAge:first.inheritAge==='是'});
-    $('#importModal').hidden=true;state.importFile=null;state.importRows=[];state.importErrors=[];state.page=1;renderTabs();renderTable();toast(`已导入新建调拨单 ${no}`);
+    const groups=mergeImportGroups(state.importRows),created=groups.map(group=>{const first=group.first,items=group.items.map(row=>({...row.product,sourceWarehouse:first.sourceWarehouse,team:row.sourceTeam,quantity:row.quantity,targetTeam:row.targetTeam,remark:row.remark})),total=items.reduce((sum,item)=>sum+item.quantity,0),no=nextTransferNo();if(state.importType==='货权调拨'){const base=ownershipOrder(no,'待审核',first.sourceWarehouse,'Admin');return {...base,source:first.sourceWarehouse,target:first.sourceWarehouse,ownershipWarehouse:first.sourceWarehouse,items,skuCount:items.length,requestQty:total,outboundQty:0,inboundQty:0,channel:'—',waybill:'—',eta:'—',fee:0,otherFee:0,inheritAge:true,remark:''};}const logistics=normalizeLogistics(first.channel,first.waybill);return {...order(no,'待审核',first.sourceWarehouse,first.targetWarehouse,items.length,total,0,logistics.channel,logistics.waybill,first.eta||'—','库存管理','Admin'),...first,channel:logistics.channel,waybill:logistics.waybill,items,skuCount:items.length,requestQty:total,inheritAge:true};});
+    orders.unshift(...created.reverse());
+    $('#importModal').hidden=true;state.importFile=null;state.importRows=[];state.importErrors=[];state.importType='仓间调拨';state.page=1;renderTabs();renderTable();toast(`已导入新建调拨单 ${created.length} 张`);
   }
-  function openImport(){state.importFile=null;state.importRows=[];state.importErrors=[];const modal=$('#importModal');modal.innerHTML=renderImport();modal.hidden=false;bindImport(modal);}
+  function openImport(){state.importFile=null;state.importRows=[];state.importErrors=[];state.importType='仓间调拨';const modal=$('#importModal');modal.innerHTML=renderImport();modal.hidden=false;bindImport(modal);}
   function bindImport(modal){
     modal.querySelectorAll('[data-close="import"]').forEach(button=>button.onclick=()=>{modal.hidden=true;});modal.onclick=event=>{if(event.target===modal)modal.hidden=true;};
-    $('#downloadImportTemplate',modal).onclick=downloadImportTemplate;const input=$('#importFileInput',modal),drop=$('#importDropArea',modal);$('#chooseImportFile',modal).onclick=()=>input.click();drop.onclick=event=>{if(event.target!==input)input.click();};input.onchange=()=>loadImportFile(input.files[0]);drop.ondragover=event=>{event.preventDefault();drop.classList.add('drag-over');};drop.ondragleave=()=>drop.classList.remove('drag-over');drop.ondrop=event=>{event.preventDefault();drop.classList.remove('drag-over');loadImportFile(event.dataTransfer.files[0]);};$('#confirmImport',modal).onclick=submitImport;
+    $('#downloadImportTemplate',modal).onclick=downloadImportTemplate;$('#importTypeSelect',modal).onchange=event=>{state.importType=event.target.value;state.importFile=null;state.importRows=[];state.importErrors=[];modal.innerHTML=renderImport();modal.hidden=false;bindImport(modal);};const input=$('#importFileInput',modal),drop=$('#importDropArea',modal);$('#chooseImportFile',modal).onclick=()=>input.click();drop.onclick=event=>{if(event.target!==input)input.click();};input.onchange=()=>loadImportFile(input.files[0]);drop.ondragover=event=>{event.preventDefault();drop.classList.add('drag-over');};drop.ondragleave=()=>drop.classList.remove('drag-over');drop.ondrop=event=>{event.preventDefault();drop.classList.remove('drag-over');loadImportFile(event.dataTransfer.files[0]);};$('#confirmImport',modal).onclick=submitImport;
   }
   function runAction(action,row){
     if(action==='view'){openDetail(row);return;}if(action==='edit'){openEditor(row);return;}if(action==='log'){openLog(row);return;}if(action==='outbound'){openOutbound(row);return;}if(action==='inbound'){openInbound(row);return;}if(action==='complete'){openComplete(row);return;}
