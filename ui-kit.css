@@ -50,6 +50,10 @@
 .ui-text-action--log{color:var(--ui-color-info)}
 .ui-text-action:hover,.ui-text-action--log:hover{color:var(--ui-color-primary)}
 
+/* List-page controls: matches the established transfer / adjustment page buttons. */
+.ui-query-button{height:32px;padding:0 16px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font:inherit;white-space:nowrap;cursor:pointer}.ui-query-button:hover{border-color:#8bc4ff;color:var(--ui-color-primary)}.ui-query-button--primary{border-color:var(--ui-color-primary);background:var(--ui-color-primary);color:#fff}.ui-query-button--primary:hover{border-color:var(--ui-color-primary);background:var(--ui-color-primary);color:#fff}
+.ui-list-action-button{height:32px;padding:0 16px;border:1px solid #dcdfe6;border-radius:7px;background:#fff;color:#606266;font:inherit;font-weight:400;white-space:nowrap;cursor:pointer;box-shadow:none}.ui-list-action-button:hover{border-color:#dcdfe6;box-shadow:none;filter:brightness(.98)}.ui-list-action-button--primary{border-color:#409eff;background:#409eff;color:#fff}.ui-list-action-button--primary:hover{border-color:#409eff;background:#409eff;color:#fff}
+
 /* Compact secondary tabs for grouped form content. */
 .ui-tabs{display:flex;align-items:center;gap:24px;height:40px;border-bottom:1px solid var(--ui-color-divider);background:#fff}.ui-tabs button{position:relative;height:40px;padding:0 2px;border:0;background:transparent;color:var(--ui-color-text-regular);font:inherit;cursor:pointer}.ui-tabs button:hover{color:var(--ui-color-primary)}.ui-tabs button.is-active{color:var(--ui-color-primary);font-weight:600}.ui-tabs button.is-active:after{content:"";position:absolute;right:0;bottom:-1px;left:0;height:2px;background:var(--ui-color-primary)}
 

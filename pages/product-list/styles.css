@@ -150,13 +150,17 @@
 .product-table th:nth-child(9),.product-table td:nth-child(9),.product-table th:nth-child(10),.product-table td:nth-child(10){width:150px!important;min-width:150px!important}
 .product-table th:nth-child(11),.product-table td:nth-child(11){width:104px!important;min-width:104px!important}
 
+/* 操作列容纳编辑、启停、删除和日志；删除始终使用危险色。 */
+.product-table th:nth-child(11),.product-table td:nth-child(11){width:210px!important;min-width:210px!important}
+.product-row-actions{display:flex;align-items:center;gap:10px;white-space:nowrap}.product-row-actions .link+.link{margin-left:0}.product-row-actions .danger-link{color:#f56c6c!important}
+.product-delete-dialog .ui-dialog__body{padding:24px 22px;background:#fff}.product-delete-dialog .ui-dialog__body p{margin:0;color:#606266;line-height:22px}.product-delete-dialog .ui-dialog__body strong{color:#303133;font-weight:600}
+
 /* 产品批量推送入口：仅承接共享任务进度弹窗，不新增页面级卡片。 */
 .push-menu{position:relative;display:inline-flex;flex:none}.push-menu>button{display:inline-flex;align-items:center;gap:7px}.push-menu>button>span{color:#909399;font-size:12px;transition:transform .15s}.push-menu.is-open>button>span{transform:rotate(180deg)}.push-menu-panel{position:absolute;z-index:140;top:calc(100% + 4px);left:0;width:214px;padding:4px 0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.14)}.push-menu-panel[hidden]{display:none}.push-menu-panel button{display:block;width:100%;height:34px;padding:0 12px;border:0;background:#fff;color:#606266;font:inherit;font-size:13px;text-align:left;cursor:pointer}.push-menu-panel button:hover{background:#f5f7fa;color:#1677ff}
 .product-push-mask{z-index:260}.product-push-dialog .ui-dialog__body{display:flex;flex:1 1 0;flex-direction:column;overflow:hidden}.product-push-table-wrap{min-height:0;overflow:auto}.product-push-table{min-width:840px}.product-push-table th:nth-child(1){width:150px}.product-push-table th:nth-child(2){width:270px}.product-push-table th:nth-child(3){width:150px}.product-push-table th:nth-child(4){width:126px}.product-push-table td:nth-child(1){color:#1677ff;font-weight:500;white-space:nowrap}.product-push-dialog.is-running .ui-dialog__close{visibility:hidden}
 
 /* 批量编辑复用 UI Kit 弹窗、页签和表单栅格；手工修改只填写需要覆盖的字段。 */
 .product-batch-dialog{width:min(920px,calc(100vw - 48px))!important;height:min(690px,calc(100vh - 48px))!important}
-.product-batch-dialog.is-import-mode{height:min(560px,calc(100vh - 48px))!important}
 .product-batch-dialog .ui-dialog__body{padding:0;overflow:auto;background:#f7f9fc}
 .product-batch-dialog .ui-import__body{padding:18px 22px!important;background:#fff}
 .product-batch-tabs{flex:none;padding:0 22px;background:#fff}.product-batch-tabs>button{position:relative;min-width:88px;height:40px!important;padding:0 2px!important;border:0!important;border-radius:0!important;background:transparent!important;color:#606266!important;font:inherit!important;cursor:pointer}.product-batch-tabs>button:hover,.product-batch-tabs>button.is-active{color:#409eff!important}.product-batch-tabs>button.is-active{font-weight:600!important}.product-batch-tabs>button.is-active:after{content:"";position:absolute;right:0;bottom:-1px;left:0;height:2px;background:#409eff}
@@ -169,6 +173,10 @@
 .product-query-card>.query-row>.custom-select.query-person-select{flex:0 0 158px;width:158px!important;min-width:158px}
 .product-query-card>.query-row>.custom-select.audit-time-type{flex:0 0 112px;width:112px!important}
 .product-query-card>.query-row>.date-field,.product-query-card>.query-row>.query-actions{flex:none}
+
+/* 查询与列表操作区直接复用调拨单、损益单的共享按钮节奏。 */
+.product-actions{height:48px!important;padding:0 16px!important}
+.product-actions .action-left{gap:var(--ui-button-gap)!important}
 @media (max-width:1500px){
   .product-query-card>.query-row:first-child>.sku-query-combo{flex:0 0 340px;width:340px}
   .product-query-card>.query-row:first-child>.query-text-input{flex:0 0 150px;width:150px}

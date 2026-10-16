@@ -6,8 +6,9 @@
   <title>产品列表｜产品</title>
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.2">
-  <link rel="stylesheet" href="./styles.css?v=1.0.40">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.78">
+  <link rel="stylesheet" href="../../ui-kit.css?v=1.0.2">
+  <link rel="stylesheet" href="./styles.css?v=1.0.42">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.79">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="product-page ui-page-canvas">
@@ -43,16 +44,17 @@
             <select id="salesStatus"><option value="">销售状态（全部）</option><option>新品</option><option>常规</option><option>在售</option><option>清仓</option><option>停售</option><option>未上市</option></select>
             <div id="logisticsMulti" class="multi ui-multi-select query-multi" aria-label="物流属性（可多选）"><button type="button" class="multi-trigger" data-trigger aria-expanded="false">物流属性（全部）</button><div class="dropdown" data-menu></div></div>
             <select id="owner" class="query-person-select"><option value="">产品负责人（全部）</option><option>Admin</option><option>张三</option><option>李四</option></select>
+            <select id="enabledStatus" class="query-person-select"><option value="">启用状态（全部）</option><option value="enabled">启用</option><option value="disabled">停用</option></select>
             <select id="creator" class="query-person-select"><option value="">创建人（全部）</option><option>Admin</option><option>张三</option><option>李四</option></select>
             <select id="auditTimeType" class="audit-time-type" aria-label="时间查询类型"><option value="createdAt">创建时间</option><option value="updatedAt">更新时间</option></select>
             <div class="date-field" aria-label="时间范围"><input id="startDate" type="hidden"><button id="startDateTrigger" class="date-trigger" type="button" data-date-target="startDate"><span>开始日期</span><i aria-hidden="true">▣</i></button><em>至</em><input id="endDate" type="hidden"><button id="endDateTrigger" class="date-trigger" type="button" data-date-target="endDate"><span>结束日期</span><i aria-hidden="true">▣</i></button></div>
-            <div class="query-actions ui-query-actions"><button id="resetButton" class="button" type="button">重置</button><button id="searchButton" class="button primary" type="button">查询</button></div>
+            <div class="query-actions ui-query-actions"><button id="searchButton" class="ui-query-button ui-query-button--primary" type="button">查询</button><button id="resetButton" class="ui-query-button" type="button">重置</button></div>
           </div>
           <div id="productDatePicker" class="product-date-picker" hidden aria-label="选择创建时间"></div>
         </section>
 
         <section class="product-actions">
-          <div class="action-left ui-action-row"><button id="addButton" class="button primary ui-button ui-button--primary" type="button">新增产品</button><button id="batchButton" class="button ui-button" type="button">批量编辑</button><button id="exportButton" class="button ui-button" type="button">导出</button><div class="push-menu"><button id="pushButton" class="button ui-button" type="button" aria-expanded="false">推送产品 <span aria-hidden="true">⌄</span></button><div id="pushMenuPanel" class="push-menu-panel" hidden role="menu"><button type="button" data-push-target="echang" role="menuitem">推送至易仓</button><button type="button" data-push-target="lingxing" role="menuitem">推送至领星</button><button type="button" data-push-target="both" role="menuitem">同时推送至易仓和领星</button></div></div></div>
+          <div class="action-left ui-action-row"><button id="addButton" class="ui-list-action-button ui-list-action-button--primary" type="button">+新增产品</button><button id="batchButton" class="ui-list-action-button" type="button">批量编辑</button><button id="exportButton" class="ui-list-action-button" type="button">导出</button><div class="push-menu"><button id="pushButton" class="ui-list-action-button" type="button" aria-expanded="false">推送产品 <span aria-hidden="true">⌄</span></button><div id="pushMenuPanel" class="push-menu-panel" hidden role="menu"><button type="button" data-push-target="echang" role="menuitem">推送至易仓</button><button type="button" data-push-target="lingxing" role="menuitem">推送至领星</button><button type="button" data-push-target="both" role="menuitem">同时推送至易仓和领星</button></div></div></div>
         </section>
 
         <section class="product-table-card ui-list-card">
@@ -73,8 +75,8 @@
 
   <script src="../../custom-select.js?v=1.0.2"></script>
   <script src="../../ui-kit.js?v=1.0.1"></script>
-  <script src="./app.js?v=1.0.36"></script>
+  <script src="./app.js?v=1.0.39"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
-  <script src="../../navigation.js?v=1.7.78"></script>
+  <script src="../../navigation.js?v=1.7.79"></script>
 </body>
 </html>
