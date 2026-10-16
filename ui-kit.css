@@ -6,6 +6,8 @@
 :root{
   --ui-color-primary:#1677ff;
   --ui-color-primary-hover:#4096ff;
+  --ui-color-primary-light:#f5faff;
+  --ui-color-primary-border:#c6e2ff;
   --ui-color-text:#303133;
   --ui-color-text-regular:#606266;
   --ui-color-text-secondary:#909399;
@@ -16,6 +18,7 @@
   --ui-color-header:#f5f7fa;
   --ui-color-danger:#f56c6c;
   --ui-color-success:#67c23a;
+  --ui-color-warning:#e6a23c;
   --ui-color-info:#909399;
   --ui-radius-control:4px;
   --ui-radius-card:8px;

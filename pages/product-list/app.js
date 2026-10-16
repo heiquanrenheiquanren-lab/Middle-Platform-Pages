@@ -22,9 +22,9 @@
   function escapeHtml(v){return String(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   var logFieldLabels={relatedSpu:'关联 SPU',model:'型号',identificationCode:'识别码',productSeries:'产品系列',brand:'品牌',newness:'新品/老品',fitType:'配货类型',category1:'一级类别',category2:'二级类别',name:'品名（中文）',englishName:'品名（英文）',productType:'产品类型',salesStatus:'销售状态',unit:'单位',owner:'产品负责人',hsCode:'HS code',declarationValue:'申报价值',logistics:'物流属性',supplier:'默认供应商',supplierCount:'供应商数量'};
   function detailValue(value){return String(value===undefined||value===null||value===''?'未填写':value);}
-  function changeDetails(previous,current,fields){return fields.filter(function(field){return String(previous[field]===undefined||previous[field]===null?'':previous[field])!==String(current[field]===undefined||current[field]===null?'':current[field]);}).map(function(field){return logFieldLabels[field]+'更新为：'+detailValue(current[field]);}).join('；');}
+  function changeDetails(previous,current,fields){return fields.filter(function(field){return String(previous[field]===undefined||previous[field]===null?'':previous[field])!==String(current[field]===undefined||current[field]===null?'':current[field]);}).map(function(field){return logFieldLabels[field]+'：'+detailValue(previous[field])+' → '+detailValue(current[field]);}).join('；');}
   function addOperationLog(row,type,content,operator,time){if(!content)return;row.operationLogs=Array.isArray(row.operationLogs)?row.operationLogs:[];row.operationLogs.unshift({type:type,content:content,operator:operator||'Admin',time:time||new Date().toISOString().slice(0,16).replace('T',' ')});}
-  function defaultOperationLogs(row){return [{type:'编辑',content:'型号更新为：'+detailValue(row.model)+'；物流属性更新为：'+detailValue(row.logistics)+'；默认供应商更新为：'+detailValue(row.supplier)+'；供应商数量更新为：'+detailValue(row.supplierCount),operator:row.updater||'Admin',time:row.updatedAt||row.createdAt},{type:'新增',content:'创建 SKU 产品档案：SKU：'+detailValue(row.sku)+'；品名（中文）：'+detailValue(row.name)+'；产品类型：'+detailValue(row.productType)+'；配货类型：'+detailValue(row.fitType),operator:row.creator||'Admin',time:row.createdAt}];}
+  function defaultOperationLogs(row){return [{type:'编辑',content:'型号：未填写 → '+detailValue(row.model)+'；物流属性：未填写 → '+detailValue(row.logistics)+'；默认供应商：未填写 → '+detailValue(row.supplier)+'；供应商数量：0 → '+detailValue(row.supplierCount),operator:row.updater||'Admin',time:row.updatedAt||row.createdAt},{type:'新增',content:'创建 SKU 产品档案：SKU：'+detailValue(row.sku)+'；品名（中文）：'+detailValue(row.name)+'；产品类型：'+detailValue(row.productType)+'；配货类型：'+detailValue(row.fitType),operator:row.creator||'Admin',time:row.createdAt}];}
   products.forEach(function(product){if(typeof product.enabled!=='boolean')product.enabled=true;if(!Array.isArray(product.operationLogs))product.operationLogs=defaultOperationLogs(product);});
   function salesStatusClass(status){return status==='常规'||status==='在售'?'sale':status==='清仓'||status==='停售'?'stop':status==='新品'||status==='未上市'?'dev':'sale';}
   function isComboProduct(row){return row&&(row.productType==='组合品'||row.productType==='组合');}
@@ -166,12 +166,12 @@
       var mediaItems=activeMediaItems(),isMainTab=activeMediaTab==='main';
       var gallery=mediaItems.map(function(item,index){return '<figure class="media-preview-card"><div class="media-preview-image">'+(item.src?'<img src="'+escapeHtml(item.src)+'" alt="'+escapeHtml(item.name)+'">':'<span>'+escapeHtml(item.icon||'◈')+'</span>')+(isMainTab&&index===0?'<b>主图</b>':'')+'</div><figcaption title="'+escapeHtml(item.name)+'">'+escapeHtml(item.name)+'</figcaption></figure>';}).join('');
       var tabs='<div class="ui-tabs media-tabs" role="tablist" aria-label="图片分类"><button type="button" role="tab" aria-selected="'+(isMainTab?'true':'false')+'" class="'+(isMainTab?'is-active':'')+'" data-media-tab="main">产品主图</button><button type="button" role="tab" aria-selected="'+(!isMainTab?'true':'false')+'" class="'+(!isMainTab?'is-active':'')+'" data-media-tab="physical">实物图</button></div>';
-      var notice='<div class="image-upload-notice"><ul><li>支持 JPG、PNG、GIF 格式（手动修改文件后缀无效）</li><li>每张图片大小不超过 10M，每个分类不能超过 30 张</li><li>分辨率高于 10000 × 10000 的图片不可上传</li></ul></div>';
+      var notice='<div class="image-upload-notice"><ul><li>支持 JPG、PNG、GIF 格式（手动修改文件后缀无效）</li><li>每张图片大小不超过 5M，每个分类不能超过 30 张</li><li>产品主图未指定封面时，默认取第一张作为列表展示图片</li></ul></div>';
       var toolbar='<div class="image-upload-toolbar"><button type="button" class="button primary" data-image-local>本地选择</button><button type="button" class="button" data-image-url>从URL获取</button><input type="file" data-image-file="'+activeMediaTab+'" accept="image/jpeg,image/png,image/gif" multiple hidden><span class="image-count">'+activeMediaLabel()+'共 '+mediaItems.length+' 张图片</span></div>';
       var urlPanel=imageUrlPanelOpen?'<div class="image-url-panel"><input data-image-url-value placeholder="请输入图片 URL"><button type="button" class="button primary" data-image-url-confirm>添加</button><button type="button" class="button" data-image-url-cancel>取消</button></div>':'';
       mask.querySelector('[data-media-content]').innerHTML=tabs+'<section class="media-tab-pane" role="tabpanel">'+notice+toolbar+urlPanel+'<div class="media-preview-gallery">'+gallery+'</div></section>';
     }
-    function addMediaFiles(files,type){var mediaItems=type==='physical'?physicalMediaItems:mainMediaItems,invalidType=false,invalidSize=false,overLimit=false;Array.prototype.forEach.call(files||[],function(file){if(!/^image\/(jpeg|png|gif)$/.test(file.type)){invalidType=true;return;}if(file.size>10*1024*1024){invalidSize=true;return;}if(mediaItems.length>=30){overLimit=true;return;}mediaItems.push({name:file.name,src:URL.createObjectURL(file)});});imageUrlPanelOpen=false;renderMedia();if(invalidType)toast('仅支持 JPG、PNG、GIF 格式的图片');else if(invalidSize)toast('每张图片大小不能超过 10M');else if(overLimit)toast(activeMediaLabel()+'最多只能添加 30 张图片');}
+    function addMediaFiles(files,type){var mediaItems=type==='physical'?physicalMediaItems:mainMediaItems,invalidType=false,invalidSize=false,overLimit=false;Array.prototype.forEach.call(files||[],function(file){if(!/^image\/(jpeg|png|gif)$/.test(file.type)){invalidType=true;return;}if(file.size>5*1024*1024){invalidSize=true;return;}if(mediaItems.length>=30){overLimit=true;return;}mediaItems.push({name:file.name,src:URL.createObjectURL(file)});});imageUrlPanelOpen=false;renderMedia();if(invalidType)toast('仅支持 JPG、PNG、GIF 格式的图片');else if(invalidSize)toast('每张图片大小不能超过 5M');else if(overLimit)toast(activeMediaLabel()+'最多只能添加 30 张图片');}
     renderMedia();
     function setEditorMode(editable){
       mask.classList.toggle('is-readonly',!editable);
@@ -201,7 +201,7 @@
       var comboRemove=event.target.closest('[data-combo-remove]');
       if(comboRemove){comboRows.splice(Number(comboRemove.dataset.comboRemove),1);renderComboRows();return;}
       var purchaseAction=event.target.closest('[data-purchase-action]');
-      if(purchaseAction){var purchaseIndex=Number(purchaseAction.dataset.purchaseIndex),action=purchaseAction.dataset.purchaseAction;if(action==='default'&&purchaseIndex>0){purchaseRows.unshift(purchaseRows.splice(purchaseIndex,1)[0]);}else if(action==='delete'&&purchaseRows.length>1){purchaseRows.splice(purchaseIndex,1);}else if(action==='delete'){purchaseRows[0]={code:'',name:'',partNo:'',cycle:'',moq:'',buyer:''};}renderPurchaseRows();return;}
+      if(purchaseAction){var purchaseIndex=Number(purchaseAction.dataset.purchaseIndex),action=purchaseAction.dataset.purchaseAction;if(action==='default'&&purchaseIndex>0){purchaseRows.unshift(purchaseRows.splice(purchaseIndex,1)[0]);toast('已设置新的默认供应商');}else if(action==='delete'&&purchaseIndex===0){toast('默认供应商不可删除，请先设置新的默认供应商');return;}else if(action==='delete'){purchaseRows.splice(purchaseIndex,1);}renderPurchaseRows();return;}
       var materialPicker=event.target.closest('[data-material-picker]');
       if(materialPicker){activeMaterialPicker=Number(materialPicker.dataset.materialPicker);renderMaterialRows();return;}
       var materialSelect=event.target.closest('[data-material-select]');
@@ -275,55 +275,21 @@
     document.body.appendChild(mask);
     mask.addEventListener('click',function(event){if(event.target===mask||event.target.closest('[data-delete-cancel]')){mask.remove();return;}if(event.target.closest('[data-delete-confirm]')){var index=products.indexOf(row);if(index>-1)products.splice(index,1);selected.delete(row.id);filtered=filtered.filter(function(item){return item.id!==row.id;});mask.remove();render();toast('已删除 SKU：'+row.sku);}});
   }
-  function pushTargets(mode){return mode==='both'?['易仓','领星']:[mode==='echang'?'易仓':'领星'];}
-  function pushTitle(mode){return mode==='both'?'推送产品至易仓和领星':mode==='echang'?'推送产品至易仓':'推送产品至领星';}
-  function pushStatusText(status){return {pending:'待推送',running:'推送中',success:'成功',failed:'失败'}[status]||'待推送';}
-  function openPushProgress(mode){
+  function createSyncTask(mode){
     var sourceRows=products.filter(function(row){return selected.has(row.id);});
     if(!sourceRows.length){toast('请先选择需要推送的产品');return;}
-    var targets=pushTargets(mode),entries=sourceRows.map(function(product){return {product:product,steps:targets.map(function(target){return {target:target,status:'pending',reason:'',attempts:0};})};}),mask=document.createElement('div'),isRunning=false;
-    mask.className='ui-dialog-mask product-push-mask';
-    function allSteps(){return entries.reduce(function(list,entry){return list.concat(entry.steps);},[]);}
-    function counts(){return allSteps().reduce(function(result,step){result.total+=1;result[step.status]+=1;return result;},{total:0,pending:0,running:0,success:0,failed:0});}
-    function resultText(entry){var failed=entry.steps.filter(function(step){return step.status==='failed';}),running=entry.steps.some(function(step){return step.status==='running';}),pending=entry.steps.some(function(step){return step.status==='pending';});if(failed.length)return {text:failed.map(function(step){return step.target+'：'+step.reason;}).join('；'),failed:true};if(running)return {text:'正在推送',failed:false};if(pending)return {text:'—',failed:false};return {text:'推送完成',failed:false};}
-    function renderPush(){
-      var total=counts(),finished=total.success+total.failed,hasFailed=total.failed>0,allDone=!isRunning&&finished===total.total;
-      mask.className='ui-dialog-mask product-push-mask'+(isRunning?' is-running':'');
-      mask.innerHTML='<section class="ui-dialog ui-dialog--progress product-push-dialog'+(isRunning?' is-running':'')+'" role="dialog" aria-modal="true" aria-label="'+pushTitle(mode)+'"><header class="ui-dialog__header"><div><h2>'+pushTitle(mode)+'</h2><p>已选择 '+entries.length+' 个产品 · 共 '+total.total+' 项推送任务</p></div><button class="ui-dialog__close" type="button" data-push-close aria-label="关闭">×</button></header><div class="ui-dialog__body"><div class="ui-progress-summary"><span class="ui-progress-summary__item">待推送 <b>'+total.pending+'</b></span><span class="ui-progress-summary__item">推送中 <b>'+total.running+'</b></span><span class="ui-progress-summary__item ui-progress-summary__item--success">成功 <b>'+total.success+'</b></span><span class="ui-progress-summary__item ui-progress-summary__item--failed">失败 <b>'+total.failed+'</b></span></div><div class="ui-progress-card product-push-table-wrap"><table class="ui-table ui-progress-table product-push-table"><thead><tr><th>SKU</th><th>产品信息</th><th>推送目标</th><th>推送状态</th><th>推送结果</th></tr></thead><tbody>'+entries.map(function(entry){var result=resultText(entry);return '<tr><td>'+escapeHtml(entry.product.sku)+'</td><td><div class="ui-progress-product"><span class="ui-progress-product__image" aria-hidden="true">▧</span><span class="ui-progress-product__name" title="'+escapeHtml(entry.product.name)+'">'+escapeHtml(entry.product.name)+'</span></div></td><td><div class="ui-progress-targets">'+entry.steps.map(function(step){return '<span>'+step.target+'</span>';}).join('')+'</div></td><td><div class="ui-progress-statuses">'+entry.steps.map(function(step){return '<span class="ui-progress-status ui-progress-status--'+step.status+'">'+pushStatusText(step.status)+'</span>';}).join('')+'</div></td><td><span class="ui-progress-result'+(result.failed?' is-failed':'')+'" title="'+escapeHtml(result.text)+'">'+escapeHtml(result.text)+'</span></td></tr>';}).join('')+'</tbody></table></div></div><footer class="ui-dialog__footer ui-progress-footer"><span class="ui-progress-footer__text">进度：'+finished+' / '+total.total+' 项任务已完成</span><div class="ui-progress-footer__actions">'+(isRunning?'<button class="ui-button ui-button--primary" type="button" disabled>推送中</button>':allDone?(hasFailed?'<button class="ui-button" type="button" data-push-retry>重试失败项</button>':'')+'<button class="ui-button ui-button--primary" type="button" data-push-close>关闭</button>':'<button class="ui-button" type="button" data-push-close>取消</button><button class="ui-button ui-button--primary" type="button" data-push-start>开始推送</button>')+'</div></footer></section>';
-    }
-    function runTasks(retryOnly){
-      var queue=[];entries.forEach(function(entry){entry.steps.forEach(function(step){if(!retryOnly||step.status==='failed'){if(retryOnly){step.status='pending';step.reason='';}queue.push({entry:entry,step:step});}});});
-      if(!queue.length)return;
-      isRunning=true;renderPush();
-      function next(){
-        var current=queue.shift();
-        if(!current){isRunning=false;renderPush();return;}
-        current.step.status='running';renderPush();
-        window.setTimeout(function(){
-          current.step.attempts+=1;
-          if(current.entry.product.sku==='PLASMA-45'&&current.step.target==='领星'&&current.step.attempts===1){current.step.status='failed';current.step.reason='领星 SKU 已存在';}else{current.step.status='success';current.step.reason='';}
-          next();
-        },480);
-      }
-      next();
-    }
-    function close(){if(!isRunning)mask.remove();}
-    document.body.appendChild(mask);renderPush();
-    mask.addEventListener('click',function(event){
-      if((event.target===mask||event.target.closest('[data-push-close]'))&&!isRunning){close();return;}
-      if(event.target.closest('[data-push-start]'))runTasks(false);
-      if(event.target.closest('[data-push-retry]'))runTasks(true);
-    });
-    mask.addEventListener('keydown',function(event){if(event.key==='Escape'&&!isRunning)close();});
-    mask.querySelector('[data-push-start], [data-push-close]').focus();
+    if(!window.GlobalSyncCenter){toast('同步中心加载失败，请刷新页面后重试');return;}
+    var task=window.GlobalSyncCenter.createTask({mode:mode,products:sourceRows.map(function(row){return {sku:row.sku,name:row.name};})});
+    var target=mode==='both'?'易仓、领星':mode==='echang'?'易仓':'领星',createdAt=new Date().toISOString().slice(0,16).replace('T',' ');
+    sourceRows.forEach(function(row){addOperationLog(row,'同步','发起产品同步；目标系统：'+target+'；任务编号：'+task.id,'Admin',createdAt);});
   }
   function batchSelectOptions(options){return '<option value="">不修改</option>'+options.map(function(option){return '<option value="'+escapeHtml(option)+'">'+escapeHtml(option)+'</option>';}).join('');}
-  function downloadBatchTemplate(){var content='SKU,关联 SPU,配货类型,型号,识别码,产品系列,品牌,新品/老品,销售状态,一级类别,二级类别,单位,产品负责人\nMIG-200A,SPU-MIG200A,普货,MIG-200A,6975421300012,MIG系列,JASIC,新品,常规,焊接设备,MIG焊机,件,Admin';var blob=new Blob(['\ufeff'+content],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='SKU批量修改模板.csv';document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);}
+  function downloadBatchTemplate(){var link=document.createElement('a');link.href='../../assets/templates/SKU批量修改模板.xlsx';link.download='SKU批量修改模板.xlsx';document.body.appendChild(link);link.click();link.remove();}
   function openBatch(){
     var prefilled=products.filter(function(row){return selected.has(row.id);}).map(function(row){return row.sku;}).join('\n'),selectedText=selected.size?'已带入 '+selected.size+' 个已勾选 SKU，可继续补充或删除。':'尚未勾选 SKU，请输入需要修改的 SKU 编码。',draft={skus:prefilled},importFlow=null,mask=document.createElement('div');
     mask.className='ui-dialog-mask product-batch-mask';
     mask.innerHTML='<section class="ui-dialog ui-dialog--form product-batch-dialog" role="dialog" aria-modal="true" aria-label="批量编辑 SKU">'
-      +'<header class="ui-dialog__header"><div><h2>批量编辑 SKU</h2><p>仅更新已填写的字段，未填写字段保持原值。</p></div><button class="ui-dialog__close" type="button" data-batch-close aria-label="关闭">×</button></header>'
+      +'<header class="ui-dialog__header"><div><h2>批量编辑 SKU</h2></div><button class="ui-dialog__close" type="button" data-batch-close aria-label="关闭">×</button></header>'
       +'<div class="ui-tabs product-batch-tabs" role="tablist"><button type="button" class="is-active" role="tab" aria-selected="true" data-batch-tab="manual">手工修改</button><button type="button" role="tab" aria-selected="false" data-batch-tab="import">导入修改</button></div>'
       +'<div class="ui-dialog__body product-batch-body" data-batch-body></div><footer class="ui-dialog__footer" data-batch-footer></footer></section>';
     document.body.appendChild(mask);
@@ -335,6 +301,7 @@
     function renderManual(){
       syncTabs('manual');mask.querySelector('.product-batch-dialog').classList.remove('is-import-mode');body.className='ui-dialog__body product-batch-body';footer.className='ui-dialog__footer';
       body.innerHTML='<div class="ui-form-card product-batch-card"><div class="ui-form-grid product-batch-grid">'
+        +'<div class="product-batch-rules"><span>未填写字段则保持原值，不同 SKU 需要设置不同值时请使用“导入修改”，保存修改后无效 SKU 不影响其他有效 SKU 保存</span></div>'
         +'<label class="ui-field ui-field--wide product-batch-skus"><span class="ui-field__label"><i class="ui-field__required">*</i>SKU</span><span><textarea id="batchSkus" placeholder="请输入多个 SKU，支持空格、逗号或换行分隔">'+escapeHtml(draft.skus||'')+'</textarea><small class="product-batch-help">'+selectedText+'</small></span></label>'
         +'<h3 class="product-batch-section">基本信息</h3>'
         +'<label class="ui-field"><span class="ui-field__label">关联 SPU</span><input data-batch-field="relatedSpu" placeholder="不修改" value="'+escapeHtml(draft.relatedSpu||'')+'"></label>'
@@ -355,30 +322,32 @@
     }
     function renderImport(){
       captureManual();syncTabs('import');mask.querySelector('.product-batch-dialog').classList.add('is-import-mode');body.className='ui-dialog__body ui-import__body product-batch-import-body';footer.className='ui-dialog__footer ui-import__footer';
-      if(!importFlow)importFlow=UIKit.createImportFlow({title:'导入修改 SKU',guideTitle:'第一步：下载 SKU 批量修改模板',guideText:'请使用标准模板填写 SKU 编码和需要修改的字段；留空字段不会覆盖原有信息。支持 .xlsx、.xls、.csv 文件，单次仅导入一个文件。',onDownload:downloadBatchTemplate,onConfirm:function(file,done){done();toast('已提交 '+file.name+'，正在校验 SKU 批量修改数据');}});
+      if(!importFlow)importFlow=UIKit.createImportFlow({title:'导入修改 SKU',guideTitle:'第一步：下载 SKU 批量修改模板',guideText:'请勿修改表头，请使用标准模板填写 SKU 编码和需要修改的字段；留空字段不会覆盖原有信息。支持.xlsx文件，单次仅导入一个文件。',accepted:'.xlsx',onDownload:downloadBatchTemplate,onConfirm:function(file,done){done();toast('已提交 '+file.name+'，正在校验 SKU 批量修改数据');}});
       importFlow.mount(body,footer,{onClose:close});
     }
     renderManual();
-    function showError(message){mask.querySelector('[data-batch-error]').textContent=message;}
+    function showResult(message,kind){var node=mask.querySelector('[data-batch-error]');node.textContent=message;node.classList.toggle('is-success',kind==='success');node.classList.toggle('is-warning',kind==='warning');}
     function save(){
       captureManual();var codes=split(draft.skus||''),matched=products.filter(function(row){return codes.indexOf(String(row.sku).toLowerCase())>-1;}),unknown=codes.filter(function(code){return !products.some(function(row){return String(row.sku).toLowerCase()===code;});}),updates={};
-      if(!codes.length){showError('请至少输入一个 SKU');return;}
-      if(unknown.length){showError('未找到 SKU：'+unknown.join('、'));return;}
+      if(!codes.length){showResult('请至少输入一个 SKU','error');return;}
       Object.keys(draft).forEach(function(field){if(field!=='skus'&&String(draft[field]||'').trim())updates[field]=String(draft[field]).trim();});
-      if(!Object.keys(updates).length){showError('请至少填写一个需要修改的字段');return;}
+      if(!Object.keys(updates).length){showResult('请至少填写一个需要修改的字段','error');return;}
+      if(!matched.length){showResult('未找到 SKU：'+unknown.join('、'),'error');return;}
       var savedAt=new Date().toISOString().slice(0,16).replace('T',' ');matched.forEach(function(row){var changedContent=changeDetails(row,updates,Object.keys(updates));Object.assign(row,updates,{updater:'Admin',updatedAt:savedAt});addOperationLog(row,'编辑',changedContent,'Admin',savedAt);});
-      close();search();toast('已批量更新 '+matched.length+' 个 SKU');
+      search();
+      if(unknown.length){showResult('已成功修改 '+matched.length+' 个 SKU；'+unknown.length+' 个 SKU 修改失败：未找到 '+unknown.join('、'),'warning');toast('批量修改部分成功');return;}
+      showResult('已成功修改 '+matched.length+' 个 SKU','success');toast('已批量更新 '+matched.length+' 个 SKU');
     }
     mask.addEventListener('click',function(event){if(event.target===mask||event.target.closest('[data-batch-close]')){close();return;}var tab=event.target.closest('[data-batch-tab]');if(tab){if(tab.dataset.batchTab==='import')renderImport();else renderManual();return;}if(event.target.closest('[data-batch-save]'))save();});
     mask.addEventListener('keydown',function(event){if(event.key==='Escape')close();});mask.querySelector('#batchSkus').focus();
   }
-  document.querySelector('#selectAll').addEventListener('change',function(e){filtered.forEach(function(row){if(e.target.checked)selected.add(row.id);else selected.delete(row.id);});render();});body.addEventListener('change',function(e){if(!e.target.matches('.row-check'))return;var id=Number(e.target.dataset.id);if(e.target.checked)selected.add(id);else selected.delete(id);render();});body.addEventListener('click',function(e){var button=e.target.closest('[data-action]');if(!button)return;var row=products.find(function(item){return item.id===Number(button.dataset.id);});if(!row)return;if(button.dataset.action==='view')openModal(row,{readOnly:true});if(button.dataset.action==='edit')openModal(row,{readOnly:false});if(button.dataset.action==='combo')openComboSummary(row);if(button.dataset.action==='log')openLog(row);if(button.dataset.action==='toggle-enabled'){row.enabled=!row.enabled;var savedAt=new Date().toISOString().slice(0,16).replace('T',' '),statusText=row.enabled?'启用':'停用';Object.assign(row,{updater:'Admin',updatedAt:savedAt});addOperationLog(row,'编辑','产品状态更新为：'+statusText,'Admin',savedAt);render();toast('SKU 已'+statusText);}if(button.dataset.action==='delete')openDeleteConfirm(row);});
-  document.querySelector('#addButton').addEventListener('click',function(){openModal();});document.querySelector('#batchButton').addEventListener('click',openBatch);document.querySelector('#exportButton').addEventListener('click',function(){toast('已按当前条件导出 '+filtered.length+' 条 SKU 产品。');});
+  document.querySelector('#selectAll').addEventListener('change',function(e){filtered.forEach(function(row){if(e.target.checked)selected.add(row.id);else selected.delete(row.id);});render();});body.addEventListener('change',function(e){if(!e.target.matches('.row-check'))return;var id=Number(e.target.dataset.id);if(e.target.checked)selected.add(id);else selected.delete(id);render();});body.addEventListener('click',function(e){var button=e.target.closest('[data-action]');if(!button)return;var row=products.find(function(item){return item.id===Number(button.dataset.id);});if(!row)return;if(button.dataset.action==='view')openModal(row,{readOnly:true});if(button.dataset.action==='edit')openModal(row,{readOnly:false});if(button.dataset.action==='combo')openComboSummary(row);if(button.dataset.action==='log')openLog(row);if(button.dataset.action==='toggle-enabled'){var previousStatus=row.enabled===false?'停用':'启用';row.enabled=!row.enabled;var savedAt=new Date().toISOString().slice(0,16).replace('T',' '),statusText=row.enabled?'启用':'停用';Object.assign(row,{updater:'Admin',updatedAt:savedAt});addOperationLog(row,'编辑','产品状态：'+previousStatus+' → '+statusText,'Admin',savedAt);render();toast('SKU 已'+statusText);}if(button.dataset.action==='delete')openDeleteConfirm(row);});
+  document.querySelector('#addButton').addEventListener('click',function(){openModal();});document.querySelector('#batchButton').addEventListener('click',openBatch);
   (function(){
     var trigger=document.querySelector('#pushButton'),menu=document.querySelector('#pushMenuPanel'),wrap=trigger.closest('.push-menu');
     function closeMenu(){menu.hidden=true;trigger.setAttribute('aria-expanded','false');wrap.classList.remove('is-open');}
     trigger.addEventListener('click',function(event){event.stopPropagation();var shouldOpen=menu.hidden;menu.hidden=!shouldOpen;trigger.setAttribute('aria-expanded',String(shouldOpen));wrap.classList.toggle('is-open',shouldOpen);});
-    menu.addEventListener('click',function(event){var item=event.target.closest('[data-push-target]');if(!item)return;closeMenu();openPushProgress(item.dataset.pushTarget);});
+    menu.addEventListener('click',function(event){var item=event.target.closest('[data-push-target]');if(!item)return;closeMenu();createSyncTask(item.dataset.pushTarget);});
     document.addEventListener('click',function(event){if(!event.target.closest('.push-menu'))closeMenu();});
   }());
   syncCategory2();syncSkuQueryPlaceholder();updateDateLabel('startDate');updateDateLabel('endDate');render();
