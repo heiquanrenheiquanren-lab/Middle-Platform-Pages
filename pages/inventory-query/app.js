@@ -24,6 +24,10 @@
     {warehouse:'亚马逊LAS1仓',warehouseType:'平台仓',sku:'130US160003',name:'ARC160（AC-美规）',unit:'件',developer:'郑豪阳',buyer:'刘敏',updatedAt:'2026-09-20 08:56',teams:[
       {team:'亚马逊团队',lingxingSku:'LX-130US160003-AMZ',overseasSku:'-',fnsku:'X003AMZLAS1',onHand:220,occupied:40,frozen:null,inTransit:80,batches:[{batchNo:'FBA20260715003',source:'FBA入仓',receivedAt:'2026-07-15',qty:120,age:67},{batchNo:'FBA20260826011',source:'FBA入仓',receivedAt:'2026-08-26',qty:100,age:25}]}
     ]},
+    {warehouse:'跨越美国洛杉矶仓',warehouseType:'海外仓',sku:'FF123456',name:'自动变光焊接面罩基础款',unit:'件',developer:'颜文',buyer:'杨琴',updatedAt:'2026-09-20 10:20',teams:[
+      {team:'TikTok',lingxingSku:'LX-FF123456-TK',overseasSku:'OW-FF123456',fnsku:'-',onHand:120,occupied:0,frozen:0,inTransit:50,overseasInTransit:52,batches:[]},
+      {team:'eBay',lingxingSku:'LX-FF123456-EB',overseasSku:'OW-FF123456',fnsku:'-',onHand:60,occupied:0,frozen:0,inTransit:20,overseasInTransit:52,batches:[]}
+    ]},
     {warehouse:'深圳市华英科技有限公司',warehouseType:'供应商仓',sku:'140US260008',name:'CUT55 ProLux',unit:'件',developer:'颜文',buyer:'杨琴',updatedAt:'2026-09-20 10:12',teams:[
       {team:'eBay',lingxingSku:'LX-140US260008-EB',overseasSku:'-',fnsku:'-',onHand:33,occupied:3,frozen:0,inTransit:250,batches:[{batchNo:'RK20260812031',source:'采购入库',receivedAt:'2026-08-12',qty:12,age:39},{batchNo:'RK20260822018',source:'采购入库',receivedAt:'2026-08-22',qty:21,age:29}]},
       {team:'B端团队',lingxingSku:'LX-140US260008-B2B',overseasSku:'-',fnsku:'-',onHand:10,occupied:0,frozen:0,inTransit:0,batches:[{batchNo:'RK20260910004',source:'销售退件入库',receivedAt:'2026-09-10',qty:10,age:10}]}
@@ -71,14 +75,6 @@
     {sku:'U00US160015',warehouse:'台州华熙灯饰有限公司',category:'在库',opType:'采购入库',before:0,after:50,opNo:'TZ-RK20260903006',bizNo:'CG20260901003',operator:'系统',operatedAt:'2026-09-03 10:00'}
   ];
 
-  const inTransitSplit={
-    'FF123456|TikTok':{purchase:20,transfer:30},
-    'FF123456|eBay':{purchase:0,transfer:20},
-    'U00US260010|TikTok':{purchase:100,transfer:0},
-    '130US160003|亚马逊团队':{purchase:50,transfer:30},
-    '140US260008|eBay':{purchase:250,transfer:0}
-  };
-
   const allocateAvailableBatches=team=>{
     const batches=(team.batches||[]).map(batch=>({...batch}));
     const available=Math.max(0,team.onHand-team.occupied-team.frozen);
@@ -89,7 +85,7 @@
   };
   const weightedAge=teams=>{const batches=teams.flatMap(team=>team.availableBatches||allocateAvailableBatches(team));const total=batches.reduce((sum,batch)=>sum+batch.availableQty,0);return total?Math.round(batches.reduce((sum,batch)=>sum+batch.availableQty*batch.age,0)/total):null};
   const normalizeTeam=team=>{const available=Math.max(0,team.onHand-team.occupied-team.frozen);const availableBatches=allocateAvailableBatches(team);return {...team,available,availableBatches,weightedAge:weightedAge([{...team,availableBatches}])}};
-  const summarize=(row,teams)=>{const warehouseAttribute=window.WarehouseAttributes.of(row.warehouse);const batchEnabled=batchWarehouseAttributes.has(warehouseAttribute);const normalized=teams.map(team=>({...normalizeTeam(batchEnabled?team:{...team,batches:[]}),pendingPurchase:pendingPurchaseWarehouseAttributes.has(warehouseAttribute)?Number(pendingPurchaseSamples[`${row.warehouse}|${row.sku}|${team.team}`]||0):null}));const team=normalized[0]?.team||'';const sum=key=>normalized.reduce((total,item)=>total+Number(item[key]||0),0);const available=sum('available'),occupied=sum('occupied'),frozen=sum('frozen'),inTransit=sum('inTransit'),inStockTotal=available+occupied+frozen;const pendingPurchase=pendingPurchaseWarehouseAttributes.has(warehouseAttribute)?normalized.reduce((total,item)=>total+Number(item.pendingPurchase||0),0):null;return {...row,team,warehouseAttribute,batchEnabled,warehouseCode:warehouseCodes[row.warehouse]||'-',rowKey:`${row.warehouse}|${row.sku}|${team}`,teams:normalized,lingxingSku:normalized[0]?.lingxingSku||'-',overseasSku:normalized[0]?.overseasSku||'-',fnsku:normalized[0]?.fnsku||'-',onHand:sum('onHand'),occupied,frozen,available,inTransit,pendingPurchase,total:inStockTotal+inTransit,inStockTotal,weightedAge:batchEnabled?weightedAge(normalized):null};};
+  const summarize=(row,teams)=>{const warehouseAttribute=window.WarehouseAttributes.of(row.warehouse);const batchEnabled=batchWarehouseAttributes.has(warehouseAttribute);const normalized=teams.map(team=>({...normalizeTeam(batchEnabled?team:{...team,batches:[]}),pendingPurchase:pendingPurchaseWarehouseAttributes.has(warehouseAttribute)?Number(pendingPurchaseSamples[`${row.warehouse}|${row.sku}|${team.team}`]||0):null}));const team=normalized[0]?.team||'';const sum=key=>normalized.reduce((total,item)=>total+Number(item[key]||0),0);const available=sum('available'),occupied=sum('occupied'),frozen=sum('frozen'),inTransit=sum('inTransit'),fba=(row.warehouseType==='平台仓'||warehouseAttribute==='平台仓')&&team==='亚马逊团队',inStockTotal=(['海外仓','平台仓'].includes(warehouseAttribute)&&!fba)?null:available+occupied+frozen,overseasInTransit=normalized[0]?.overseasInTransit??null;const pendingPurchase=pendingPurchaseWarehouseAttributes.has(warehouseAttribute)?normalized.reduce((total,item)=>total+Number(item.pendingPurchase||0),0):null;return {...row,team,warehouseAttribute,batchEnabled,warehouseCode:warehouseCodes[row.warehouse]||'-',rowKey:`${row.warehouse}|${row.sku}|${team}`,teams:normalized,lingxingSku:normalized[0]?.lingxingSku||'-',overseasSku:normalized[0]?.overseasSku||'-',fnsku:normalized[0]?.fnsku||'-',onHand:sum('onHand'),occupied,frozen,available,inTransit,pendingPurchase,total:inStockTotal==null?null:inStockTotal+inTransit,inStockTotal,overseasInTransit,weightedAge:batchEnabled?weightedAge(normalized):null};};
 
   createApp({
     setup(){
@@ -150,9 +146,10 @@
         if(applied.warehouses.length&&!applied.warehouses.includes(row.warehouse))return false;
         if(applied.developers.length&&!applied.developers.includes(row.developer))return false;
         if(applied.buyers.length&&!applied.buyers.includes(row.buyer))return false;
-        const zero=[row.available,row.occupied,row.inTransit,row.inStockTotal,row.pendingPurchase,row.frozen].every(value=>value===0);
+        const zeroValues=[row.available,row.occupied,row.inTransit,row.inStockTotal,row.pendingPurchase,row.frozen].filter(value=>value!==null&&value!==undefined);
+        const zero=zeroValues.length>0&&zeroValues.every(value=>value===0);
         if(hideZero.value&&zero)return false;
-        const stateMatched=state=>({available:row.available>0,unavailable:row.onHand>0&&row.available===0,occupied:row.occupied>0,frozen:row.frozen>0,inTransit:row.inTransit>0,pendingPurchase:row.pendingPurchase>0,zero}[state]);
+        const stateMatched=state=>({available:row.available>0,unavailable:row.onHand>0&&row.available===0,occupied:occupancyVisible(row)&&row.occupied>0,frozen:row.frozen>0,inTransit:row.inTransit>0,pendingPurchase:row.pendingPurchase>0,zero}[state]);
         if(applied.stockStates.length&&!applied.stockStates.some(stateMatched))return false;
         return true;
       }));
@@ -171,11 +168,12 @@
       const handleSortChange=({prop,order})=>{sortState.prop=order?prop:'';sortState.order=order||'';page.value=1;};
       const detailTeams=computed(()=>{if(!currentRow.value)return[];if(detailMode.value==='team'){const sourceRow=rows.value.find(row=>row.warehouse===currentRow.value.warehouse&&row.sku===currentRow.value.sku);const teams=[...(sourceRow?.teams||currentRow.value.teams)];if(detailTeam.value)teams.sort((left,right)=>Number(right.team===detailTeam.value)-Number(left.team===detailTeam.value));return currentRow.value.batchEnabled?teams:teams.map(team=>normalizeTeam({...team,batches:[]}));}const teams=detailTeam.value?currentRow.value.teams.filter(team=>team.team===detailTeam.value):currentRow.value.teams;return currentRow.value.batchEnabled?teams:teams.map(team=>normalizeTeam({...team,batches:[]}))});
       const detailSummary=computed(()=>currentRow.value?summarize(currentRow.value,detailTeams.value):{onHand:0,occupied:0,frozen:0,available:0,inTransit:0,pendingPurchase:null});
-      const detailTitle=computed(()=>({team:'库存明细',available:'可用库存构成',age:'库龄分布',batch:'批次与库龄',occupied:'占用库存明细',frozen:'冻结库存明细',inTransit:'在途库存明细',pending:'待采购库存明细',flow:'库存流水'}[detailMode.value]||'库存明细'));
+      const detailTitle=computed(()=>({team:'库存明细',available:'可用库存构成',age:'库龄分布',batch:'批次与库龄',occupied:'占用库存明细',frozen:'冻结库存明细',inTransit:'头程在途明细',pending:'待采购库存明细',flow:'库存流水'}[detailMode.value]||'库存明细'));
       const detailUnavailableMessage=computed(()=>{
-        if(!currentRow.value||!['海外仓','平台仓'].includes(currentRow.value.warehouseAttribute))return'';
-        if(detailMode.value==='occupied')return'海外仓、平台仓的仓库类型暂不提供占用库存明细，仅自营仓、物流中转仓、供应商仓可展示';
-        if(detailMode.value==='inTransit')return'海外仓、平台仓的仓库类型暂不提供在途库存明细，仅自营仓、物流中转仓、供应商仓可展示';
+        if(!currentRow.value)return'';
+        const attribute=currentRow.value.warehouseAttribute;
+        if(detailMode.value==='occupied'&&['海外仓','平台仓'].includes(attribute))return'海外仓、平台仓的仓库类型暂不提供占用库存明细，仅自营仓、物流中转仓、供应商仓可展示';
+        if(detailMode.value==='inTransit'&&attribute==='平台仓')return'平台仓暂不提供头程在途明细，仅自营仓、物流中转仓、供应商仓、海外仓可展示';
         return'';
       });
       const ageBucketDefinitions=[{key:'within30',label:'30天以内',min:0,max:30},{key:'day31to60',label:'31–60天',min:31,max:60},{key:'day61to90',label:'61–90天',min:61,max:90},{key:'day91to120',label:'91–120天',min:91,max:120},{key:'day121to180',label:'121–180天',min:121,max:180},{key:'over180',label:'181天以上',min:181,max:Infinity}];
@@ -190,24 +188,20 @@
           return [{team:team.team,type:'发货占用',docNo:`FH202609${String(team.team.length+12).padStart(4,'0')}`,qty:shipment,creator:'刘敏',note:'待实际发货结算占用'},...(processing?[{team:team.team,type:'加工占用',docNo:`JG202609${String(team.team.length+7).padStart(4,'0')}`,qty:processing,creator:'郑豪阳',note:'加工完成后按实际耗用结算'}]:[])];
         });
         if(detailMode.value==='frozen')return detailTeams.value.filter(team=>team.frozen>0).map(team=>({team:team.team,type:'质量冻结',docNo:`DJ202609${String(team.team.length+3).padStart(4,'0')}`,qty:team.frozen,note:'待质量复核后解冻或报损'}));
-        if(detailMode.value==='inTransit')return detailTeams.value.filter(team=>team.inTransit>0).flatMap(team=>{
-          const key=`${currentRow.value.sku}|${team.team}`;
-          const split=inTransitSplit[key]||{purchase:Math.round(team.inTransit/2),transfer:team.inTransit-Math.round(team.inTransit/2)};
-          const rows=[];
-          if(split.purchase>0)rows.push({team:team.team,type:'采购在途',docNo:`CG202609${String(team.team.length+7).padStart(4,'0')}`,qty:split.purchase,creator:'杨琴'});
-          if(split.transfer>0)rows.push({team:team.team,type:'调拨在途',docNo:`DB202609${String(team.team.length+18).padStart(4,'0')}`,qty:split.transfer,creator:'系统'});
-          return rows;
-        });
+        if(detailMode.value==='inTransit')return detailTeams.value.filter(team=>team.inTransit>0).map(team=>({team:team.team,type:'发货在途',docNo:`FH202609${String(team.team.length+12).padStart(4,'0')}`,qty:team.inTransit,creator:'刘敏'}));
         if(detailMode.value==='pending')return detailTeams.value.filter(team=>team.pendingPurchase>0).map(team=>({team:team.team,type:'待采购库存',docNo:'—',qty:team.pendingPurchase,note:'来源单据及统计口径待确认'}));
         return[];
       });
 
       const qty=value=>Number(value||0).toLocaleString('zh-CN');
-      const docTypeLabel=type=>({'发货占用':'发货单','加工占用':'加工单','质量冻结':'冻结单','采购在途':'采购单','调拨在途':'调拨单','待确认入库':'收货单'}[type]||'');
+      const docTypeLabel=type=>({'发货占用':'发货单','加工占用':'加工单','质量冻结':'冻结单','发货在途':'发货单','待确认入库':'收货单'}[type]||'');
       const ageText=value=>value==null?'—':`${qty(value)}天`;
       const quantityClass=value=>value<0?'qty-danger':'qty-normal';
       const summaryFields=['available','occupied','inTransit','inStockTotal','pendingPurchase','frozen'];
-      const getSummaries=({columns})=>columns.map((column,index)=>{if(index===0)return'合计';if(!summaryFields.includes(column.property))return'';if(column.property==='pendingPurchase'&&!filteredRows.value.some(row=>row.pendingPurchase!==null))return'—';return qty(filteredRows.value.reduce((sum,row)=>sum+Number(row[column.property]||0),0));});
+      const occupancyVisible=row=>!row||!['海外仓','平台仓'].includes(row.warehouseAttribute)||isFbaRow(row);
+      const inStockVisible=row=>occupancyVisible(row);
+      const isOverseasRow=row=>Boolean(row&&row.warehouseAttribute==='海外仓');
+      const getSummaries=({columns})=>columns.map((column,index)=>{if(index===0)return'合计';if(column.property==='overseasInTransit')return'—';if(!summaryFields.includes(column.property))return'';if(column.property==='pendingPurchase'&&!filteredRows.value.some(row=>row.pendingPurchase!==null))return'—';if(column.property==='inStockTotal'&&filteredRows.value.some(row=>row.inStockTotal==null))return'—';return qty(filteredRows.value.reduce((sum,row)=>sum+Number(row[column.property]||0),0));});
       const query=()=>{Object.assign(applied,clone(filters));page.value=1;ElMessage.success(`查询完成，共 ${filteredRows.value.length} 条库存记录`)};
       const resetFilters=()=>{Object.assign(filters,{codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[],buyers:[],stockStates:[]});Object.assign(applied,clone(filters));hideZero.value=true;page.value=1};
       const openMetric=(row,mode,team=row.team||'')=>{
@@ -219,7 +213,7 @@
       const fallbackCopy=text=>{const input=document.createElement('textarea');input.value=text;input.setAttribute('readonly','');input.style.position='fixed';input.style.left='-9999px';input.style.top='0';input.style.opacity='0';document.body.appendChild(input);input.focus();input.select();input.setSelectionRange(0,text.length);const copied=document.execCommand('copy');document.body.removeChild(input);if(!copied)throw new Error('copy failed')};
       const copySku=async(sku,rowKey)=>{try{let copied=false;if(navigator.clipboard&&window.isSecureContext){try{await navigator.clipboard.writeText(sku);copied=true}catch(error){copied=false}}if(!copied)fallbackCopy(sku);copiedRowKey.value=rowKey;window.setTimeout(()=>{if(copiedRowKey.value===rowKey)copiedRowKey.value=''},1500);ElMessage.success(`已复制 SKU：${sku}`)}catch(error){ElMessage.error('复制失败，请手动复制 SKU')}};
 
-      return{filters,warehouses,warehouseOptions,teams,developers,buyers,stockStates,page,pageSize,updatedAt,hideZero,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailUnavailableMessage,detailRows,ageBuckets,productThumbnail,qty,docTypeLabel,ageText,quantityClass,isFbaRow,getSummaries,query,resetFilters,openMetric,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowWarehouseOptions,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
+      return{filters,warehouses,warehouseOptions,teams,developers,buyers,stockStates,page,pageSize,updatedAt,hideZero,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailUnavailableMessage,detailRows,ageBuckets,productThumbnail,qty,docTypeLabel,ageText,quantityClass,isFbaRow,occupancyVisible,inStockVisible,isOverseasRow,getSummaries,query,resetFilters,openMetric,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowWarehouseOptions,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
     }
   }).use(window.ElementPlus).mount('#app');
 })();
