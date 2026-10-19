@@ -15,6 +15,8 @@
   var pageRoutes = Object.freeze({
     workbench: '../workbench/index.html',
     base: '../workbench/index.html#basic',
+    roleManagement: '../role-management/index.html',
+    workflowManagement: '../workflow-management/index.html',
     forecast: '../demand-forecast/index.html',
     stock: '../stock-plan/index.html',
     purchase: '../purchase-plan/index.html',
@@ -468,13 +470,219 @@
     document.addEventListener('click', function (event) { if (!event.target.closest('.account-control')) closeAccountMenu(); });
   }
 
-  function normalizeGlobalActionOrder() {
+  var worldClockSites = [
+    { region: '美洲', name: '美国东部', zone: 'America/New_York', currency: 'USD' },
+    { region: '美洲', name: '美国中部', zone: 'America/Chicago', currency: 'USD' },
+    { region: '美洲', name: '美国山地', zone: 'America/Denver', currency: 'USD' },
+    { region: '美洲', name: '美国西部', zone: 'America/Los_Angeles', currency: 'USD' },
+    { region: '美洲', name: '加拿大东部', zone: 'America/Toronto', currency: 'CAD' },
+    { region: '美洲', name: '加拿大西部', zone: 'America/Vancouver', currency: 'CAD' },
+    { region: '美洲', name: '墨西哥', zone: 'America/Mexico_City', currency: 'MXN' },
+    { region: '美洲', name: '哥伦比亚', zone: 'America/Bogota', currency: 'COP' },
+    { region: '美洲', name: '智利', zone: 'America/Santiago', currency: 'CLP' },
+    { region: '美洲', name: '巴西', zone: 'America/Sao_Paulo', currency: 'BRL' },
+    { region: '欧洲', name: '英国', zone: 'Europe/London', currency: 'GBP' },
+    { region: '欧洲', name: '法国', zone: 'Europe/Paris', currency: 'EUR' },
+    { region: '欧洲', name: '德国', zone: 'Europe/Berlin', currency: 'EUR' },
+    { region: '欧洲', name: '西班牙', zone: 'Europe/Madrid', currency: 'EUR' },
+    { region: '欧洲', name: '意大利', zone: 'Europe/Rome', currency: 'EUR' },
+    { region: '欧洲', name: '荷兰', zone: 'Europe/Amsterdam', currency: 'EUR' },
+    { region: '欧洲', name: '波兰', zone: 'Europe/Warsaw', currency: 'PLN' },
+    { region: '欧洲', name: '俄罗斯', zone: 'Europe/Moscow', currency: 'RUB' },
+    { region: '亚洲', name: '中国', zone: 'Asia/Shanghai', current: true, currency: 'CNY' },
+    { region: '亚洲', name: '日本', zone: 'Asia/Tokyo', currency: 'JPY' },
+    { region: '亚洲', name: '韩国', zone: 'Asia/Seoul', currency: 'KRW' },
+    { region: '亚洲', name: '新加坡', zone: 'Asia/Singapore', currency: 'SGD' },
+    { region: '亚洲', name: '马来西亚', zone: 'Asia/Kuala_Lumpur', currency: 'MYR' },
+    { region: '亚洲', name: '泰国', zone: 'Asia/Bangkok', currency: 'THB' },
+    { region: '亚洲', name: '越南', zone: 'Asia/Ho_Chi_Minh', currency: 'VND' },
+    { region: '亚洲', name: '印度尼西亚', zone: 'Asia/Jakarta', currency: 'IDR' },
+    { region: '亚洲', name: '印度', zone: 'Asia/Kolkata', currency: 'INR' },
+    { region: '中东', name: '阿联酋', zone: 'Asia/Dubai', currency: 'AED' },
+    { region: '大洋洲', name: '澳大利亚东部', zone: 'Australia/Sydney', currency: 'AUD' },
+    { region: '大洋洲', name: '新西兰', zone: 'Pacific/Auckland', currency: 'NZD' }
+  ];
+
+  function worldClockDateKey(date, zone) {
+    var parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: zone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(date);
+    var values = {};
+    parts.forEach(function (part) { if (part.type !== 'literal') values[part.type] = part.value; });
+    return values.year + '-' + values.month + '-' + values.day;
+  }
+
+  function worldClockDayHint(date, zone) {
+    var siteKey = worldClockDateKey(date, 'Asia/Shanghai');
+    var localKey = worldClockDateKey(date, zone);
+    if (localKey < siteKey) return '昨天';
+    if (localKey > siteKey) return '明天';
+    return '今天';
+  }
+
+  var worldClockRateKey = 'middle-platform-world-clock-rates-v1';
+  var worldClockRateApi = 'https://open.er-api.com/v6/latest/CNY';
+  // 离线兜底：公开中间价参考值（1 元人民币可兑换的外币数量），仅在接口不可用时使用
+  var worldClockFallbackRates = { USD: 0.14919, CAD: 0.211466, MXN: 2.745744, COP: 474.841112, CLP: 146.569294, BRL: 0.761905, GBP: 0.112054, EUR: 0.132828, PLN: 0.579979, RUB: 12.515645, JPY: 23.58408, KRW: 200.280393, SGD: 0.190806, MYR: 0.607903, THB: 4.98785, VND: 3861.003861, IDR: 2680.965147, INR: 14.204949, AED: 0.547896, AUD: 0.215138, NZD: 0.26529 };
+  var worldClockRates = { at: '', date: '', live: false, rates: null, status: 'idle' };
+
+  function worldClockTodayKey() { return worldClockDateKey(new Date(), 'Asia/Shanghai'); }
+
+  function readWorldClockRates() {
+    try { return JSON.parse(window.localStorage.getItem(worldClockRateKey)) || null; } catch (error) { return null; }
+  }
+
+  function saveWorldClockRates(payload) {
+    try { window.localStorage.setItem(worldClockRateKey, JSON.stringify(payload)); } catch (error) { /* prototype fallback */ }
+  }
+
+  function pickWorldClockRates(source) {
+    var picked = {};
+    worldClockSites.forEach(function (site) { if (source && source[site.currency] != null) picked[site.currency] = source[site.currency]; });
+    return picked;
+  }
+
+  function worldClockRateText(code) {
+    if (code === 'CNY') return '人民币基准';
+    var perCny = worldClockRates.rates && worldClockRates.rates[code];
+    if (!perCny || !isFinite(perCny) || perCny <= 0) return '';
+    var unit = 1;
+    var value = 1 / perCny;
+    if (value < 0.001) unit = 1000;
+    else if (value < 0.1) unit = 100;
+    return (unit === 1 ? code : unit + ' ' + code) + ' ' + (value * unit).toFixed(4);
+  }
+
+  function renderWorldClockRates() {
+    var wrap = document.querySelector('.world-clock-control');
+    if (!wrap) return;
+    wrap.querySelectorAll('[data-world-currency]').forEach(function (row) {
+      var node = row.querySelector('.world-clock-rate');
+      if (!node) return;
+      var text = worldClockRateText(row.dataset.worldCurrency);
+      var loading = worldClockRates.status === 'loading';
+      if (!text) {
+        if (loading) text = '汇率加载中…';
+        else if (worldClockRates.status === 'error') text = '汇率暂不可用';
+      }
+      node.textContent = text;
+      node.classList.toggle('is-muted', !text || loading);
+    });
+    var meta = wrap.querySelector('.world-clock-rate-meta');
+    if (!meta) return;
+    if (worldClockRates.status === 'loading') meta.textContent = '汇率加载中…';
+    else if (worldClockRates.status === 'error') meta.textContent = '汇率获取失败，以上为离线参考值 · 点击重试';
+    else if (worldClockRates.status === 'ok') meta.textContent = '当日汇率 ' + worldClockRates.at + ' 更新' + (worldClockRates.live ? '' : '（离线参考值）');
+    meta.classList.toggle('is-stale', !worldClockRates.live && worldClockRates.status !== 'idle');
+  }
+
+  function useWorldClockFallbackRates() {
+    worldClockRates = { at: '', date: '', live: false, rates: worldClockFallbackRates, status: 'error' };
+    renderWorldClockRates();
+  }
+
+  function loadWorldClockRates(force) {
+    if (!document.querySelector('.world-clock-control')) return;
+    var today = worldClockTodayKey();
+    var cached = readWorldClockRates();
+    if (!force && cached && cached.date === today && cached.rates) {
+      worldClockRates = { at: cached.at || '', date: today, live: cached.live !== false, rates: cached.rates, status: 'ok' };
+      renderWorldClockRates();
+      return;
+    }
+    worldClockRates = { at: worldClockRates.at, date: today, live: worldClockRates.live, rates: worldClockRates.rates, status: 'loading' };
+    renderWorldClockRates();
+    if (typeof window.fetch !== 'function') { useWorldClockFallbackRates(); return; }
+    window.fetch(worldClockRateApi).then(function (response) {
+      if (!response.ok) throw new Error('http ' + response.status);
+      return response.json();
+    }).then(function (data) {
+      if (!data || !data.rates) throw new Error('empty payload');
+      var at = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(data.time_last_update_utc || Date.now())).replace(/\//g, '-');
+      worldClockRates = { at: at, date: today, live: true, rates: pickWorldClockRates(data.rates), status: 'ok' };
+      saveWorldClockRates({ at: at, date: today, live: true, rates: worldClockRates.rates });
+      renderWorldClockRates();
+    }).catch(function () { useWorldClockFallbackRates(); });
+  }
+
+  function updateWorldClock(wrap) {
+    if (!wrap || !document.documentElement.contains(wrap)) return;
+    var now = new Date();
+    var timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    var current = wrap.querySelector('.world-clock-current-time');
+    if (current) {
+      var currentDate = new Intl.DateTimeFormat('zh-CN', {
+        timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', weekday: 'short'
+      }).format(now).replace(/\//g, '-');
+      var currentTime = new Intl.DateTimeFormat('zh-CN', Object.assign({ timeZone: 'Asia/Shanghai' }, timeOptions)).format(now);
+      current.textContent = currentDate + '  ' + currentTime;
+    }
+    wrap.querySelectorAll('[data-world-zone]').forEach(function (row) {
+      var zone = row.dataset.worldZone;
+      row.querySelector('.world-clock-row-time').textContent = new Intl.DateTimeFormat('zh-CN', Object.assign({ timeZone: zone }, timeOptions)).format(now);
+      row.querySelector('.world-clock-day').textContent = worldClockDayHint(now, zone);
+    });
+  }
+
+  function closeWorldClock() {
+    var wrap = document.querySelector('.world-clock-control');
+    if (!wrap) return;
+    var popover = wrap.querySelector('.world-clock-popover');
+    var trigger = wrap.querySelector('.world-clock-trigger');
+    if (popover) popover.hidden = true;
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function mountWorldClock() {
     var container = document.querySelector('.global-right') || document.querySelector('.header-user');
-    if (!container) return;
+    if (!container || container.querySelector('.world-clock-control')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'world-clock-control';
+    var rows = '';
+    var lastRegion = '';
+    worldClockSites.forEach(function (site) {
+      if (site.region !== lastRegion) {
+        rows += '<div class="world-clock-region">' + site.region + '</div>';
+        lastRegion = site.region;
+      }
+      rows += '<div class="world-clock-row' + (site.current ? ' is-current' : '') + '" data-world-zone="' + site.zone + '" data-world-currency="' + site.currency + '"><span class="world-clock-dot" aria-hidden="true"></span><span class="world-clock-cell"><span class="world-clock-name">' + site.name + '</span><em class="world-clock-rate"></em></span><span class="world-clock-day"></span><strong class="world-clock-row-time">--:--:--</strong></div>';
+    });
+    wrap.innerHTML = '<button class="world-clock-trigger" type="button" aria-label="世界时间" aria-haspopup="dialog" aria-expanded="false" title="世界时间"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></button><section class="world-clock-popover" role="dialog" aria-label="世界时间" hidden><header><span>当前站点时间（中国）</span><strong class="world-clock-current-time">--</strong><small>时间自动更新，并根据所在地处理夏令时</small><small class="world-clock-rate-meta" title="点击刷新当日汇率">打开后自动获取当日汇率</small></header><div class="world-clock-list">' + rows + '</div></section>';
     var todo = container.querySelector('.tdc-entry');
     var exportEntry = container.querySelector('.gx-entry');
     var account = container.querySelector('.account-control, .admin');
-    var desired = [todo, exportEntry, account].filter(Boolean);
+    container.insertBefore(wrap, todo || exportEntry || account || null);
+    var trigger = wrap.querySelector('.world-clock-trigger');
+    var popover = wrap.querySelector('.world-clock-popover');
+    trigger.addEventListener('click', function (event) {
+      event.stopPropagation();
+      var shouldOpen = popover.hidden;
+      closeAccountMenu();
+      closeWorldClock();
+      popover.hidden = !shouldOpen;
+      trigger.setAttribute('aria-expanded', String(shouldOpen));
+      if (shouldOpen) { updateWorldClock(wrap); loadWorldClockRates(false); }
+    });
+    popover.addEventListener('click', function (event) { event.stopPropagation(); });
+    var rateMeta = wrap.querySelector('.world-clock-rate-meta');
+    if (rateMeta) rateMeta.addEventListener('click', function () { loadWorldClockRates(true); });
+    document.addEventListener('click', function (event) { if (!event.target.closest('.world-clock-control')) closeWorldClock(); });
+    document.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeWorldClock(); });
+    updateWorldClock(wrap);
+    window.setInterval(function () { updateWorldClock(wrap); }, 1000);
+  }
+
+  function normalizeGlobalActionOrder() {
+    var container = document.querySelector('.global-right') || document.querySelector('.header-user');
+    if (!container) return;
+    var worldClock = container.querySelector('.world-clock-control');
+    var todo = container.querySelector('.tdc-entry');
+    var exportEntry = container.querySelector('.gx-entry');
+    var account = container.querySelector('.account-control, .admin');
+    var desired = [worldClock, todo, exportEntry, account].filter(Boolean);
     var current = Array.prototype.slice.call(container.children).filter(function (node) { return desired.indexOf(node) >= 0; });
     if (current.length === desired.length && current.every(function (node, index) { return node === desired[index]; })) return;
     desired.forEach(function (node) { container.appendChild(node); });
@@ -619,6 +827,7 @@
     mountMenuIcons(buttons);
     mountPageNavigation();
     mountAccountMenu();
+    mountWorldClock();
     ensureGlobalExportCenter();
     normalizeGlobalActionOrder();
     var actionContainer = document.querySelector('.global-right') || document.querySelector('.header-user');
@@ -687,7 +896,20 @@
   function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function isAttention(item) { return (item.scope === 'pending' && item.status === 'pending') || (item.scope === 'notice' && item.status === 'unread' && item.urgency === 'urgent'); }
   function countAttention() { return items.filter(isAttention).length; }
-  function tabItems() { return items.filter(function (item) { return item.scope === activeTab; }).filter(function (item) { return !filters.keyword || (item.title + item.summary + item.id + item.initiator).toLowerCase().indexOf(filters.keyword.toLowerCase()) >= 0; }).filter(function (item) { return !filters.business || item.business === filters.business; }).filter(function (item) { return !filters.urgency || item.urgency === filters.urgency; }); }
+  function visibleItems() { return items.filter(function (item) { return (item.scope === 'pending' && item.status === 'pending') || item.scope === 'notice'; }).filter(function (item) { return !filters.keyword || (item.title + item.summary + item.id + item.initiator).toLowerCase().indexOf(filters.keyword.toLowerCase()) >= 0; }).filter(function (item) { return !filters.business || item.business === filters.business; }).filter(function (item) { return !filters.urgency || item.urgency === filters.urgency; }); }
+  function groupedMessages() {
+    var groups = [];
+    visibleItems().forEach(function (item) {
+      var isApproval = item.scope === 'pending';
+      var key = isApproval ? 'approval:' + item.business : 'notice:' + item.id;
+      var group = groups.find(function (entry) { return entry.key === key; });
+      if (!group) { group = { key: key, approval: isApproval, business: item.business, items: [], urgency: item.urgency, unread: item.status === 'unread' }; groups.push(group); }
+      group.items.push(item);
+      if (item.urgency === 'overdue' || (item.urgency === 'urgent' && group.urgency === 'normal')) group.urgency = item.urgency;
+      if (item.status === 'unread') group.unread = true;
+    });
+    return groups;
+  }
   function urgencyText(item) { if (item.urgency === 'overdue') return '<span class="tdc-time is-overdue">' + esc(item.due) + '</span>'; if (item.urgency === 'urgent') return '<span class="tdc-time is-urgent">' + esc(item.due) + '</span>'; return '<span class="tdc-time">' + esc(item.due) + '</span>'; }
   function feishuTag(item) { if (item.feishu === 'pushed') return '<span class="tdc-feishu is-synced"><i>✓</i> 已同步飞书</span>'; if (item.feishu === 'failed') return '<button class="tdc-feishu is-failed" data-todo-action="retry-feishu" data-id="' + item.id + '">推送失败·重试</button>'; return '<span class="tdc-feishu">仅站内</span>'; }
 
@@ -696,8 +918,8 @@
     var container = document.querySelector('.global-right') || document.querySelector('.header-user');
     if (!container) return;
     var entry = document.createElement('button');
-    entry.type = 'button'; entry.className = 'tdc-entry'; entry.setAttribute('aria-label', '打开待办中心');
-    entry.innerHTML = '<span class="tdc-entry-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5V3h6v2M7 5h10a2 2 0 0 1 2 2v14H5V7a2 2 0 0 1 2-2Z"/><path d="m8 13 2 2 5-5M8 18h8"/></svg></span><span>待办中心</span><sup class="tdc-entry-badge"></sup>';
+    entry.type = 'button'; entry.className = 'tdc-entry'; entry.setAttribute('aria-label', '待办中心'); entry.setAttribute('title', '待办中心');
+    entry.innerHTML = '<span class="tdc-entry-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5V3h6v2M7 5h10a2 2 0 0 1 2 2v14H5V7a2 2 0 0 1 2-2Z"/><path d="m8 13 2 2 5-5M8 18h8"/></svg></span><sup class="tdc-entry-badge"></sup>';
     var exportEntry = container.querySelector('.gx-entry');
     var account = container.querySelector('.account-control, .admin');
     container.insertBefore(entry, exportEntry || account || null);
@@ -716,24 +938,24 @@
 
   function renderCenter() {
     var modal = document.querySelector('.tdc-modal'); if (!modal) return;
-    var c = counts();
-    modal.querySelectorAll('[data-todo-tab]').forEach(function (button) { button.classList.toggle('active', button.dataset.todoTab === activeTab); var count = c[button.dataset.todoTab]; button.querySelector('b').textContent = count || ''; });
-    var stats = modal.querySelector('.tdc-stats');
-    var pending = items.filter(function (x) { return x.scope === 'pending' && x.status === 'pending'; });
-    stats.innerHTML = '<article><span>待我审核</span><strong>' + pending.length + '</strong><small>需要你审核的全部单据</small></article><article class="is-feishu"><span>飞书触达</span><strong>' + pending.filter(function (x) { return x.feishu === 'pushed'; }).length + '</strong><small>已同步至飞书卡片</small></article>';
-    stats.hidden = activeTab !== 'pending';
-    var list = modal.querySelector('.tdc-list'); var current = tabItems();
-    list.innerHTML = current.length ? current.map(function (item) {
-      var unread = item.status === 'unread' ? ' is-unread' : '';
-      return '<article class="tdc-item' + unread + '"><div class="tdc-item-mark ' + item.urgency + '"></div><div class="tdc-item-main"><div class="tdc-item-title"><span class="tdc-business">' + esc(item.business) + '</span><strong>' + esc(item.title) + '</strong>' + (item.status === 'unread' ? '<i class="tdc-unread-dot"></i>' : '') + '</div><p>' + esc(item.summary) + '</p><div class="tdc-item-meta"><span>发起人：' + esc(item.initiator) + '</span><span>当前节点：' + esc(item.node) + '</span><span>' + esc(item.createdAt) + '</span>' + feishuTag(item) + '</div></div><div class="tdc-item-side">' + urgencyText(item) + '<div class="tdc-item-actions">' + (item.scope === 'pending' && item.status === 'pending' ? '<button class="tdc-btn tdc-btn-link" data-todo-action="origin" data-id="' + item.id + '">查看</button><button class="tdc-btn tdc-btn-primary" data-todo-action="origin" data-id="' + item.id + '">审核</button>' : '<button class="tdc-btn tdc-btn-link" data-todo-action="read-notice" data-id="' + item.id + '">查看</button>') + '</div></div></article>';
-    }).join('') : '<div class="tdc-empty"><span>✓</span><strong>当前没有符合条件的内容</strong><p>新的待办和通知会在这里出现</p></div>';
-    modal.querySelector('.tdc-result-count').textContent = '共 ' + current.length + ' 条';
+    var groups = groupedMessages();
+    var list = modal.querySelector('.tdc-list');
+    list.innerHTML = groups.length ? groups.map(function (group) {
+      var first = group.items[0];
+      if (group.approval) {
+        var orderNumbers = group.items.map(function (item) { var match = item.title.match(/[A-Z]{2,4}\d{8,}/); return match ? match[0] : item.id; });
+        return '<article class="tdc-item tdc-message-group"><div class="tdc-item-mark tdc-mark-approval"></div><div class="tdc-item-main"><div class="tdc-item-title"><span class="tdc-message-tag is-approval">审核</span><strong>' + group.items.length + ' 张' + esc(group.business) + '待审核</strong></div><p>' + esc(orderNumbers.slice(0, 3).join('、')) + (orderNumbers.length > 3 ? ' 等' : '') + '</p><div class="tdc-item-meta"><span>共 ' + group.items.length + ' 张单据</span><span>最新：' + esc(first.createdAt) + '</span></div></div><div class="tdc-item-side"><div class="tdc-item-actions"><button class="tdc-btn tdc-btn-primary" data-todo-action="navigate-business" data-business="' + esc(group.business) + '">去审核</button></div></div></article>';
+      }
+      return '<article class="tdc-item tdc-message-group' + (group.unread ? ' is-unread' : '') + '"><div class="tdc-item-mark tdc-mark-notice"></div><div class="tdc-item-main"><div class="tdc-item-title"><span class="tdc-message-tag is-notice">通知</span><strong>' + esc(first.title) + '</strong>' + (group.unread ? '<i class="tdc-unread-dot"></i>' : '') + '</div><p>' + esc(first.summary) + '</p><div class="tdc-item-meta"><span>' + esc(first.business) + '</span><span>' + esc(first.createdAt) + '</span></div></div><div class="tdc-item-side"><div class="tdc-item-actions"><button class="tdc-btn tdc-btn-link" data-todo-action="read-notice" data-id="' + first.id + '">查看详情</button></div></div></article>';
+    }).join('') : '<div class="tdc-empty"><span>✓</span><strong>当前没有符合条件的消息</strong><p>新的审核与业务通知会在这里出现</p></div>';
+    modal.querySelector('.tdc-stream-count').textContent = groups.length + ' 条消息';
+    modal.querySelector('.tdc-result-count').textContent = '共 ' + groups.length + ' 条消息';
   }
 
   function mountCenter() {
     if (document.querySelector('.tdc-mask')) return;
     var mask = document.createElement('div'); mask.className = 'tdc-mask';
-    mask.innerHTML = '<section class="tdc-modal" role="dialog" aria-modal="true" aria-label="待办中心"><header class="tdc-head"><div><h2>待办中心</h2><p>集中处理中台审批和重要消息</p></div><div class="tdc-head-tools"><span class="tdc-sync"><i></i>飞书已连接</span><button class="tdc-close" aria-label="关闭">×</button></div></header><nav class="tdc-tabs"><button class="active" data-todo-tab="pending">待我审核 <b></b></button><button data-todo-tab="notice">消息通知 <b></b></button></nav><main class="tdc-body"><section class="tdc-stats"></section><section class="tdc-filter"><label class="tdc-search"><span>⌕</span><input placeholder="搜索单号、标题或发起人"></label><select class="tdc-business-filter"><option value="">全部业务类型</option><option>采购单</option><option>发货单</option><option>调拨单</option><option>损益单</option><option>库存</option><option>系统</option></select><select class="tdc-urgency-filter"><option value="">全部紧急程度</option><option value="urgent">紧急</option><option value="overdue">已超时</option><option value="normal">普通</option></select><button class="tdc-btn tdc-btn-primary" data-todo-action="search">查询</button><button class="tdc-btn" data-todo-action="reset">重置</button><button class="tdc-mark-all" data-todo-action="read-all">全部标为已读</button></section><section class="tdc-list"></section><footer class="tdc-foot"><span class="tdc-result-count"></span><span>仅展示当前账号有权限查看的业务数据</span></footer></main></section>';
+    mask.innerHTML = '<section class="tdc-modal" role="dialog" aria-modal="true" aria-label="待办中心"><header class="tdc-head"><div><h2>待办中心</h2><p>审核与业务消息按单据类型聚合展示</p></div><div class="tdc-head-tools"><span class="tdc-sync"><i></i>飞书已连接</span><button class="tdc-close" aria-label="关闭">×</button></div></header><main class="tdc-body"><div class="tdc-stream-head"><div><strong>全部消息</strong><span class="tdc-stream-count"></span></div><button class="tdc-mark-all" data-todo-action="read-all">全部标为已读</button></div><section class="tdc-list"></section><footer class="tdc-foot"><span class="tdc-result-count"></span><span>相同单据类型的审核消息已自动合并</span></footer></main></section>';
     document.body.appendChild(mask);
     mask.addEventListener('click', handleClick);
   }
@@ -764,7 +986,6 @@
   function handleClick(event) {
     if (event.target.classList.contains('tdc-mask') || event.target.closest('.tdc-close')) { closeCenter(); return; }
     if (event.target.closest('.tdc-drawer-close')) { closeDrawer(); return; }
-    var tab = event.target.closest('[data-todo-tab]'); if (tab) { activeTab = tab.dataset.todoTab; filters = { keyword: '', business: '', urgency: '' }; var modal = document.querySelector('.tdc-modal'); modal.querySelector('.tdc-search input').value = ''; modal.querySelector('.tdc-business-filter').value = ''; modal.querySelector('.tdc-urgency-filter').value = ''; renderCenter(); return; }
     var actionNode = event.target.closest('[data-todo-action]');
     if (actionNode) {
       event.stopPropagation(); var action = actionNode.dataset.todoAction; var id = actionNode.dataset.id;
@@ -774,6 +995,11 @@
       if (action === 'search') { var modal2 = document.querySelector('.tdc-modal'); filters.keyword = modal2.querySelector('.tdc-search input').value.trim(); filters.business = modal2.querySelector('.tdc-business-filter').value; filters.urgency = modal2.querySelector('.tdc-urgency-filter').value; renderCenter(); }
       if (action === 'reset') { filters = { keyword: '', business: '', urgency: '' }; var m = document.querySelector('.tdc-modal'); m.querySelector('.tdc-search input').value = ''; m.querySelector('.tdc-business-filter').value = ''; m.querySelector('.tdc-urgency-filter').value = ''; renderCenter(); }
       if (action === 'read-all') { items.forEach(function (x) { if (x.scope === 'notice') x.status = 'read'; }); saveItems(); updateBadge(); renderCenter(); toast('消息已全部标为已读'); }
+      if (action === 'navigate-business') {
+        var routeMap = { '采购单': 'purchaseOrder', '发货单': 'shipmentOrder', '调拨单': 'transferOrder', '损益单': 'inventoryAdjustment' };
+        var page = routeMap[actionNode.dataset.business];
+        if (page) { closeCenter(); if (window.parent !== window) window.parent.postMessage({ type: 'prototype:navigate', page: page }, '*'); else toast('正在进入' + actionNode.dataset.business + '审核页'); }
+      }
       if (action === 'retry-feishu') { var item = items.find(function (x) { return x.id === id; }); if (item) { item.feishu = 'pushed'; item.history.push('飞书卡片重试成功  刚刚'); saveItems(); renderCenter(); if (selectedId === id) openDrawer(id); toast('飞书待办卡片已重新推送'); } }
       if (action === 'transfer') toast('已打开转交人选择（原型演示）');
       if (action === 'origin') toast('正在进入原单据审核页');

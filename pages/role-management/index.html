@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>角色管理</title>
+  <link rel="stylesheet" href="../transfer-orders/styles.css?v=1.0.24">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.88">
+  <link rel="stylesheet" href="./styles.css?v=1.0.0">
+</head>
+<body data-ui-kit-page="standard" class="ui-page-canvas">
+  <div class="app">
+    <header class="global-bar">
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon active" data-module="basic">基础</button><button class="top-icon">财务</button><button class="top-icon">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button></div>
+      <div class="global-right"><span class="admin">Admin⌄</span></div>
+    </header>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="nav-scroll">
+          <div class="nav-group-title"><span>♙</span><span>权限管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item">账号管理</div><div class="nav-item">部门管理</div><div class="nav-item active" data-page-nav="roleManagement">角色管理</div><div class="nav-item">菜单管理</div><div class="nav-item" data-page-nav="workflowManagement">流程管理</div><div class="nav-item">系统日志</div>
+          <div class="nav-group-title"><span>⚙</span><span>基础配置</span><span class="chev">⌃</span></div>
+          <div class="nav-item">平台管理</div><div class="nav-item">团队管理</div><div class="nav-item" data-page-nav="warehouseSku">仓库管理</div><div class="nav-item">国家管理</div><div class="nav-item">站点管理</div>
+        </div>
+        <div class="collapse">≡</div>
+      </aside>
+      <main class="main role-main">
+        <section class="role-workspace">
+          <aside class="role-panel ui-list-card">
+            <header class="role-panel__header"><div><h1>角色管理</h1><span id="roleCount">共 0 个角色</span></div><button id="addRoleBtn" class="icon-add" type="button" aria-label="新增角色">＋</button></header>
+            <div class="role-search"><span>⌕</span><input id="roleSearch" placeholder="搜索角色名称"></div>
+            <div id="roleList" class="role-list"></div>
+          </aside>
+          <section class="role-detail ui-list-card">
+            <header class="detail-header"><div><div class="detail-title"><h2 id="currentRoleName">—</h2><span id="presetTag" class="role-tag">系统预设</span></div><p id="currentRoleDescription">—</p></div><button id="editRoleBtn" class="ui-list-action-button" type="button">编辑角色</button></header>
+            <nav id="roleTabs" class="ui-tabs role-tabs" aria-label="角色配置"><button class="is-active" data-tab="users">角色用户 <span id="userCountBadge">0</span></button><button data-tab="functions">功能权限</button><button data-tab="sensitive">敏感字段 <span id="sensitiveCountBadge">0</span></button></nav>
+            <div id="usersPanel" class="tab-panel">
+              <section class="user-query ui-query-card"><div class="ui-query-flow"><input id="userKeyword" class="role-control" placeholder="用户名 / 姓名 / 手机号"><select id="userStatus" class="role-control role-select"><option value="">账号状态（全部）</option><option value="启用">启用</option><option value="停用">停用</option></select><div class="ui-query-actions"><button id="searchUserBtn" class="ui-query-button ui-query-button--primary">查询</button><button id="resetUserBtn" class="ui-query-button">重置</button></div></div></section>
+              <div class="ui-action-row user-actions"><button id="addUserBtn" class="ui-list-action-button ui-list-action-button--primary">添加用户</button><button id="removeUsersBtn" class="ui-list-action-button">批量移除</button><span id="selectedHint">已选 0 项</span></div>
+              <section class="user-table-card ui-list-card"><div class="ui-table-wrap"><table class="ui-table user-table"><thead><tr><th><input id="selectAll" type="checkbox" aria-label="全选"></th><th>用户名</th><th>姓名</th><th>部门</th><th>手机号</th><th>账号状态</th><th>操作</th></tr></thead><tbody id="userTableBody"></tbody></table><div id="emptyUsers" class="empty-state" hidden>暂无符合条件的用户</div></div><footer class="table-footer"><span id="resultCount">共 0 条</span><div><button>‹</button><button class="active">1</button><button>›</button></div></footer></section>
+            </div>
+            <div id="functionsPanel" class="tab-panel permission-panel" hidden><div class="permission-toolbar"><div><h3>功能权限</h3><p>配置该角色可访问的系统菜单与操作权限</p></div><button id="saveFunctionsBtn" class="ui-list-action-button ui-list-action-button--primary">保存权限</button></div><div id="functionTree" class="permission-tree"></div></div>
+            <div id="sensitivePanel" class="tab-panel sensitive-panel" hidden><div class="permission-toolbar"><div><h3>敏感字段</h3><p>从全局敏感字段库中引用需要对该角色隐藏或脱敏的字段</p></div><button id="libraryBtn" class="ui-list-action-button">敏感字段库</button></div><div class="ui-action-row sensitive-actions"><button id="referenceSensitiveBtn" class="ui-list-action-button ui-list-action-button--primary">引用敏感字段</button><button id="removeSensitiveBtn" class="ui-list-action-button">批量移除引用</button><span id="sensitiveSelectedHint">已选 0 项</span></div><section class="sensitive-table-card ui-list-card"><div class="ui-table-wrap"><table class="ui-table sensitive-table"><thead><tr><th><input id="selectAllSensitive" type="checkbox" aria-label="全选敏感字段"></th><th>所属页面</th><th>敏感字段名称</th><th>字段唯一值</th><th>字段接口</th><th>操作</th></tr></thead><tbody id="sensitiveTableBody"></tbody></table><div id="emptySensitive" class="empty-state" hidden>当前角色暂未引用敏感字段</div></div><footer class="table-footer"><span id="sensitiveResultCount">共 0 条</span></footer></section></div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
+  <div id="dialogMask" class="ui-dialog-mask" hidden><section class="ui-dialog ui-dialog--form role-dialog" role="dialog" aria-modal="true"><header class="ui-dialog__header"><div><h2 id="dialogTitle">新增角色</h2><span id="dialogSubtitle">维护角色的基本信息</span></div><button class="ui-dialog__close" data-close-dialog>×</button></header><div class="ui-dialog__body"><div class="ui-form-card ui-form-grid"><label class="ui-field ui-field--wide"><span class="ui-field__label"><em class="ui-field__required">*</em>角色名称</span><input id="roleNameInput" maxlength="20" placeholder="请输入角色名称"></label><label class="ui-field ui-field--wide role-textarea-field"><span class="ui-field__label">角色说明</span><textarea id="roleDescInput" maxlength="100" placeholder="请输入角色说明"></textarea></label></div><p id="dialogError" class="dialog-error"></p></div><footer class="ui-dialog__footer"><button class="ui-button" data-close-dialog>取消</button><button id="saveRoleBtn" class="ui-button ui-button--primary">确定</button></footer></section></div>
+  <div id="userDialogMask" class="ui-dialog-mask" hidden><section class="ui-dialog ui-dialog--form user-dialog" role="dialog" aria-modal="true"><header class="ui-dialog__header"><div><h2>添加角色用户</h2><span id="userDialogSubtitle">选择需要加入当前角色的用户</span></div><button class="ui-dialog__close" data-close-user-dialog>×</button></header><div class="ui-dialog__body"><div class="candidate-search"><input id="candidateKeyword" class="role-control" placeholder="搜索用户名或姓名"></div><div id="candidateList" class="candidate-list"></div></div><footer class="ui-dialog__footer"><span id="candidateSelected">已选 0 人</span><button class="ui-button" data-close-user-dialog>取消</button><button id="confirmUsersBtn" class="ui-button ui-button--primary">确定添加</button></footer></section></div>
+  <div id="referenceDialogMask" class="ui-dialog-mask" hidden><section class="ui-dialog reference-dialog" role="dialog" aria-modal="true"><header class="ui-dialog__header"><div><h2>引用敏感字段</h2><span id="referenceSubtitle">从敏感字段库中选择字段</span></div><button class="ui-dialog__close" data-close-reference>×</button></header><div class="ui-dialog__body"><div class="reference-query"><select id="referencePageFilter" class="role-control role-select"><option value="">全部页面</option></select><input id="referenceKeyword" class="role-control" placeholder="搜索字段名称或唯一值"></div><div id="referenceList" class="reference-list"></div></div><footer class="ui-dialog__footer"><span id="referenceSelectedCount">已选 0 项</span><button class="ui-button" data-close-reference>取消</button><button id="confirmReferenceBtn" class="ui-button ui-button--primary">确定引用</button></footer></section></div>
+  <div id="libraryMask" class="ui-dialog-mask" hidden><section class="ui-dialog library-dialog" role="dialog" aria-modal="true"><header class="ui-dialog__header"><div><h2>敏感字段库</h2><span>统一维护全系统可供角色引用的敏感字段</span></div><button class="ui-dialog__close" data-close-library>×</button></header><div class="ui-dialog__body"><div class="library-toolbar"><button id="addSensitiveBtn" class="ui-list-action-button ui-list-action-button--primary">新增敏感字段</button><input id="libraryKeyword" class="role-control" placeholder="搜索字段名称、唯一值或页面"></div><div class="library-table-card"><table class="ui-table library-table"><thead><tr><th>所属页面</th><th>敏感字段名称</th><th>字段唯一值</th><th>字段接口</th><th>引用角色数</th><th>操作</th></tr></thead><tbody id="libraryTableBody"></tbody></table></div></div><footer class="ui-dialog__footer"><span id="libraryCount">共 0 条</span><button class="ui-button ui-button--primary" data-close-library>完成</button></footer></section></div>
+  <div id="sensitiveDialogMask" class="ui-dialog-mask nested-mask" hidden><section class="ui-dialog ui-dialog--form sensitive-dialog" role="dialog" aria-modal="true"><header class="ui-dialog__header"><div><h2 id="sensitiveDialogTitle">新增敏感字段</h2><span>字段保存后可供所有角色引用</span></div><button class="ui-dialog__close" data-close-sensitive-dialog>×</button></header><div class="ui-dialog__body"><div class="ui-form-card ui-form-grid"><label class="ui-field ui-field--wide"><span class="ui-field__label"><em class="ui-field__required">*</em>所属页面</span><select id="sensitivePageInput"><option value="">请选择页面</option></select></label><label class="ui-field ui-field--wide"><span class="ui-field__label"><em class="ui-field__required">*</em>敏感字段名称</span><input id="sensitiveNameInput" maxlength="30" placeholder="例如：供应商收款账户"></label><label class="ui-field ui-field--wide"><span class="ui-field__label"><em class="ui-field__required">*</em>字段唯一值</span><input id="sensitiveKeyInput" maxlength="60" placeholder="例如：supplier.bankAccount"></label><label class="ui-field ui-field--wide"><span class="ui-field__label"><em class="ui-field__required">*</em>字段接口</span><input id="sensitiveApiInput" maxlength="120" placeholder="例如：GET /api/suppliers/{id}"></label></div><p id="sensitiveDialogError" class="dialog-error"></p></div><footer class="ui-dialog__footer"><button class="ui-button" data-close-sensitive-dialog>取消</button><button id="saveSensitiveBtn" class="ui-button ui-button--primary">保存</button></footer></section></div>
+  <div id="toast" class="toast"></div>
+  <script src="./app.js?v=1.0.0"></script>
+  <script src="../../navigation.js?v=1.7.88"></script>
+</body>
+</html>

@@ -235,7 +235,7 @@
     if (document.querySelector('.gx-entry')) return;
     var container = document.querySelector('.global-right') || document.querySelector('.header-user');
     if (!container) return;
-    var entry = document.createElement('button'); entry.type = 'button'; entry.className = 'gx-entry'; entry.innerHTML = '<span class="gx-entry-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg></span><span>导出中心</span><sup class="gx-entry-badge" hidden>0</sup>';
+    var entry = document.createElement('button'); entry.type = 'button'; entry.className = 'gx-entry'; entry.setAttribute('aria-label', '导出中心'); entry.setAttribute('title', '导出中心'); entry.innerHTML = '<span class="gx-entry-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg></span><sup class="gx-entry-badge" hidden>0</sup>';
     var account = container.querySelector('.account-control, .admin');
     if (!account) account = Array.prototype.slice.call(container.children).find(function (child) { return /Admin/.test(child.textContent || ''); });
     if (account) container.insertBefore(entry, account); else container.appendChild(entry);
