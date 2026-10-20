@@ -9,7 +9,7 @@
     const pad=value=>String(value).padStart(2,'0');
     return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
   };
-  const defaultDateRange=()=>{const today=getToday();return [today,today];};
+  const defaultDateRange=()=>[];
 
   // 库存流水示例数据：仅记录可用库存的增减，不记录在途、冻结和待确认状态变化
   const sourceFlows=[

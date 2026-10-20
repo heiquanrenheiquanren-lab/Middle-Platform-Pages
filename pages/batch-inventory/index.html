@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>批次库存</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.89">
-  <link rel="stylesheet" href="./styles.css?v=1.0.5">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.90">
+  <link rel="stylesheet" href="./styles.css?v=1.0.6">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div id="app" v-cloak>
@@ -59,10 +59,10 @@
           <section class="table-area">
             <el-table :data="pagedRows" height="100%" row-key="id" class="batch-table" show-summary :summary-method="getSummaries" @selection-change="selectedRows = $event" @sort-change="handleSortChange">
               <el-table-column type="selection" width="48" fixed="left"></el-table-column>
-              <el-table-column label="批次号" width="168" fixed="left" show-overflow-tooltip><template #default="scope"><span class="batch-number">{{ scope.row.batchNo }}</span></template></el-table-column>
               <el-table-column prop="warehouse" label="仓库名称" min-width="260" fixed="left" show-overflow-tooltip><template #default="scope">{{ scope.row.warehouse }}<template v-if="scope.row.warehouseCode">（{{ scope.row.warehouseCode }}）</template></template></el-table-column>
-              <el-table-column prop="team" label="团队" width="120" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column label="批次号" width="168" fixed="left" show-overflow-tooltip><template #default="scope"><span class="batch-number">{{ scope.row.batchNo }}</span></template></el-table-column>
               <el-table-column prop="sku" label="SKU" width="142" fixed="left" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="team" label="团队" width="120" fixed="left" show-overflow-tooltip></el-table-column>
               <el-table-column prop="name" label="产品名称" min-width="290"><template #default="scope"><el-tooltip :content="scope.row.name" placement="top" :show-after="300"><div class="product-cell"><div class="product-thumb" role="img" :aria-label="`${scope.row.name}图片占位符`"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="19" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="m8 22 5-5 4 4 3-3 4 4"></path></svg></div><span class="product-name">{{ scope.row.name }}</span></div></el-tooltip></template></el-table-column>
               <el-table-column prop="inboundType" label="入库类型" width="116" show-overflow-tooltip></el-table-column>
               <el-table-column prop="bizNo" label="来源单据" width="154" show-overflow-tooltip></el-table-column>
@@ -85,6 +85,6 @@
   <script src="../../vendor/element-plus.js"></script>
   <script src="../../warehouse-attributes.js?v=1.0.1"></script>
   <script src="./app.js?v=1.0.9"></script>
-  <script src="../../navigation.js?v=1.7.89"></script>
+  <script src="../../navigation.js?v=1.7.90"></script>
 </body>
 </html>

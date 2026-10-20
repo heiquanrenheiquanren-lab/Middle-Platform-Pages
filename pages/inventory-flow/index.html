@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>库存流水</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.89">
-  <link rel="stylesheet" href="./styles.css?v=1.0.10">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.90">
+  <link rel="stylesheet" href="./styles.css?v=1.0.11">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div id="app" v-cloak>
@@ -78,7 +78,6 @@
               <el-table-column prop="opNo" label="操作单号" min-width="150" show-overflow-tooltip></el-table-column>
               <el-table-column prop="operator" label="操作人" width="90" align="center"></el-table-column>
               <el-table-column prop="operatedAt" label="操作时间" min-width="150" show-overflow-tooltip></el-table-column>
-              <el-table-column label="批次号" min-width="190" show-overflow-tooltip><template #default="scope"><el-tooltip :content="scope.row.batchNos.join('，')" placement="top" :show-after="300"><span class="batch-nos-cell">{{ scope.row.batchNos.join('，') }}</span></el-tooltip></template></el-table-column>
               <template #empty><el-empty description="暂无符合条件的库存流水记录"></el-empty></template>
             </el-table>
           </section>
@@ -95,7 +94,7 @@
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
   <script src="../../warehouse-attributes.js?v=1.0.1"></script>
-  <script src="./app.js?v=1.0.10"></script>
-  <script src="../../navigation.js?v=1.7.89"></script>
+  <script src="./app.js?v=1.0.11"></script>
+  <script src="../../navigation.js?v=1.7.90"></script>
 </body>
 </html>

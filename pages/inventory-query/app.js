@@ -90,18 +90,22 @@
   createApp({
     setup(){
       const rows=ref(clone(sourceRows));
-      const filters=reactive({codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[],buyers:[],stockStates:[]});
+      const filters=reactive({codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[],buyers:[]});
       const applied=reactive(clone(filters));
       const page=ref(1),pageSize=ref(20),updatedAt=ref('2026-09-20 10:30'),hideZero=ref(true);
       const sortState=reactive({prop:'',order:''});
       const detailVisible=ref(false),currentRow=ref(null),detailMode=ref('team'),detailTeam=ref(''),copiedRowKey=ref('');
+      const selectedRows=ref([]);
+      const inventoryTable=ref(null);
+      const ownershipVisible=ref(false),ownershipRemark=ref(''),ownershipItems=ref([]);
+      const canSelectRow=row=>Number(row.available||0)>0;
+      const handleSelectionChange=rows=>{selectedRows.value=rows;};
 
       const warehouses=[...new Set(sourceRows.map(row=>row.warehouse))];
       const warehouseOptions=warehouses.map(value=>({value,label:`${value}（${warehouseCodes[value]||'-'}）`}));
       const teams=[...new Set(sourceRows.flatMap(row=>row.teams.map(team=>team.team)))];
       const developers=[...new Set(sourceRows.map(row=>row.developer))];
       const buyers=[...new Set(sourceRows.map(row=>row.buyer))];
-      const stockStates=[{label:'有可用库存',value:'available'},{label:'可用库存为 0',value:'unavailable'},{label:'有占用库存',value:'occupied'},{label:'有冻结库存',value:'frozen'},{label:'有在途库存',value:'inTransit'},{label:'有待采购库存',value:'pendingPurchase'},{label:'零库存',value:'zero'}];
 
       // —— 库存流水弹窗（查询项/字段与 inventory-flow 页面一致）——
       const flowRows=ref(clone(flowSource).map(row=>({...row,warehouseAttribute:window.WarehouseAttributes.of(row.warehouse),direction:row.after-row.before>0?'入库':row.after-row.before<0?'出库':'-',lingxingSku:'LX-'+row.sku,overseasSku:'OVS-'+row.sku,fnsku:'X00'+row.sku})));
@@ -149,8 +153,6 @@
         const zeroValues=[row.available,row.occupied,row.inTransit,row.inStockTotal,row.pendingPurchase,row.frozen].filter(value=>value!==null&&value!==undefined);
         const zero=zeroValues.length>0&&zeroValues.every(value=>value===0);
         if(hideZero.value&&zero)return false;
-        const stateMatched=state=>({available:row.available>0,unavailable:row.onHand>0&&row.available===0,occupied:occupancyVisible(row)&&row.occupied>0,frozen:row.frozen>0,inTransit:row.inTransit>0,pendingPurchase:row.pendingPurchase>0,zero}[state]);
-        if(applied.stockStates.length&&!applied.stockStates.some(stateMatched))return false;
         return true;
       }));
       const sortedRows=computed(()=>{
@@ -201,19 +203,45 @@
       const occupancyVisible=row=>!row||!['海外仓','平台仓'].includes(row.warehouseAttribute)||isFbaRow(row);
       const inStockVisible=row=>occupancyVisible(row);
       const isOverseasRow=row=>Boolean(row&&row.warehouseAttribute==='海外仓');
-      const getSummaries=({columns})=>columns.map((column,index)=>{if(index===0)return'合计';if(column.property==='overseasInTransit')return'—';if(!summaryFields.includes(column.property))return'';if(column.property==='pendingPurchase'&&!filteredRows.value.some(row=>row.pendingPurchase!==null))return'—';if(column.property==='inStockTotal'&&filteredRows.value.some(row=>row.inStockTotal==null))return'—';return qty(filteredRows.value.reduce((sum,row)=>sum+Number(row[column.property]||0),0));});
+      const getSummaries=({columns})=>{const firstDataIndex=columns.findIndex(column=>column.type!=='selection');return columns.map((column,index)=>{if(index===firstDataIndex)return'合计';if(column.property==='overseasInTransit')return'—';if(!summaryFields.includes(column.property))return'';if(column.property==='pendingPurchase'&&!filteredRows.value.some(row=>row.pendingPurchase!==null))return'—';if(column.property==='inStockTotal'&&filteredRows.value.some(row=>row.inStockTotal==null))return'—';return qty(filteredRows.value.reduce((sum,row)=>sum+Number(row[column.property]||0),0));});};
       const query=()=>{Object.assign(applied,clone(filters));page.value=1;ElMessage.success(`查询完成，共 ${filteredRows.value.length} 条库存记录`)};
-      const resetFilters=()=>{Object.assign(filters,{codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[],buyers:[],stockStates:[]});Object.assign(applied,clone(filters));hideZero.value=true;page.value=1};
+      const resetFilters=()=>{Object.assign(filters,{codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[],buyers:[]});Object.assign(applied,clone(filters));hideZero.value=true;page.value=1};
       const openMetric=(row,mode,team=row.team||'')=>{
         if((mode==='batch'||mode==='age')&&!row.batchEnabled){ElMessage.info('该仓库类型暂不记录库存批次');return;}
         currentRow.value=row;detailMode.value=mode;detailTeam.value=team;
         if(mode==='flow'){Object.assign(flowFilters,{skuType:'sku',sku:row.sku,warehouses:[row.warehouse],opTypes:[],directions:[],no:'',dateRange:[]});Object.assign(flowApplied,clone(flowFilters));flowPage.value=1;}
         detailVisible.value=true;
       };
+      const ownershipItemOf=row=>({warehouse:row.warehouse||'',sku:row.sku||'',name:row.name||'',team:row.team||'',available:Number(row.available||0),quantity:'',targetTeam:'',remark:''});
+      const targetTeamOptions=row=>teams.filter(team=>team!==row.team);
+      const removeOwnershipItem=index=>{ownershipItems.value.splice(index,1);if(!ownershipItems.value.length)ownershipVisible.value=false;};
+      const openOwnershipTransfer=row=>{ownershipItems.value=[ownershipItemOf(row)];ownershipRemark.value='';ownershipVisible.value=true;};
+      const openBatchOwnershipTransfer=()=>{
+        if(!selectedRows.value.length){ElMessage.warning('请先勾选需要调拨的库存');return;}
+        ownershipItems.value=selectedRows.value.map(ownershipItemOf);
+        ownershipRemark.value='';
+        ownershipVisible.value=true;
+      };
+      const submitOwnership=()=>{
+        if(!ownershipItems.value.length){ElMessage.warning('请至少添加一条调拨明细');return;}
+        for(const item of ownershipItems.value){
+          if(item.quantity===''||item.quantity===null||item.quantity===undefined){ElMessage.warning(`请填写 SKU ${item.sku} 的调拨数量`);return;}
+          const quantity=Number(item.quantity);
+          if(!Number.isInteger(quantity)||quantity<=0||quantity>item.available){ElMessage.warning(`SKU ${item.sku} 的调拨数量须为 1-${item.available} 的整数`);return;}
+          if(!item.targetTeam){ElMessage.warning(`请选择 SKU ${item.sku} 的调入团队`);return;}
+          if(item.targetTeam===item.team){ElMessage.warning(`SKU ${item.sku} 的调入团队不能与调出团队相同`);return;}
+        }
+        const date=new Date(),pad=value=>String(value).padStart(2,'0');
+        const no=`TF${String(date.getFullYear()).slice(2)}${pad(date.getMonth()+1)}${pad(date.getDate())}${String(Date.now()).slice(-4)}`;
+        ElMessage.success(`货权调拨单 ${no} 已提交审核`);
+        ownershipVisible.value=false;
+        selectedRows.value=[];
+        inventoryTable.value?.clearSelection();
+      };
       const fallbackCopy=text=>{const input=document.createElement('textarea');input.value=text;input.setAttribute('readonly','');input.style.position='fixed';input.style.left='-9999px';input.style.top='0';input.style.opacity='0';document.body.appendChild(input);input.focus();input.select();input.setSelectionRange(0,text.length);const copied=document.execCommand('copy');document.body.removeChild(input);if(!copied)throw new Error('copy failed')};
       const copySku=async(sku,rowKey)=>{try{let copied=false;if(navigator.clipboard&&window.isSecureContext){try{await navigator.clipboard.writeText(sku);copied=true}catch(error){copied=false}}if(!copied)fallbackCopy(sku);copiedRowKey.value=rowKey;window.setTimeout(()=>{if(copiedRowKey.value===rowKey)copiedRowKey.value=''},1500);ElMessage.success(`已复制 SKU：${sku}`)}catch(error){ElMessage.error('复制失败，请手动复制 SKU')}};
 
-      return{filters,warehouses,warehouseOptions,teams,developers,buyers,stockStates,page,pageSize,updatedAt,hideZero,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailUnavailableMessage,detailRows,ageBuckets,productThumbnail,qty,docTypeLabel,ageText,quantityClass,isFbaRow,occupancyVisible,inStockVisible,isOverseasRow,getSummaries,query,resetFilters,openMetric,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowWarehouseOptions,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
+      return{filters,warehouses,warehouseOptions,teams,developers,buyers,page,pageSize,updatedAt,hideZero,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailUnavailableMessage,detailRows,ageBuckets,productThumbnail,qty,docTypeLabel,ageText,quantityClass,isFbaRow,occupancyVisible,inStockVisible,isOverseasRow,getSummaries,query,resetFilters,openMetric,openOwnershipTransfer,selectedRows,canSelectRow,handleSelectionChange,openBatchOwnershipTransfer,inventoryTable,ownershipVisible,ownershipItems,ownershipRemark,targetTeamOptions,removeOwnershipItem,submitOwnership,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowWarehouseOptions,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
     }
   }).use(window.ElementPlus).mount('#app');
 })();

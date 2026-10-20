@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>流程管理</title>
   <link rel="stylesheet" href="../transfer-orders/styles.css?v=1.0.24">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.89">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.90">
   <link rel="stylesheet" href="./styles.css?v=1.0.0">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
@@ -17,5 +17,5 @@
 <section class="editor-card"><h3>适用条件</h3><div class="condition-row"><select id="conditionField"><option>全部单据</option><option>采购金额</option><option>采购团队</option><option>供应商等级</option></select><select id="conditionOperator"><option>无需判断</option><option>大于等于</option><option>等于</option><option>属于</option></select><input id="conditionValue" placeholder="条件值；全部单据时无需填写"></div><p class="helper">流程按优先级匹配，命中后只启动一条审批流。</p></section>
 <section class="editor-card steps-card"><div class="section-head"><div><h3>审批步骤</h3><p>同一人默认不能连续审批多个节点</p></div><button id="addStepBtn" class="ui-list-action-button">＋ 添加审批步骤</button></div><div id="steps" class="steps"></div></section><p id="editorError" class="form-error"></p></div><footer class="ui-dialog__footer"><button class="ui-button" data-close-editor>取消</button><button id="saveDraftBtn" class="ui-button">保存草稿</button><button id="enableBtn" class="ui-button ui-button--primary">保存并启用</button></footer></section></div>
 <div id="instanceMask" class="ui-dialog-mask" hidden><section class="ui-dialog instance-dialog" role="dialog" aria-modal="true"><header class="ui-dialog__header"><div><h2>流程实例</h2><span id="instanceSubtitle">查看单据的实际审批进度</span></div><button class="ui-dialog__close" data-close-instance>×</button></header><div class="ui-dialog__body"><div id="instanceSummary" class="instance-summary"></div><div id="instanceTimeline" class="instance-timeline"></div></div><footer class="ui-dialog__footer"><button class="ui-button ui-button--primary" data-close-instance>关闭</button></footer></section></div>
-<div id="toast" class="toast"></div><script src="./app.js?v=1.0.0"></script><script src="../../navigation.js?v=1.7.89"></script>
+<div id="toast" class="toast"></div><script src="./app.js?v=1.0.0"></script><script src="../../navigation.js?v=1.7.90"></script>
 </body></html>

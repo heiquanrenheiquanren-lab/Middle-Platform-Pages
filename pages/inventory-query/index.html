@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>库存查询</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.89">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.90">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.0.22">
+  <link rel="stylesheet" href="./styles.css?v=1.0.26">
   <link rel="stylesheet" href="../../warehouse-attributes.css?v=1.0.0">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
@@ -43,33 +43,33 @@
               <el-select v-model="filters.teams" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="团队（可多选）"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select>
               <el-select v-model="filters.developers" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="产品负责人（可多选）"><el-option v-for="item in developers" :key="item" :label="item" :value="item"></el-option></el-select>
               <el-select v-model="filters.buyers" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="采购员（可多选）"><el-option v-for="item in buyers" :key="item" :label="item" :value="item"></el-option></el-select>
-              <el-select v-model="filters.stockStates" multiple clearable collapse-tags collapse-tags-tooltip placeholder="库存状态（可多选）"><el-option v-for="item in stockStates" :key="item.value" :label="item.label" :value="item.value"></el-option></el-select>
               <div class="query-actions"><el-button type="primary" @click="query">查询</el-button><el-button @click="resetFilters">重置</el-button></div>
             </div>
           </section>
 
           <section class="action-strip">
-            <div class="action-left"><el-button>导出</el-button></div>
+            <div class="action-left"><el-button>导出</el-button><el-button type="primary" :disabled="!selectedRows.length" @click="openBatchOwnershipTransfer">批量货权调拨{{ selectedRows.length ? `（${selectedRows.length}）` : '' }}</el-button></div>
             <div class="action-right"><el-checkbox v-model="hideZero" @change="page=1">隐藏 0 库存数据</el-checkbox><el-tooltip content="勾选后隐藏可用库存、占用库存、头程在途、在库总量、待采购库存、冻结库存同时都为0的数据" placement="top"><span class="header-help zero-help" tabindex="0" aria-label="隐藏0库存数据说明">?</span></el-tooltip></div>
           </section>
 
           <section class="table-area">
-            <el-table :data="pagedRows" height="100%" row-key="rowKey" class="inventory-table" show-summary :summary-method="getSummaries" @sort-change="handleSortChange">
-              <el-table-column prop="warehouse" label="仓库名称" min-width="230" fixed="left" show-overflow-tooltip><template #default="scope"><div class="warehouse-cell"><div class="warehouse-attribute-inline"><span class="warehouse-attribute-inline__name">{{ scope.row.warehouse }}</span><el-tag v-if="scope.row.warehouseAttribute" size="small" type="info" effect="plain">{{ scope.row.warehouseAttribute }}</el-tag></div><small>{{ scope.row.warehouseCode }}</small></div></template></el-table-column>
+            <el-table ref="inventoryTable" :data="pagedRows" height="100%" row-key="rowKey" class="inventory-table" show-summary :summary-method="getSummaries" @sort-change="handleSortChange" @selection-change="handleSelectionChange">
+              <el-table-column type="selection" width="46" fixed="left" reserve-selection :selectable="canSelectRow"></el-table-column>
+              <el-table-column prop="warehouse" label="仓库名称" min-width="200" fixed="left" show-overflow-tooltip><template #default="scope"><div class="warehouse-cell"><span class="warehouse-attribute-inline__name">{{ scope.row.warehouse }}</span><div class="warehouse-code-line"><small>{{ scope.row.warehouseCode }}</small><el-tag v-if="scope.row.warehouseAttribute" size="small" type="info" effect="plain">{{ scope.row.warehouseAttribute }}</el-tag></div></div></template></el-table-column>
               <el-table-column prop="sku" label="SKU" width="198" fixed="left"><template #default="scope"><div class="sku-cell"><div class="sku-values"><div class="sku-primary"><span class="sku-code">{{ scope.row.sku }}</span><button class="copy-sku-button" :class="{copied:copiedRowKey===scope.row.rowKey}" type="button" :title="copiedRowKey===scope.row.rowKey?'已复制':'复制 SKU'" :aria-label="copiedRowKey===scope.row.rowKey?`已复制 SKU ${scope.row.sku}`:`复制 SKU ${scope.row.sku}`" @click.stop="copySku(scope.row.sku,scope.row.rowKey)"><svg v-if="copiedRowKey===scope.row.rowKey" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7"></path></svg><svg v-else viewBox="0 0 16 16" aria-hidden="true"><rect x="5.25" y="5.25" width="8" height="8" rx="1.25"></rect><path d="M10.75 4V3.25A1.25 1.25 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6a1.25 1.25 0 0 0 1.25 1.25H4"></path></svg></button></div><div class="sku-secondary">领星 SKU：{{ scope.row.lingxingSku }}</div></div></div></template></el-table-column>
               <el-table-column label="海外仓/FNSKU" width="206" fixed="left"><template #default="scope"><div class="sku-mapping-cell"><div><span>海外仓 SKU：</span><b>{{ scope.row.overseasSku }}</b></div><div><span>FNSKU：</span><b>{{ scope.row.fnsku }}</b></div></div></template></el-table-column>
               <el-table-column prop="team" label="团队" width="130" fixed="left" show-overflow-tooltip></el-table-column>
               <el-table-column prop="name" label="产品名称" min-width="260"><template #default="scope"><el-tooltip :content="scope.row.name" placement="top" :show-after="300"><div class="product-cell"><div class="product-thumb" role="img" :aria-label="`${scope.row.name}图片占位符`"><svg class="image-placeholder-icon" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="19" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="m8 22 5-5 4 4 3-3 4 4"></path></svg></div><span class="product-name">{{ scope.row.name }}</span></div></el-tooltip></template></el-table-column>
-              <el-table-column prop="available" label="可用库存" width="104" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #default="scope"><span :class="quantityClass(scope.row.available)">{{ qty(scope.row.available) }}</span></template></el-table-column>
-              <el-table-column prop="occupied" label="占用库存" width="104" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #default="scope"><button v-if="occupancyVisible(scope.row)" class="number-link" @click="openMetric(scope.row,'occupied')">{{ qty(scope.row.occupied) }}</button><span v-else class="qty-muted">—</span></template></el-table-column>
-              <el-table-column prop="inTransit" label="头程在途" width="104" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'inTransit')">{{ qty(scope.row.inTransit) }}</button></template></el-table-column>
-              <el-table-column prop="overseasInTransit" width="156" align="right"><template #header><span class="header-with-help">海外仓在途（无团队）<el-tooltip content="直接取自海外仓接口返回的在途数量，中台不做计算，也不按团队拆分。同一 SKU 在该仓库下各团队行显示相同数值，因此不参与列表合计。" placement="top"><span class="header-help" @click.stop>?</span></el-tooltip></span></template><template #default="scope"><span :class="scope.row.overseasInTransit==null?'qty-muted':'qty-normal'">{{ scope.row.overseasInTransit==null?'—':qty(scope.row.overseasInTransit) }}</span></template></el-table-column>
+              <el-table-column prop="available" width="104" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #header><span class="header-with-help">可用库存<el-tooltip content="可被销售订单、发货单、加工单等业务单据直接占用并安排出库的数量。可用库存=在库库存−占用库存−冻结库存；库存流水仅记录可用库存的实际变动。" placement="top"><span class="header-help" @click.stop>?</span></el-tooltip></span></template><template #default="scope"><span :class="quantityClass(scope.row.available)">{{ qty(scope.row.available) }}</span></template></el-table-column>
+              <el-table-column prop="occupied" width="104" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #header><span class="header-with-help">占用库存<el-tooltip content="已被业务单据锁定、仍在仓内的数量。海外仓、平台仓（Amazon FBA 除外）不展示；FBA 取领星预留值" placement="top"><span class="header-help" @click.stop>?</span></el-tooltip></span></template><template #default="scope"><button v-if="occupancyVisible(scope.row)" class="number-link" @click="openMetric(scope.row,'occupied')">{{ qty(scope.row.occupied) }}</button><span v-else class="qty-muted">—</span></template></el-table-column>
+              <el-table-column prop="inTransit" width="104" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #header><span class="header-with-help">头程在途<el-tooltip content="已从国内仓库发出、尚未完成目标海外仓入库的数量，由中台按发货单计算，可点击查看明细，来源单据仅为发货单。海外仓在途（无团队）是海外仓接口返回的在途数量，两者口径不同，不可相加。" placement="top"><span class="header-help" @click.stop>?</span></el-tooltip></span></template><template #default="scope"><button class="number-link" @click="openMetric(scope.row,'inTransit')">{{ qty(scope.row.inTransit) }}</button></template></el-table-column>
+              <el-table-column prop="overseasInTransit" width="176" align="right"><template #header><span class="header-with-help header-with-help--nowrap">海外仓在途（无团队）<el-tooltip content="直接取自海外仓接口返回的在途数量，中台不做计算，也不按团队拆分。同一 SKU 在该仓库下各团队行显示相同数值，因此不参与列表合计。" placement="top"><span class="header-help" @click.stop>?</span></el-tooltip></span></template><template #default="scope"><span :class="scope.row.overseasInTransit==null?'qty-muted':'qty-normal'">{{ scope.row.overseasInTransit==null?'—':qty(scope.row.overseasInTransit) }}</span></template></el-table-column>
               <el-table-column prop="inStockTotal" width="128" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #header><span class="header-with-help">在库总量<el-tooltip content="在库总量=可用库存+占用库存+冻结库存。海外仓、平台仓（Amazon FBA 除外）不展示占用数量，无法计算在库总量，显示—" placement="top"><span class="header-help" @click.stop>?</span></el-tooltip></span></template><template #default="scope"><span :class="inStockVisible(scope.row)?'qty-normal':'qty-muted'">{{ inStockVisible(scope.row)?qty(scope.row.inStockTotal):'—' }}</span></template></el-table-column>
               <el-table-column prop="pendingPurchase" label="待采购库存" width="112" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #default="scope"><span :class="scope.row.pendingPurchase==null?'qty-muted':'qty-normal'">{{ scope.row.pendingPurchase==null?'—':qty(scope.row.pendingPurchase) }}</span></template></el-table-column>
               <el-table-column prop="frozen" label="冻结库存" width="104" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #default="scope"><span :class="isFbaRow(scope.row)?'qty-muted':'qty-normal'">{{ isFbaRow(scope.row)?'—':qty(scope.row.frozen) }}</span></template></el-table-column>
               <el-table-column prop="weightedAge" width="118" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #header><span class="header-with-help">加权库龄<el-tooltip content="仅自营仓、物流中转仓展示批次加权库龄；其他仓库不记录批次，显示—" placement="top"><span class="header-help" @click.stop>?</span></el-tooltip></span></template><template #default="scope"><button v-if="scope.row.weightedAge!=null" class="number-link weighted-age-link" @click="openMetric(scope.row,'age')">{{ ageText(scope.row.weightedAge) }}</button><span v-else class="qty-muted">—</span></template></el-table-column>
               <el-table-column label="负责人/采购员" width="166" align="left"><template #default="scope"><div class="owner-cell"><div><span>产品负责人：</span><b>{{ scope.row.developer }}</b></div><div><span>采购员：</span><b>{{ scope.row.buyer }}</b></div></div></template></el-table-column>
-              <el-table-column label="操作" width="108" fixed="right" align="center"><template #default="scope"><el-button link type="primary" @click="openMetric(scope.row,'flow')">库存流水</el-button></template></el-table-column>
+              <el-table-column label="操作" width="120" fixed="right" align="center"><template #default="scope"><div class="inventory-row-actions"><el-button link type="primary" @click="openMetric(scope.row,'flow')">库存流水</el-button><el-button link type="info" @click="openOwnershipTransfer(scope.row)">货权调拨</el-button></div></template></el-table-column>
               <template #empty><el-empty description="暂无符合条件的库存记录"></el-empty></template>
             </el-table>
           </section>
@@ -141,14 +141,36 @@
           </section>
         </template>
       </el-dialog>
+
+      <el-dialog v-model="ownershipVisible" width="1120px" align-center :close-on-click-modal="false" destroy-on-close class="inventory-modal ownership-modal">
+        <template #header><div class="modal-title"><div><h2>货权调拨</h2><p>货权调拨按明细行所在仓库处理，一张单可包含多个仓库</p></div></div></template>
+        <div class="ownership-summary"><span>调拨类型：<b>货权调拨</b></span><span>明细行数：<b>{{ ownershipItems.length }}</b></span><span>调拨总量：<b>{{ ownershipItems.reduce((sum,item)=>sum+Number(item.quantity||0),0) }}</b></span></div>
+        <div class="ownership-remark"><span>调拨备注</span><el-input v-model="ownershipRemark" maxlength="500" placeholder="请输入备注（选填）"></el-input></div>
+        <div class="ownership-table-card">
+          <el-table :data="ownershipItems" class="ownership-detail-table" max-height="380">
+            <el-table-column prop="warehouse" label="仓库" min-width="170" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="sku" label="SKU" width="128" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="name" label="产品名称" min-width="180" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="team" label="调出团队" width="118" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="available" label="可用库存" width="96" align="right"></el-table-column>
+            <el-table-column label="调拨数量" width="120" align="center"><template #default="scope"><el-input v-model="scope.row.quantity" type="number" min="1" :max="scope.row.available" placeholder="请输入"></el-input></template></el-table-column>
+            <el-table-column label="调入团队" width="160"><template #default="scope"><el-select v-model="scope.row.targetTeam" placeholder="请选择"><el-option v-for="team in targetTeamOptions(scope.row)" :key="team" :label="team" :value="team"></el-option></el-select></template></el-table-column>
+            <el-table-column label="备注" min-width="150"><template #default="scope"><el-input v-model="scope.row.remark" maxlength="120" placeholder="请输入"></el-input></template></el-table-column>
+            <el-table-column label="操作" width="72" align="center"><template #default="scope"><el-button link type="danger" @click="removeOwnershipItem(scope.$index)">移除</el-button></template></el-table-column>
+            <template #empty><el-empty description="暂无调拨明细"></el-empty></template>
+          </el-table>
+        </div>
+        <template #footer><div class="ownership-footer"><span>共 {{ ownershipItems.length }} 条明细</span><div><el-button @click="ownershipVisible=false">取消</el-button><el-button type="primary" @click="submitOwnership">提交审核</el-button></div></div></template>
+      </el-dialog>
+
     </div>
   </div>
 
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
   <script src="../../warehouse-attributes.js?v=1.0.1"></script>
-  <script src="./app.js?v=1.0.26"></script>
+  <script src="./app.js?v=1.0.33"></script>
   <script src="../../global-export.js?v=1.0.0"></script>
-  <script src="../../navigation.js?v=1.7.89"></script>
+  <script src="../../navigation.js?v=1.7.90"></script>
 </body>
 </html>
