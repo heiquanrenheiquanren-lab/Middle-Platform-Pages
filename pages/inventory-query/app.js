@@ -97,7 +97,7 @@
       const detailVisible=ref(false),currentRow=ref(null),detailMode=ref('team'),detailTeam=ref(''),copiedRowKey=ref('');
       const selectedRows=ref([]);
       const inventoryTable=ref(null);
-      const ownershipVisible=ref(false),ownershipRemark=ref(''),ownershipItems=ref([]);
+      const ownershipVisible=ref(false),ownershipItems=ref([]);
       const canSelectRow=row=>Number(row.available||0)>0;
       const handleSelectionChange=rows=>{selectedRows.value=rows;};
 
@@ -215,11 +215,9 @@
       const ownershipItemOf=row=>({warehouse:row.warehouse||'',sku:row.sku||'',name:row.name||'',team:row.team||'',available:Number(row.available||0),quantity:'',targetTeam:'',remark:''});
       const targetTeamOptions=row=>teams.filter(team=>team!==row.team);
       const removeOwnershipItem=index=>{ownershipItems.value.splice(index,1);if(!ownershipItems.value.length)ownershipVisible.value=false;};
-      const openOwnershipTransfer=row=>{ownershipItems.value=[ownershipItemOf(row)];ownershipRemark.value='';ownershipVisible.value=true;};
       const openBatchOwnershipTransfer=()=>{
         if(!selectedRows.value.length){ElMessage.warning('请先勾选需要调拨的库存');return;}
         ownershipItems.value=selectedRows.value.map(ownershipItemOf);
-        ownershipRemark.value='';
         ownershipVisible.value=true;
       };
       const submitOwnership=()=>{
@@ -241,7 +239,7 @@
       const fallbackCopy=text=>{const input=document.createElement('textarea');input.value=text;input.setAttribute('readonly','');input.style.position='fixed';input.style.left='-9999px';input.style.top='0';input.style.opacity='0';document.body.appendChild(input);input.focus();input.select();input.setSelectionRange(0,text.length);const copied=document.execCommand('copy');document.body.removeChild(input);if(!copied)throw new Error('copy failed')};
       const copySku=async(sku,rowKey)=>{try{let copied=false;if(navigator.clipboard&&window.isSecureContext){try{await navigator.clipboard.writeText(sku);copied=true}catch(error){copied=false}}if(!copied)fallbackCopy(sku);copiedRowKey.value=rowKey;window.setTimeout(()=>{if(copiedRowKey.value===rowKey)copiedRowKey.value=''},1500);ElMessage.success(`已复制 SKU：${sku}`)}catch(error){ElMessage.error('复制失败，请手动复制 SKU')}};
 
-      return{filters,warehouses,warehouseOptions,teams,developers,buyers,page,pageSize,updatedAt,hideZero,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailUnavailableMessage,detailRows,ageBuckets,productThumbnail,qty,docTypeLabel,ageText,quantityClass,isFbaRow,occupancyVisible,inStockVisible,isOverseasRow,getSummaries,query,resetFilters,openMetric,openOwnershipTransfer,selectedRows,canSelectRow,handleSelectionChange,openBatchOwnershipTransfer,inventoryTable,ownershipVisible,ownershipItems,ownershipRemark,targetTeamOptions,removeOwnershipItem,submitOwnership,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowWarehouseOptions,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
+      return{filters,warehouses,warehouseOptions,teams,developers,buyers,page,pageSize,updatedAt,hideZero,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailUnavailableMessage,detailRows,ageBuckets,productThumbnail,qty,docTypeLabel,ageText,quantityClass,isFbaRow,occupancyVisible,inStockVisible,isOverseasRow,getSummaries,query,resetFilters,openMetric,selectedRows,canSelectRow,handleSelectionChange,openBatchOwnershipTransfer,inventoryTable,ownershipVisible,ownershipItems,targetTeamOptions,removeOwnershipItem,submitOwnership,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowWarehouseOptions,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
     }
   }).use(window.ElementPlus).mount('#app');
 })();

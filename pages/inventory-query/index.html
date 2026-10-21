@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>库存查询</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="../../navigation.css?v=1.7.90">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.91">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.0.26">
+  <link rel="stylesheet" href="./styles.css?v=1.0.28">
   <link rel="stylesheet" href="../../warehouse-attributes.css?v=1.0.0">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
@@ -48,7 +48,7 @@
           </section>
 
           <section class="action-strip">
-            <div class="action-left"><el-button>导出</el-button><el-button type="primary" :disabled="!selectedRows.length" @click="openBatchOwnershipTransfer">批量货权调拨{{ selectedRows.length ? `（${selectedRows.length}）` : '' }}</el-button></div>
+            <div class="action-left"><el-button>导出</el-button><el-button type="primary" :disabled="!selectedRows.length" @click="openBatchOwnershipTransfer">货权调拨{{ selectedRows.length ? `（${selectedRows.length}）` : '' }}</el-button></div>
             <div class="action-right"><el-checkbox v-model="hideZero" @change="page=1">隐藏 0 库存数据</el-checkbox><el-tooltip content="勾选后隐藏可用库存、占用库存、头程在途、在库总量、待采购库存、冻结库存同时都为0的数据" placement="top"><span class="header-help zero-help" tabindex="0" aria-label="隐藏0库存数据说明">?</span></el-tooltip></div>
           </section>
 
@@ -69,7 +69,7 @@
               <el-table-column prop="frozen" label="冻结库存" width="104" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #default="scope"><span :class="isFbaRow(scope.row)?'qty-muted':'qty-normal'">{{ isFbaRow(scope.row)?'—':qty(scope.row.frozen) }}</span></template></el-table-column>
               <el-table-column prop="weightedAge" width="118" align="right" sortable="custom" :sort-orders="['ascending','descending',null]"><template #header><span class="header-with-help">加权库龄<el-tooltip content="仅自营仓、物流中转仓展示批次加权库龄；其他仓库不记录批次，显示—" placement="top"><span class="header-help" @click.stop>?</span></el-tooltip></span></template><template #default="scope"><button v-if="scope.row.weightedAge!=null" class="number-link weighted-age-link" @click="openMetric(scope.row,'age')">{{ ageText(scope.row.weightedAge) }}</button><span v-else class="qty-muted">—</span></template></el-table-column>
               <el-table-column label="负责人/采购员" width="166" align="left"><template #default="scope"><div class="owner-cell"><div><span>产品负责人：</span><b>{{ scope.row.developer }}</b></div><div><span>采购员：</span><b>{{ scope.row.buyer }}</b></div></div></template></el-table-column>
-              <el-table-column label="操作" width="120" fixed="right" align="center"><template #default="scope"><div class="inventory-row-actions"><el-button link type="primary" @click="openMetric(scope.row,'flow')">库存流水</el-button><el-button link type="info" @click="openOwnershipTransfer(scope.row)">货权调拨</el-button></div></template></el-table-column>
+              <el-table-column label="操作" width="88" fixed="right" align="center"><template #default="scope"><div class="inventory-row-actions"><el-button link type="primary" @click="openMetric(scope.row,'flow')">库存流水</el-button></div></template></el-table-column>
               <template #empty><el-empty description="暂无符合条件的库存记录"></el-empty></template>
             </el-table>
           </section>
@@ -143,9 +143,8 @@
       </el-dialog>
 
       <el-dialog v-model="ownershipVisible" width="1120px" align-center :close-on-click-modal="false" destroy-on-close class="inventory-modal ownership-modal">
-        <template #header><div class="modal-title"><div><h2>货权调拨</h2><p>货权调拨按明细行所在仓库处理，一张单可包含多个仓库</p></div></div></template>
+        <template #header><div class="modal-title"><div><h2>货权调拨</h2></div></div></template>
         <div class="ownership-summary"><span>调拨类型：<b>货权调拨</b></span><span>明细行数：<b>{{ ownershipItems.length }}</b></span><span>调拨总量：<b>{{ ownershipItems.reduce((sum,item)=>sum+Number(item.quantity||0),0) }}</b></span></div>
-        <div class="ownership-remark"><span>调拨备注</span><el-input v-model="ownershipRemark" maxlength="500" placeholder="请输入备注（选填）"></el-input></div>
         <div class="ownership-table-card">
           <el-table :data="ownershipItems" class="ownership-detail-table" max-height="380">
             <el-table-column prop="warehouse" label="仓库" min-width="170" show-overflow-tooltip></el-table-column>
@@ -153,8 +152,8 @@
             <el-table-column prop="name" label="产品名称" min-width="180" show-overflow-tooltip></el-table-column>
             <el-table-column prop="team" label="调出团队" width="118" show-overflow-tooltip></el-table-column>
             <el-table-column prop="available" label="可用库存" width="96" align="right"></el-table-column>
-            <el-table-column label="调拨数量" width="120" align="center"><template #default="scope"><el-input v-model="scope.row.quantity" type="number" min="1" :max="scope.row.available" placeholder="请输入"></el-input></template></el-table-column>
-            <el-table-column label="调入团队" width="160"><template #default="scope"><el-select v-model="scope.row.targetTeam" placeholder="请选择"><el-option v-for="team in targetTeamOptions(scope.row)" :key="team" :label="team" :value="team"></el-option></el-select></template></el-table-column>
+            <el-table-column width="120" align="center"><template #header><span class="ownership-required">调拨数量</span></template><template #default="scope"><el-input v-model="scope.row.quantity" type="number" min="1" :max="scope.row.available" placeholder="请输入"></el-input></template></el-table-column>
+            <el-table-column width="160"><template #header><span class="ownership-required">调入团队</span></template><template #default="scope"><el-select v-model="scope.row.targetTeam" placeholder="请选择"><el-option v-for="team in targetTeamOptions(scope.row)" :key="team" :label="team" :value="team"></el-option></el-select></template></el-table-column>
             <el-table-column label="备注" min-width="150"><template #default="scope"><el-input v-model="scope.row.remark" maxlength="120" placeholder="请输入"></el-input></template></el-table-column>
             <el-table-column label="操作" width="72" align="center"><template #default="scope"><el-button link type="danger" @click="removeOwnershipItem(scope.$index)">移除</el-button></template></el-table-column>
             <template #empty><el-empty description="暂无调拨明细"></el-empty></template>
@@ -169,8 +168,8 @@
   <script src="../../vendor/vue.global.prod.js"></script>
   <script src="../../vendor/element-plus.js"></script>
   <script src="../../warehouse-attributes.js?v=1.0.1"></script>
-  <script src="./app.js?v=1.0.33"></script>
+  <script src="./app.js?v=1.0.34"></script>
   <script src="../../global-export.js?v=1.0.0"></script>
-  <script src="../../navigation.js?v=1.7.90"></script>
+  <script src="../../navigation.js?v=1.7.91"></script>
 </body>
 </html>
