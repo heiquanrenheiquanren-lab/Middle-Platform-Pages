@@ -20,6 +20,7 @@
     forecast: '../demand-forecast/index.html',
     stock: '../stock-plan/index.html',
     purchase: '../purchase-plan/index.html',
+    purchase2: '../purchase-plan-2/index.html',
     shipment: '../shipment-plan/index.html',
     purchaseOrder: '../purchase-orders/index.html',
     shipmentOrder: '../shipment-orders/index.html',
@@ -342,6 +343,25 @@
       item.classList.remove('active');
       if (location.pathname.indexOf('/historical-purchase-price/') >= 0) item.classList.add('active');
       item.innerHTML = '<span class="mini">⌁</span>历史采购价';
+      source.insertAdjacentElement('afterend', item);
+    });
+  }
+
+  function mountPurchaseVariantNav() {
+    document.querySelectorAll('[data-page-nav="purchase"]').forEach(function (source) {
+      var container = source.parentElement;
+      if (!container) return;
+      var label = Array.prototype.slice.call(source.childNodes).find(function (node) { return node.nodeType === Node.TEXT_NODE && node.nodeValue.trim(); });
+      if (label) label.nodeValue = '采购计划（1）';
+      if (container.querySelector('[data-page-nav="purchase2"]')) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'purchase2');
+      item.classList.remove('active');
+      item.innerHTML = '<span class="mini">▥</span>采购计划（2）';
+      if (location.pathname.indexOf('/purchase-plan-2/') >= 0) {
+        source.classList.remove('active');
+        item.classList.add('active');
+      }
       source.insertAdjacentElement('afterend', item);
     });
   }
@@ -732,6 +752,7 @@
     mountBatchInventoryNav();
     mountSupplierNav();
     mountHistoricalPurchasePriceNav();
+    mountPurchaseVariantNav();
     renameWarehouseNavigation();
 
     var collapsed = false;

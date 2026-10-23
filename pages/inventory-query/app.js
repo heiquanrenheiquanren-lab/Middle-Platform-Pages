@@ -7,39 +7,39 @@
   const productThumbnail=sku=>{const visuals={FF123456:{bg:'#eaf2ff',accent:'#3b82f6',label:'焊接面罩',shape:'mask'},U00US160015:{bg:'#eef9f2',accent:'#22a06b',label:'焊机套装',shape:'machine'},U00US260010:{bg:'#fff5e8',accent:'#f59e0b',label:'等离子切割机',shape:'machine'},'130US160003':{bg:'#f4efff',accent:'#7c5ce6',label:'ARC 焊机',shape:'machine'},'140US260008':{bg:'#e9f7f8',accent:'#0f9da4',label:'CUT55',shape:'machine'},'34001001110':{bg:'#fff0f3',accent:'#e05270',label:'焊接帽',shape:'cap'},ZERO00001:{bg:'#f1f3f5',accent:'#98a2b3',label:'商品',shape:'box'}};const visual=visuals[sku]||visuals.ZERO00001;const shape={mask:`<path d="M21 19h38l-3 23H24z" fill="${visual.accent}"/><path d="M28 26h24v8H28z" fill="#fff" opacity=".9"/>`,machine:`<rect x="18" y="22" width="44" height="31" rx="6" fill="${visual.accent}"/><circle cx="31" cy="38" r="6" fill="#fff" opacity=".9"/><path d="M52 29h8v17h-8" stroke="#fff" stroke-width="3" fill="none"/>`,cap:`<path d="M18 43c2-16 12-25 25-25s23 9 25 25H18z" fill="${visual.accent}"/><path d="M26 43h34l8 7H18l8-7z" fill="#fff" opacity=".9"/>`,box:`<path d="m21 29 22-11 22 11v27L43 67 21 56V29z" fill="${visual.accent}"/><path d="m21 29 22 12 22-12M43 41v26" stroke="#fff" stroke-width="2" fill="none" opacity=".9"/>`}[visual.shape];return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 86 86"><rect width="86" height="86" rx="10" fill="${visual.bg}"/>${shape}<text x="43" y="78" text-anchor="middle" fill="${visual.accent}" font-family="Arial, sans-serif" font-size="8" font-weight="700">${visual.label}</text></svg>`)}`};
 
   const sourceRows=[
-    {warehouse:'耗材仓-东莞2号',warehouseType:'自营仓',sku:'FF123456',name:'自动变光焊接面罩基础款',unit:'件',developer:'颜文',buyer:'杨琴',updatedAt:'2026-09-20 10:30',teams:[
+    {warehouse:'耗材仓-东莞2号',warehouseType:'自营仓',sku:'FF123456',name:'自动变光焊接面罩基础款',unit:'件',developer:'李二',buyer:'杨琴',updatedAt:'2026-09-20 10:30',teams:[
       {team:'TikTok',lingxingSku:'LX-FF123456-TK',overseasSku:'-',fnsku:'-',onHand:60,occupied:15,frozen:3,inTransit:0,batches:[{batchNo:'PC2609150001',source:'采购入库',receivedAt:'2026-09-15',qty:60,age:5}]}
     ]},
-    {warehouse:'美通物流中转仓',warehouseType:'物流中转仓',sku:'FF123456',name:'自动变光焊接面罩基础款',unit:'件',developer:'颜文',buyer:'杨琴',updatedAt:'2026-09-20 10:30',teams:[
+    {warehouse:'美通物流中转仓',warehouseType:'物流中转仓',sku:'FF123456',name:'自动变光焊接面罩基础款',unit:'件',developer:'李二',buyer:'杨琴',updatedAt:'2026-09-20 10:30',teams:[
       {team:'TikTok',lingxingSku:'LX-FF123456-TK',overseasSku:'OW-FF123456',fnsku:'-',onHand:100,occupied:30,frozen:10,inTransit:50,batches:[{batchNo:'RK20260828016',source:'采购入库',receivedAt:'2026-08-28',qty:60,age:23},{batchNo:'RK20260908009',source:'采购入库',receivedAt:'2026-09-08',qty:40,age:12}]},
       {team:'eBay',lingxingSku:'LX-FF123456-EB',overseasSku:'OW-FF123456',fnsku:'-',onHand:50,occupied:10,frozen:0,inTransit:20,batches:[{batchNo:'RK20260821008',source:'采购入库',receivedAt:'2026-08-21',qty:30,age:30},{batchNo:'JGP20260905002',source:'加工入库',receivedAt:'2026-09-05',qty:20,age:15}]}
     ]},
-    {warehouse:'美通物流中转仓',warehouseType:'物流中转仓',sku:'U00US160015',name:'ARC160焊机美规套装',unit:'件',developer:'郑豪阳',buyer:'杨琴',updatedAt:'2026-09-20 10:30',teams:[
+    {warehouse:'美通物流中转仓',warehouseType:'物流中转仓',sku:'U00US160015',name:'ARC160焊机美规套装',unit:'件',developer:'王一',buyer:'杨琴',updatedAt:'2026-09-20 10:30',teams:[
       {team:'TikTok',lingxingSku:'LX-U00US160015-TK',overseasSku:'OW-U00US160015',fnsku:'-',onHand:150,occupied:35,frozen:5,inTransit:0,batches:[{batchNo:'RK20260718021',source:'采购入库',receivedAt:'2026-07-18',qty:80,age:64},{batchNo:'RK20260824011',source:'采购入库',receivedAt:'2026-08-24',qty:70,age:27}]}
     ]},
-    {warehouse:'元速跨境物流中转仓',warehouseType:'物流中转仓',sku:'U00US260010',name:'CUT55 ProLux等离子切割机',unit:'件',developer:'颜文',buyer:'刘敏',updatedAt:'2026-09-20 09:45',teams:[
+    {warehouse:'元速跨境物流中转仓',warehouseType:'物流中转仓',sku:'U00US260010',name:'CUT55 ProLux等离子切割机',unit:'件',developer:'李二',buyer:'刘敏',updatedAt:'2026-09-20 09:45',teams:[
       {team:'TikTok',lingxingSku:'LX-U00US260010-TK',overseasSku:'OW-U00US260010',fnsku:'-',onHand:0,occupied:0,frozen:0,inTransit:100,batches:[]},
       {team:'eBay',lingxingSku:'LX-U00US260010-EB',overseasSku:'OW-U00US260010',fnsku:'-',onHand:30,occupied:30,frozen:0,inTransit:0,batches:[{batchNo:'RK20260901007',source:'调拨入库',receivedAt:'2026-09-01',qty:30,age:19}]}
     ]},
-    {warehouse:'亚马逊LAS1仓',warehouseType:'平台仓',sku:'130US160003',name:'ARC160（AC-美规）',unit:'件',developer:'郑豪阳',buyer:'刘敏',updatedAt:'2026-09-20 08:56',teams:[
+    {warehouse:'亚马逊LAS1仓',warehouseType:'平台仓',sku:'130US160003',name:'ARC160（AC-美规）',unit:'件',developer:'王一',buyer:'刘敏',updatedAt:'2026-09-20 08:56',teams:[
       {team:'亚马逊团队',lingxingSku:'LX-130US160003-AMZ',overseasSku:'-',fnsku:'X003AMZLAS1',onHand:220,occupied:40,frozen:null,inTransit:80,batches:[{batchNo:'FBA20260715003',source:'FBA入仓',receivedAt:'2026-07-15',qty:120,age:67},{batchNo:'FBA20260826011',source:'FBA入仓',receivedAt:'2026-08-26',qty:100,age:25}]}
     ]},
-    {warehouse:'跨越美国洛杉矶仓',warehouseType:'海外仓',sku:'FF123456',name:'自动变光焊接面罩基础款',unit:'件',developer:'颜文',buyer:'杨琴',updatedAt:'2026-09-20 10:20',teams:[
+    {warehouse:'跨越美国洛杉矶仓',warehouseType:'海外仓',sku:'FF123456',name:'自动变光焊接面罩基础款',unit:'件',developer:'李二',buyer:'杨琴',updatedAt:'2026-09-20 10:20',teams:[
       {team:'TikTok',lingxingSku:'LX-FF123456-TK',overseasSku:'OW-FF123456',fnsku:'-',onHand:120,occupied:0,frozen:0,inTransit:50,overseasInTransit:52,batches:[]},
       {team:'eBay',lingxingSku:'LX-FF123456-EB',overseasSku:'OW-FF123456',fnsku:'-',onHand:60,occupied:0,frozen:0,inTransit:20,overseasInTransit:52,batches:[]}
     ]},
-    {warehouse:'深圳市华英科技有限公司',warehouseType:'供应商仓',sku:'140US260008',name:'CUT55 ProLux',unit:'件',developer:'颜文',buyer:'杨琴',updatedAt:'2026-09-20 10:12',teams:[
+    {warehouse:'深圳市华英科技有限公司',warehouseType:'供应商仓',sku:'140US260008',name:'CUT55 ProLux',unit:'件',developer:'李二',buyer:'杨琴',updatedAt:'2026-09-20 10:12',teams:[
       {team:'eBay',lingxingSku:'LX-140US260008-EB',overseasSku:'-',fnsku:'-',onHand:33,occupied:3,frozen:0,inTransit:250,batches:[{batchNo:'RK20260812031',source:'采购入库',receivedAt:'2026-08-12',qty:12,age:39},{batchNo:'RK20260822018',source:'采购入库',receivedAt:'2026-08-22',qty:21,age:29}]},
       {team:'B端团队',lingxingSku:'LX-140US260008-B2B',overseasSku:'-',fnsku:'-',onHand:10,occupied:0,frozen:0,inTransit:0,batches:[{batchNo:'RK20260910004',source:'销售退件入库',receivedAt:'2026-09-10',qty:10,age:10}]}
     ]},
-    {warehouse:'梧州供应商仓',warehouseType:'供应商仓',sku:'34001001110',name:'焊接帽子迷彩2-6 7/8',unit:'件',developer:'颜文',buyer:'陈丽',updatedAt:'2026-09-20 10:05',teams:[
+    {warehouse:'梧州供应商仓',warehouseType:'供应商仓',sku:'34001001110',name:'焊接帽子迷彩2-6 7/8',unit:'件',developer:'李二',buyer:'陈丽',updatedAt:'2026-09-20 10:05',teams:[
       {team:'亚马逊团队',lingxingSku:'LX-34001001110-AMZ',overseasSku:'-',fnsku:'-',onHand:56,occupied:12,frozen:2,inTransit:0,batches:[{batchNo:'WZ-RK20260808012',source:'采购入库',receivedAt:'2026-08-08',qty:26,age:43},{batchNo:'WZ-RK20260819007',source:'采购入库',receivedAt:'2026-08-19',qty:30,age:32}]},
       {team:'B端团队',lingxingSku:'LX-34001001110-B2B',overseasSku:'-',fnsku:'-',onHand:0,occupied:0,frozen:0,inTransit:0,batches:[]}
     ]},
-    {warehouse:'台州华熙灯饰有限公司',warehouseType:'供应商仓',sku:'U00US160015',name:'ARC160焊机美规套装',unit:'件',developer:'郑豪阳',buyer:'陈丽',updatedAt:'2026-09-20 09:58',teams:[
+    {warehouse:'台州华熙灯饰有限公司',warehouseType:'供应商仓',sku:'U00US160015',name:'ARC160焊机美规套装',unit:'件',developer:'王一',buyer:'陈丽',updatedAt:'2026-09-20 09:58',teams:[
       {team:'TikTok',lingxingSku:'LX-U00US160015-TK',overseasSku:'-',fnsku:'-',onHand:50,occupied:0,frozen:0,inTransit:0,batches:[{batchNo:'TZ-RK20260903006',source:'采购入库',receivedAt:'2026-09-03',qty:50,age:17}]}
     ]},
-    {warehouse:'宁波测试供应商仓',warehouseType:'供应商仓',sku:'ZERO00001',name:'零库存历史测试商品',unit:'件',developer:'颜文',buyer:'杨琴',updatedAt:'2026-09-19 18:20',teams:[
+    {warehouse:'宁波测试供应商仓',warehouseType:'供应商仓',sku:'ZERO00001',name:'零库存历史测试商品',unit:'件',developer:'李二',buyer:'杨琴',updatedAt:'2026-09-19 18:20',teams:[
       {team:'eBay',lingxingSku:'LX-ZERO00001-EB',overseasSku:'-',fnsku:'-',onHand:0,occupied:0,frozen:0,inTransit:0,batches:[]}
     ]}
   ];
@@ -90,7 +90,7 @@
   createApp({
     setup(){
       const rows=ref(clone(sourceRows));
-      const filters=reactive({codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[],buyers:[]});
+      const filters=reactive({codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[]});
       const applied=reactive(clone(filters));
       const page=ref(1),pageSize=ref(20),updatedAt=ref('2026-09-20 10:30'),hideZero=ref(true);
       const sortState=reactive({prop:'',order:''});
@@ -105,7 +105,6 @@
       const warehouseOptions=warehouses.map(value=>({value,label:`${value}（${warehouseCodes[value]||'-'}）`}));
       const teams=[...new Set(sourceRows.flatMap(row=>row.teams.map(team=>team.team)))];
       const developers=[...new Set(sourceRows.map(row=>row.developer))];
-      const buyers=[...new Set(sourceRows.map(row=>row.buyer))];
 
       // —— 库存流水弹窗（查询项/字段与 inventory-flow 页面一致）——
       const flowRows=ref(clone(flowSource).map(row=>({...row,warehouseAttribute:window.WarehouseAttributes.of(row.warehouse),direction:row.after-row.before>0?'入库':row.after-row.before<0?'出库':'-',lingxingSku:'LX-'+row.sku,overseasSku:'OVS-'+row.sku,fnsku:'X00'+row.sku})));
@@ -149,7 +148,6 @@
         if(productName&&!row.name.toLowerCase().includes(productName))return false;
         if(applied.warehouses.length&&!applied.warehouses.includes(row.warehouse))return false;
         if(applied.developers.length&&!applied.developers.includes(row.developer))return false;
-        if(applied.buyers.length&&!applied.buyers.includes(row.buyer))return false;
         const zeroValues=[row.available,row.occupied,row.inTransit,row.inStockTotal,row.pendingPurchase,row.frozen].filter(value=>value!==null&&value!==undefined);
         const zero=zeroValues.length>0&&zeroValues.every(value=>value===0);
         if(hideZero.value&&zero)return false;
@@ -205,7 +203,7 @@
       const isOverseasRow=row=>Boolean(row&&row.warehouseAttribute==='海外仓');
       const getSummaries=({columns})=>{const firstDataIndex=columns.findIndex(column=>column.type!=='selection');return columns.map((column,index)=>{if(index===firstDataIndex)return'合计';if(column.property==='overseasInTransit')return'—';if(!summaryFields.includes(column.property))return'';if(column.property==='pendingPurchase'&&!filteredRows.value.some(row=>row.pendingPurchase!==null))return'—';if(column.property==='inStockTotal'&&filteredRows.value.some(row=>row.inStockTotal==null))return'—';return qty(filteredRows.value.reduce((sum,row)=>sum+Number(row[column.property]||0),0));});};
       const query=()=>{Object.assign(applied,clone(filters));page.value=1;ElMessage.success(`查询完成，共 ${filteredRows.value.length} 条库存记录`)};
-      const resetFilters=()=>{Object.assign(filters,{codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[],buyers:[]});Object.assign(applied,clone(filters));hideZero.value=true;page.value=1};
+      const resetFilters=()=>{Object.assign(filters,{codeType:'sku',codes:'',productName:'',warehouses:[],teams:[],developers:[]});Object.assign(applied,clone(filters));hideZero.value=true;page.value=1};
       const openMetric=(row,mode,team=row.team||'')=>{
         if((mode==='batch'||mode==='age')&&!row.batchEnabled){ElMessage.info('该仓库类型暂不记录库存批次');return;}
         currentRow.value=row;detailMode.value=mode;detailTeam.value=team;
@@ -239,7 +237,7 @@
       const fallbackCopy=text=>{const input=document.createElement('textarea');input.value=text;input.setAttribute('readonly','');input.style.position='fixed';input.style.left='-9999px';input.style.top='0';input.style.opacity='0';document.body.appendChild(input);input.focus();input.select();input.setSelectionRange(0,text.length);const copied=document.execCommand('copy');document.body.removeChild(input);if(!copied)throw new Error('copy failed')};
       const copySku=async(sku,rowKey)=>{try{let copied=false;if(navigator.clipboard&&window.isSecureContext){try{await navigator.clipboard.writeText(sku);copied=true}catch(error){copied=false}}if(!copied)fallbackCopy(sku);copiedRowKey.value=rowKey;window.setTimeout(()=>{if(copiedRowKey.value===rowKey)copiedRowKey.value=''},1500);ElMessage.success(`已复制 SKU：${sku}`)}catch(error){ElMessage.error('复制失败，请手动复制 SKU')}};
 
-      return{filters,warehouses,warehouseOptions,teams,developers,buyers,page,pageSize,updatedAt,hideZero,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailUnavailableMessage,detailRows,ageBuckets,productThumbnail,qty,docTypeLabel,ageText,quantityClass,isFbaRow,occupancyVisible,inStockVisible,isOverseasRow,getSummaries,query,resetFilters,openMetric,selectedRows,canSelectRow,handleSelectionChange,openBatchOwnershipTransfer,inventoryTable,ownershipVisible,ownershipItems,targetTeamOptions,removeOwnershipItem,submitOwnership,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowWarehouseOptions,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
+      return{filters,warehouses,warehouseOptions,teams,developers,page,pageSize,updatedAt,hideZero,filteredRows,sortedRows,pagedRows,sortState,handleSortChange,detailVisible,currentRow,detailMode,detailTeam,copiedRowKey,detailTeams,detailSummary,detailTitle,detailUnavailableMessage,detailRows,ageBuckets,productThumbnail,qty,docTypeLabel,ageText,quantityClass,isFbaRow,occupancyVisible,inStockVisible,isOverseasRow,getSummaries,query,resetFilters,openMetric,selectedRows,canSelectRow,handleSelectionChange,openBatchOwnershipTransfer,inventoryTable,ownershipVisible,ownershipItems,targetTeamOptions,removeOwnershipItem,submitOwnership,copySku,flowFilters,flowApplied,flowPage,flowPageSize,flowWarehouses,flowWarehouseOptions,flowOpTypes,flowDirections,flowFilteredRows,flowPagedRows,flowQuery,flowReset,signed};
     }
   }).use(window.ElementPlus).mount('#app');
 })();

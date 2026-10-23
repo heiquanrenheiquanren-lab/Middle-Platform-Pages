@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>采购计划（2）</title>
+  <link rel="stylesheet" href="../../vendor/element-plus.css?v=1.7.0">
+  <link rel="stylesheet" href="../../ui-kit.css">
+  <link rel="stylesheet" href="../transfer-orders/styles.css?v=1.0.24">
+  <link rel="stylesheet" href="../../document-list.css?v=1.0.1">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.92">
+  <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
+  <link rel="stylesheet" href="./styles.css?v=2.0.4">
+</head>
+<body data-ui-kit-page="standard" class="ui-page-canvas">
+  <div class="app">
+    <header class="global-bar">
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
+      <div class="global-right"><span class="admin">Admin⌄</span></div>
+    </header>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="nav-scroll">
+          <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div><div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+          <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划（1）</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+          <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div><div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
+        </div><div class="collapse">≡</div>
+      </aside>
+      <main class="main purchase-plan-main">
+        <section class="query-panel ui-query-card" id="queryCard" aria-label="查询区域">
+          <div class="query-grid ui-query-flow" id="queryGrid">
+            <div class="query-item query-combo query-code-combo"><select class="control query-type-select" id="codeType" title="编码类型"><option>SKU</option><option>供应商料号</option><option>领星 SKU</option><option>FNSKU</option></select><div class="control tag-input query-combo-input" id="codeBox"><div id="codeTags"></div><input id="codeInput" placeholder="请输入编码，支持多个，用逗号或空格隔开" autocomplete="off"></div></div>
+            <div class="query-item query-combo query-document-combo"><select class="control query-type-select" id="documentNoType" title="单号类型"><option value="plan">采购计划号</option><option value="purchase">采购单号</option></select><input class="control query-combo-input" id="documentNoInput" placeholder="请输入采购计划号，支持多个" autocomplete="off"></div>
+            <div class="query-item"><select class="control" id="purchaseStatus" title="采购单状态"><option value="">采购单状态</option><option>待提交</option><option>待审批</option><option>待收货</option><option>部分收货</option><option>已完成</option><option>已作废</option></select></div>
+            <div class="query-item"><div class="multi" id="warehouseMulti"><div class="multi-trigger" data-trigger>请选择采购仓</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="supplierMulti"><div class="multi-trigger" data-trigger>请选择供应商</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><input class="control" id="productName" placeholder="请输入品名，支持模糊查询"></div>
+            <div class="query-item"><div class="multi" id="platformMulti"><div class="multi-trigger" data-trigger>请选择平台</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="countryMulti"><div class="multi-trigger" data-trigger>请选择国家</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="storeMulti"><div class="multi-trigger" data-trigger>请选择店铺</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="teamMulti"><div class="multi-trigger" data-trigger>请选择团队</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="creatorMulti"><div class="multi-trigger" data-trigger>请选择创建人</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item query-date-item"><select class="control query-time-type" id="timeType" title="时间口径"><option>创建时间</option><option>更新时间</option><option>计划交货日期</option><option>计划下单日期</option></select><div class="date-group"><input id="startDate" type="date" aria-label="开始日期"><span>至</span><input id="endDate" type="date" aria-label="结束日期"></div></div>
+            <div class="query-item advanced-query-item"><input class="control" id="shipmentNo" placeholder="请输入发货单号，支持多个"></div>
+            <div class="query-item advanced-query-item"><input class="control" id="remark" placeholder="请输入采购计划备注"></div>
+            <div class="query-item query-action-item"><div class="query-actions ui-query-actions"><button class="query-inline-expand" id="queryExpand" type="button" aria-expanded="false"><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button><button class="btn primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button></div></div>
+          </div>
+        </section>
+        <section id="purchaseBusinessApp" class="purchase-plan-business"></section>
+      </main>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="../../vendor/vue.global.prod.js?v=1.7.0"></script>
+  <script src="../../vendor/element-plus.js?v=1.7.0"></script>
+  <script src="../../ui-kit.js"></script>
+  <script src="./app.js?v=2.0.3"></script>
+  <script src="../../custom-select.js?v=1.0.0"></script>
+  <script src="../../navigation.js?v=1.7.92"></script>
+</body>
+</html>
