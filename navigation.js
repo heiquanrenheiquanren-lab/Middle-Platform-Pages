@@ -34,7 +34,7 @@
     inventoryAdjustment: '../inventory-adjustments/index.html',
     pickupOrder: '../pickup-orders/index.html',
     supplierList: '../supplier-list/index.html',
-    warehouseSku: '../warehouse-sku/index.html',
+    warehouseSku: '../workbench/index.html#warehouseSku',
     productList: '../product-list/index.html',
     overseasSkuMapping: '../overseas-sku-mapping/index.html'
   });
