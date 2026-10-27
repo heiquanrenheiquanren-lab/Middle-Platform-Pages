@@ -1151,7 +1151,7 @@ flowchart TD
 | key | 页面 | 路径 |
 |---|---|---|
 | stock | 备货计划 | pages/stock-plan/index.html |
-| purchase | 采购计划 | pages/purchase-plan/index.html |
+| purchase | 采购计划 | pages/purchase-plan-2/index.html |
 | shipment | 发货计划 | pages/shipment-plan/index.html |
 | purchaseOrder | 采购单 | pages/purchase-orders/index.html |
 | shipmentOrder | 发货单 | pages/shipment-orders/index.html |

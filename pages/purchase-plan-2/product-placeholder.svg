@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="商品图片占位">
+  <rect width="48" height="48" rx="5" fill="#f5f7fa"/>
+  <path d="M10 17 24 10l14 7v16l-14 7-14-7V17Z" fill="#e4eaf2" stroke="#b8c5d5" stroke-width="1.5"/>
+  <path d="m10 17 14 7 14-7M24 24v16" fill="none" stroke="#b8c5d5" stroke-width="1.5"/>
+</svg>

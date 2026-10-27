@@ -110,7 +110,7 @@ Middle-Platform-Pages/
 │   │   ├── index.html
 │   │   ├── app.js
 │   │   └── styles.css
-│   ├── purchase-plan/                  # 采购计划
+│   ├── purchase-plan-2/                # 采购计划（业务方确定方案，保留原目录路径）
 │   │   ├── index.html
 │   │   ├── app.js
 │   │   └── styles.css

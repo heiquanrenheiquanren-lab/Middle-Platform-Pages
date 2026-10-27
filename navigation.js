@@ -19,11 +19,11 @@
     workflowManagement: '../workflow-management/index.html',
     forecast: '../demand-forecast/index.html',
     stock: '../stock-plan/index.html',
-    purchase: '../purchase-plan/index.html',
-    purchase2: '../purchase-plan-2/index.html',
+    purchase: '../purchase-plan-2/index.html',
     shipment: '../shipment-plan/index.html',
     purchaseOrder: '../purchase-orders/index.html',
     shipmentOrder: '../shipment-orders/index.html',
+    fbaShipment: '../fba-shipment/index.html',
     skuFirstLegCost: '../sku-first-leg-cost/index.html',
     historicalPurchasePrice: '../historical-purchase-price/index.html',
     inventoryQuery: '../inventory-query/index.html',
@@ -347,21 +347,15 @@
     });
   }
 
-  function mountPurchaseVariantNav() {
-    document.querySelectorAll('[data-page-nav="purchase"]').forEach(function (source) {
+  function mountFbaShipmentNav() {
+    document.querySelectorAll('[data-page-nav="shipmentOrder"]').forEach(function (source) {
       var container = source.parentElement;
-      if (!container) return;
-      var label = Array.prototype.slice.call(source.childNodes).find(function (node) { return node.nodeType === Node.TEXT_NODE && node.nodeValue.trim(); });
-      if (label) label.nodeValue = '采购计划（1）';
-      if (container.querySelector('[data-page-nav="purchase2"]')) return;
+      if (!container || container.querySelector('[data-page-nav="fbaShipment"]')) return;
       var item = source.cloneNode(true);
-      item.setAttribute('data-page-nav', 'purchase2');
+      item.setAttribute('data-page-nav', 'fbaShipment');
       item.classList.remove('active');
-      item.innerHTML = '<span class="mini">▥</span>采购计划（2）';
-      if (location.pathname.indexOf('/purchase-plan-2/') >= 0) {
-        source.classList.remove('active');
-        item.classList.add('active');
-      }
+      if (location.pathname.indexOf('/fba-shipment/') >= 0) item.classList.add('active');
+      item.innerHTML = '<span class="mini">♧</span>FBA货件';
       source.insertAdjacentElement('afterend', item);
     });
   }
@@ -752,7 +746,7 @@
     mountBatchInventoryNav();
     mountSupplierNav();
     mountHistoricalPurchasePriceNav();
-    mountPurchaseVariantNav();
+    mountFbaShipmentNav();
     renameWarehouseNavigation();
 
     var collapsed = false;
