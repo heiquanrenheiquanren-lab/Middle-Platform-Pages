@@ -415,6 +415,66 @@
 .purchase-create-plan-actions{display:flex;align-items:center;gap:8px}
 .purchase-create-readonly-field{display:flex;align-items:center;height:34px;box-sizing:border-box;padding:0 10px;overflow:hidden;border:1px solid #e4e7ed;border-radius:4px;background:#f5f7fa;color:#909399;white-space:nowrap;text-overflow:ellipsis}
 .purchase-create-action-cell{white-space:nowrap}
+/* 复制图标：编码后常驻浅灰，悬停变蓝；表头同步批量复制 */
+.copy-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:4px;padding:0;border:0;border-radius:3px;background:transparent;color:#a8abb2;vertical-align:-3px;cursor:pointer;transition:color .15s,background .15s}
+.copy-icon-btn:hover,.copy-icon-btn:focus-visible{color:var(--blue);background:#e6f7ff;outline:0}
+.copy-icon-btn-head{margin-left:4px;vertical-align:-2px}
+/* 收起一级列表：单行摘要横条模式 */
+.po-table.collapsed-mode>thead{display:none}
+/* 收起模式：放开一级表自身的最小宽度（2050px），列少时整表按视口宽度收缩，明细列由 JS 撑满容器，避免右侧大片空白 */
+.po-table.collapsed-mode{min-width:0}
+.po-strip-row>td{padding:0}
+.po-strip{display:flex;align-items:center;gap:12px;min-height:42px;padding:0 12px;white-space:nowrap}
+.po-strip-row:hover .po-strip{background:#f7fafd}
+.po-strip-row.is-expanded .po-strip{background:#eef7ff}
+.po-strip .row-check{flex:0 0 auto;margin:0 2px}
+.po-strip__pin{position:sticky;left:0;z-index:6;display:inline-flex;align-items:center;gap:12px;flex:0 0 auto;background:#fff;box-shadow:6px 0 8px -4px rgba(31,35,41,.12)}
+.po-strip-row:hover .po-strip__pin{background:#f7fafd}
+.po-strip__no{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.po-strip__no a{color:var(--blue);cursor:pointer}
+.po-strip__field{display:inline-flex;align-items:center;gap:5px;flex:0 1 auto;min-width:0;max-width:240px;overflow:hidden;color:#303133}
+.po-strip__field em{flex:0 0 auto;font-style:normal;color:#909399;font-size:12px}
+.po-strip__field b,.po-strip__field>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.po-strip__field b{font-weight:600}
+.po-strip__num{flex:0 0 auto}
+.po-strip__total{color:#909399}
+.po-strip__ops{position:relative;flex:0 0 auto;margin-left:0}
+.po-strip__trigger{height:26px;padding:0 10px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font-size:12px;cursor:pointer}
+.po-strip__trigger:hover{border-color:var(--blue);color:var(--blue)}
+.po-strip__menu{display:none;position:absolute;right:0;top:30px;z-index:80;min-width:96px;padding:4px 0;background:#fff;border:1px solid #e4e7ed;border-radius:4px;box-shadow:0 4px 14px rgba(31,35,41,.14)}
+.po-strip__menu.show{display:block}
+.po-strip__menu--float{position:fixed;z-index:900;min-width:110px;box-shadow:0 6px 20px rgba(31,35,41,.18)}
+.po-strip__menu button{display:block;width:100%;height:30px;padding:0 12px;border:0;background:transparent;color:#606266;font-size:13px;text-align:left;cursor:pointer}
+.po-strip__menu button:hover{background:#f5f7fa;color:var(--blue)}
+/* 收起模式顶部共用二级表头，吸顶显示 */
+.po-shared-head>td{position:sticky;top:0;z-index:9;padding:0 14px;background:#fff}
+.po-shared-head .detail-head-table{background:#f5f7fa}
+/* 收起模式下整表一体横向滚动：解除单元格对嵌套明细表的裁剪，明细不再单独滚动 */
+.po-table.collapsed-mode .po-shared-head>td,.po-table.collapsed-mode .po-detail-row>td,.po-table.collapsed-mode .po-strip-row>td{overflow:visible}
+.po-table.collapsed-mode .detail-scroll{overflow:visible}
+/* 合并采购：独立胶囊入口 + 可合并分组面板 */
+.bottom-left{display:flex;align-items:center;gap:14px}
+.sum-stats{font-size:12px;color:#909399;white-space:nowrap}
+.sum-stats b{color:#303133;font-weight:600}
+/* 结束到货：警告色文字按钮（不加粗、无背景描边） */
+.action-cell .finish-arrival-btn{color:#e6a23c}
+.action-cell .finish-arrival-btn:hover{color:#cf8a1f}
+.po-strip__menu .finish-arrival-btn{color:#e6a23c}
+.po-strip__menu .finish-arrival-btn:hover{background:#fdf6ec}
+.merge-pill{height:28px;padding:0 12px;border:1px solid #91caff;border-radius:14px;background:#e6f7ff;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer}
+.merge-pill:hover{background:#bae0ff;border-color:var(--blue)}
+.merge-panel{position:fixed;z-index:900;width:400px;max-width:calc(100vw - 16px);background:#fff;border:1px solid #dcdfe6;border-radius:8px;box-shadow:0 6px 20px rgba(31,35,41,.18);padding:12px 14px;font-size:12px;color:#606266}
+.merge-panel__head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px;font-weight:600;font-size:13px;color:#303133}
+.merge-panel__head em{font-style:normal;font-weight:400;font-size:11px;color:#909399}
+.merge-panel__list{max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.merge-panel__group{display:flex;align-items:center;gap:10px;border:1px solid #ebeef5;border-radius:6px;padding:8px 10px}
+.merge-panel__info{flex:1;min-width:0}
+.merge-panel__supplier{font-weight:600;color:#303133;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.merge-panel__meta{color:#909399;margin-top:2px}
+.merge-panel__nos{color:#a8abb2;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.merge-panel__pick{flex:0 0 auto;height:24px;padding:0 10px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:4px;cursor:pointer;font-size:12px}
+.merge-panel__pick:hover{background:#e6f7ff}
+.merge-panel__empty{color:#909399;text-align:center;padding:12px 0}
 .purchase-create-action-cell .link-btn + .link-btn{margin-left:8px}
 .purchase-create-table th:last-child{width:140px}
 
@@ -547,4 +607,5 @@
 .purchase-detail-record-table th{background:#f5f7fa}
 .purchase-detail-record-table th,.purchase-detail-record-table td{border-right:0;border-bottom-color:#f0f2f5}
 .purchase-detail-anchor{border-color:#e7ecf3;border-radius:8px;box-shadow:0 1px 2px rgba(31,45,61,.04)}
-.purchase-detail-dialog .po-urgent-tag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:2px;background:#fef0f0;color:#f56c6c;font-size:11px;line-height:16px;vertical-align:middle}
+/* 加急标签：与采购计划保持一致 */
+.po-urgent-tag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:2px;background:#fef0f0;color:#f56c6c;font-size:11px}

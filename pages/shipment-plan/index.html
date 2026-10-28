@@ -93,23 +93,12 @@
           <section class="action-strip ui-action-row">
             <div class="head-actions">
               <button class="btn primary" id="createPlanBtn">＋ 新建发货计划</button>
-              <button class="btn primary badge-button" id="manageListBtn">发货计划管理清单<span class="badge" id="manageBadge">3</span></button>
               <button class="btn" id="linkShipmentBtn">关联货件</button>
             </div>
           </section>
           <section class="plan-list-card ui-list-card">
             <section class="status-bar">
               <div class="status-tabs" id="statusTabs"></div>
-              <div class="status-tools">
-                <label class="compare"><input type="checkbox" id="compareToggle">对比模式</label>
-                <span class="tool" title="下载">▽</span>
-                <span class="tool" title="搜索">⌕</span>
-                <span class="tool" title="列设置">⚙</span>
-                <span class="tool" id="refreshBtn" title="刷新">↻</span>
-                <span class="tool" title="导入">↥</span>
-                <span class="tool" id="exportBtn" title="导出">↧</span>
-                <span class="tool" title="打印">▦</span>
-              </div>
             </section>
             <section class="table-area" id="tableArea">
               <table class="stock-table">
@@ -132,11 +121,6 @@
               </table>
             </section>
             <footer class="bottom-bar">
-              <div class="bottom-left">
-                <span class="selected-count">已选 <b id="selectedCount">0</b> 条</span>
-                <button class="btn soft" id="voidBtn">作废</button>
-                <button class="btn soft" id="genShipBtn">生成发货单</button>
-              </div>
               <div class="bottom-right">
                 <span>共 <b id="totalCount">0</b> 条</span>
                 <select class="control page-size" id="pageSize" title="每页条数">

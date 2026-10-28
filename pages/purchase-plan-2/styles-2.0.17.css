@@ -5,6 +5,8 @@
 /* ===== 页面骨架：查询卡片 → 透明操作行 → 单据列表卡片 ===== */
 .purchase-plan-main{grid-template-rows:auto 48px minmax(0,1fr);padding:14px;background:#f5f7fa;gap:12px}
 .purchase-plan-main .query-panel{padding:12px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff}
+/* 查询卡片与下方操作行、列表卡片左右对齐：抵消 navigation.css 给 .main>.query-panel 的 16px 侧边距 */
+.purchase-plan-main>.query-panel{margin-left:0!important;margin-right:0!important}
 .purchase-plan-main .action-strip{height:48px;padding:0;border:0;background:transparent;overflow-x:auto;white-space:nowrap}
 .purchase-plan-business{display:contents}
 

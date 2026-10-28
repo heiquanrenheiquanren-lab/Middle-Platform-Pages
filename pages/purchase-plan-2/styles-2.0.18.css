@@ -1,0 +1,228 @@
+/* 采购计划列表与调拨单、损益单、提货单共用同一套「查询 + 操作 + 单据卡片」骨架。
+   页面基础样式（shell / 查询控件 / .btn / 状态栏 / 表格 / 分页 / 弹窗外壳）来自
+   ../transfer-orders/styles.css + document-list.css + ui-kit.css，本文件只保留采购计划的业务差异。 */
+
+/* ===== 页面骨架：查询卡片 → 透明操作行 → 单据列表卡片 ===== */
+.purchase-plan-main{grid-template-rows:auto 48px minmax(0,1fr);padding:14px;background:#f5f7fa;gap:12px}
+.purchase-plan-main .query-panel{padding:12px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff}
+/* 查询卡片与下方操作行、列表卡片左右对齐：抵消 navigation.css 给 .main>.query-panel 的 16px 侧边距 */
+.purchase-plan-main>.query-panel{margin-left:0!important;margin-right:0!important}
+.purchase-plan-main .action-strip{height:48px;padding:0;border:0;background:transparent;overflow-x:auto;white-space:nowrap}
+.purchase-plan-business{display:contents}
+
+/* Vue 挂载容器使用 display:contents，使操作行与列表卡片直接参与页面网格布局。 */
+.head-actions{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.head-actions .btn:disabled{color:#c0c4cc;border-color:#ebeef5;background:#fff;cursor:not-allowed}
+.head-actions .el-dropdown{display:inline-flex;align-items:center}
+.more-action-btn{display:inline-flex;align-items:center;gap:7px}
+.more-action-btn span{font-size:15px;line-height:1}
+.more-action-delete{color:#f56c6c!important}
+
+/* 查询区：多选编码标签输入 */
+.tag-input{display:flex;align-items:center;gap:5px;padding:2px 7px;overflow:hidden}
+.tag-input input{min-width:80px;flex:1;border:0;outline:0;height:26px;color:#606266}
+.tag-input input::placeholder{color:#c0c4cc}
+.chip{max-width:92px;height:22px;display:inline-flex;align-items:center;gap:4px;padding:0 6px;border:1px solid #e1e4e8;border-radius:3px;background:#f4f4f5;color:#606266;font-size:12px;white-space:nowrap}
+.chip .x{color:#a8abb2;cursor:pointer;font-size:14px}
+.purchase-plan-main .query-document-combo{flex:0 1 350px;width:350px;gap:8px}
+.purchase-plan-main .query-document-combo>.custom-select{flex:0 0 132px!important;width:132px!important;min-width:132px}
+.purchase-plan-main .query-document-combo>.input-clear{display:flex;flex:1 1 auto;width:auto;min-width:0}
+.purchase-plan-main .query-document-combo .query-combo-input{flex:1 1 auto;width:100%;min-width:0}
+.purchase-plan-main .query-panel input::placeholder{color:#909399;font-size:12px}
+.purchase-plan-main .query-panel .multi-trigger:not(.has-value),
+.purchase-plan-main .query-panel .custom-select.is-placeholder .custom-select-label{color:#909399;font-size:12px}
+
+/* 查询区两行折叠（UI_SPEC 3.9.5/3.9.6）：按行测量后为第三行起的查询项打标，默认收起，点「展开」显示全部 */
+.purchase-plan-main .query-panel.query-collapsed .query-overflow-item{display:none}
+
+/* 查询区日期控件：隐藏原生日历图标改为自绘小图标，统一边框/聚焦反馈与宽度 */
+.purchase-plan-main .query-date-item{flex:0 1 430px;width:430px}
+.purchase-plan-main .date-group{padding:0 3px;gap:2px;transition:border-color .15s,box-shadow .15s}
+.purchase-plan-main .date-group:focus-within{border-color:var(--blue);box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.purchase-plan-main .date-group input{flex:1 1 0;min-width:0;height:28px;padding:0 20px 0 6px;font-size:13px;color:#303133;cursor:pointer;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a8abb2' stroke-width='1.3' stroke-linecap='round'%3E%3Crect x='2' y='3' width='12' height='11' rx='1.5'/%3E%3Cpath d='M2 6.5h12M5.5 1.5v3M10.5 1.5v3'/%3E%3C/svg%3E") no-repeat right 6px center/12px 12px}
+.purchase-plan-main .date-group input::-webkit-calendar-picker-indicator{display:none}
+.purchase-plan-main .date-group span{padding:0;font-size:12px}
+
+/* 查询区按钮组：展开为轻量图标+文字按钮（悬停反馈、箭头随展开旋转），查询/重置统一内边距 */
+.purchase-plan-main .query-inline-expand{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 8px;border:0;border-radius:4px;background:transparent;color:#909399;font-size:12px;cursor:pointer;transition:color .15s,background .15s}
+.purchase-plan-main .query-inline-expand:hover{color:var(--blue);background:#f0f5ff}
+.purchase-plan-main .query-inline-expand[hidden]{display:none}
+.purchase-plan-main .query-inline-expand .query-arrow{display:inline-flex;margin:0;transition:transform .15s}
+.purchase-plan-main .query-inline-expand .query-arrow svg{width:12px;height:12px}
+.purchase-plan-main .query-inline-expand[aria-expanded="true"] .query-arrow{transform:rotate(180deg)}
+.purchase-plan-main .query-actions .btn{padding:0 18px}
+
+/* ===== 单据列表卡片 ===== */
+.list-card{min-width:0;min-height:0;display:grid;grid-template-rows:50px minmax(0,1fr) 53px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff;overflow:hidden}
+.list-card>.status-bar,.list-card>.table-area,.list-card>.bottom-bar{margin:0;border-left:0;border-right:0;border-radius:0}
+.list-card>.table-area{border-top:0;border-bottom:0}
+.list-card>.bottom-bar{border-bottom:0}
+.bottom-summary{flex:1 1 auto;min-width:0;overflow:hidden;color:#606266;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.bottom-summary b{color:#303133;font-weight:600}
+.list-card>.bottom-bar .pager{flex:none}
+.list-card .status-bar{height:50px;padding:0 16px;border-top:1px solid #ebeef5;border-bottom:0;overflow-x:auto}
+.list-card .status-tabs{height:48px;gap:25px}
+.list-card .status-tab em{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:18px;margin-left:6px;padding:0 6px;border-radius:10px;background:#f2f4f7;color:#909399}
+.list-card .status-tab.active em{background:#ecf5ff;color:#409eff}
+
+/* ===== 采购计划主表 ===== */
+.purchase-plan-table{border-collapse:separate;border-spacing:0;min-width:1040px;width:100%;table-layout:fixed}
+.purchase-plan-table th{position:sticky;top:0;z-index:4;height:47px;padding:0 12px;background:#f5f7fa;color:#606266;font-weight:500;text-align:left;border:0;border-bottom:1px solid #e4e9f2;white-space:nowrap}
+.purchase-plan-table td{height:56px;padding:6px 12px;color:#606266;text-align:left;vertical-align:middle;border:0;border-bottom:1px solid #e4e9f2;background:#fff}
+.purchase-plan-table tbody tr:hover>td{background:#f5faff}
+.purchase-plan-table .check-col{width:48px}.purchase-plan-table .expand-col{width:36px}.purchase-plan-table .no-col{width:250px}.purchase-plan-table .owner-col{width:140px}.purchase-plan-table .remark-col{width:auto}.purchase-plan-table .created-at-col{width:190px}
+.purchase-plan-table>thead>tr>th:first-child{text-align:left}
+.purchase-plan-table>thead>tr>th:nth-child(2),.purchase-plan-table .parent-row>td:nth-child(2){padding-left:4px;padding-right:0;text-align:left}
+.purchase-plan-table .document-expand.expand-all{margin:0}
+.purchase-plan-table .doc-line{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.batch-remark{display:flex;align-items:center;gap:6px;min-width:0}
+.batch-remark__text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.batch-remark__edit{display:inline-flex;flex:none;align-items:center;justify-content:center;width:22px;height:22px;padding:2px;border:0;border-radius:3px;background:transparent;color:#909399;cursor:pointer}
+.batch-remark__edit:hover,.batch-remark__edit:focus-visible{background:#ecf5ff;color:#409eff;outline:0}
+.batch-remark__edit svg{width:15px;height:15px}
+.batch-remark-popover.el-popper{padding:12px!important}
+.batch-remark-editor textarea{box-sizing:border-box;width:100%;min-height:86px;padding:7px 9px;resize:vertical;border:1px solid #dcdfe6;border-radius:4px;color:#606266;font:inherit;line-height:1.5;outline:0}
+.batch-remark-editor textarea:focus{border-color:#409eff}
+.batch-remark-editor__actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.batch-remark-editor__actions .el-button{margin:0}
+
+/* 单据号与状态标签 */
+.purchase-plan-table .doc-no{color:#1677ff;font-weight:400}
+.purchase-plan-items-table .detail-required{margin-right:4px;color:#f56c6c}
+.pp-status{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:3px;font-size:12px;white-space:nowrap}
+.pp-status--pending_review{color:#e6a23c;background:#fdf6ec}
+.pp-status--draft{color:#909399;background:#f4f4f5}
+.pp-status--pending_purchase{color:#1677ff;background:#eaf3ff}
+.pp-status--purchasing{color:#1677ff;background:#eaf3ff}
+.pp-status--partial_received{color:#e6a23c;background:#fdf6ec}
+.pp-status--completed{color:#19a974;background:#e9f8f1}
+.pp-status--rejected{color:#f56c6c;background:#fef0f0}
+.pp-status--voided{color:#f56c6c;background:#fef0f0}
+
+/* 展开行：SKU 明细子表 */
+.purchase-plan-table .detail-row>td{height:auto!important;padding:0!important;position:static!important;box-shadow:none!important;background:#f7f9fc!important}
+.purchase-plan-table .detail-wrap{padding:12px 18px 12px 3px;overflow:auto}
+.purchase-detail-table{min-width:3800px;width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;background:#fff}
+.purchase-detail-table th,.purchase-detail-table td{position:static!important;height:40px!important;padding:7px 10px!important;border:0!important;border-bottom:1px solid #e6ebf2!important;box-shadow:none!important;text-align:left!important;white-space:nowrap}
+.purchase-detail-table th{background:#f3f6fa!important;color:#606266!important;font-size:12px}
+.purchase-detail-table td{background:#fff!important;font-size:12px}
+.purchase-detail-table .detail-check-col{width:44px!important;min-width:44px;text-align:center!important;padding:7px 8px!important}.purchase-detail-table .detail-check-col input{width:16px;height:16px;margin:0;vertical-align:middle;cursor:pointer}
+.purchase-detail-table th:nth-child(2){width:146px}.purchase-detail-table th:nth-child(3){width:160px}.purchase-detail-table th:nth-child(4){width:200px}.purchase-detail-table th:nth-child(5){width:160px}
+.purchase-detail-table :is(th,td):is(.detail-check-col,.detail-sku,.detail-lingxing-sku,.detail-name,.detail-team){position:sticky!important;z-index:4;background:#fff!important}
+.purchase-detail-table th:is(.detail-check-col,.detail-sku,.detail-lingxing-sku,.detail-name,.detail-team){z-index:5;background:#f3f6fa!important}
+.purchase-detail-table .detail-check-col{left:0}
+.purchase-detail-table .detail-sku{left:44px}
+.purchase-detail-table .detail-lingxing-sku{left:190px}
+.purchase-detail-table .detail-name{left:350px}
+.purchase-detail-table .detail-team{left:550px;box-shadow:6px 0 8px rgba(31,35,41,.07)!important}
+.purchase-detail-table .combo-tag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:2px;background:#ecf5ff;color:#409eff;font-size:11px}
+.purchase-detail-table .detail-urgent{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:2px;background:#fef0f0;color:#f56c6c;font-size:11px}
+.purchase-detail-table .detail-empty-row td{height:56px!important;text-align:center!important;color:#909399!important}
+.purchase-detail-table .purchase-status{color:#409eff}
+.purchase-detail-table .purchase-status--pending{color:#909399}
+.purchase-detail-table .purchase-status--partial{color:#e6a23c}
+.purchase-detail-table tbody td.detail-difference{color:#f56c6c!important;font-weight:400!important}
+.purchase-detail-table tfoot td{height:44px!important;background:#f5f7fa!important;color:#303133!important;font-weight:600}
+.purchase-detail-table tfoot :is(.detail-check-col,.detail-sku,.detail-lingxing-sku,.detail-name,.detail-team){background:#f5f7fa!important}
+.purchase-detail-table tfoot .detail-sku{color:#303133!important}
+
+/* 已移除标签与移除记录气泡 */
+.detail-removed-tag{margin-left:6px;padding:1px 6px;border:1px solid #e4e7ed;border-radius:9px;background:#f5f6f8;color:#909399;font-size:11px;line-height:16px;cursor:pointer;vertical-align:middle}
+.detail-removed-tag:hover{border-color:#c0c4cc;background:#eef0f3;color:#606266}
+.detail-removed-pop{position:fixed;z-index:9999;padding:10px 12px;border:1px solid #e4e9f2;border-radius:8px;background:#fff;box-shadow:0 8px 24px rgba(15,27,45,.16);font-size:12px;color:#606266}
+.detail-removed-pop__head{margin-bottom:8px;color:#1f2a37;font-size:12px;font-weight:600}
+.detail-removed-pop__list{display:flex;flex-direction:column;gap:6px;margin:0}
+.detail-removed-pop__list>div{display:flex;gap:8px}
+.detail-removed-pop__list dt{flex:none;width:64px;color:#909399}
+.detail-removed-pop__list dd{flex:1;min-width:0;margin:0;color:#1f2a37;word-break:break-all}
+.purchase-detail-table tfoot .detail-summary-fill{background:#f5f7fa!important;box-shadow:none!important}
+
+/* ===== 新建/编辑采购计划弹窗（Element Plus，保留原有交互） ===== */
+.purchase-plan-dialog{width:min(1200px,calc(100vw - 48px));height:min(720px,calc(100vh - 32px));max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;border-radius:var(--ui-radius-dialog);font-size:13px}
+.purchase-plan-dialog .el-dialog__header{height:62px;flex:none;margin:0;padding:0 22px;border-bottom:1px solid #ebeef5}.purchase-plan-dialog .el-dialog__title{color:#303133;font-size:18px;font-weight:600;line-height:62px}.purchase-plan-dialog .el-dialog__headerbtn{top:16px;right:18px}.purchase-plan-dialog .el-dialog__body{display:flex;flex:1 1 auto;min-height:0;padding:0;overflow:hidden;background:#f7f9fc}.purchase-plan-dialog .el-dialog__footer{min-height:58px;flex:none;padding:0;border-top:1px solid #ebeef5;background:#fff}
+.purchase-plan-dialog-body{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;padding:16px 20px 18px;gap:12px;overflow:hidden}.purchase-plan-jump{flex:none;padding:10px 12px;border:1px solid #d9ecff;border-radius:6px;background:#f5faff;color:#606266;font-size:13px}
+.purchase-plan-toolbar{height:40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex:none}.purchase-plan-toolbar__note{color:#909399;font-size:12px}.purchase-plan-toolbar__actions{display:flex;align-items:center;gap:8px}.purchase-plan-toolbar__actions .el-button{margin-left:0}
+.purchase-plan-base-section{flex:none;overflow:hidden;border:1px solid #e5eaf1;border-radius:6px;background:#fff}.purchase-plan-public-fields{display:flex;align-items:flex-start;flex:none;gap:28px;min-height:52px;padding:8px 14px}.purchase-plan-public-field{display:flex;align-items:center;min-width:0;color:#606266;font-size:14px}.purchase-plan-public-field>span:first-child{width:100px;padding-right:10px;text-align:right;white-space:nowrap}.purchase-plan-public-field i{margin-right:4px;color:#f56c6c;font-style:normal}.purchase-plan-public-field .el-select,.purchase-plan-public-field .el-input{width:240px}.purchase-plan-public-field__value{color:#303133}.purchase-plan-public-field--remark{flex:1 1 auto}.purchase-plan-public-field--remark>span:first-child{line-height:32px}.purchase-plan-public-field--remark .el-textarea{flex:1;width:auto;min-width:0}.purchase-plan-public-field--remark .el-textarea__inner{min-height:54px;padding-top:6px;padding-bottom:6px}.purchase-plan-public-field--remark .purchase-plan-public-field__value{flex:1;min-width:0;line-height:22px;white-space:pre-wrap;word-break:break-word}
+.purchase-plan-items{display:flex;flex:0 1 auto;min-height:0;overflow:hidden;border:1px solid #e5eaf1;border-radius:6px;background:#fff}.purchase-plan-items .el-empty{margin:auto}.purchase-plan-items-table{width:100%;min-width:0}.purchase-plan-items-table .el-table__inner-wrapper:before{display:none}.purchase-plan-items-table th.el-table__cell{height:44px;padding:0;background:#f5f7fa;color:#606266;font-weight:500}.purchase-plan-items-table td.el-table__cell{height:68px;padding:8px 0;border-right:0}.purchase-plan-items-table th.el-table__cell{border-right:0}.purchase-plan-items-table .cell{padding-right:8px;padding-left:8px}.purchase-plan-items-table .el-input,.purchase-plan-items-table .el-select,.purchase-plan-items-table .el-date-editor,.purchase-plan-items-table .el-input-number{width:100%!important}.purchase-plan-items-table .el-input__wrapper,.purchase-plan-items-table .el-select__wrapper,.purchase-plan-items-table .el-date-editor.el-input__wrapper{min-height:32px;padding:1px 9px;box-shadow:0 0 0 1px #dcdfe6 inset}.purchase-plan-items-table .el-input-number .el-input__wrapper{box-shadow:0 0 0 1px #dcdfe6 inset}.purchase-plan-items-table .el-input__wrapper.is-focus,.purchase-plan-items-table .el-select__wrapper.is-focused,.purchase-plan-items-table .el-date-editor.el-input__wrapper.is-focus{box-shadow:0 0 0 1px #409eff inset}.purchase-plan-items-table .el-table-fixed-column--left,.purchase-plan-items-table .el-table-fixed-column--right{background:#fff}.purchase-plan-items-table .el-table-fixed-column--left.is-last-column:before{box-shadow:4px 0 8px rgba(0,0,0,.08)}.purchase-plan-items-table .el-table-fixed-column--right.is-first-column:before{box-shadow:-4px 0 8px rgba(0,0,0,.08)}.purchase-plan-items-table .el-table__footer-wrapper td.el-table__cell{height:44px;padding:0;background:#f5f7fa;color:#303133;font-weight:600}
+.purchase-plan-dialog .purchase-plan-items{flex:1 1 auto}
+.purchase-plan-dialog .purchase-plan-items-table td.el-table__cell{height:46px;padding:2px 0}
+
+/* 弹窗内字号整体较默认缩小 1 号 */
+.purchase-plan-dialog .el-dialog__title{font-size:17px}
+.purchase-plan-dialog .el-button{font-size:13px}
+.purchase-plan-dialog .el-input__inner,.purchase-plan-dialog .el-textarea__inner,.purchase-plan-dialog .el-select__wrapper,.purchase-plan-dialog .el-date-editor{font-size:13px}
+.purchase-plan-dialog .el-table th.el-table__cell,.purchase-plan-dialog .el-table td.el-table__cell,.purchase-plan-dialog .el-table__footer-wrapper td.el-table__cell{font-size:13px}
+.purchase-plan-dialog .purchase-plan-items-table .cell{font-size:13px}
+.purchase-plan-dialog .purchase-plan-public-field{font-size:13px}
+.purchase-plan-dialog .purchase-plan-toolbar__note{font-size:11px}
+.ui-dialog-mask.purchase-plan-import-mask{z-index:3100}
+.purchase-plan-dialog .purchase-plan-toolbar{justify-content:flex-start}
+.purchase-plan-dialog .purchase-plan-toolbar__actions{justify-content:flex-start}
+.purchase-plan-product{display:flex;align-items:center;gap:8px;min-width:0}.purchase-plan-product__image{width:34px;height:34px;flex:none;object-fit:cover;border:1px solid #ebeef5;border-radius:4px;background:#f5f7fa}.purchase-plan-product__name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.purchase-plan-public-field--owner{flex:none;align-self:center}.purchase-plan-public-field--owner>span:first-child{width:100px}.purchase-plan-public-field--owner .el-input{width:170px}.purchase-plan-public-field--owner .el-input__wrapper{background:#f5f7fa}
+.purchase-plan-dialog-footer{height:58px;display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:0 20px}.purchase-plan-summary{display:none}.purchase-plan-dialog-footer__actions{display:flex;gap:8px;flex:none}.purchase-plan-dialog-footer__actions .el-button{margin-left:0}
+.purchase-plan-dialog.is-view-mode .purchase-plan-toolbar{display:none}.purchase-plan-dialog.is-view-mode .purchase-plan-dialog-body{padding-top:18px}
+.purchase-sku-picker{width:min(980px,calc(100vw - 48px));height:min(640px,calc(100vh - 48px));display:flex;flex-direction:column;overflow:hidden;border-radius:var(--ui-radius-dialog)}.purchase-sku-picker .el-dialog__header{height:62px;flex:none;margin:0;padding:0 22px;border-bottom:1px solid #ebeef5}.purchase-sku-picker .el-dialog__title{color:#303133;font-size:18px;font-weight:600;line-height:62px}.purchase-sku-picker .el-dialog__headerbtn{top:16px;right:18px}.purchase-sku-picker .el-dialog__body{display:flex;flex:1 1 0;min-height:0;padding:0;overflow:hidden;background:#fff}.purchase-sku-picker .el-dialog__footer{height:58px;flex:none;padding:0;border-top:1px solid #ebeef5;background:#fff}.sku-picker-body{display:flex;flex:1 1 0;min-height:0;flex-direction:column;padding:18px 22px;overflow:hidden}.sku-picker-search{display:flex;align-items:center;gap:10px;flex:none;margin-bottom:16px}.sku-picker-search>.el-input{flex:1;min-width:0}.sku-picker-search>.el-button{margin-left:0;flex:none}.sku-picker-warning{flex:none;margin:-4px 0 12px;padding:8px 10px;border:1px solid #fde2e2;border-radius:4px;background:#fef0f0;color:#f56c6c;font-size:12px}.sku-picker-result-title{flex:none;margin-bottom:10px;color:#303133;font-size:14px;font-weight:500}.sku-picker-table-wrap{flex:1 1 0;min-height:0;overflow:auto;border:1px solid #e5eaf1;border-radius:6px}.sku-picker-table{width:100%}.sku-picker-table .el-table__inner-wrapper:before{display:none}.sku-picker-table th.el-table__cell{height:42px;padding:0;background:#f5f7fa;color:#606266;font-weight:500}.sku-picker-table td.el-table__cell{height:50px;padding:7px 0;border-right:0}.sku-picker-table th.el-table__cell{border-right:0}.sku-picker-table .cell{padding-right:12px;padding-left:12px}.sku-picker-footer{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;color:#909399;font-size:13px}.sku-picker-footer>div:last-child{display:flex;gap:8px}.sku-picker-footer .el-button{margin-left:0}
+@media(max-width:760px){.purchase-plan-dialog{width:calc(100vw - 24px)}.purchase-plan-dialog-body{padding:12px}.purchase-plan-public-fields{flex-wrap:wrap;gap:8px}.purchase-plan-public-field--remark{flex-basis:100%}.purchase-plan-toolbar__note{display:none}.purchase-plan-dialog-footer{padding:0 14px}.purchase-plan-summary{max-width:48vw}}
+.sku-picker-search--multiline{align-items:flex-end}
+.sku-picker-search--multiline>.el-input{flex:1;min-width:0}
+.sku-picker-search--multiline .el-textarea__inner{min-height:76px;resize:none}
+.sku-picker-search__actions{display:flex;align-items:center;gap:8px;flex:none}
+.sku-picker-search__actions .el-button{margin-left:0}
+.purchase-plan-inline-sku{display:flex;align-items:flex-end;gap:12px;margin:0 0 14px;padding:12px 14px;border:1px solid var(--ui-color-divider);border-radius:var(--ui-radius-card);background:#fff}.purchase-plan-inline-sku__input{flex:1;min-width:0}.purchase-plan-inline-sku .el-textarea__inner{min-height:78px;resize:none}.purchase-plan-inline-sku__warning{margin-top:6px;color:#e6a23c;font-size:12px}.purchase-plan-inline-sku__actions{display:flex;flex:none;gap:8px}.purchase-plan-inline-sku__actions .el-button{margin-left:0}
+.purchase-sku-picker .sku-picker-search>.el-button{min-width:76px}.purchase-plan-toolbar:has(.purchase-plan-toolbar__actions:only-child){justify-content:flex-start}
+.purchase-sku-picker .sku-picker-table td.el-table__cell{height:42px;padding:4px 0}.purchase-sku-picker .sku-picker-table .purchase-plan-product__image{width:28px;height:28px}.purchase-sku-picker .sku-picker-table .purchase-plan-product{gap:10px}
+.audit-targets{padding:8px 12px;background:#f5f7fa;border-radius:4px;margin-bottom:16px;max-height:140px;overflow-y:auto}
+.audit-target-label{font-size:13px;color:#606266;margin-bottom:4px;font-weight:500}
+.audit-target-item{font-size:13px;color:#303133;line-height:22px;padding:2px 0}
+
+@media(max-width:1200px){.purchase-plan-main{padding:12px}}
+@media(max-width:900px){.purchase-plan-main .query-combo,.purchase-plan-main .query-date-item{flex-basis:100%;width:100%}.purchase-plan-main .query-combo .query-combo-input,.purchase-plan-main .query-date-item .date-group{flex:1}.purchase-plan-main .query-action-item{width:100%}}
+
+/* ===== 新建/编辑采购计划弹窗视觉精简（对齐 UI_SPEC 1.8 新建单据弹窗基线，参照采购单「新建采购单」弹窗） ===== */
+.purchase-plan-dialog{border-radius:10px;box-shadow:0 24px 64px rgba(15,27,45,.18),0 6px 20px rgba(15,27,45,.08)}
+.purchase-plan-dialog .el-dialog__header{height:58px;padding:0 22px;border-bottom:1px solid #f0f2f5}
+.purchase-plan-dialog .el-dialog__title{font-size:16px;line-height:58px}
+.purchase-plan-dialog .el-dialog__headerbtn{top:20px;right:20px}
+.purchase-plan-dialog .el-dialog__footer{border-top-color:#f0f2f5}
+.purchase-plan-dialog .el-button{border-radius:6px}
+.purchase-plan-section-title{display:flex;align-items:center;gap:8px;padding:12px 16px 0;color:#303133;font-size:14px;font-weight:600}
+.purchase-plan-section-bar{flex:none;width:3px;height:14px;border-radius:2px;background:#1677ff}
+.purchase-plan-base-section{border-color:#e7ecf3;border-radius:8px;box-shadow:0 1px 2px rgba(31,45,61,.04)}
+.purchase-plan-public-fields{align-items:center;gap:24px;padding:10px 16px 14px}
+.purchase-plan-public-field{font-size:13px}
+.purchase-plan-public-field>span:first-child{width:auto;padding-right:8px;text-align:left;color:#606266;font-size:13px}
+.purchase-plan-public-field--owner>span:first-child{width:auto}
+.purchase-plan-detail-section{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;overflow:hidden;border:1px solid #e7ecf3;border-radius:8px;background:#fff;box-shadow:0 1px 2px rgba(31,45,61,.04)}
+.purchase-plan-dialog .purchase-plan-toolbar{height:auto;min-height:40px;justify-content:space-between;gap:12px;padding:12px 16px;flex:none}
+.purchase-plan-toolbar__title{display:flex;align-items:center;min-width:0}
+.purchase-plan-toolbar__title>b{color:#303133;font-size:14px;font-weight:600}
+.purchase-plan-stat{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:#f5f7fa;color:#909399;font-size:12px;line-height:18px;white-space:nowrap}
+.purchase-plan-stat em{margin:0 3px;color:#303133;font-weight:600;font-style:normal}
+.purchase-plan-toolbar__actions{flex:none;justify-content:flex-end}
+.purchase-plan-dialog .purchase-plan-items{flex:1 1 auto;min-height:0;overflow:hidden;border:0;border-radius:0;background:#fff}
+.purchase-plan-dialog .purchase-plan-items-table tbody tr:hover>td.el-table__cell{background:#f5faff}
+.purchase-plan-dialog .purchase-plan-items-table .el-table__footer-wrapper td.el-table__cell{background:#fafbfc;border-top:1px solid #f0f2f5}
+.purchase-plan-dialog-footer{justify-content:space-between;padding:0 20px}
+.purchase-plan-summary{display:flex;align-items:center;gap:8px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.purchase-plan-summary::-webkit-scrollbar{display:none}
+.purchase-plan-dialog.is-view-mode .purchase-plan-toolbar{display:flex}
+.purchase-plan-dialog.is-view-mode .purchase-plan-toolbar__actions{display:none}
+.purchase-sku-picker{border-radius:10px;box-shadow:0 24px 64px rgba(15,27,45,.18),0 6px 20px rgba(15,27,45,.08)}
+.purchase-sku-picker .el-dialog__title{font-size:16px}
+.purchase-sku-picker .el-dialog__header{border-bottom-color:#f0f2f5}
+.purchase-sku-picker .el-button{border-radius:6px}
+
+/* ===== 编码复制 icon（与采购单页一致） ===== */
+.copy-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:4px;padding:0;border:0;border-radius:3px;background:transparent;color:#a8abb2;vertical-align:-3px;cursor:pointer;transition:color .15s,background .15s}
+.copy-icon-btn:hover,.copy-icon-btn:focus-visible{color:var(--blue);background:#e6f7ff;outline:0}
+.copy-icon-btn-head{width:14px;height:14px;margin-left:4px;vertical-align:-2px;color:#909399}
+/* 数量范围查询：口径下拉 + 最小/最大值，与采购单交互一致 */
+.purchase-plan-main .query-quantity-item{flex:0 0 auto;width:auto}
+.purchase-plan-main .quantity-query{display:flex;align-items:center;gap:10px}
+.purchase-plan-main .quantity-type{width:135px}
+.purchase-plan-main .quantity-range{width:210px;height:32px;display:flex;align-items:center;box-sizing:border-box;border:1px solid #dcdfe6;border-radius:4px;background:#fff}
+.purchase-plan-main .quantity-range:focus-within{border-color:var(--blue);box-shadow:0 0 0 2px rgba(24,144,255,.1)}
+.purchase-plan-main .quantity-range input{width:88px;min-width:0;height:30px;padding:0 9px;border:0;outline:0;background:transparent;color:#606266;text-align:center;font:inherit}
+.purchase-plan-main .quantity-range input::placeholder{color:#c0c4cc}
+.purchase-plan-main .quantity-range span{flex:none;color:#c0c4cc}
