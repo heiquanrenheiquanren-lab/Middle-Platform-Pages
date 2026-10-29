@@ -18,7 +18,7 @@ window.createPurchasePlanColumnConfig = function (variant) {
     { key: 'differenceQty', label: '差异数量', group: '采购数量' },
     { key: 'receivedQty', label: '收货数量', group: '采购数量' },
     { key: 'inTransit', label: '采购在途', group: '采购数量' },
-    { key: 'purchaseNo', label: '采购单', group: '采购信息' },
+    { key: 'purchaseNo', label: '采购单', group: '采购信息', tableClass: 'detail-purchase-no' },
     { key: 'purchaseStatus', label: '采购状态', group: '采购信息' },
     { key: 'skuRemark', label: 'SKU 备注', group: '采购信息' },
     { key: 'deliveryDate', label: '期望到货日期', group: '采购信息' },
@@ -33,7 +33,9 @@ window.createPurchasePlanColumnConfig = function (variant) {
     { key: 'supplierSku', label: '供应商料号', group: '供应信息' },
     { key: 'minOrderQty', label: '最小起订量', group: '供应信息' },
     { key: 'leadTimeDays', label: '交期', group: '供应信息' },
-    { key: 'cartons', label: '箱数', group: '供应信息' }
+    { key: 'cartons', label: '箱数', group: '供应信息' },
+    /* 二级列表末列：计划采购量 × 上次采购价，口径与新建/编辑弹窗一致 */
+    { key: 'planAmount', label: '计划采购金额', group: '采购数量' }
   ];
   const defs = { parent: parentDefs, child: childDefs };
   const defaults = { parent: parentDefs.map(item => item.key), child: childDefs.map(item => item.key) };
@@ -54,7 +56,7 @@ window.createPurchasePlanColumnConfig = function (variant) {
     return [...locked, ...valid.filter(key => !locked.includes(key))];
   };
   // 列定义有新增时递增此版本号：老配置会自动补入新列一次，之后用户手动隐藏不再被覆盖
-  const CONFIG_VERSION = 2;
+  const CONFIG_VERSION = 3;
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
   const savedVersion = Number(saved.version) || 0;
@@ -127,7 +129,7 @@ window.purchasePlanDetailTemplate = function (variant) {
       <td v-if="detail.first" class="detail-check-col" :rowspan="detail.span"><input type="checkbox" :checked="isDetailSelected(detail.item)" @change="toggleDetail(detail.item, $event)" :aria-label="'选择 SKU ' + detail.item.sku"></td>
       <template v-for="column in childVisibleColumns" :key="column.key">
         ${numberCell}
-        <td v-if="column.key === 'sku' && detail.first" class="detail-sku" :rowspan="detail.span">{{ detail.item.sku }}<button class="copy-icon-btn" type="button" title="复制 SKU" aria-label="复制 SKU" @click.stop="copyCellText(detail.item.sku, 'SKU')">${copyIconSvg}</button><span v-if="detail.item.urgent && ${variant} === 2" class="detail-urgent">加急</span><span v-if="detail.span > 1" class="combo-tag">组合品</span><button v-if="isSkuRemoved(doc, detail.component)" class="detail-removed-tag" type="button" :data-meta="JSON.stringify(removedMetaOf(doc, detail.component) || {})" :aria-label="'查看 SKU ' + detail.item.sku + ' 的移除信息'">已移除</button></td>
+        <td v-if="column.key === 'sku' && detail.first" class="detail-sku" :rowspan="detail.span">{{ detail.item.sku }}<button class="copy-icon-btn" type="button" title="复制 SKU" aria-label="复制 SKU" @click.stop="copyCellText(detail.item.sku, 'SKU')">${copyIconSvg}</button><span v-if="firstOrderOf(detail.item)" class="first-order-tag">首</span><span v-if="detail.item.urgent && ${variant} === 2" class="detail-urgent">加急</span><span v-if="detail.span > 1" class="combo-tag">组合品</span><button v-if="isSkuRemoved(doc, detail.component)" class="detail-removed-tag" type="button" :data-meta="JSON.stringify(removedMetaOf(doc, detail.component) || {})" :aria-label="'查看 SKU ' + detail.item.sku + ' 的移除信息'">已移除</button></td>
         <td v-else-if="column.key === 'lingxingSku' && detail.first" class="detail-lingxing-sku" :rowspan="detail.span">{{ detail.item.lingxingSku || '—' }}<button v-if="detail.item.lingxingSku" class="copy-icon-btn" type="button" title="复制领星 SKU" aria-label="复制领星 SKU" @click.stop="copyCellText(detail.item.lingxingSku, '领星 SKU')">${copyIconSvg}</button></td>
         <td v-else-if="column.key === 'productName'" :class="column.tableClass">{{ detail.component.productName }}</td>
         <td v-else-if="column.key === 'team'" :class="column.tableClass">{{ detail.component.team || '—' }}</td>
@@ -136,7 +138,7 @@ window.purchasePlanDetailTemplate = function (variant) {
         <td v-else-if="column.key === 'differenceQty'" class="detail-difference">{{ (detail.component.removed || detail.component.actualPurchaseQty == null) ? '—' : (Number(detail.component.actualPurchaseQty) - Number(detail.component.purchaseQty || 0)).toLocaleString() }}</td>
         <td v-else-if="column.key === 'receivedQty'">{{ isSkuRemoved(doc, detail.component) ? 0 : (detail.component.receivedQty == null ? '—' : Number(detail.component.receivedQty).toLocaleString()) }}</td>
         <td v-else-if="column.key === 'inTransit'">{{ purchaseInTransit(detail.component) == null ? '—' : purchaseInTransit(detail.component).toLocaleString() }}</td>
-        <td v-else-if="column.key === 'purchaseNo'">{{ isSkuRemoved(doc, detail.component) ? '—' : (detail.component.purchaseNo || '—') }}</td>
+        <td v-else-if="column.key === 'purchaseNo'" :class="column.tableClass"><template v-if="isSkuRemoved(doc, detail.component)">—</template><template v-else-if="!detail.component.purchaseNo">—</template><template v-else>{{ detail.component.purchaseNo }}<template v-if="detail.component !== detail.item"> ({{ detail.component.sku }} * {{ detail.component.comboRatio ?? 1 }})</template></template></td>
         <td v-else-if="column.key === 'purchaseStatus'"><template v-if="isSkuRemoved(doc, detail.component)">—</template><span v-else class="purchase-status" :class="{ 'purchase-status--pending': skuPurchaseStatus(doc, detail.component) === '待提交', 'purchase-status--partial': skuPurchaseStatus(doc, detail.component) === '部分收货' }">{{ skuPurchaseStatus(doc, detail.component) }}</span></td>
         <td v-else-if="column.key === 'purchaser'">{{ detail.component.purchaser || '—' }}</td>
         <td v-else-if="column.key === 'skuRemark'">{{ detail.component.remark || detail.item.remark || '—' }}</td>
@@ -152,6 +154,7 @@ window.purchasePlanDetailTemplate = function (variant) {
         <td v-else-if="column.key === 'minOrderQty'">{{ detail.component.minOrderQty == null ? '—' : Number(detail.component.minOrderQty).toLocaleString() }}</td>
         <td v-else-if="column.key === 'leadTimeDays'">{{ detail.component.leadTimeDays == null ? '—' : detail.component.leadTimeDays + ' 天' }}</td>
         <td v-else-if="column.key === 'cartons'">{{ itemCartons(detail.component) }}</td>
+        <td v-else-if="column.key === 'planAmount'">{{ planAmountText(detail.component) }}</td>
       </template>
     </tr><tr v-if="!planDetailRows(doc).length" class="detail-empty-row"><td :colspan="childVisibleColumns.length + 1">暂无明细</td></tr></tbody>
     </table></div></td></tr>`;

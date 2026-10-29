@@ -609,3 +609,6 @@
 .purchase-detail-anchor{border-color:#e7ecf3;border-radius:8px;box-shadow:0 1px 2px rgba(31,45,61,.04)}
 /* 加急标签：与采购计划保持一致 */
 .po-urgent-tag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:2px;background:#fef0f0;color:#f56c6c;font-size:11px}
+.po-first-order-tag{display:inline-block;margin-left:6px;padding:1px 5px;border:1px solid #a9c9f5;border-radius:2px;background:#eaf3ff;color:#1a6fd1;font-size:11px;line-height:16px;font-weight:600;vertical-align:middle}
+/* 上次采购价含税标识：仅含税价格展示在价格数值右侧 */
+.po-tax-included-tag{display:inline-block;margin-left:6px;padding:1px 5px;border:1px solid #f0c48a;border-radius:2px;background:#fff7e8;color:#b26a00;font-size:11px;line-height:16px;font-weight:600;vertical-align:middle}

@@ -20,6 +20,7 @@ window.PurchaseOrderColumnConfig = (function () {
       { key: 'receiveQty', label: '收货数量', group: '采购数量', width: 100 },
       { key: 'transitQty', label: '在途数', group: '采购数量', width: 100 },
       { key: 'unitPrice', label: '采购单价', group: '采购金额', width: 100 },
+      { key: 'lastPurchasePrice', label: '上次采购价', group: '采购金额', width: 110 },
       { key: 'skuAmount', label: 'SKU金额', group: '采购金额', width: 100 },
       { key: 'team', label: '团队', group: '销售属性', width: 110 },
       { key: 'platform', label: '平台', group: '销售属性', width: 120 },
@@ -37,6 +38,8 @@ window.PurchaseOrderColumnConfig = (function () {
   };
   const defaults = { parent: defs.parent.map(item => item.key), child: defs.child.map(item => item.key) };
   const storageKey = 'purchase-order-column-config-v2';
+  /* 列结构版本：新增「上次采购价」后，历史缓存需要按默认位置补入一次该列 */
+  const schemaVersion = 2;
 
   const normalize = (tab, keys) => {
     const available = defs[tab].map(item => item.key);
@@ -54,7 +57,14 @@ window.PurchaseOrderColumnConfig = (function () {
 
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
-  const applied = { parent: normalize('parent', saved.parent), child: normalize('child', saved.child) };
+  /* 历史缓存不含「上次采购价」时，仅迁移一次：插到「采购单价」之后，保持既有列顺序不变 */
+  const migrateSaved = (tab, keys) => {
+    if (!Array.isArray(keys) || (saved.schema || 1) >= schemaVersion) return keys;
+    if (tab !== 'child' || keys.includes('lastPurchasePrice')) return keys;
+    const index = keys.indexOf('unitPrice');
+    return index >= 0 ? [...keys.slice(0, index + 1), 'lastPurchasePrice', ...keys.slice(index + 1)] : [...keys, 'lastPurchasePrice'];
+  };
+  const applied = { parent: normalize('parent', migrateSaved('parent', saved.parent)), child: normalize('child', migrateSaved('child', saved.child)) };
   const draft = { parent: [], child: [] };
   let activeTab = 'parent';
   let searchKeyword = '';
@@ -112,7 +122,7 @@ window.PurchaseOrderColumnConfig = (function () {
   const apply = () => {
     applied.parent = normalize('parent', draft.parent);
     applied.child = normalize('child', draft.child);
-    try { localStorage.setItem(storageKey, JSON.stringify({ parent: applied.parent, child: applied.child })); } catch {}
+    try { localStorage.setItem(storageKey, JSON.stringify({ parent: applied.parent, child: applied.child, schema: schemaVersion })); } catch {}
     close();
     changeHandler();
     if (typeof window.toast === 'function') window.toast('列配置已应用');

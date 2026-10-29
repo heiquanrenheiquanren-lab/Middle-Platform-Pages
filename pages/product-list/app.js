@@ -343,6 +343,10 @@
   }
   document.querySelector('#selectAll').addEventListener('change',function(e){filtered.forEach(function(row){if(e.target.checked)selected.add(row.id);else selected.delete(row.id);});render();});body.addEventListener('change',function(e){if(!e.target.matches('.row-check'))return;var id=Number(e.target.dataset.id);if(e.target.checked)selected.add(id);else selected.delete(id);render();});body.addEventListener('click',function(e){var button=e.target.closest('[data-action]');if(!button)return;var row=products.find(function(item){return item.id===Number(button.dataset.id);});if(!row)return;if(button.dataset.action==='view')openModal(row,{readOnly:true});if(button.dataset.action==='edit')openModal(row,{readOnly:false});if(button.dataset.action==='combo')openComboSummary(row);if(button.dataset.action==='log')openLog(row);if(button.dataset.action==='toggle-enabled'){var previousStatus=row.enabled===false?'停用':'启用';row.enabled=!row.enabled;var savedAt=new Date().toISOString().slice(0,16).replace('T',' '),statusText=row.enabled?'启用':'停用';Object.assign(row,{updater:'Admin',updatedAt:savedAt});addOperationLog(row,'编辑','产品状态：'+previousStatus+' → '+statusText,'Admin',savedAt);render();toast('SKU 已'+statusText);}if(button.dataset.action==='delete')openDeleteConfirm(row);});
   document.querySelector('#addButton').addEventListener('click',function(){openModal();});document.querySelector('#batchButton').addEventListener('click',openBatch);
+  document.querySelector('#exportButton').addEventListener('click',function(){
+    if(!window.GlobalExportWorkbench){toast('导出组件未加载，请刷新页面重试');return;}
+    window.GlobalExportWorkbench.createTask({taskType:'产品资料导出',templateName:'产品资料导出',fileType:'xlsx'});
+  });
   (function(){
     var trigger=document.querySelector('#pushButton'),menu=document.querySelector('#pushMenuPanel'),wrap=trigger.closest('.push-menu');
     function closeMenu(){menu.hidden=true;trigger.setAttribute('aria-expanded','false');wrap.classList.remove('is-open');}

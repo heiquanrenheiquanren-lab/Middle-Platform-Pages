@@ -28,12 +28,12 @@ const lineRows=Array.from({length:27},(_,i)=>({
   planNo:`CGJH202608${String(1001+i)}`,batchNo:`PC2026${String(8001+i)}`,
   platform:platforms[i%platforms.length],store:stores[i%stores.length],team:teams[i%teams.length],
   receiver:receivers[i%receivers.length],receiveDate:`2026-08-${String(6+(i%22)).padStart(2,'0')}`,
-  purchaseQty:[9,66,100,2000,110][i%5],unitPrice:[12,15,18,20][i%4],transitQty:[0,66,100,2000,110][i%5],
+  purchaseQty:[9,66,100,2000,110][i%5],unitPrice:[12,15,18,20][i%4],lastPurchasePrice:[10.8,14.2,16.5,19.9][i%4],lastPurchaseTaxIncluded:i%2===0?'是':'否',transitQty:[0,66,100,2000,110][i%5],
   arrivedQty:i%4===0?9:i%4===1?0:i%4===2?0:210,pendingQty:i%3===0?0:i%3===1?2000:11,
   receiveQty:i%4===0?8:i%4===3?6:0,materialFee:i%5===0?100:0,freight:i%5===0?10:0,otherFee:0,
   name:['140US 焊接工具套装','焊接防护手套','测试商品 XX123456','焊接面罩自动变光','电焊钳 300A'][i%5],
   lingxingSku:`LXSKU-${String(360008+i).padStart(6,'0')}`,sellerSku:`SELLER-${String(260008+i).padStart(8,'0')}`,fnsku:i%3===0?`X00FN${String(100+i)}`:'—',
-  supplierItemNo:i%3===0?`SUP-${String(110700+i)}`:'—',minOrderQty:[1,10,20,50][i%4],grossWeight:[0.8,1.5,3.2,5][i%4],boxes:[1,2,4,6][i%4],leadTime:[7,10,15,20][i%4],demandGap:[0,20,100,300][i%4],suggestedQty:[0,20,100,300][i%4],
+  supplierItemNo:i%3===0?`SUP-${String(110700+i)}`:'—',firstOrder:i%4===0,minOrderQty:[1,10,20,50][i%4],grossWeight:[0.8,1.5,3.2,5][i%4],boxes:[1,2,4,6][i%4],leadTime:[7,10,15,20][i%4],demandGap:[0,20,100,300][i%4],suggestedQty:[0,20,100,300][i%4],
   expectedDeliveryDate:`2026-09-${String(8+(i%18)).padStart(2,'0')}`,plannedShipmentQty:[0,100,1000,20][i%4],
   expectedShipDate:`2026-09-${String(12+(i%12)).padStart(2,'0')}`,expectedArrivalDate:`2026-10-${String(2+(i%20)).padStart(2,'0')}`,
   platformStock:i%5===0?0:2,platformTransit:i%4===0?0:20,overseasStock:i%3===0?300:0,overseasPending:i%4===0?20:0,
@@ -102,13 +102,16 @@ function initMulti(rootId,items,key,placeholder){
 function splitValues(value){return [...new Set(value.trim().toLowerCase().split(/[\s,，;；]+/).filter(Boolean))];}
 function includesAny(value,values){return !values.length||values.some(v=>(value||'').toLowerCase().includes(v));}
 function equalsAny(value,values){return !values.length||values.includes(value);}
-function docMatches(row,{orderNos,orderQueryType,skus,skuQueryType,batches,productName,start,end,quantityType,quantityMin,quantityMax}){
+function docMatches(row,{orderNos,orderQueryType,skus,skuQueryType,batches,productName,start,end,quantityType,quantityMin,quantityMax,firstPurchase}){
   const hasQuantityRange=quantityMin!==''||quantityMax!=='';
   const matchesLine=line=>{const quantity=Number(line[quantityType]||0),code=skuQueryType==='sellerSku'?line.supplierItemNo:line[skuQueryType];return includesAny(String(code||''),skus)&&includesAny(line.batchNo,batches)&&(!productName||String(line.name||'').toLowerCase().includes(productName))&&(!state.teams.length||state.teams.includes(line.team))&&(!hasQuantityRange||(quantityMin===''||quantity>=Number(quantityMin))&&(quantityMax===''||quantity<=Number(quantityMax)));};
   const hasLineCriteria=skus.length||batches.length||productName||state.teams.length||hasQuantityRange;
   const matchesOrder=orderQueryType==='plan'?row.items.some(line=>includesAny(line.planNo,orderNos)):orderQueryType==='logistics'?row.logistics.some(item=>includesAny(item.no,orderNos)):includesAny(row.midNo,orderNos);
+  /* 是否首次采购：采购单明细中存在「首」标记 SKU 即视为首次采购单 */
+  const hasFirstOrder=row.items.some(item=>item.firstOrder);
   return matchesOrder&&
     (!hasLineCriteria||row.items.some(matchesLine))&&
+    (firstPurchase!=='是'||hasFirstOrder)&&(firstPurchase!=='否'||!hasFirstOrder)&&
     equalsAny(row.supplier,state.suppliers)&&equalsAny(row.warehouse,state.warehouses)&&
     (!state.platforms.length||row.items.some(item=>state.platforms.includes(item.platform)))&&
     (!state.stores.length||row.items.some(item=>state.stores.includes(item.store)))&&
@@ -129,13 +132,13 @@ function syncActionVisibility(){const allowed=state.status===null?null:actionVis
 function renderTabs(){purchaseOrders.forEach(row=>{if(row.status==='待收货'&&row.receiveQty>0&&row.receiveQty<row.purchaseQty)row.status='部分收货';});$('#statusTabs').innerHTML=statusDefs.map(([label,key])=>{const count=purchaseOrders.filter(row=>matchesStatus(row.status,key)).length;return `<div class="status-tab ${state.status===key?'active':''}" data-key="${key===null?'__all':key}">${label}<span class="tab-count">${count}</span></div>`;}).join('');syncActionVisibility();$$('.status-tab').forEach(tab=>tab.onclick=()=>{state.status=tab.dataset.key==='__all'?null:tab.dataset.key;state.page=1;applyFilters(false);renderTabs();});}
 function applyFilters(showMessage=true){
   if(!validateDates()||!validateQuantityRange())return;
-  const criteria={orderNos:splitValues($('#purchaseOrderNo').value),orderQueryType:$('#orderQueryType').value,skus:splitValues($('#skuInput').value),skuQueryType:$('#skuQueryType').value,batches:splitValues($('#batchNo').value),productName:$('#productName').value.trim().toLowerCase(),start:$('#startDate').value,end:$('#endDate').value,quantityType:$('#quantityType').value,quantityMin:$('#quantityMin').value,quantityMax:$('#quantityMax').value};
+  const criteria={orderNos:splitValues($('#purchaseOrderNo').value),orderQueryType:$('#orderQueryType').value,skus:splitValues($('#skuInput').value),skuQueryType:$('#skuQueryType').value,batches:splitValues($('#batchNo').value),productName:$('#productName').value.trim().toLowerCase(),start:$('#startDate').value,end:$('#endDate').value,quantityType:$('#quantityType').value,quantityMin:$('#quantityMin').value,quantityMax:$('#quantityMax').value,firstPurchase:$('#firstPurchaseFilter').value};
   state.filtered=purchaseOrders.filter(row=>docMatches(row,criteria));if(state.defaultExpand)state.expanded=new Set(state.filtered.map(row=>row.id));state.page=Math.min(state.page,Math.max(1,Math.ceil(state.filtered.length/state.pageSize)));renderTable();if(showMessage)toast(`查询完成，共 ${state.filtered.length} 张采购单`);
 }
 const multiConfigs=[['#supplierMulti',suppliers,'suppliers','供应商'],['#warehouseMulti',warehouses,'warehouses','采购仓库'],['#platformMulti',platforms,'platforms','平台'],['#storeMulti',stores,'stores','店铺'],['#teamMulti',teams,'teams','团队'],['#creatorMulti',creators,'creators','创建人']];
 function reset(){
   Object.assign(state,{suppliers:[],warehouses:[],platforms:[],stores:[],teams:[],creators:[],status:null,page:1,expanded:new Set(),filtered:[...purchaseOrders]});
-  ['#purchaseOrderNo','#skuInput','#productName','#batchNo','#startDate','#endDate','#quantityMin','#quantityMax'].forEach(id=>$(id).value='');$('#orderQueryType').value='purchase';$('#skuQueryType').value='sku';
+  ['#purchaseOrderNo','#skuInput','#productName','#batchNo','#startDate','#endDate','#quantityMin','#quantityMax'].forEach(id=>$(id).value='');$('#orderQueryType').value='purchase';$('#skuQueryType').value='sku';$('#firstPurchaseFilter').value='';
   $('#quantityType').value='transitQty';
   if(state.defaultExpand)state.expanded=new Set(state.filtered.map(row=>row.id));
   multiConfigs.forEach(([id,,key,placeholder])=>{const root=$(id);root.querySelectorAll('input').forEach(input=>input.checked=state[key].includes(input.value));const trigger=root.querySelector('[data-trigger]');trigger.textContent=state[key].length?state[key].join('、'):placeholder;trigger.classList.toggle('has-value',!!state[key].length);});renderTabs();renderTable();toast('已重置查询条件');
@@ -248,18 +251,20 @@ function renderDetail(row){
   const head=detailHeadCells(layout,lastStickyKey);
   const collapsed=state.listMode==='collapsed';
   const cols=detailColsMarkup(layout);
-  const body=row.items.map(item=>`<tr>${layout.map(({column,sticky,left})=>{const isLast=column.key===lastStickyKey;if(column.key==='sku'){const cell=`<td class="detail-sku-cell"><span class="sku-thumb">${item.icon}</span><span>${item.sku}</span>${item.urgent?'<span class="po-urgent-tag">加急</span>':''}${copyButton(item.sku,'复制 SKU')}</td>`;return sticky?decorateSticky(cell,left,isLast):cell;}const cell=childCellRenderers[column.key]?childCellRenderers[column.key](item,row):'<td></td>';return sticky?decorateSticky(cell,left,isLast):cell;}).join('')}</tr>`).join('');
+  const body=row.items.map(item=>`<tr>${layout.map(({column,sticky,left})=>{const isLast=column.key===lastStickyKey;if(column.key==='sku'){const cell=`<td class="detail-sku-cell"><span class="sku-thumb">${item.icon}</span><span>${item.sku}</span>${item.firstOrder?'<span class="po-first-order-tag">首</span>':''}${item.urgent?'<span class="po-urgent-tag">加急</span>':''}${copyButton(item.sku,'复制 SKU')}</td>`;return sticky?decorateSticky(cell,left,isLast):cell;}const cell=childCellRenderers[column.key]?childCellRenderers[column.key](item,row):'<td></td>';return sticky?decorateSticky(cell,left,isLast):cell;}).join('')}</tr>`).join('');
   return `<div class="detail-panel"><div class="detail-scroll"><table class="detail-table" style="width:${offset}px;min-width:${offset}px${collapsed?';table-layout:fixed':''}"><colgroup>${cols}</colgroup>${collapsed?'':`<thead><tr>${head}</tr></thead>`}<tbody>${body}</tbody></table></div></div>`;
 }
 /* 二级明细单元格：按列配置的 key 输出对应字段。 */
 const childCellRenderers={
   planNo:item=>`<td>${item.planNo}</td>`,
-  sku:item=>`<td class="detail-sku-cell"><span class="sku-thumb">${item.icon}</span><span>${item.sku}</span>${copyButton(item.sku,'复制 SKU')}</td>`,
+  sku:item=>`<td class="detail-sku-cell"><span class="sku-thumb">${item.icon}</span><span>${item.sku}</span>${item.firstOrder?'<span class="po-first-order-tag">首</span>':''}${copyButton(item.sku,'复制 SKU')}</td>`,
   name:item=>`<td class="detail-left"><span class="detail-name-text">${item.name}</span></td>`,
   purchaseQty:item=>`<td>${item.purchaseQty}</td>`,
   receiveQty:item=>`<td class="receive-number">${item.receiveQty}</td>`,
   transitQty:item=>`<td>${item.transitQty}</td>`,
   unitPrice:item=>`<td>${money(item.unitPrice)}</td>`,
+  /* 上次采购价：位于采购单价右侧；含税价格在数值后追加「含税」标签，不含税或价格为空时不展示 */
+  lastPurchasePrice:item=>`<td>${money(item.lastPurchasePrice)}${Number(item.lastPurchasePrice||0)>0&&item.lastPurchaseTaxIncluded==='是'?'<span class="po-tax-included-tag">含税</span>':''}</td>`,
   skuAmount:item=>`<td>${money(item.purchaseQty*item.unitPrice)}</td>`,
   team:item=>`<td>${item.team}</td>`,
   platform:item=>`<td>${item.platform}</td>`,
