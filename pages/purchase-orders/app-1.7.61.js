@@ -121,7 +121,7 @@ function docMatches(row,{orderNos,orderQueryType,skus,skuQueryType,batches,produ
 function validateDates(){const start=$('#startDate').value,end=$('#endDate').value;if((start&&!end)||(!start&&end)){toast('请选择完整的时间范围','error');return false;}if(start&&end&&start>end){toast('开始日期不能晚于结束日期','error');return false;}return true;}
 function validateQuantityRange(){const min=$('#quantityMin').value,max=$('#quantityMax').value;if((min&&!/^\d+$/.test(min))||(max&&!/^\d+$/.test(max))){toast('数量范围仅支持输入非负整数','error');return false;}if(min!==''&&max!==''&&Number(min)>Number(max)){toast('数量范围最小值不能大于最大值','error');return false;}return true;}
 const actionVisibility={
-  '待提交':['openPurchaseCreate','batchVoidPurchase','submitPurchaseReview','mergePurchaseOrders','batchEditOrders'],
+  '待提交':['openPurchaseCreate','batchVoidPurchase','submitPurchaseReview','batchEditOrders'],
   '待审核':['openPurchaseCreate','auditPurchaseOrders','batchVoidPurchase'],
   '待到齐':['openPurchaseCreate','openBatchPurchaseReceive','openOwnershipAdjustment'],
   '已完成':['openPurchaseCreate'],
@@ -281,9 +281,9 @@ const childCellRenderers={
 };
 function renderLogistics(row){const current=row.logistics[row.logisticsIndex]||row.logistics[0];return `<div class="logistics-cell"><div class="logistics-no">物流单号：${current.no}</div><div class="logistics-company">物流公司：${current.company}</div><div class="logistics-dots">${row.logistics.map((item,index)=>`<button class="logistics-dot ${index===row.logisticsIndex?'active':''}" data-action="logistics" data-id="${row.id}" data-index="${index}" aria-label="切换物流 ${index+1}"></button>`).join('')}</div></div>`;}
 function refreshErpPurchaseOrder(row,button){if(!row||!button)return;button.disabled=true;button.classList.add('is-refreshing');window.setTimeout(()=>{button.disabled=false;button.classList.remove('is-refreshing');toast(`已刷新${row.erpSource}采购单信息`);},450);}
-document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeRemarkPopover();closeRemoveReasonPopover();closeSupplierChangePopover();closePurchaseDetail();closePurchaseLog();closePurchaseReceive();closePurchaseBatchReceive();closeReceiveAdjust();closePurchaseComplete();closePurchaseAudit();}});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeRemarkPopover();closeRemoveReasonPopover();closeSupplierChangePopover();closePurchaseDetail();closePurchaseLog();closePurchaseReceive();closePurchaseBatchReceive();closeReceiveAdjust();closePurchaseComplete();closePurchaseAudit();closeMergeModal();}});
 function detailFields(fields){return `<div class="purchase-detail-field-grid">${fields.filter(([label])=>!['更新人','更新时间'].includes(label)).map(([label,value])=>`<div class="purchase-detail-field"><span>${label}</span><b>${value??'—'}</b></div>`).join('')}</div>`;}
-function purchaseLogs(row){const logs=[{type:'新增',content:`创建采购单 ${row.midNo}`,operator:row.creator,time:row.createdAt},{type:'同步',content:`采购单状态更新为${row.status}`,operator:'系统',time:row.updatedAt},{type:'编辑',content:'采购单信息更新',operator:row.updatedBy,time:row.updatedAt}];if(row.auditDecision)logs.splice(1,0,{type:'审核',content:row.auditReason||`审核${row.auditDecision==='approve'?'通过':'驳回'}`,operator:row.auditOperator||'Admin',time:row.auditAt||row.updatedAt});(row.supplierChanges||[]).forEach(change=>logs.unshift({type:'换供应商',content:`${change.sku}：${change.from} → ${change.to}`,operator:change.operator,time:change.time}));return logs;}
+function purchaseLogs(row){const logs=[{type:'新增',content:`创建采购单 ${row.midNo}`,operator:row.creator,time:row.createdAt},{type:'同步',content:`采购单状态更新为${row.status}`,operator:'系统',time:row.updatedAt},{type:'编辑',content:'采购单信息更新',operator:row.updatedBy,time:row.updatedAt}];if(row.auditDecision)logs.splice(1,0,{type:'审核',content:row.auditReason||`审核${row.auditDecision==='approve'?'通过':'驳回'}`,operator:row.auditOperator||'Admin',time:row.auditAt||row.updatedAt});(row.mergeLogs||[]).forEach(log=>logs.unshift({type:'合并',content:`合并来源采购单：${log.from.join('、')}；保留本单号 ${row.midNo}`,operator:log.operator,time:log.time}));(row.supplierChanges||[]).forEach(change=>logs.unshift({type:'换供应商',content:`${change.sku}：${change.from} → ${change.to}`,operator:change.operator,time:change.time}));return logs;}
 function renderPurchaseDetailModal(row){const erpNo=row.erpSource==='易仓'?row.ecNo:row.lxNo,logs=purchaseLogs(row);return `<div class="purchase-detail-dialog"><header class="purchase-detail-header"><div><h2>采购单详情</h2><span>中台跟踪号：${row.midNo}</span></div><button class="purchase-detail-close" type="button" aria-label="关闭采购单详情">×</button></header><div class="purchase-detail-layout"><main class="purchase-detail-content"><section id="purchase-detail-info" class="purchase-detail-section"><div class="purchase-detail-section-head">采购单信息</div>${detailFields([['中台跟踪号',row.midNo],['ERP采购单号',`${erpNo}（${row.erpSource}）`],['采购单状态',`<span class="status-tag status-${row.status==='已完成'?'done':row.status==='已作废'?'void':row.status==='已驳回'?'rejected':'pending'}">${row.status}</span>`],['供应商名称',row.supplier],['供应商代码',row.supplierCode],['采购仓库',row.warehouse],['采购负责人',row.purchaseOwner],['采购主体',row.purchaseSubject],['结算方式',row.settlement],['结算币种',row.currency],['预付比例',`${row.prepayRate}%`],['是否含税',row.taxIncluded],['税率',`${row.tax}%`],['创建人',row.creator],['创建时间',row.createdAt],['更新人',row.updatedBy],['更新时间',row.updatedAt]])}<div class="purchase-detail-remark"><span>备注</span><p>${row.remark||'—'}</p></div></section><section id="purchase-detail-sku" class="purchase-detail-section"><div class="purchase-detail-section-head">采购明细</div>${renderDetail(row)}</section><section id="purchase-detail-receive" class="purchase-detail-section"><div class="purchase-detail-section-head">收货明细</div><div class="purchase-detail-table-wrap"><table class="purchase-detail-record-table"><thead><tr><th>序号</th><th>计划号</th><th>批次号</th><th>SKU</th><th>采购数</th><th>到货数</th><th>收货数量</th><th>在途数</th><th>收货人</th><th>收货时间</th><th>收货备注</th></tr></thead><tbody>${row.items.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td>${item.batchNo}</td><td>${item.sku}</td><td>${item.purchaseQty}</td><td>${item.arrivedQty}</td><td class="receive-number">${item.receiveQty}</td><td>${item.transitQty}</td><td>${item.receiver}</td><td>${item.receiveDate}</td><td>${item.receiveRemark}</td></tr>`).join('')}</tbody></table></div></section><section id="purchase-detail-logistics" class="purchase-detail-section"><div class="purchase-detail-section-head">物流信息</div><div class="purchase-logistics-list">${row.logistics.map((item,index)=>`<div class="purchase-logistics-card"><div><span class="purchase-logistics-index ${index===row.logisticsIndex?'active':''}">${index+1}</span><b>物流单号：${item.no}</b></div><span>物流公司：${item.company}</span><span>当前状态：${index===row.logisticsIndex?'当前物流单':'备用物流单'}</span></div>`).join('')}</div></section><section id="purchase-detail-money" class="purchase-detail-section"><div class="purchase-detail-section-head">金额与结算</div>${detailFields([['采购金额',money(row.amount)],['采购总数量',row.purchaseQty],['收货总金额',money(row.receiveQty*12)],['在途总金额',money(row.transitQty*12)],['预付金额',money(row.amount*row.prepayRate/100)],['采购单税率',`${row.tax}%`],['含税状态',row.taxIncluded],['费用合计',money(row.totalFees)],['结算方式',row.settlement],['结算币种',row.currency]])}</section><section id="purchase-detail-log" class="purchase-detail-section"><div class="purchase-detail-section-head">操作日志</div><div class="purchase-log-list">${logs.map(log=>`<div class="purchase-log-item"><span class="purchase-log-dot"></span><div><b>${log.type}</b><p>${log.content}</p><small>${log.operator} · ${log.time}</small></div></div>`).join('')}</div></section></main><nav class="purchase-detail-anchor"><button class="purchase-detail-anchor-item active" data-detail-target="purchase-detail-info">采购单信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-sku">采购明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-receive">收货明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-logistics">物流信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-money">金额与结算</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-log">操作日志</button></nav></div></div>`;}
 function renderPurchaseDetailModal(row){const erpNo=row.erpSource==='易仓'?row.ecNo:row.lxNo,logs=purchaseLogs(row),receiveRows=receiveDetailRows(row);return `<div class="purchase-detail-dialog"><header class="purchase-detail-header"><div><h2>采购单详情</h2><span>中台跟踪号：${row.midNo}</span></div><button class="purchase-detail-close" type="button" aria-label="关闭采购单详情">×</button></header><div class="purchase-detail-layout"><main class="purchase-detail-content"><section id="purchase-detail-info" class="purchase-detail-section"><div class="purchase-detail-section-head">采购单信息</div>${detailFields([['中台跟踪号',row.midNo],['ERP采购单号',`${erpNo}（${row.erpSource}）`],['采购单状态',`<span class="status-tag status-${row.status==='已完成'?'done':row.status==='已作废'?'void':row.status==='已驳回'?'rejected':'pending'}">${row.status}</span>`],['供应商名称',row.supplier],['供应商代码',row.supplierCode],['采购仓库',row.warehouse],['采购负责人',row.purchaseOwner],['采购主体',row.purchaseSubject],['结算方式',row.settlement],['结算币种',row.currency],['预付比例',`${row.prepayRate}%`],['是否含税',row.taxIncluded],['税率',`${row.tax}%`],['创建人',row.creator],['创建时间',row.createdAt],['更新人',row.updatedBy],['更新时间',row.updatedAt]])}<div class="purchase-detail-remark"><span>备注</span><p>${row.remark||'—'}</p></div></section><section id="purchase-detail-sku" class="purchase-detail-section"><div class="purchase-detail-section-head">采购明细</div>${renderDetail(row)}</section><section id="purchase-detail-receive" class="purchase-detail-section"><div class="purchase-detail-section-head">收货明细</div><div class="purchase-detail-table-wrap"><table class="purchase-detail-record-table"><thead><tr><th>序号</th><th>计划号</th><th>批次号</th><th>SKU</th><th>采购数</th><th>到货数</th><th>收货数量</th><th>在途数</th><th>收货人</th><th>收货时间</th><th>收货备注</th></tr></thead><tbody>${receiveRows.length?receiveRows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td>${item.batchNo}</td><td>${item.sku}</td><td>${item.purchaseQty}</td><td>${item.arrivedQty}</td><td class="receive-number">${item.receiveQty}</td><td>${item.transitQty}</td><td>${item.receiver}</td><td>${item.date}</td><td>${item.receiveRemark}</td></tr>`).join(''):'<tr><td colspan="11" class="detail-empty">暂无收货记录</td></tr>'}</tbody></table></div></section><section id="purchase-detail-logistics" class="purchase-detail-section"><div class="purchase-detail-section-head">物流信息</div><div class="purchase-logistics-list">${row.logistics.map((item,index)=>`<div class="purchase-logistics-card"><div><span class="purchase-logistics-index ${index===row.logisticsIndex?'active':''}">${index+1}</span><b>物流单号：${item.no}</b></div><span>物流公司：${item.company}</span><span>当前状态：${index===row.logisticsIndex?'当前物流单':'备用物流单'}</span></div>`).join('')}</div></section><section id="purchase-detail-money" class="purchase-detail-section"><div class="purchase-detail-section-head">金额与结算</div>${detailFields([['采购金额',money(row.amount)],['采购总数量',row.purchaseQty],['收货总金额',money(row.receiveQty*12)],['在途总金额',money(row.transitQty*12)],['预付金额',money(row.amount*row.prepayRate/100)],['采购单税率',`${row.tax}%`],['含税状态',row.taxIncluded],['费用合计',money(row.totalFees)],['结算方式',row.settlement],['结算币种',row.currency]])}</section><section id="purchase-detail-log" class="purchase-detail-section"><div class="purchase-detail-section-head">操作日志</div><div class="purchase-log-list">${logs.map(log=>`<div class="purchase-log-item"><span class="purchase-log-dot"></span><div><b>${log.type}</b><p>${log.content}</p><small>${log.operator} · ${log.time}</small></div></div>`).join('')}</div></section></main><nav class="purchase-detail-anchor"><button class="purchase-detail-anchor-item active" data-detail-target="purchase-detail-info">采购单信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-sku">采购明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-receive">收货明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-logistics">物流信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-money">金额与结算</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-log">操作日志</button></nav></div></div>`;}
 function renderPurchaseDetailModal(row){const erpNo=row.erpSource==='易仓'?row.ecNo:row.lxNo,receiveRows=receiveDetailRows(row),allocationRows=receiveAllocationRows(row);return `<div class="purchase-detail-dialog"><header class="purchase-detail-header"><div><h2>采购单详情</h2><span>中台跟踪号：${row.midNo}</span></div><button class="purchase-detail-close" type="button" aria-label="关闭采购单详情">×</button></header><div class="purchase-detail-layout"><main class="purchase-detail-content"><section id="purchase-detail-info" class="purchase-detail-section"><div class="purchase-detail-section-head">采购单信息</div>${detailFields([['中台跟踪号',row.midNo],['ERP采购单号',`${erpNo}（${row.erpSource}）`],['采购单状态',`<span class="status-tag status-${row.status==='已完成'?'done':row.status==='已作废'?'void':row.status==='已驳回'?'rejected':'pending'}">${row.status}</span>`],['供应商名称',row.supplier],['供应商代码',row.supplierCode],['采购仓库',row.warehouse],['采购负责人',row.purchaseOwner],['采购主体',row.purchaseSubject],['结算方式',row.settlement],['结算币种',row.currency],['预付比例',`${row.prepayRate}%`],['是否含税',row.taxIncluded],['税率',`${row.tax}%`],['创建人',row.creator],['创建时间',row.createdAt],['更新人',row.updatedBy],['更新时间',row.updatedAt]])}<div class="purchase-detail-remark"><span>备注</span><p>${row.remark||'—'}</p></div></section><section id="purchase-detail-sku" class="purchase-detail-section"><div class="purchase-detail-section-head">采购明细</div>${renderDetail(row)}</section><section id="purchase-detail-receive" class="purchase-detail-section"><div class="purchase-detail-section-head">收货明细</div><div class="purchase-detail-table-wrap"><table class="purchase-detail-record-table"><thead><tr><th>序号</th><th>计划号</th><th>批次号</th><th>SKU</th><th>采购数</th><th>收货数量</th><th>分摊费用类型</th><th>在途数</th><th>收货人</th><th>收货时间</th><th>收货备注</th></tr></thead><tbody>${receiveRows.length?receiveRows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td>${item.batchNo}</td><td>${item.sku}</td><td>${item.purchaseQty}</td><td class="receive-number">${item.receiveQty}</td><td><span class="expense-type-list">${allocationTypes(index).map(type=>`<span class="expense-type-tag">${type}</span>`).join('')}</span></td><td>${item.transitQty}</td><td>${item.receiver}</td><td>${item.date}</td><td>${item.receiveRemark}</td></tr>`).join(''):'<tr><td colspan="11" class="detail-empty">暂无收货记录</td></tr>'}</tbody></table></div></section><section id="purchase-detail-allocation" class="purchase-detail-section"><div class="purchase-detail-section-head">费用分摊明细</div><div class="purchase-detail-table-wrap"><table class="purchase-detail-record-table purchase-allocation-table"><thead><tr><th>序号</th><th>计划号</th><th>收货批次</th><th>SKU</th><th>团队</th><th>收货数量</th><th>分摊费用类型</th><th>分摊规则</th><th>分摊负责人</th><th>辅料包材费</th><th>运费</th><th>其他入库费</th><th>收货人</th><th>收货时间</th><th>收货备注</th></tr></thead><tbody>${allocationRows.length?allocationRows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td>${item.batchNo}</td><td>${item.sku}</td><td>${item.team}</td><td class="receive-number">${item.receiveQty}</td><td><span class="expense-type-tag">${item.allocationType}</span></td><td>${item.allocationRule}</td><td>${item.allocationOwner}</td><td>${money(item.materialFee)}</td><td>${money(item.freight)}</td><td>${money(item.otherInboundFee)}</td><td>${item.receiver}</td><td>${item.date}</td><td>${item.receiveRemark}</td></tr>`).join(''):'<tr><td colspan="15" class="detail-empty">暂无费用分摊记录</td></tr>'}</tbody></table></div></section></main><nav class="purchase-detail-anchor"><button class="purchase-detail-anchor-item active" data-detail-target="purchase-detail-info">采购单信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-sku">采购明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-receive">收货明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-allocation">费用分摊明细</button></nav></div></div>`;}
@@ -557,11 +557,7 @@ window.addEventListener('resize',()=>{closeStripMenu();syncDetailFlexCols();});
 $('#openBatchPurchaseReceive').onclick=openPurchaseBatchReceive;
 $('#auditPurchaseOrders').onclick=openPurchaseAudit;
 $('#submitPurchaseReview').onclick=()=>submitPurchasesForReview([...state.selected].map(id=>purchaseOrders.find(row=>row.id===id)));
-$('#mergePurchaseOrders').onclick=()=>mergePurchases();
-$('#mergePill').onclick=event=>{event.stopPropagation();openMergePanel($('#mergePill'));};
-document.addEventListener('click',event=>{if(!mergePanelLayer)return;if(mergePanelLayer.contains(event.target)||event.target.closest('#mergePill'))return;closeMergePanel();});
-window.addEventListener('scroll',closeMergePanel,true);
-window.addEventListener('resize',closeMergePanel);
+$('#mergePill').onclick=openMergeModal;
 $('#batchEditOrders').onclick=()=>{
   const rows=[...state.selected].map(id=>purchaseOrders.find(row=>row.id===id)).filter(Boolean);
   if(!rows.length){toast('请先勾选需要批量编辑的待提交采购单','error');return;}
@@ -722,34 +718,7 @@ async function submitPurchasesForReview(rows){
   candidates.forEach(row=>{row.status='待审核';row.updatedBy='Admin';row.updatedAt=now;});
   state.selected.clear();applyFilters(false);renderTabs();syncSelection();toast(`已提交 ${candidates.length} 张采购单审核`);
 }
-/* 合并采购：勾选多张待提交采购单，校验供应商/采购员/采购仓库/采购主体一致后合并为一张 */
-async function mergePurchases(){
-  const rows=[...state.selected].map(id=>purchaseOrders.find(row=>row.id===id)).filter(Boolean);
-  if(rows.length<2){toast('请至少勾选 2 张采购单进行合并','error');return;}
-  if(rows.some(row=>row.status!=='待提交')){toast('仅待提交状态的采购单支持合并','error');return;}
-  const checks=[['供应商','supplier'],['采购员','purchaseOwner'],['采购仓库','warehouse'],['采购主体','purchaseSubject']];
-  const mismatch=checks.filter(([,key])=>new Set(rows.map(row=>row[key])).size>1).map(([label])=>label);
-  if(mismatch.length){toast(`无法合并：${mismatch.join('、')}必须完全一致`,'error');return;}
-  const target=rows[0],merged=rows.slice(1);
-  const skuCount=rows.reduce((sum,row)=>sum+row.items.length,0);
-  const totalAmount=rows.reduce((sum,row)=>sum+row.amount,0);
-  if(!(await askConfirm(`确认将 ${rows.length} 张采购单合并为 1 张？合并后单号为 ${target.midNo}，共 ${skuCount} 个 SKU，采购金额合计 ${money(totalAmount)}。已校验供应商、采购员、采购仓库、采购主体一致。`,'合并采购','确认合并')))return;
-  target.items=target.items.concat(...merged.map(row=>row.items));
-  ['purchaseQty','transitQty','arrivedQty','pendingQty','receiveQty'].forEach(key=>{target[key]=target.items.reduce((sum,item)=>sum+Number(item[key]||0),0);});
-  target.freight=merged.reduce((sum,row)=>sum+Number(row.freight||0),target.freight);
-  target.otherFee=merged.reduce((sum,row)=>sum+Number(row.otherFee||0),target.otherFee);
-  target.discount=merged.reduce((sum,row)=>sum+Number(row.discount||0),target.discount);
-  const merchandiseAmount=target.items.reduce((sum,item)=>sum+Number(item.purchaseQty||0)*Number(item.unitPrice||0),0);
-  target.amount=Math.max(0,merchandiseAmount+target.freight+target.otherFee-target.discount);
-  target.totalFees=target.freight+target.otherFee;
-  const mergedRemarks=merged.map(row=>row.remark).filter(Boolean);
-  if(mergedRemarks.length)target.remark=[target.remark,...mergedRemarks].filter(Boolean).join('；');
-  target.updatedBy='Admin';target.updatedAt='2026-09-03 16:40';
-  merged.forEach(row=>{const index=purchaseOrders.indexOf(row);if(index>-1)purchaseOrders.splice(index,1);state.expanded.delete(row.id);});
-  state.selected.clear();applyFilters(false);renderTabs();syncSelection();
-  toast(`已合并 ${rows.length} 张采购单，合并后单号 ${target.midNo}`);
-}
-/* 可合并分组：待提交状态下，按 供应商+采购员+采购仓库+采购主体 聚类，≥2 张为一组 */
+/* 可合并分组：仅待提交单，按供应商+采购员+采购仓库+采购主体聚类，≥2 张为一组 */
 function mergeGroups(){
   const rows=state.filtered.filter(row=>matchesStatus(row.status,state.status)&&row.status==='待提交');
   const map=new Map();
@@ -760,30 +729,103 @@ function updateMergePill(){
   const groups=mergeGroups(),pill=$('#mergePill');
   const count=groups.reduce((sum,list)=>sum+list.length,0);
   pill.hidden=!count;
-  pill.textContent=count?`可合并 ${count} 张 ⌄`:'';
-  pill.title=count?`当前有 ${groups.length} 组共 ${count} 张待提交采购单可合并，点击查看分组并一键勾选`:'';
+  pill.textContent=count?`可合并 ${count} 张`:'';
+  pill.title=count?`当前有 ${groups.length} 组共 ${count} 张待提交采购单可合并，点击打开分组弹窗`:'';
 }
-let mergePanelLayer=null;
-function closeMergePanel(){if(mergePanelLayer){mergePanelLayer.remove();mergePanelLayer=null;}}
-function openMergePanel(trigger){
-  closeMergePanel();
-  const groups=mergeGroups(),count=groups.reduce((sum,list)=>sum+list.length,0);
-  const panel=document.createElement('div');
-  panel.className='merge-panel';
-  panel.innerHTML=`<div class="merge-panel__head"><span>可合并采购单 · ${groups.length} 组 / ${count} 张</span><em>组内供应商、采购员、仓库、主体一致</em></div><div class="merge-panel__list">${groups.length?groups.map((list,index)=>{const row=list[0],amount=list.reduce((sum,item)=>sum+item.amount,0),nos=list.map(item=>item.midNo).join('、');return `<div class="merge-panel__group"><div class="merge-panel__info"><div class="merge-panel__supplier">${row.supplier}</div><div class="merge-panel__meta">${row.warehouse} · ${row.purchaseOwner} · ${list.length} 张 · ${money(amount)}</div><div class="merge-panel__nos" title="${nos}">${nos}</div></div><button class="merge-panel__pick" type="button" data-merge-group="${index}">勾选该组</button></div>`;}).join(''):'<div class="merge-panel__empty">当前没有可合并的采购单</div>'}</div>`;
-  document.body.appendChild(panel);
-  const rect=trigger.getBoundingClientRect();
-  panel.style.top=`${rect.bottom+6}px`;
-  panel.style.right=`${Math.max(8,window.innerWidth-rect.right)}px`;
-  panel.onclick=event=>event.stopPropagation();
-  panel.querySelectorAll('[data-merge-group]').forEach(button=>button.onclick=event=>{event.stopPropagation();pickMergeGroup(Number(button.dataset.mergeGroup));});
-  mergePanelLayer=panel;
+const mergeDialogState={groups:[],selected:new Set(),active:0};
+function closeMergeModal(){const modal=$('#purchaseMergeModal');if(modal)modal.hidden=true;}
+function openMergeModal(){
+  const groups=mergeGroups();
+  if(!groups.length){toast('当前没有可合并的采购单','error');return;}
+  mergeDialogState.groups=groups;mergeDialogState.selected=new Set();mergeDialogState.active=0;renderMergeModal();
 }
-function pickMergeGroup(index){
-  const group=mergeGroups()[index];if(!group)return;
-  state.selected=new Set(group.map(row=>row.id));
-  renderTable();syncSelection();closeMergePanel();
-  toast(`已勾选 ${group.length} 张可合并采购单，点击「合并采购」完成合并`);
+function selectedMergeGroups(){return mergeDialogState.groups.map(group=>group.filter(row=>mergeDialogState.selected.has(row.id))).filter(group=>group.length);}
+function earliestMergeOrder(rows){return [...rows].sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))||String(a.midNo).localeCompare(String(b.midNo)))[0];}
+function mergeInfoLine(label,value,emphasis=false){
+  const display=value===undefined||value===null||value===''?'—':value;
+  return `<div class="purchase-merge-info${emphasis?' is-emphasis':''}"><span>${label}</span><b>${display}</b></div>`;
+}
+function renderMergeModal(){
+  const modal=$('#purchaseMergeModal'),previousMain=modal.querySelector('.purchase-merge-main'),scrollTop=previousMain?.scrollTop||0;
+  const groups=mergeDialogState.groups,total=groups.reduce((sum,group)=>sum+group.length,0);
+  if(mergeDialogState.active>=groups.length)mergeDialogState.active=0;
+  const active=mergeDialogState.active,group=groups[active];
+  const selectedGroups=selectedMergeGroups(),selectedCount=selectedGroups.reduce((sum,item)=>sum+item.length,0);
+  const selectedRows=group.filter(row=>mergeDialogState.selected.has(row.id)),target=selectedRows.length>=2?earliestMergeOrder(selectedRows):null,allChecked=selectedRows.length===group.length,amount=group.reduce((sum,row)=>sum+Number(row.amount||0),0);
+  modal.innerHTML=`<div class="purchase-merge-dialog">
+    <header class="purchase-merge-header"><div><h2>合并采购</h2><p>系统按「供应商 + 采购员 + 采购仓库 + 采购主体」自动分组 · 可合并 ${groups.length} 组 / ${total} 张 · 每组保留实际勾选单中创建时间最早的采购单号</p></div><button class="purchase-merge-close" type="button" aria-label="关闭合并采购弹窗">×</button></header>
+    <div class="purchase-merge-body">
+      <aside class="purchase-merge-side"><div class="purchase-merge-side-title"><label class="purchase-merge-side-all"><input type="checkbox" data-merge-all ${selectedCount===total?'checked':''} aria-label="全选全部分组采购单"><span>全选</span></label><span>可合并分组（${groups.length}）</span></div>${groups.map((item,index)=>{
+        const checkedCount=item.filter(row=>mergeDialogState.selected.has(row.id)).length,checkedAll=checkedCount===item.length,first=item[0];
+        return `<div class="purchase-merge-side-item ${index===active?'is-active':''}" data-merge-group-switch="${index}">
+          <input type="checkbox" data-merge-group-check="${index}" ${checkedAll?'checked':''} aria-label="勾选第 ${index+1} 组全部采购单">
+          <div class="purchase-merge-side-info"><b>${first.supplier}</b><p>采购员：${first.purchaseOwner}</p><p>采购仓库：${first.warehouse||'—'}</p><p>采购主体：${first.purchaseSubject||'—'}</p><span>${checkedCount?`${checkedCount} / ${item.length} 张已选`:`共 ${item.length} 张`}</span></div>
+        </div>`;
+      }).join('')}</aside>
+      <section class="purchase-merge-main">
+        <div class="purchase-merge-main-head">
+          <label class="purchase-merge-select-all"><input type="checkbox" data-merge-group-check="${active}" ${allChecked?'checked':''} aria-label="全选本组采购单"><span>全选本组</span></label>
+          <div class="purchase-merge-group-summary"><span><em>供应商</em><b>${group[0].supplier}</b></span><span><em>采购员</em><b>${group[0].purchaseOwner}</b></span><span><em>采购仓库</em><b>${group[0].warehouse||'—'}</b></span><span><em>采购主体</em><b>${group[0].purchaseSubject||'—'}</b></span></div>
+          <span class="purchase-merge-group-amount">共 ${group.length} 张 · 合计 ${money(amount)}</span>
+        </div>
+        <table class="purchase-merge-table"><thead><tr><th class="purchase-merge-check"></th><th>采购单号</th><th>金额</th><th>结算信息</th><th>明细信息</th><th>备注</th><th>创建时间/更新时间</th></tr></thead><tbody>
+          ${group.map(row=>{
+            const goodsAmount=row.items.reduce((sum,item)=>sum+Number(item.purchaseQty||0)*Number(item.unitPrice||0),0),planCount=new Set(row.items.map(item=>item.planNo).filter(Boolean)).size;
+            return `<tr class="purchase-merge-order ${target?.id===row.id?'is-retained':''}">
+              <td class="purchase-merge-check"><input type="checkbox" data-merge-order="${row.id}" ${mergeDialogState.selected.has(row.id)?'checked':''} aria-label="勾选采购单 ${row.midNo}"></td>
+              <td><div class="purchase-merge-order-no">${row.midNo}${target?.id===row.id?'<span class="purchase-merge-retained">保留单号</span>':''}</div></td>
+              <td>${mergeInfoLine('采购金额',money(row.amount),true)}${mergeInfoLine('货款',money(goodsAmount))}${mergeInfoLine('运费',money(row.freight))}${mergeInfoLine('其他费用',money(row.otherFee))}${mergeInfoLine('优惠金额',money(row.discount))}</td>
+              <td>${mergeInfoLine('结算方式',row.settlement)}${mergeInfoLine('币种',row.currency)}${mergeInfoLine('含税',row.taxIncluded)}${mergeInfoLine('预付比例',`${Number(row.prepayRate||0)}%`)}</td>
+              <td>${mergeInfoLine('SKU 数',`${row.items.length} 个`)}${mergeInfoLine('关联计划',`${planCount} 个`)}</td>
+              <td><div class="purchase-merge-remark">${row.remark||'—'}</div></td>
+              <td>${mergeInfoLine('创建人',row.creator)}${mergeInfoLine('创建时间',row.createdAt)}${mergeInfoLine('更新人',row.updatedBy)}${mergeInfoLine('更新时间',row.updatedAt)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody></table>
+      </section>
+    </div>
+    <footer class="purchase-merge-footer"><span>已选 <b>${selectedGroups.length}</b> 组 / <b>${selectedCount}</b> 张采购单</span><div><button class="btn" type="button" data-merge-action="cancel">取消</button><button class="btn primary" type="button" data-merge-action="confirm">合并采购单</button></div></footer>
+  </div>`;
+  modal.hidden=false;
+  const main=modal.querySelector('.purchase-merge-main');if(main)main.scrollTop=scrollTop;
+  modal.querySelector('.purchase-merge-close').onclick=closeMergeModal;
+  modal.querySelector('[data-merge-action="cancel"]').onclick=closeMergeModal;
+  modal.querySelector('[data-merge-action="confirm"]').onclick=confirmMergePurchases;
+  modal.onclick=event=>{if(event.target===modal)closeMergeModal();};
+  modal.querySelectorAll('[data-merge-group-switch]').forEach(el=>el.onclick=event=>{if(event.target.closest('input'))return;mergeDialogState.active=Number(el.dataset.mergeGroupSwitch);renderMergeModal();});
+  const allInput=modal.querySelector('[data-merge-all]');
+  if(allInput){const allOrders=groups.flat(),checkedTotal=allOrders.filter(row=>mergeDialogState.selected.has(row.id)).length;allInput.indeterminate=checkedTotal>0&&checkedTotal<allOrders.length;allInput.onchange=event=>{event.stopPropagation();allOrders.forEach(row=>allInput.checked?mergeDialogState.selected.add(row.id):mergeDialogState.selected.delete(row.id));renderMergeModal();};}
+  modal.querySelectorAll('[data-merge-group-check]').forEach(input=>{const items=groups[Number(input.dataset.mergeGroupCheck)],checkedCount=items.filter(row=>mergeDialogState.selected.has(row.id)).length;input.indeterminate=checkedCount>0&&checkedCount<items.length;input.onchange=event=>{event.stopPropagation();items.forEach(row=>input.checked?mergeDialogState.selected.add(row.id):mergeDialogState.selected.delete(row.id));renderMergeModal();};});
+  modal.querySelectorAll('[data-merge-order]').forEach(input=>input.onchange=()=>{input.checked?mergeDialogState.selected.add(input.dataset.mergeOrder):mergeDialogState.selected.delete(input.dataset.mergeOrder);renderMergeModal();});
+}
+function mergeOrderGroup(rows){
+  const target=earliestMergeOrder(rows),merged=rows.filter(row=>row.id!==target.id),now='2026-09-03 16:40';
+  target.items=target.items.concat(...merged.map(row=>row.items));
+  ['purchaseQty','transitQty','arrivedQty','pendingQty','receiveQty'].forEach(key=>{target[key]=target.items.reduce((sum,item)=>sum+Number(item[key]||0),0);});
+  target.freight=merged.reduce((sum,row)=>sum+Number(row.freight||0),Number(target.freight||0));
+  target.otherFee=merged.reduce((sum,row)=>sum+Number(row.otherFee||0),Number(target.otherFee||0));
+  target.discount=merged.reduce((sum,row)=>sum+Number(row.discount||0),Number(target.discount||0));
+  const merchandiseAmount=target.items.reduce((sum,item)=>sum+Number(item.purchaseQty||0)*Number(item.unitPrice||0),0);
+  target.amount=Math.max(0,merchandiseAmount+target.freight+target.otherFee-target.discount);target.totalFees=target.freight+target.otherFee;
+  const mergedRemarks=merged.map(row=>row.remark).filter(Boolean);if(mergedRemarks.length)target.remark=[target.remark,...mergedRemarks].filter(Boolean).join('；');
+  target.mergeSources=[...new Set([...(target.mergeSources||[]),...merged.flatMap(row=>[row.midNo,...(row.mergeSources||[])])])];
+  target.mergeLogs=target.mergeLogs||[];target.mergeLogs.unshift({from:merged.map(row=>row.midNo),operator:'Admin',time:now});
+  target.updatedBy='Admin';target.updatedAt=now;
+  merged.forEach(row=>{const index=purchaseOrders.indexOf(row);if(index>-1)purchaseOrders.splice(index,1);state.expanded.delete(row.id);});
+  return target;
+}
+async function confirmMergePurchases(){
+  const groups=selectedMergeGroups(),rows=groups.flat();
+  if(!rows.length){toast('请勾选需要合并的采购单','error');return;}
+  if(groups.some(group=>group.length<2)){toast('每个参与合并的分组至少勾选 2 张采购单','error');return;}
+  if(rows.some(row=>row.status!=='待提交')){toast('仅待提交状态的采购单支持合并','error');return;}
+  const checks=['supplier','purchaseOwner','warehouse','purchaseSubject'];
+  if(groups.some(group=>checks.some(key=>new Set(group.map(row=>row[key])).size>1))){toast('同组采购单的供应商、采购员、采购仓库、采购主体必须完全一致','error');return;}
+  const targets=groups.map(earliestMergeOrder),targetNos=targets.map(row=>row.midNo);
+  if(!(await askConfirm(`确认按 ${groups.length} 个分组分别合并 ${rows.length} 张采购单吗？合并后保留 ${groups.length} 张待提交采购单，单号为 ${targetNos.join('、')}。`,'合并采购','确定')))return;
+  groups.forEach(mergeOrderGroup);
+  state.selected.clear();closeMergeModal();applyFilters(false);renderTabs();syncSelection();
+  toast(`合并成功：${groups.length} 组共 ${rows.length} 张采购单已分别合并，保留采购单号 ${targetNos.join('、')}`);
 }
 function purchaseAuditRows(){
   const rows=[...state.selected].map(id=>purchaseOrders.find(row=>row.id===id)).filter(Boolean);
