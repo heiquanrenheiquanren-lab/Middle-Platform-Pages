@@ -20,3 +20,5 @@ debug-*.md
 # 智能体本地产物（HTML 分享包、一次性产出目录）
 .trae-html-share-packages/
 outputs/
+_sync_tmp/
+.trae/skills/

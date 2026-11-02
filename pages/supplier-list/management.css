@@ -12,7 +12,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
 .sidebar{min-height:0;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
 .nav-scroll{min-height:0;flex:1;overflow:auto;padding-top:3px}
 .nav-group-title,.nav-item{display:flex;align-items:center;white-space:nowrap}
-.main{min-width:0;min-height:0;display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--soft)}
+.main{min-width:0;min-height:0;display:flex;flex-direction:column;gap:10px;padding:10px;background:var(--soft)}
 .query-panel,.business-card{width:100%;min-width:0;align-self:stretch;margin:0;background:#fff;border:1px solid var(--line);border-radius:4px}
 .query-panel{padding:16px}
 .query-grid{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
@@ -28,7 +28,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
 .btn.danger:hover{border-color:#f56c6c;background:#fff6f6;color:#e64545}
 .btn:disabled,.btn:disabled:hover{cursor:not-allowed;border-color:#ebeef5;background:#f5f7fa;color:#c0c4cc;box-shadow:none}
 .business-card{min-height:0;flex:1;display:flex;flex-direction:column;padding:0 18px}
-.page-action-bar{min-height:34px;display:flex;align-items:center;gap:8px;padding:0 18px;overflow-x:auto;white-space:nowrap;background:transparent}
+.page-action-bar{height:32px;display:flex;align-items:center;gap:8px;padding:0;overflow-x:auto;white-space:nowrap;background:transparent}
 .action-spacer{flex:1}.selection-hint{color:#9aa2ad;font-size:12px}
 .table-scroll{min-width:0;min-height:0;flex:1;overflow:auto}
 .supplier-table{min-width:1720px;width:100%;border-collapse:collapse;table-layout:fixed}

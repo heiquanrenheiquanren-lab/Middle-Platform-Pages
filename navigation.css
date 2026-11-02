@@ -48,6 +48,9 @@
 .nav-collapse-button{position:absolute!important;left:0;right:52px;bottom:0;width:calc(100% - 52px);height:42px!important;display:flex!important;align-items:center;justify-content:flex-start;padding:0 20px!important;border:0!important;border-top:1px solid var(--nav-border)!important;background:var(--top-navigation-bg)!important;color:var(--nav-secondary-text)!important;font-size:18px!important;cursor:pointer;z-index:2;}
 .nav-collapse-button:hover{color:var(--nav-primary-text)!important;background:var(--nav-hover)!important;}
 .sidebar .nav-scroll{padding-bottom:84px;}
+/* 侧边导航全局不显示滚动条（内容超高时仍可用滚轮滚动），避免任何页面出现导航滚动条 */
+.sidebar .nav-scroll,.side-nav,.product-sidebar,.supplier-sidebar .nav-scroll,.workbench-sidebar .nav-scroll{scrollbar-width:none;-ms-overflow-style:none;}
+.sidebar .nav-scroll::-webkit-scrollbar,.side-nav::-webkit-scrollbar,.product-sidebar::-webkit-scrollbar,.supplier-sidebar .nav-scroll::-webkit-scrollbar,.workbench-sidebar .nav-scroll::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;}
 .side-nav,.workbench-sidebar,.supplier-sidebar,.product-sidebar{padding-bottom:84px;}
 :root.nav-collapsed .nav-group-title,:root.nav-collapsed .nav-section-title,:root.nav-collapsed .workbench-nav-title,:root.nav-collapsed .supplier-nav-title,:root.nav-collapsed .supplier-nav-section,:root.nav-collapsed .side-nav>.nav-section,:root.nav-collapsed .product-sidebar>.nav-section,:root.nav-collapsed .nav-item.standalone{justify-content:center!important;padding-right:0!important;padding-left:0!important;}
 :root.nav-collapsed .nav-group-title>*:not(.menu-icon),:root.nav-collapsed .nav-section-title>*:not(.menu-icon),:root.nav-collapsed .workbench-nav-title>*:not(.menu-icon),:root.nav-collapsed .supplier-nav-title>*:not(.menu-icon),:root.nav-collapsed .supplier-nav-section>*:not(.menu-icon),:root.nav-collapsed .side-nav>.nav-section>*:not(.menu-icon),:root.nav-collapsed .product-sidebar>.nav-section>*:not(.menu-icon),:root.nav-collapsed .nav-item.standalone>*:not(.menu-icon){display:none!important;}
@@ -91,45 +94,51 @@ body{background:var(--content-canvas)!important;}
 .main>.query-panel,.module-view>.query-panel,.supplier-main>.supplier-query-card,.workbench-supplier-view>.supplier-query-card,.warehouse-management-panel>.warehouse-management-query,.warehouse-sku-search-panel{
   background:var(--content-card)!important;border:1px solid var(--content-card-line)!important;border-radius:var(--content-card-radius)!important;box-shadow:none!important;
 }
-.main>.query-panel{margin:16px 16px 0!important;padding:16px 18px 32px!important;}
+.main>.query-panel{margin:10px 10px 0!important;padding:16px 18px 16px!important;width:auto!important;}
 .supplier-list-main>.query-panel,.supplier-list-main>.business-card{margin-right:0!important;margin-left:0!important;}
 .supplier-list-main>.query-panel{margin-top:0!important;padding:16px!important;}
-.module-view>.query-panel{margin:16px 0 0!important;padding:16px 18px 32px!important;}
-.supplier-main>.supplier-query-card,.workbench-supplier-view>.supplier-query-card{margin:16px 16px 0!important;padding:16px 18px!important;}
+.module-view>.query-panel{margin:10px 0 0!important;padding:16px 18px 16px!important;}
+.supplier-main>.supplier-query-card,.workbench-supplier-view>.supplier-query-card{margin:10px 10px 0!important;padding:16px 18px!important;}
 .warehouse-management-panel>.warehouse-management-query{margin:0!important;padding:16px 18px!important;}
-.warehouse-sku-search-panel{margin:0 16px 12px!important;padding:14px 16px!important;}
+.warehouse-sku-search-panel{margin:0 10px 10px!important;padding:14px 16px!important;}
 
 /* Action zones stay directly on the gray canvas. */
 .main>.action-strip,.stock-business>.action-strip,.module-view>.action-strip,.module-view>.fba-tool-strip,.supplier-action-zone,.warehouse-management-toolbar,.warehouse-sku-toolbar{
-  min-height:46px!important;height:auto!important;background:transparent!important;border:0!important;box-shadow:none!important;
+  min-height:32px!important;height:32px!important;background:transparent!important;border:0!important;box-shadow:none!important;
 }
-.main>.action-strip{margin:12px 16px!important;padding:0!important;}
-.stock-business>.action-strip,.module-view>.action-strip,.module-view>.fba-tool-strip{margin:12px 0!important;padding:0!important;}
-.supplier-action-zone{height:54px!important;display:flex;align-items:center;margin:0 16px;padding:0!important;}
-.warehouse-management-toolbar{margin:12px 0!important;padding:0!important;}
-.warehouse-sku-toolbar{margin:0 16px!important;padding:0!important;}
+.main>.action-strip{margin:10px!important;padding:0!important;}
+.stock-business>.action-strip,.module-view>.action-strip,.module-view>.fba-tool-strip{margin:0!important;padding:0!important;}
+.supplier-action-zone{height:32px!important;display:flex;align-items:center;margin:0 10px;padding:0!important;}
+.warehouse-management-toolbar{margin:10px 0!important;padding:0!important;}
+.warehouse-sku-toolbar{margin:0 10px!important;padding:0!important;}
+.main>.toolbar{min-height:32px!important;height:32px!important;margin:10px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;}
 
 /* Direct-grid pages: join the status/table/pagination rows into one list card. */
 .main:has(>.query-panel + .action-strip + .table-area){grid-template-rows:auto auto minmax(0,1fr) auto!important;}
 .main:has(>.query-panel + .action-strip + .status-bar){grid-template-rows:auto auto auto minmax(0,1fr) auto!important;}
 .main:has(>.summary-strip){grid-template-rows:auto auto auto minmax(0,1fr) auto!important;}
-.main>.summary-strip{margin:12px 16px 0!important;border:1px solid var(--content-card-line)!important;border-radius:var(--content-card-radius)!important;background:#fff!important;}
-.main>.status-bar,.main>.table-area,.main>.bottom-bar{margin-right:16px!important;margin-left:16px!important;background:#fff!important;}
+.main>.summary-strip{margin:10px 10px 0!important;border:1px solid var(--content-card-line)!important;border-radius:var(--content-card-radius)!important;background:#fff!important;}
+.main>.status-bar,.main>.table-area,.main>.bottom-bar{margin-right:10px!important;margin-left:10px!important;background:#fff!important;}
 .main>.status-bar{border:1px solid var(--content-card-line)!important;border-bottom:0!important;border-radius:var(--content-card-radius) var(--content-card-radius) 0 0!important;}
 .main>.status-bar+.table-area{border-right:1px solid var(--content-card-line)!important;border-left:1px solid var(--content-card-line)!important;}
 .main>.action-strip+.table-area{border:1px solid var(--content-card-line)!important;border-bottom:0!important;border-radius:var(--content-card-radius) var(--content-card-radius) 0 0!important;}
-.main>.bottom-bar{margin-bottom:16px!important;border:1px solid var(--content-card-line)!important;border-top:0!important;border-radius:0 0 var(--content-card-radius) var(--content-card-radius)!important;}
+.main>.bottom-bar{margin-bottom:10px!important;border:1px solid var(--content-card-line)!important;border-top:0!important;border-radius:0 0 var(--content-card-radius) var(--content-card-radius)!important;}
+/* 自定义列表卡片容器与查询卡片保持相同的左右内缩，确保上下卡片左右对齐。 */
+.main>.list-card{margin-right:10px!important;margin-left:10px!important;}
+.product-main>.product-query-card,.mapping-main>.mapping-query-card{margin-right:0!important;margin-left:0!important;}
 
 /* Vue-rendered stock and purchase plan lists. */
-.main>.stock-business{padding:0 16px 16px!important;background:transparent!important;}
-.stock-business>.status-bar{border:1px solid var(--content-card-line)!important;border-bottom:0!important;border-radius:var(--content-card-radius) var(--content-card-radius) 0 0!important;background:#fff!important;}
+.main>.stock-business{padding:10px!important;background:transparent!important;}
+.stock-business>.status-bar{border:1px solid var(--content-card-line)!important;border-bottom:0!important;border-radius:var(--content-card-radius) var(--content-card-radius) 0 0!important;background:#fff!important;margin-top:10px!important;}
 .stock-business>.stock-business-table{border-right:1px solid var(--content-card-line)!important;border-left:1px solid var(--content-card-line)!important;background:#fff!important;}
 .stock-business>.pagination-bar{border:1px solid var(--content-card-line)!important;border-top:0!important;border-radius:0 0 var(--content-card-radius) var(--content-card-radius)!important;background:#fff!important;}
 
 /* Shipment-plan tabs retain their real tab bar; each tab body gets the same cards. */
-.plan-view,.fba-view{padding:0 16px 16px!important;background:var(--content-canvas)!important;}
+.plan-view,.fba-view{padding:0 10px 10px!important;background:var(--content-canvas)!important;gap:10px!important;}
 .plan-view{grid-template-rows:auto auto auto minmax(0,1fr) auto!important;}
 .fba-view{grid-template-rows:auto auto minmax(0,1fr) auto!important;}
+.plan-view,.fba-view{grid-template-rows:auto 32px minmax(0,1fr)!important;}
+.plan-view>.action-strip,.fba-view>.action-strip{margin:0!important;}
 .plan-view>.status-bar,.fba-view>.fba-table-area{border:1px solid var(--content-card-line)!important;border-bottom:0!important;border-radius:var(--content-card-radius) var(--content-card-radius) 0 0!important;background:#fff!important;}
 .plan-view>.table-area{border-right:1px solid var(--content-card-line)!important;border-left:1px solid var(--content-card-line)!important;background:#fff!important;}
 .plan-view>.bottom-bar,.fba-view>.bottom-bar{border:1px solid var(--content-card-line)!important;border-top:0!important;border-radius:0 0 var(--content-card-radius) var(--content-card-radius)!important;background:#fff!important;}
