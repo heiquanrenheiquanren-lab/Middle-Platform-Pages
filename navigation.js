@@ -22,6 +22,7 @@
     purchase: '../purchase-plan-2/index.html',
     shipment: '../shipment-plan/index.html',
     purchaseOrder: '../purchase-orders/index.html',
+    purchaseChange: '../purchase-changes/index.html',
     shipmentOrder: '../shipment-orders/index.html',
     fbaShipment: '../fba-shipment/index.html',
     skuFirstLegCost: '../sku-first-leg-cost/index.html',
@@ -331,6 +332,19 @@
       item.innerHTML = '<span class="mini">▤</span>供应商列表';
       lastItem.insertAdjacentElement('afterend', group);
       group.insertAdjacentElement('afterend', item);
+    });
+  }
+
+  function mountPurchaseChangeNav() {
+    document.querySelectorAll('[data-page-nav="purchaseOrder"]').forEach(function (source) {
+      var container = source.parentElement;
+      if (!container || container.querySelector('[data-page-nav="purchaseChange"]')) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'purchaseChange');
+      item.classList.remove('active');
+      if (location.pathname.indexOf('/purchase-changes/') >= 0) item.classList.add('active');
+      item.innerHTML = '<span class="mini">▤</span>采购变更';
+      source.insertAdjacentElement('afterend', item);
     });
   }
 
@@ -745,6 +759,7 @@
     mountInventoryFlowNav();
     mountBatchInventoryNav();
     mountSupplierNav();
+    mountPurchaseChangeNav();
     mountHistoricalPurchasePriceNav();
     mountFbaShipmentNav();
     renameWarehouseNavigation();

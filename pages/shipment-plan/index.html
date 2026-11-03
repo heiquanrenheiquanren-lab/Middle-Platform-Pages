@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- 发货计划 v2.5.0：布局与 UI 风格对齐采购计划（purchase-plan-2） -->
+<!-- 发货计划 v3.2.0：一二级列表（对齐采购单）——一级=表格式计划行，二级=SKU 明细，行首箭头展开/收起 -->
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=2.5.0">
+  <link rel="stylesheet" href="./styles.css?v=3.4.0">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="toast" id="toast">查询完成</div>
@@ -101,28 +101,28 @@
               <div class="status-tabs" id="statusTabs"></div>
             </section>
             <section class="table-area" id="tableArea">
-              <table class="stock-table">
+              <table class="sp-table document-list">
+                <colgroup>
+                  <col class="col-check"><col class="col-expand"><col class="col-plan"><col class="col-destination">
+                  <col class="col-logistics"><col class="col-cargo"><col class="col-date"><col class="col-remark">
+                  <col class="col-creator"><col class="col-action">
+                </colgroup>
                 <thead>
                   <tr>
-                    <th class="check"><input type="checkbox" class="head-check" id="selectAll" title="全选"></th>
-                    <th class="plan">计划号</th>
-                    <th class="sku">SKU</th>
-                    <th class="status-col">状态</th>
-                    <th class="updated-col">更新时间</th>
-                    <th class="creator-col">创建人</th>
-                    <th class="remark-col">发货计划备注 ✎</th>
-                    <th class="delivery-col">预计发货日期 ✎</th>
-                    <th class="delivery-col">预计到货日期 ✎</th>
-                    <th class="box-col">箱数</th>
-                    <th class="plan-op-col">操作</th>
+                    <th class="check-cell"><input class="head-check" id="selectAll" type="checkbox" aria-label="全选当前筛选结果" title="全选当前筛选结果"></th>
+                    <th class="expand-cell"><button class="expand-btn" id="expandAllBtn" type="button" aria-label="展开全部发货计划" aria-expanded="false" title="展开全部发货计划">⌄</button></th>
+                    <th>发货计划号</th><th>目的地仓信息</th><th>物流信息</th><th>货量信息</th>
+                    <th>日期信息</th><th>备注信息</th><th>创建信息</th><th>操作</th>
                   </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
               </table>
+              <div class="sp-empty" id="empty" hidden>暂无符合条件的发货计划</div>
             </section>
             <footer class="bottom-bar">
+              <div class="bottom-left"><span class="sum-stats" id="planSummary"></span></div>
               <div class="bottom-right">
-                <span>共 <b id="totalCount">0</b> 条</span>
+                <span>共 <b id="totalCount">0</b> 张</span>
                 <select class="control page-size" id="pageSize" title="每页条数">
                   <option>10</option><option>20</option><option>50</option><option>100</option>
                 </select>
@@ -183,7 +183,7 @@
       </main>
     </div>
   </div>
-  <script src="./app-link.js?v=1.1.0"></script>
+  <script src="./app-link.js?v=3.3.0"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../navigation.js?v=1.7.92"></script>

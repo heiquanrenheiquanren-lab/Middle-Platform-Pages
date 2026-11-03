@@ -459,6 +459,11 @@
 /* 结束到货：警告色文字按钮（不加粗、无背景描边） */
 .action-cell .finish-arrival-btn{color:#e6a23c}
 .action-cell .finish-arrival-btn:hover{color:#cf8a1f}
+
+/* 发起采购变更：入口唯一在采购单操作列，用主色加粗与普通链接区分 */
+.action-cell .change-order-btn{color:#409eff;font-weight:500}
+
+.action-cell .change-order-btn:hover{color:#337ecc}
 .po-strip__menu .finish-arrival-btn{color:#e6a23c}
 .po-strip__menu .finish-arrival-btn:hover{background:#fdf6ec}
 .merge-pill{height:28px;padding:0 12px;border:1px solid #91caff;border-radius:14px;background:#e6f7ff;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer}

@@ -55,9 +55,10 @@
               <span>说明</span>
               <el-tooltip placement="top" popper-class="flow-scope-tooltip">
                 <template #content>
-                  <div>1. 页面默认查询当天的库存流水，可调整日期范围查看历史数据。</div>
-                  <div>2. 当前展示自营仓、物流中转仓、供应商仓及海外仓的库存流水；平台仓（包括 FBA）因暂未对接库存流水接口，暂不展示相关数据。</div>
-                  <div>3. 海外仓流水优先通过外部单据号匹配中台业务单据并确定所属团队。</div>
+                  <div>1. 页面默认查询当天库存流水，可调整日期范围查看历史数据。</div>
+                  <div>2. 本页库存流水记录的是「在库库存」的增减变动：操作前在库、操作数量、操作后在库均为在库口径；占用、冻结等不可用变化不单独产生在库流水，可用库存按「在库 − 不可用库存」计算。</div>
+                  <div>3. 当前展示自营仓、物流中转仓、供应商仓、海外仓及平台仓（FBA）的库存流水。</div>
+                  <div>4. 海外仓流水优先通过外部单据号匹配中台业务单据并确定所属团队；平台仓（FBA）流水按平台接口同步展示。</div>
                 </template>
                 <span class="flow-help" tabindex="0" aria-label="库存流水数据范围说明">?</span>
               </el-tooltip>
@@ -71,9 +72,9 @@
               <el-table-column prop="team" label="团队" width="120" fixed="left" show-overflow-tooltip></el-table-column>
               <el-table-column prop="direction" label="出库/入库" width="100" align="center"></el-table-column>
               <el-table-column prop="opType" label="变动类型" min-width="120" show-overflow-tooltip></el-table-column>
-              <el-table-column label="操作前" width="100" align="right"><template #default="scope">{{ fmt(scope.row.before) }}</template></el-table-column>
+              <el-table-column label="操作前在库" width="100" align="right"><template #default="scope">{{ fmt(scope.row.before) }}</template></el-table-column>
               <el-table-column label="操作数量" width="100" align="right"><template #default="scope"><span :class="{'qty-plus': scope.row.after - scope.row.before > 0, 'qty-minus': scope.row.after - scope.row.before < 0}">{{ signed(scope.row.after - scope.row.before) }}</span></template></el-table-column>
-              <el-table-column label="操作后" width="100" align="right"><template #default="scope">{{ fmt(scope.row.after) }}</template></el-table-column>
+              <el-table-column label="操作后在库" width="100" align="right"><template #default="scope">{{ fmt(scope.row.after) }}</template></el-table-column>
               <el-table-column prop="bizNo" label="来源单据" min-width="150" show-overflow-tooltip></el-table-column>
               <el-table-column prop="opNo" label="操作单号" min-width="150" show-overflow-tooltip></el-table-column>
               <el-table-column prop="operator" label="操作人" width="90" align="center"></el-table-column>

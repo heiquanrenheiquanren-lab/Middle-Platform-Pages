@@ -1,4 +1,4 @@
-/* 发货计划 v2.5.0：布局与 UI 风格对齐采购计划（purchase-plan-2）。
+/* 发货计划 v3.0.0：一二级列表（对齐采购单）。
    页面基础样式（壳层 / 查询控件 / .btn / 状态栏 / 分页 / 弹窗外壳）来自
    ../transfer-orders/styles.css + document-list.css + ui-kit.css + custom-select.css，
    本文件只保留发货计划的业务差异。 */
@@ -75,35 +75,90 @@
 .plan-list-card .status-tab span:last-child,.plan-list-card .status-tab em{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:18px;margin-left:5px;padding:0 6px;border-radius:10px;background:#f2f4f7;color:#909399;font-size:12px}
 .plan-list-card .status-tab.active span:last-child,.plan-list-card .status-tab.active em{background:#ecf5ff;color:#409eff}
 .plan-list-card .table-area{margin:0;border:0;border-radius:0}
-.plan-list-card .stock-table th{height:47px;padding:0 12px;border:0;border-bottom:1px solid #e4e9f2;background:#f5f7fa;color:#606266;font-size:14px;font-weight:500;text-align:left;white-space:nowrap}
-.plan-list-card .stock-table td{height:64px;border:0;border-bottom:1px solid #e4e9f2;background:#fff;text-align:left}
-.plan-list-card .stock-table tbody tr:hover td{background:#f5faff}
-.plan-list-card .stock-table th:first-child,.plan-list-card .stock-table td:first-child{position:sticky;left:0;z-index:3;text-align:center;background:#fff}
-.plan-list-card .stock-table th:first-child{z-index:6;background:#f5f7fa}
-.plan-list-card .stock-table th:last-child,.plan-list-card .stock-table td:last-child{position:sticky;right:0;z-index:3;box-shadow:-6px 0 8px rgba(31,35,41,.05);background:#fff;text-align:center}
-.plan-list-card .stock-table th:last-child{z-index:6;background:#f5f7fa}
-.plan-list-card .bottom-bar{margin:0;padding:0 14px;border:0;border-radius:0;justify-content:flex-end}
+/* ===== 一二级列表：一级表格式计划行 + 可展开二级 SKU 明细（照搬采购单实测样式） ===== */
+.sp-table{width:100%;min-width:1702px;border-collapse:separate;border-spacing:0;table-layout:fixed;border:1px solid #e5eaf1;border-top:0;color:#606266}
+.sp-table col.col-check{width:52px}.sp-table col.col-expand{width:40px}.sp-table col.col-plan{width:280px}
+.sp-table col.col-destination{width:210px}.sp-table col.col-logistics{width:220px}.sp-table col.col-cargo{width:190px}
+.sp-table col.col-date{width:200px}.sp-table col.col-remark{width:190px}.sp-table col.col-creator{width:170px}
+.sp-table col.col-action{width:150px}
+.sp-table th{position:sticky;top:0;z-index:7;height:44px;padding:0 10px;border-right:1px solid #ebeef5;border-bottom:1px solid #e4e9f2;background:#f5f7fa;color:#303133;font-size:13px;font-weight:600;text-align:center;white-space:nowrap}
+.sp-table td{height:84px;padding:10px 12px;border-right:1px solid #ebeef5;border-bottom:1px solid #e4e9f2;background:#fff;text-align:center;vertical-align:middle;overflow:hidden}
+.sp-table th:last-child,.sp-table td:last-child{border-right:0}
+.sp-table th:nth-child(-n+3),.sp-table .sp-parent-row>td:nth-child(-n+3){position:sticky;z-index:3;background:#fff}
+.sp-table th:nth-child(-n+3){z-index:8;background:#f5f7fa}
+.sp-table th:nth-child(1),.sp-table .sp-parent-row>td:nth-child(1){left:0}
+.sp-table th:nth-child(2),.sp-table .sp-parent-row>td:nth-child(2){left:52px}
+.sp-table th:nth-child(3),.sp-table .sp-parent-row>td:nth-child(3){left:92px;box-shadow:4px 0 8px rgba(31,35,41,.05)}
+.sp-table th:last-child,.sp-table .sp-parent-row>td:last-child{position:sticky;right:0;z-index:4;background:#fff;box-shadow:-4px 0 8px rgba(31,35,41,.05)}
+.sp-table th:last-child{z-index:8;background:#f5f7fa}
+.sp-table .sp-parent-row:hover>td{background:#f7fbff}
+.sp-table .sp-parent-row:hover>td:nth-child(-n+3),.sp-table .sp-parent-row:hover>td:last-child{background:#f7fbff}
+.sp-table .sp-parent-row.is-expanded>td{background:#f7fbff}
+.sp-table .sp-parent-row.is-expanded>td:nth-child(-n+3),.sp-table .sp-parent-row.is-expanded>td:last-child{background:#f7fbff}
+.check-cell,.expand-cell{text-align:center!important;padding-left:6px!important;padding-right:6px!important}
+.sp-info-cell{text-align:left!important}
+.sp-title{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.sp-title .sp-no{color:#1677ff;font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis}
+.sp-title .sp-no:hover{text-decoration:underline}
+.sp-subline{margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#646a73;font-size:12px}
+.sp-subline.muted{color:#9aa0a8}
+/* 一级字段堆叠：标签灰、值深，行距与采购单一致 */
+.stack-cell{display:flex;flex-direction:column;align-items:flex-start;gap:5px;line-height:18px;text-align:left}
+.stack-cell span{color:#8f959e;font-size:12px;white-space:nowrap}
+.stack-cell b{color:#303133;font-weight:500}
+.summary-cell b{font-size:14px}
+/* 状态标签：与采购单同款 */
+.status-tag{flex:none;padding:3px 6px;border-radius:3px;font-size:11px;font-weight:500}
+.status-pending{background:#fff7e6;color:#d48806}
+.status-wait{background:#eaf3ff;color:#1677ff}
+.status-done{background:#f0f9eb;color:#52a31b}
+.status-void{background:#fef0f0;color:#f56c6c}
+/* 日期沿用文本样式，点击可直接修改 */
+.sp-date{width:112px;padding:0;border:0;background:transparent;font-family:inherit;font-size:12px;color:#606266;cursor:pointer;outline:0}
+.sp-date::-webkit-calendar-picker-indicator{display:none}
+.sp-date:focus{box-shadow:0 0 0 1px #a0cfff;border-radius:2px}
+/* 备注：展示 + 铅笔弹层编辑（交互对齐采购计划/损益单） */
+.sp-remark-cell{text-align:left!important}
+.sp-remark{display:flex;align-items:center;gap:6px;min-width:0}
+.sp-remark .strip-remark-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.strip-remark-edit{display:inline-flex;flex:none;align-items:center;justify-content:center;width:22px;height:22px;padding:2px;border:0;border-radius:3px;background:transparent;color:#909399;cursor:pointer}
+.strip-remark-edit:hover,.strip-remark-edit:focus-visible{background:#ecf5ff;color:#409eff;outline:0}
+.strip-remark-edit svg{width:15px;height:15px}
+/* 操作列：文字操作，与采购单一致 */
+.action-cell{text-align:left!important;white-space:nowrap}
+.link-btn{display:inline-block;padding:0;border:0;background:transparent;color:#1677ff;font-family:inherit;font-size:13px;cursor:pointer}
+.link-btn:hover{text-decoration:underline}
+.muted-link{color:#909399}
+.remark-popover{position:fixed;z-index:900;width:330px;padding:12px 14px;border:1px solid #e4e7ed;border-radius:6px;background:#fff;box-shadow:0 6px 20px rgba(31,35,41,.18)}
+.remark-popover-title{margin-bottom:8px;color:#303133;font-size:13px;font-weight:500}
+.remark-popover textarea{width:100%;height:88px;padding:8px 10px;border:1px solid #dcdfe6;border-radius:4px;font-size:13px;line-height:1.5;resize:vertical;box-sizing:border-box}
+.remark-popover-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+/* 二级明细：灰底分组 + 0.3px 细边框圆角（对齐损益单实测参数：38px 表头、40px 紧凑行、居中 11px；
+   子表嵌在 .sp-table 内，需 !important 压制父表 sticky/配色规则） */
+.sp-detail-row>td{height:auto!important;padding:0!important;background:#f7f9fc!important;overflow:visible}
+.detail-panel{padding:0 14px 14px;background:#f7f9fc;text-align:left}
+.detail-scroll{overflow-x:auto;border:.3px solid #e5ebf3;border-radius:6px;background:#fff}
+.detail-table{width:100%;min-width:1145px;border-collapse:separate;border-spacing:0;table-layout:fixed;background:#fff}
+.detail-table th{position:static!important;height:38px!important;padding:0 10px!important;border:0!important;border-right:.3px solid #e9eef5!important;border-bottom:.3px solid #e3eaf3!important;box-shadow:none!important;background:#f5f7fa!important;color:#646a73!important;font-size:12px!important;font-weight:600!important;text-align:center!important;white-space:nowrap}
+.detail-table td{position:static!important;height:40px!important;padding:5px 10px!important;border:0!important;border-right:.3px solid #f0f2f5!important;border-bottom:.3px solid #f0f2f5!important;box-shadow:none!important;background:#fff!important;color:#606266!important;font-size:11px!important;text-align:center!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.detail-table tr:last-child td{border-bottom:0}
+.detail-table th:last-child,.detail-table td:last-child{border-right:0}
+.detail-product{display:flex;align-items:center;gap:8px;min-width:0}
+.detail-product .thumb{display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;margin:0;border:1px solid #e4e9f2;border-radius:4px;background:#fafafa;font-size:15px}
+.detail-product b{overflow:hidden;text-overflow:ellipsis}
+/* 底部栏：左侧汇总 + 右侧分页 */
+.plan-list-card .bottom-bar{margin:0;padding:0 14px;border:0;border-radius:0;justify-content:space-between}
+.plan-list-card .bottom-left{display:flex;align-items:center;min-width:0}
+.plan-list-card .sum-stats{font-size:12px;color:#909399;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan-list-card .sum-stats b{color:#303133;font-weight:600}
 .bottom-right{display:flex;align-items:center;gap:14px;color:#606266}
 .plan-list-card .page-btn{width:28px;height:28px;padding:0;border:1px solid #dcdfe6;border-radius:4px;color:#606266}
 .plan-list-card .page-btn:disabled{color:#c0c4cc;cursor:not-allowed}
 .plan-list-card .page-btn.current{border-color:var(--blue);background:var(--blue);color:#fff}
 .plan-list-card .jump{width:52px;text-align:center}
-.plan-list-card .inline-input{height:34px}
-
-/* 表格列宽 */
-.stock-table{border-collapse:separate;border-spacing:0;min-width:1820px;width:100%;table-layout:fixed}
-.stock-table .check{width:58px}.stock-table .plan{width:260px}.stock-table .sku{width:260px}
-.stock-table .status-col{width:120px}.stock-table .updated-col{width:180px}.stock-table .creator-col{width:120px}
-.stock-table .remark-col{width:180px}.stock-table .delivery-col{width:180px}.stock-table .box-col{width:135px}
-.plan-op-col{width:160px}
 
 /* 单据内容元素 */
 .plan-list-card .doc-no{display:inline;color:#1677ff;font-weight:400}
-.sp-status{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:3px;font-size:12px;white-space:nowrap}
-.sp-status--confirm{color:#e6a23c;background:#fdf6ec}
-.sp-status--wait{color:#1677ff;background:#eaf3ff}
-.sp-status--done{color:#19a974;background:#e9f8f1}
-.sp-status--void{color:#f56c6c;background:#fef0f0}
 .thumb{font-size:23px;vertical-align:middle;margin-right:8px}
 .inline-input{width:100%;height:34px;padding:0 12px;border:1px solid #dcdfe6;border-radius:4px;color:#606266;background:#fff;outline:0}
 .inline-input:focus{border-color:var(--blue)}
@@ -117,8 +172,7 @@
 .plan-linked-tag{display:inline-block;padding:1px 7px;border:1px solid #e1e4e8;border-radius:3px;background:#f4f4f5;color:#909399;font-size:12px;margin-right:6px}
 
 /* 空态与提示 */
-.empty-row td{height:220px!important;color:#909399!important;text-align:center!important}
-.empty-icon{font-size:45px;color:#dcdfe6;margin-bottom:8px}
+.sp-empty{display:grid;place-items:center;height:220px;color:#909399;font-size:13px}
 .toast{position:fixed;z-index:100;left:50%;top:18px;transform:translateX(-50%) translateY(-8px);padding:10px 16px;border:1px solid #e1f3d8;border-radius:4px;background:#f0f9eb;color:#67c23a;box-shadow:0 4px 12px rgba(0,0,0,.1);opacity:0;pointer-events:none;transition:.2s}
 .toast.error{border-color:#fde2e2;background:#fef0f0;color:#f56c6c}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}

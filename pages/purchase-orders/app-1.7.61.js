@@ -458,7 +458,7 @@ const parentCellRenderers={
   logistics:row=>`<td>${renderLogistics(row)}</td>`,
   remark:row=>`<td class="remark-cell"><div class="batch-remark"><span class="batch-remark__text" title="${row.remark||'暂无备注'}">${row.remark||'—'}</span><button class="batch-remark__edit" type="button" data-remark-order="${row.id}" aria-label="编辑采购单 ${row.midNo} 的备注">${remarkEditIcon}</button></div></td>`,
   creator:row=>`<td><div class="stack-cell labeled-cell"><span>创建人：${row.creator}</span><span>创建时间：${row.createdAt}</span><span>更新人：${row.updatedBy}</span><span>更新时间：${row.updatedAt}</span></div></td>`,
-  action:row=>{const canReceive=['待收货','部分收货'].includes(row.status),canEdit=['待提交','已驳回'].includes(row.status),canSubmitReview=row.status==='待提交',canFinish=canReceive&&state.status==='待到齐';return `<td class="action-cell"><button class="link-btn" data-action="view" data-id="${row.id}">查看</button>${canEdit?`<button class="link-btn" data-action="edit" data-id="${row.id}">编辑</button>`:''}${canSubmitReview?`<button class="link-btn" data-action="submit-review" data-id="${row.id}">提交审核</button>`:''}${canReceive?`<button class="link-btn" data-action="receive" data-id="${row.id}">收货</button>`:''}${canFinish?`<button class="link-btn finish-arrival-btn" data-action="finish-arrival" data-id="${row.id}">结束到货</button>`:''}<button class="link-btn muted-link" data-action="log" data-id="${row.id}">日志</button></td>`;}
+  action:row=>{const canReceive=['待收货','部分收货'].includes(row.status),canEdit=['待提交','已驳回'].includes(row.status),canSubmitReview=row.status==='待提交',canFinish=canReceive&&state.status==='待到齐',canChange=['待到齐','待收货','部分收货'].includes(row.status)&&Number(row.receiveQty)===0;return `<td class="action-cell"><button class="link-btn" data-action="view" data-id="${row.id}">查看</button>${canEdit?`<button class="link-btn" data-action="edit" data-id="${row.id}">编辑</button>`:''}${canSubmitReview?`<button class="link-btn" data-action="submit-review" data-id="${row.id}">提交审核</button>`:''}${canReceive?`<button class="link-btn" data-action="receive" data-id="${row.id}">收货</button>`:''}${canChange?`<button class="link-btn change-order-btn" data-action="change" data-id="${row.id}" title="已审核通过且尚未入库，可发起采购变更">发起变更</button>`:''}${canFinish?`<button class="link-btn finish-arrival-btn" data-action="finish-arrival" data-id="${row.id}">结束到货</button>`:''}<button class="link-btn muted-link" data-action="log" data-id="${row.id}">日志</button></td>`;}
 };
 /* 收起一级列表：单条采购单压缩为一行摘要横条；展开后下方为二级明细表（自带二级表头）。 */
 let stripMenuLayer=null;
@@ -466,10 +466,10 @@ function closeStripMenu(){if(stripMenuLayer){stripMenuLayer.remove();stripMenuLa
 function openStripMenu(trigger,id){
   closeStripMenu();
   const row=purchaseOrders.find(item=>item.id===id);if(!row)return;
-  const canEdit=['待提交','已驳回'].includes(row.status),canReceive=['待收货','部分收货'].includes(row.status),canFinish=canReceive&&state.status==='待到齐';
+  const canEdit=['待提交','已驳回'].includes(row.status),canReceive=['待收货','部分收货'].includes(row.status),canFinish=canReceive&&state.status==='待到齐',canChange=['待到齐','待收货','部分收货'].includes(row.status)&&Number(row.receiveQty)===0;
   const menu=document.createElement('div');
   menu.className='po-strip__menu po-strip__menu--float show';
-  menu.innerHTML=`<button type="button" data-action="view" data-id="${row.id}">查看</button>${canEdit?`<button type="button" data-action="edit" data-id="${row.id}">编辑</button>`:''}${canReceive?`<button type="button" data-action="receive" data-id="${row.id}">收货</button>`:''}${canFinish?`<button type="button" class="finish-arrival-btn" data-action="finish-arrival" data-id="${row.id}">结束到货</button>`:''}<button type="button" data-action="log" data-id="${row.id}">日志</button>`;
+  menu.innerHTML=`<button type="button" data-action="view" data-id="${row.id}">查看</button>${canEdit?`<button type="button" data-action="edit" data-id="${row.id}">编辑</button>`:''}${canReceive?`<button type="button" data-action="receive" data-id="${row.id}">收货</button>`:''}${canChange?`<button type="button" data-action="change" data-id="${row.id}">发起变更</button>`:''}${canFinish?`<button type="button" class="finish-arrival-btn" data-action="finish-arrival" data-id="${row.id}">结束到货</button>`:''}<button type="button" data-action="log" data-id="${row.id}">日志</button>`;
   document.body.appendChild(menu);
   const rect=trigger.getBoundingClientRect();
   menu.style.top=`${rect.bottom+4}px`;
@@ -490,6 +490,28 @@ function handlePurchaseAction(button){
   else if(action==='complete')openPurchaseComplete(row);
   else if(action==='receive-adjust'&&row.status==='部分收货')openReceiveAdjust(row);
   else if(action==='log')openPurchaseLog(row);
+  else if(action==='change')openPurchaseChange(row);
+}
+/* 发起采购变更：唯一入口在采购单列表；跳转采购变更页并自动带出该单全部 SKU */
+function openPurchaseChange(row){
+  if(!['待到齐','待收货','部分收货'].includes(row.status)){toast('仅审核通过且处于待到齐的采购单可以发起变更','error');return;}
+  if(Number(row.receiveQty)>0){toast('该采购单已有入库记录，不能发起采购变更','error');return;}
+  const pad=value=>String(value).padStart(2,'0'),date=new Date();
+  const todayIso=`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+  date.setDate(date.getDate()+7);
+  const fallbackDate=`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+  const plannedDate=/^\d{4}-\d{2}-\d{2}$/.test(row.receiveDate||'')?row.receiveDate:'';
+  const preset={
+    id:row.midNo,status:'待到齐',supplier:row.supplier,warehouse:row.warehouse,buyer:row.purchaseOwner,
+    deliveryDate:plannedDate&&plannedDate>=todayIso?plannedDate:fallbackDate,
+    settlement:row.settlement,prepayRate:row.prepayRate,taxIncluded:row.taxIncluded,tax:row.tax,
+    paid:false,invoiced:false,remark:row.remark||'',freight:Number(row.freight)||0,otherFee:Number(row.otherFee)||0,discount:Number(row.discount)||0,
+    items:(row.items||[]).map(item=>({sku:item.sku,name:item.name,quantity:Number(item.purchaseQty)||0,received:Number(item.receiveQty)||0,price:Number(item.unitPrice)||0,remark:''}))
+  };
+  try{sessionStorage.setItem('pcPresetOrder',JSON.stringify(preset));}catch(error){}
+  const url=`../purchase-changes/index.html?orderId=${encodeURIComponent(preset.id)}`;
+  if(window.parent!==window){try{window.parent.location.href=url;return;}catch(error){}}
+  window.location.href=url;
 }
 function renderStripRow(row,colspan){
   const statusClass=row.status==='已完成'?'done':row.status==='已作废'?'void':row.status==='已驳回'?'rejected':'pending';
