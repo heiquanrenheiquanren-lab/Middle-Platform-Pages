@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../../document-list.css?v=1.0.1">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.2.1">
+  <link rel="stylesheet" href="./styles.css?v=1.3.0">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="app">
@@ -41,12 +41,12 @@
             <div class="query-item query-action-item"><div class="query-actions"><button class="btn primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button></div></div>
           </div>
         </section>
-        <section class="action-strip ui-action-row"><div class="head-actions" id="changeActions"></div><div class="change-rule-hint">变更统一从【采购单】发起，本页仅处理审核、作废与重新编辑</div></section>
+        <section class="action-strip ui-action-row"><div class="head-actions" id="changeActions"></div></section>
         <section class="list-card ui-list-card">
           <section class="status-bar"><div class="status-tabs" id="statusTabs"></div></section>
           <section class="table-area">
             <table class="change-table document-list">
-              <thead><tr><th class="check-col"></th><th>变更单号</th><th>状态</th><th>采购单信息</th><th>变更内容</th><th>变更前金额</th><th>变更后金额</th><th>金额变化</th><th>申请信息</th><th>审核／生效信息</th></tr></thead>
+              <thead><tr><th class="check-col"></th><th>变更单号</th><th>状态</th><th>采购单信息</th><th>变更内容</th><th>变更前金额</th><th>变更后金额</th><th>金额变化</th><th>申请信息</th><th>审核／生效信息</th><th class="op-col">操作</th></tr></thead>
               <tbody id="changeTableBody"></tbody>
             </table>
             <div class="empty" id="changeEmpty" hidden>暂无符合条件的采购变更单</div>
@@ -59,7 +59,7 @@
   <div class="change-modal" id="changeModal" hidden></div>
   <div class="toast" id="toast"></div>
   <script src="../../ui-kit.js?v=1.0.0"></script>
-  <script src="./app.js?v=1.2.0"></script>
+  <script src="./app.js?v=1.3.0"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../navigation.js?v=1.7.93"></script>
 </body>

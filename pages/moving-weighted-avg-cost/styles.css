@@ -1,0 +1,104 @@
+*{box-sizing:border-box}html,body{margin:0;min-width:1024px;color:#606266;font:14px Arial,"PingFang SC","Microsoft YaHei",sans-serif}[v-cloak]{display:none}.app-shell{min-height:100vh}.global-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid #e7e9ed;background:#fff}.global-left,.global-right{display:flex;align-items:center;gap:20px}.brand-shield{width:16px;height:22px;background:#b32036;clip-path:polygon(0 0,100% 14%,78% 100%,43% 88%)}.top-icon{border:0;background:transparent;color:#58636f;font:inherit}.top-icon.active{color:#1677ff}.shell{display:flex;min-height:calc(100vh - 44px)}.sidebar{position:relative;width:188px;flex:0 0 188px;border-right:1px solid #e4e7ed;background:#fff}.nav-scroll{padding:12px 0 48px}.nav-group-title{height:42px;padding:0 22px;display:flex;align-items:center;gap:10px;font-weight:600}.nav-group-title .chev{margin-left:auto}.nav-item{height:38px;padding:0 22px 0 38px;display:flex;align-items:center;gap:12px;color:#555e68;cursor:pointer}.nav-item.active{border-right:2px solid #1677ff;background:#eaf3ff;color:#1677ff;font-weight:600}.mini{width:16px;text-align:center}.collapse{position:absolute;bottom:0;width:100%;height:42px;border-top:1px solid #edf0f3;text-align:center;line-height:42px}.main{min-width:0;flex:1;display:flex;flex-direction:column;background:var(--content-canvas,#f5f7fa)}.content{display:grid;grid-template-rows:auto 32px minmax(0,1fr);gap:10px;padding:10px;flex:1;min-height:0}.content>*{min-width:0}
+.query-combo{display:flex;gap:8px;min-width:0}
+.query-combo .query-type-select{width:115px;flex:none}
+.query-combo .el-input{width:262px}
+.ui-query-flow>.el-input{width:230px}
+.ui-query-flow>.el-select{width:185px}
+.ui-query-flow .query-date{flex:0 0 240px;width:240px;min-width:240px}
+.ui-query-actions{margin-left:auto}
+
+.ui-list-card{display:grid;grid-template-rows:minmax(0,1fr) auto;min-width:0;min-height:0;overflow:hidden}
+.ui-list-card .ui-table-wrap{min-width:0;min-height:0;overflow:auto;border:0;border-radius:0;margin:0}
+.ui-table td{height:38px!important;padding:6px 14px!important}
+.ui-table thead th{background:#fff!important}
+/* 与损益单统一：Arial 字体栈、列表正文 13px */
+:root{--el-font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+.ui-table{min-width:1714px;font-size:13px}
+.ui-table .warehouse{width:200px}.ui-table .sku{width:160px}.ui-table .msku{width:200px}.ui-table .product{width:250px}.ui-table .unit{width:210px}.ui-table .price{width:210px}.ui-table .time{width:170px}.ui-table .action{width:104px}
+/* 仅前 2 列（仓库名称/SKU）固定，不参与横向滚动 */
+.ui-table th.sticky,.ui-table td.sticky{position:sticky;z-index:2;background:#fff}
+.ui-table thead th.sticky{z-index:3;background:#fff}
+.ui-table .sticky-1{left:0}
+.ui-table .sticky-2{left:200px;box-shadow:var(--ui-shadow-fixed-left,8px 0 10px -12px rgba(31,45,61,.55))}
+.ui-table tbody tr:hover td.sticky{background:#f5faff}
+/* 仓库名称单元格：名称（编码）+ 属性标签（对齐库存查询页的灰色小标签） */
+.wh-cell{display:flex;align-items:center;gap:6px;min-width:0}
+.wh-cell .wh-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wh-attr{flex:none;height:20px;line-height:18px;padding:0 6px;border:1px solid #e9e9eb;border-radius:3px;background:#f4f4f5;color:#909399;font-size:11px;white-space:nowrap}
+.ui-table th.num,.ui-table td.num{text-align:left;white-space:nowrap}
+.ui-table th.num .price-head{display:inline-flex;align-items:center}
+/* 表头问号改用 el-tooltip，禁用全局 CSS 气泡避免双重提示 */
+.price-head .ui-help-icon::after{content:none!important}
+.head-tip{display:inline-block;max-width:320px;white-space:normal;line-height:18px}
+/* 三价格列排序：符号复用库存查询页 el-table 的 caret（灰三角 / 激活蓝三角） */
+.ui-table th.sortable{cursor:pointer;user-select:none}
+.ui-table .caret-wrapper{align-items:center;cursor:pointer;display:inline-flex;flex-direction:column;height:14px;overflow:initial;position:relative;vertical-align:middle;width:16px;flex:0 0 16px;margin-left:2px}
+.ui-table .sort-caret{border:5px solid transparent;height:0;left:3px;position:absolute;width:0}
+.ui-table .sort-caret.ascending{border-bottom-color:var(--el-text-color-placeholder,#c0c4cc);top:-5px}
+.ui-table .sort-caret.descending{border-top-color:var(--el-text-color-placeholder,#c0c4cc);bottom:-3px}
+.ui-table th.ascending .sort-caret.ascending{border-bottom-color:var(--el-color-primary,#1677ff)}
+.ui-table th.descending .sort-caret.descending{border-top-color:var(--el-color-primary,#1677ff)}
+.link{color:#1677ff;cursor:pointer}
+.price{color:#303133;font-weight:600;font-variant-numeric:tabular-nums}
+.zero-price{color:#a7afb8;font-variant-numeric:tabular-nums}
+/* 价格列涨跌标签：数值右侧内联小字，涨红跌绿、持平灰 */
+.chg{margin-left:8px;font-size:12px;font-weight:400;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chg-up{color:#f56c6c}
+.chg-down{color:#19a974}
+.chg-flat{color:#909399}
+.return-note{margin-left:6px;color:#a7afb8;font-size:12px}
+.product-cell{display:flex;align-items:center;gap:10px;min-width:0}
+.product-cell span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thumb-img{display:block;width:24px;height:24px;flex:none;border:1px solid #ebeef5;border-radius:4px;background:#f0f2f5;object-fit:cover}
+.stack{display:grid;gap:4px;line-height:1.25}
+.stack .sub{color:#98a1aa;font-size:12px}
+.empty{height:180px!important;text-align:center;color:#909399}
+
+.list-footer{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px;color:#909399;border-top:1px solid #ebeef5}
+.calc-note{color:#909399;font-size:12px}
+.footer-right{display:flex;align-items:center;gap:16px;margin-left:auto;flex:none}
+
+/* 抽屉：标题区 / 汇总指标 / 内容面板 三层结构 */
+.el-drawer__header{margin:0;padding:16px 20px;border-bottom:1px solid #ebeef5}
+.el-drawer__body{padding:16px 20px;background:#f7f9fc;display:flex;flex-direction:column;gap:12px}
+.drawer-head{display:flex;flex-direction:column;gap:5px}
+.drawer-head strong{font-size:17px;font-weight:600;color:#1f2d3d;letter-spacing:.2px}
+.drawer-head span{font-size:12px;color:#8b95a3}
+/* 汇总：3 个白色指标卡 */
+.drawer-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.kpi-card{display:flex;flex-direction:column;gap:6px;min-width:0;padding:14px 16px;border:1px solid #ebeef5;border-radius:8px;background:#fff}
+.kpi-label{color:#8b95a3;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-value{font-size:22px;font-weight:600;line-height:1.25;color:#1f2d3d;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-value.is-muted{font-size:14px;font-weight:400;color:#98a2b1}
+/* 最新一次变动：移动加权平均价计算过程 */
+.calc-card{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid #ebeef5;border-radius:8px;background:#fff}
+.calc-head{color:#1f2d3d;font-size:13px;font-weight:600}
+.calc-line{display:flex;align-items:flex-start;gap:10px}
+.calc-tag{flex:none;height:20px;line-height:18px;padding:0 8px;border:1px solid #e9e9eb;border-radius:3px;background:#f4f4f5;color:#606266;font-size:11px;white-space:nowrap}
+.calc-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.calc-meta{color:#98a2b1;font-size:11px}
+.calc-exp{color:#5a6472;font-size:12px;line-height:20px;font-variant-numeric:tabular-nums}
+.calc-exp b{color:#1f2d3d;font-weight:600}
+.calc-total .calc-tag{border-color:#c6e2ff;background:#ecf5ff;color:#409eff}
+.calc-total .calc-exp b{color:#1677ff}
+/* 内容面板：筛选 + tabs + 表格 + 提示 收进一张白卡 */
+.history-panel{padding:16px;border:1px solid #ebeef5;border-radius:8px;background:#fff}
+.history-filter{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f2f5}
+.history-filter .filter-label{color:#606266;font-size:13px}
+.history-filter .el-date-editor{flex:0 0 220px;width:220px!important;min-width:220px!important}
+.history-tabs .el-tabs__header{margin:0 0 10px}
+.history-tabs .el-tabs__nav-wrap::after{height:1px;background:#ebeef5}
+.history-tabs .el-tabs__item{height:40px;line-height:40px;padding:0 18px;color:#5a6472;font-size:14px}
+.history-tabs .el-tabs__item.is-active{color:#409eff;font-weight:600}
+.history-tabs .el-tabs__active-bar{height:2px;background:#409eff}
+.history-table{width:100%;font-size:13px}
+.history-table .el-table__header th.el-table__cell{height:42px;background:#f7f9fb;color:#4a5563;font-size:13px;font-weight:600;border-bottom:1px solid #ebeef5}
+.history-table .el-table__cell{font-size:13px;color:#5a6472;border-bottom:1px solid #f0f2f5}
+.history-table .el-table__body td.el-table__cell{height:52px}
+.history-table .el-table__body tr:hover>td.el-table__cell{background:#f5f9ff}
+.history-table .stack{gap:3px}
+.history-table .stack .sub{color:#9aa4b1;font-size:11px}
+.history-table .link{color:#409eff;font-size:12px}
+.history-table .chg{font-size:12px}
+.history-pager{display:flex;justify-content:flex-end;margin-top:12px}
+@media(max-width:1380px){.content{padding:10px}.ui-query-flow>.el-input{width:210px}.ui-query-flow>.el-select{width:170px}.query-combo .el-input{width:240px}.ui-query-actions{margin-left:0}}

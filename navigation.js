@@ -4,7 +4,7 @@
   var modules = [
     { label: '工作台', icon: 'dashboard', page: 'workbench', path: '../workbench/index.html' },
     { label: '基础', icon: 'basic', page: 'base', path: '../workbench/index.html#basic' },
-    { label: '财务', icon: 'finance' },
+    { label: '财务', icon: 'finance', page: 'movingWeightedAverageCost', path: '../moving-weighted-avg-cost/index.html' },
     { label: '供应链', icon: 'supplyChain', page: 'inventoryQuery', path: '../inventory-query/index.html' },
     { label: '运营', icon: 'operations' },
     { label: '产品', icon: 'product', page: 'productList', path: '../product-list/index.html' }
@@ -27,6 +27,7 @@
     fbaShipment: '../fba-shipment/index.html',
     skuFirstLegCost: '../sku-first-leg-cost/index.html',
     historicalPurchasePrice: '../historical-purchase-price/index.html',
+    movingWeightedAverageCost: '../moving-weighted-avg-cost/index.html',
     inventoryQuery: '../inventory-query/index.html',
     inventoryFlow: '../inventory-flow/index.html',
     batchInventory: '../batch-inventory/index.html',
@@ -914,7 +915,7 @@
     { id: 'TD20261010004', scope: 'pending', title: '调拨单 TR20261010012 待审核', summary: '上海仓 → 苏州仓，8 个 SKU', business: '调拨单', taskType: '审核', node: '仓储主管审核', initiator: '陈默', createdAt: '2026-10-10 10:06', due: '剩余 8 小时', urgency: 'normal', status: 'pending', feishu: 'failed', amount: '860 件', detail: '因苏州仓安全库存不足，申请从上海仓调拨。', history: ['陈默 提交申请  10:06', '飞书推送失败，等待重试  10:06'] },
     { id: 'TD20261008011', scope: 'initiated', title: '采购单 PO20261008042', summary: '已进入财务审核节点', business: '采购单', taskType: '审批进度', node: '财务审核', initiator: 'Admin', createdAt: '2026-10-08 16:22', due: '审批中', urgency: 'normal', status: 'processing', feishu: 'pushed', amount: '¥98,600.00', detail: '华南区常规备货采购。', history: ['Admin 提交申请  10-08 16:22', '刘慧 审核通过  10-09 09:18', '等待财务审核'] },
     { id: 'TD20261007009', scope: 'cc', title: '发货单 SO20261007019 已审批通过', summary: '报关资料已齐全，计划 10 月 11 日出库', business: '发货单', taskType: '抄送', node: '审批完成', initiator: '赵雯', createdAt: '2026-10-10 09:14', due: '已通过', urgency: 'normal', status: 'done', feishu: 'pushed', amount: '48 箱', detail: '发货审批已完成，请知悉。', history: ['赵雯 提交申请', '所有审批节点已通过', '抄送给 Admin'] },
-    { id: 'MSG20261010007', scope: 'notice', title: '易仓库存同步异常', summary: '3 个 SKU 同步失败，请检查映射关系', business: '库存', taskType: '系统通知', node: '同步异常', initiator: '系统', createdAt: '2026-10-10 10:18', due: '待查看', urgency: 'urgent', status: 'unread', feishu: 'pushed', amount: '3 个 SKU', detail: '易仓返回仓库 SKU 不存在，请检查海外仓 SKU 映射。', history: ['系统检测到同步异常  10:18', '已推送飞书通知  10:18'] },
+    { id: 'MSG20261010007', scope: 'notice', title: '易仓库存同步异常', summary: '3 个 SKU 同步失败，请检查映射关系', business: '库存', taskType: '系统通知', node: '同步异常', initiator: '系统', createdAt: '2026-10-10 10:18', due: '待查看', urgency: 'urgent', status: 'unread', feishu: 'pushed', amount: '3 个 SKU', detail: '易仓返回仓库 SKU 不存在，请检查 SKU 映射。', history: ['系统检测到同步异常  10:18', '已推送飞书通知  10:18'] },
     { id: 'MSG20261010003', scope: 'notice', title: '导出任务已完成', summary: '库存流水导出文件可下载', business: '系统', taskType: '系统通知', node: '导出完成', initiator: '系统', createdAt: '2026-10-10 09:40', due: '待查看', urgency: 'normal', status: 'unread', feishu: 'none', amount: '12,480 条', detail: '你发起的库存流水导出任务已完成。', history: ['导出任务已完成  09:40'] }
   ];
 

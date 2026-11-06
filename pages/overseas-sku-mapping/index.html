@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>海外仓 SKU 映射｜产品</title>
+  <title>SKU 映射｜产品</title>
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.0.2">
+  <link rel="stylesheet" href="./styles.css?v=1.14.3">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
@@ -27,46 +27,134 @@
       <aside class="mapping-sidebar product-sidebar">
         <div class="nav-section"><span class="nav-symbol">▦</span><span>产品管理</span><span class="nav-chevron">⌃</span></div>
         <button class="nav-item" type="button" data-page-nav="productList"><span class="nav-symbol">▤</span><span>产品列表</span></button>
-        <button class="nav-item active" type="button" data-page-nav="overseasSkuMapping"><span class="nav-symbol">▥</span><span>海外仓 SKU 映射</span></button>
+        <button class="nav-item active" type="button" data-page-nav="overseasSkuMapping"><span class="nav-symbol">▥</span><span>SKU 映射</span></button>
       </aside>
 
       <main class="mapping-main">
-        <section class="mapping-query-card ui-query-card" aria-label="海外仓 SKU 映射查询条件">
-          <div class="mapping-query-row ui-query-flow">
-            <div class="mapping-query-combo mapping-query-combo-wide">
-              <select id="skuSearchType" aria-label="SKU 查询类型"><option value="sku">SKU</option><option value="lingxingSku">领星 SKU</option><option value="overseasSku">海外仓 SKU</option><option value="fnsku">FNSKU</option></select>
-              <input id="skuKeyword" placeholder="请输入 SKU，支持多个，用逗号或空格隔开">
+        <nav class="mapping-tabs" aria-label="SKU 映射类型切换">
+          <button type="button" class="is-active" data-tab="lingxing">领星 SKU</button>
+          <button type="button" data-tab="overseas">海外仓 SKU</button>
+          <button type="button" data-tab="fba">FBA-FNSKU</button>
+          <button type="button" data-tab="seller">SellerSKU</button>
+        </nav>
+
+        <section class="mapping-tab-panel" data-tab-panel="lingxing">
+          <section class="mapping-query-card ui-query-card" aria-label="领星 SKU 映射查询条件">
+            <div class="mapping-query-row ui-query-flow">
+              <div class="mapping-query-combo"><select id="lxSkuSearchType" aria-label="SKU 查询类型"><option value="sku">SKU</option><option value="code">领星 SKU</option></select><input id="lxSkuKeyword" placeholder="请输入 SKU，支持多个，用逗号或空格隔开"></div>
+              <input id="lxProductNameKeyword" class="mapping-text-control" placeholder="产品名称">
+              <select id="lxCreatorFilter" aria-label="创建人"><option value="">创建人（全部）</option><option>Admin</option><option>张三</option><option>李四</option></select>
+              <div class="mapping-date-range" aria-label="创建时间">
+                <input id="lxStartDate" type="date" aria-label="开始日期">
+                <span>至</span>
+                <input id="lxEndDate" type="date" aria-label="结束日期">
+              </div>
+              <div class="mapping-query-actions ui-query-actions"><button id="lxResetButton" class="mapping-button ui-button" type="button">重置</button><button id="lxSearchButton" class="mapping-button primary ui-button ui-button--primary" type="button">查询</button></div>
             </div>
-            <select id="warehouseFilter" class="mapping-warehouse-filter" aria-label="仓库名称"><option value="">仓库名称（全部）</option><option>美通物流中转仓</option><option>亚马逊欧洲仓</option><option>深圳海外仓</option><option>东莞海外仓</option></select>
-            <input id="productNameKeyword" class="mapping-text-control" placeholder="产品名称">
-            <select id="creatorFilter" aria-label="创建人"><option value="">创建人（全部）</option><option>Admin</option><option>张三</option><option>李四</option></select>
-            <div class="mapping-date-range" aria-label="创建时间">
-              <input id="startDate" type="date" aria-label="开始日期">
-              <span>至</span>
-              <input id="endDate" type="date" aria-label="结束日期">
+          </section>
+          <section class="mapping-actions ui-action-row"><button id="lxAddButton" class="mapping-button primary ui-button ui-button--primary" type="button">新增映射关系</button><button id="lxImportButton" class="mapping-button ui-button" type="button">导入映射关系</button><button id="lxExportButton" class="mapping-button ui-button" type="button">导出</button></section>
+          <section class="mapping-table-card ui-list-card">
+            <div class="mapping-table-wrap ui-table-wrap">
+              <table class="mapping-table ui-table">
+                <thead><tr><th class="mapping-sku-col">SKU</th><th class="mapping-product-col">品名</th><th class="mapping-lingxing-col">领星 SKU</th><th class="mapping-creator-col">创建人</th><th class="mapping-time-col">创建时间</th><th class="mapping-operation-col">操作</th></tr></thead>
+                <tbody id="lxTableBody"></tbody>
+              </table>
             </div>
-            <div class="mapping-query-actions ui-query-actions"><button id="resetButton" class="mapping-button ui-button" type="button">重置</button><button id="searchButton" class="mapping-button primary ui-button ui-button--primary" type="button">查询</button></div>
-          </div>
+            <div id="lxEmptyState" class="mapping-empty" hidden>暂无符合条件的映射关系</div>
+            <footer class="mapping-table-footer"><span id="lxCount">共 0 条</span><div class="mapping-pager"><button type="button" disabled>‹</button><button class="current" type="button">1</button><button type="button" disabled>›</button></div></footer>
+          </section>
         </section>
 
-        <section class="mapping-actions ui-action-row"><button id="addMappingButton" class="mapping-button primary ui-button ui-button--primary" type="button">新增映射关系</button><button id="importMappingButton" class="mapping-button ui-button" type="button">导入映射关系</button></section>
+        <section class="mapping-tab-panel" data-tab-panel="overseas" hidden>
+          <section class="mapping-query-card ui-query-card" aria-label="海外仓 SKU 映射查询条件">
+            <div class="mapping-query-row ui-query-flow">
+              <div class="mapping-query-combo"><select id="osSkuSearchType" aria-label="SKU 查询类型"><option value="sku">SKU</option><option value="code">海外仓 SKU</option></select><input id="osSkuKeyword" placeholder="请输入 SKU，支持多个，用逗号或空格隔开"></div>
+              <select id="osWarehouseFilter" class="mapping-warehouse-filter" aria-label="仓库名称"><option value="">仓库名称（全部）</option><option>美通物流中转仓（MT01）</option><option>亚马逊欧洲仓（EU01）</option><option>深圳海外仓（SZ01）</option><option>东莞海外仓（DG01）</option></select>
+              <input id="osProductNameKeyword" class="mapping-text-control" placeholder="产品名称">
+              <select id="osCreatorFilter" aria-label="创建人"><option value="">创建人（全部）</option><option>Admin</option><option>张三</option><option>李四</option></select>
+              <div class="mapping-date-range" aria-label="创建时间">
+                <input id="osStartDate" type="date" aria-label="开始日期">
+                <span>至</span>
+                <input id="osEndDate" type="date" aria-label="结束日期">
+              </div>
+              <div class="mapping-query-actions ui-query-actions"><button id="osResetButton" class="mapping-button ui-button" type="button">重置</button><button id="osSearchButton" class="mapping-button primary ui-button ui-button--primary" type="button">查询</button></div>
+            </div>
+          </section>
+          <section class="mapping-actions ui-action-row"><button id="osAddButton" class="mapping-button primary ui-button ui-button--primary" type="button">新增映射关系</button><button id="osImportButton" class="mapping-button ui-button" type="button">导入映射关系</button><button id="osExportButton" class="mapping-button ui-button" type="button">导出</button></section>
+          <section class="mapping-table-card ui-list-card">
+            <div class="mapping-table-wrap ui-table-wrap">
+              <table class="mapping-table ui-table">
+                <thead><tr><th class="mapping-sku-col">SKU</th><th class="mapping-product-col">品名</th><th class="mapping-warehouse-col">仓库名称</th><th class="mapping-overseas-col">海外仓 SKU</th><th class="mapping-creator-col">创建人</th><th class="mapping-time-col">创建时间</th><th class="mapping-operation-col">操作</th></tr></thead>
+                <tbody id="osTableBody"></tbody>
+              </table>
+            </div>
+            <div id="osEmptyState" class="mapping-empty" hidden>暂无符合条件的映射关系</div>
+            <footer class="mapping-table-footer"><span id="osCount">共 0 条</span><div class="mapping-pager"><button type="button" disabled>‹</button><button class="current" type="button">1</button><button type="button" disabled>›</button></div></footer>
+          </section>
+        </section>
 
-        <section class="mapping-table-card ui-list-card">
-          <div class="mapping-table-wrap ui-table-wrap">
-            <table class="mapping-table ui-table">
-              <thead><tr><th class="mapping-sku-col">SKU</th><th class="mapping-product-col">产品名称</th><th class="mapping-warehouse-col">仓库名称</th><th class="mapping-overseas-col">海外仓 SKU</th><th class="mapping-created-col">创建信息</th><th class="mapping-operation-col">操作</th></tr></thead>
-              <tbody id="mappingTableBody"></tbody>
-            </table>
-          </div>
-          <div id="emptyState" class="mapping-empty" hidden>暂无符合条件的映射关系</div>
-          <footer class="mapping-table-footer"><span id="mappingCount">共 0 条</span><div class="mapping-pager"><button type="button" disabled>‹</button><button class="current" type="button">1</button><button type="button" disabled>›</button></div></footer>
+        <section class="mapping-tab-panel" data-tab-panel="fba" hidden>
+          <section class="mapping-query-card ui-query-card" aria-label="FBA-FNSKU 映射查询条件">
+            <div class="mapping-query-row ui-query-flow">
+              <div class="mapping-query-combo"><select id="fbaSkuSearchType" aria-label="SKU 查询类型"><option value="sku">SKU</option><option value="code">FNSKU</option><option value="seller">SellerSKU</option></select><input id="fbaSkuKeyword" placeholder="请输入 SKU，支持多个，用逗号或空格隔开"></div>
+              <select id="fbaStoreFilter" class="mapping-warehouse-filter" aria-label="店铺"><option value="">店铺（全部）</option><option>AMZ-US01</option><option>AMZ-DE02</option><option>AMZ-JP03</option></select>
+              <select id="fbaWarehouseFilter" class="mapping-warehouse-filter" aria-label="仓库名称"><option value="">仓库名称（全部）</option><option>亚马逊欧洲仓（EU01）</option><option>亚马逊美国仓（US01）</option></select>
+              <input id="fbaProductNameKeyword" class="mapping-text-control" placeholder="产品名称">
+              <select id="fbaCreatorFilter" aria-label="创建人"><option value="">创建人（全部）</option><option>Admin</option><option>张三</option><option>李四</option></select>
+              <div class="mapping-date-range" aria-label="创建时间">
+                <input id="fbaStartDate" type="date" aria-label="开始日期">
+                <span>至</span>
+                <input id="fbaEndDate" type="date" aria-label="结束日期">
+              </div>
+              <div class="mapping-query-actions ui-query-actions"><button id="fbaResetButton" class="mapping-button ui-button" type="button">重置</button><button id="fbaSearchButton" class="mapping-button primary ui-button ui-button--primary" type="button">查询</button></div>
+            </div>
+          </section>
+          <section class="mapping-actions ui-action-row"><button id="fbaAddButton" class="mapping-button primary ui-button ui-button--primary" type="button">新增映射关系</button><button id="fbaImportButton" class="mapping-button ui-button" type="button">导入映射关系</button><button id="fbaExportButton" class="mapping-button ui-button" type="button">导出</button></section>
+          <section class="mapping-table-card ui-list-card">
+            <div class="mapping-table-wrap ui-table-wrap">
+              <table class="mapping-table ui-table fba-table">
+                <thead><tr><th class="mapping-sku-col">SKU</th><th class="mapping-product-col">品名</th><th class="mapping-store-col">店铺</th><th class="mapping-fba-seller-col">SellerSKU</th><th class="mapping-overseas-col">FNSKU</th><th class="mapping-warehouse-col">仓库名称</th><th class="mapping-creator-col">创建人</th><th class="mapping-time-col">创建时间</th><th class="mapping-operation-col">操作</th></tr></thead>
+                <tbody id="fbaTableBody"></tbody>
+              </table>
+            </div>
+            <div id="fbaEmptyState" class="mapping-empty" hidden>暂无符合条件的映射关系</div>
+            <footer class="mapping-table-footer"><span id="fbaCount">共 0 条</span><div class="mapping-pager"><button type="button" disabled>‹</button><button class="current" type="button">1</button><button type="button" disabled>›</button></div></footer>
+          </section>
+        </section>
+
+        <section class="mapping-tab-panel" data-tab-panel="seller" hidden>
+          <section class="mapping-query-card ui-query-card" aria-label="SellerSKU 映射查询条件">
+            <div class="mapping-query-row ui-query-flow">
+              <div class="mapping-query-combo"><select id="sellerSkuSearchType" aria-label="SKU 查询类型"><option value="sku">SKU</option><option value="code">SellerSKU</option></select><input id="sellerSkuKeyword" placeholder="请输入 SKU，支持多个，用逗号或空格隔开"></div>
+              <select id="sellerPlatformFilter" class="mapping-compact-filter" aria-label="平台"><option value="">平台（全部）</option><option>AliExpress</option><option>Amazon</option><option>eBay</option></select>
+              <select id="sellerStoreFilter" class="mapping-compact-filter" aria-label="店铺名"><option value="">店铺名（全部）</option><option>SMT001</option><option>SMT004</option><option>SMT006</option><option>SMT037</option></select>
+              <select id="sellerCreatorFilter" aria-label="创建人"><option value="">创建人（全部）</option><option>system</option><option>Admin</option><option>张三</option><option>李四</option></select>
+              <div class="mapping-date-range" aria-label="创建时间">
+                <input id="sellerStartDate" type="date" aria-label="开始日期">
+                <span>至</span>
+                <input id="sellerEndDate" type="date" aria-label="结束日期">
+              </div>
+              <div class="mapping-query-actions ui-query-actions"><button id="sellerResetButton" class="mapping-button ui-button" type="button">重置</button><button id="sellerSearchButton" class="mapping-button primary ui-button ui-button--primary" type="button">查询</button></div>
+            </div>
+          </section>
+          <section class="mapping-actions ui-action-row"><button id="sellerAddButton" class="mapping-button primary ui-button ui-button--primary" type="button">新增映射关系</button><button id="sellerImportButton" class="mapping-button ui-button" type="button">导入映射关系</button><button id="sellerExportButton" class="mapping-button ui-button" type="button">导出</button></section>
+          <section class="mapping-table-card ui-list-card">
+            <div class="mapping-table-wrap ui-table-wrap">
+              <table class="mapping-table ui-table seller-table">
+                <thead><tr><th class="mapping-seller-col">SellerSKU</th><th class="mapping-sku-col">SKU</th><th class="mapping-qty-col">数量</th><th class="mapping-product-col">品名</th><th class="mapping-platform-col">平台</th><th class="mapping-store-col">店铺名</th><th class="mapping-creator-col">创建人</th><th class="mapping-time-col">创建时间</th><th class="mapping-operation-col">操作</th></tr></thead>
+                <tbody id="sellerTableBody"></tbody>
+              </table>
+            </div>
+            <div id="sellerEmptyState" class="mapping-empty" hidden>暂无符合条件的映射关系</div>
+            <footer class="mapping-table-footer"><span id="sellerCount">共 0 条</span><div class="mapping-pager"><button type="button" disabled>‹</button><button class="current" type="button">1</button><button type="button" disabled>›</button></div></footer>
+          </section>
         </section>
       </main>
     </div>
   </div>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../ui-kit.js?v=1.0.0"></script>
-  <script src="./app.js?v=1.0.0"></script>
+  <script src="./app.js?v=1.14.2"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
   <script src="../../navigation.js?v=1.7.92"></script>
 </body>
