@@ -72,17 +72,17 @@
                     <td class="num">
                       <span v-if="row.type==='退货仓'" class="zero-price">—</span>
                       <template v-else>
-                        <span class="price">{{(row.avgPrice + row.freightAvg).toFixed(4)}}</span>
+                        <span class="price">{{(row.avgPrice + row.freightAvg).toFixed(2)}}</span>
                         <span v-if="row.unitDelta != null" class="chg" :class="chgClass(row.unitDelta)">{{chgText(row.unitDelta, row.unitPct)}}</span>
                       </template>
                     </td>
                     <td class="num">
                       <span v-if="row.type==='退货仓'" class="zero-price">—</span>
-                      <span v-else class="price">{{row.avgPrice.toFixed(4)}}</span>
+                      <span v-else class="price">{{row.avgPrice.toFixed(2)}}</span>
                     </td>
                     <td class="num">
                       <span v-if="!hasFreight(row)" class="zero-price">—</span>
-                      <span v-else class="price">{{row.freightAvg.toFixed(4)}}</span>
+                      <span v-else class="price">{{row.freightAvg.toFixed(2)}}</span>
                     </td>
                     <td>{{row.lastInboundAt||'—'}}</td>
                     <td><button class="ui-text-action" @click="openHistory(row)">变更历史</button></td>
@@ -119,15 +119,15 @@
     <div class="drawer-kpis" v-if="current">
       <div class="kpi-card">
         <span class="kpi-label">当前移动加权平均价（未税）</span>
-        <strong class="kpi-value" :class="current.type==='退货仓'?'is-muted':''">{{current.type==='退货仓'?'—（零成本）':(current.avgPrice + current.freightAvg).toFixed(4)}}</strong>
+        <strong class="kpi-value" :class="current.type==='退货仓'?'is-muted':''">{{current.type==='退货仓'?'—（零成本）':(current.avgPrice + current.freightAvg).toFixed(2)}}</strong>
       </div>
       <div class="kpi-card">
         <span class="kpi-label">移动货物成本加权</span>
-        <strong class="kpi-value" :class="current.type==='退货仓'?'is-muted':''">{{current.type==='退货仓'?'—（零成本）':current.avgPrice.toFixed(4)}}</strong>
+        <strong class="kpi-value" :class="current.type==='退货仓'?'is-muted':''">{{current.type==='退货仓'?'—（零成本）':current.avgPrice.toFixed(2)}}</strong>
       </div>
       <div class="kpi-card">
         <span class="kpi-label">移动头程成本加权</span>
-        <strong class="kpi-value" :class="hasFreight(current)?'':'is-muted'">{{hasFreight(current)?current.freightAvg.toFixed(4):(current.type==='退货仓'?'—（零成本）':'—（无头程）')}}</strong>
+        <strong class="kpi-value" :class="hasFreight(current)?'':'is-muted'">{{hasFreight(current)?current.freightAvg.toFixed(2):(current.type==='退货仓'?'—（零成本）':'—（无头程）')}}</strong>
       </div>
     </div>
     <div class="history-panel">
@@ -203,7 +203,7 @@
 </div>
 <script src="../../vendor/vue.global.prod.js"></script>
 <script src="../../vendor/element-plus.js"></script>
-<script src="app.js?v=1.0.26"></script>
+<script src="app.js?v=1.0.28"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
 <script src="../../navigation.js?v=1.7.92"></script>
 </body>

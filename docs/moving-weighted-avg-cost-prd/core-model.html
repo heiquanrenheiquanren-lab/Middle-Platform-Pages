@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  html,body{margin:0;padding:0;background:#fff}
+  svg{display:block}
+  text{font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+</style>
+</head>
+<body>
+<svg width="1200" height="440" viewBox="0 0 1200 440" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#b8c4d4"/>
+    </marker>
+    <marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#a9b6c8"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="34" font-size="16" font-weight="700" fill="#1b2430">核心模型：仓库属性 → 成本构成 → 当前价格</text>
+  <text x="40" y="56" font-size="11.5" fill="#8a95a5">国内仓只有货物成本；海外仓、平台仓同时有货物成本与头程成本，两者相加为当前移动加权平均价。</text>
+
+  <text x="40" y="92" font-size="11" fill="#98a3b3">仓库属性</text>
+  <text x="400" y="92" font-size="11" fill="#98a3b3">成本构成</text>
+  <text x="700" y="92" font-size="11" fill="#98a3b3">当前价格</text>
+
+  <!-- 行1 国内仓 -->
+  <rect x="40" y="104" width="280" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+  <rect x="40" y="104" width="4" height="72" rx="2" fill="#8a95a5"/>
+  <text x="60" y="132" font-size="13" font-weight="600" fill="#1b2430">国内仓</text>
+  <text x="60" y="153" font-size="11.5" fill="#6b7887">自营仓 / 供应商仓 / 中转仓</text>
+
+  <rect x="400" y="104" width="200" height="72" rx="8" fill="#f7faff" stroke="#cfe3ff"/>
+  <rect x="400" y="104" width="4" height="72" rx="2" fill="#409eff"/>
+  <text x="420" y="132" font-size="13" font-weight="600" fill="#1b2430">货物成本</text>
+  <text x="420" y="153" font-size="11.5" fill="#6b7887">所有仓库都有</text>
+
+  <rect x="700" y="104" width="340" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+  <rect x="700" y="104" width="4" height="72" rx="2" fill="#19a974"/>
+  <text x="720" y="132" font-size="13" font-weight="600" fill="#1b2430">当前移动加权平均价</text>
+  <text x="720" y="153" font-size="11.5" fill="#6b7887">= 移动货物成本加权</text>
+
+  <line x1="320" y1="140" x2="392" y2="140" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+  <line x1="600" y1="140" x2="692" y2="140" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+
+  <!-- 行2 海外仓 -->
+  <rect x="40" y="220" width="280" height="96" rx="8" fill="#fff" stroke="#e2e8f0"/>
+  <rect x="40" y="220" width="4" height="96" rx="2" fill="#409eff"/>
+  <text x="60" y="250" font-size="13" font-weight="600" fill="#1b2430">海外仓 / 平台仓</text>
+  <text x="60" y="271" font-size="11.5" fill="#6b7887">含亚马逊 FBA</text>
+  <text x="60" y="291" font-size="11.5" fill="#6b7887">货物 + 头程 两条成本线</text>
+
+  <rect x="400" y="204" width="200" height="60" rx="8" fill="#f7faff" stroke="#cfe3ff"/>
+  <rect x="400" y="204" width="4" height="60" rx="2" fill="#409eff"/>
+  <text x="420" y="230" font-size="13" font-weight="600" fill="#1b2430">货物成本</text>
+  <text x="420" y="251" font-size="11.5" fill="#6b7887">按发货出库价 P_out 入库</text>
+
+  <rect x="400" y="280" width="200" height="60" rx="8" fill="#fffaf5" stroke="#f6d3b3"/>
+  <rect x="400" y="280" width="4" height="60" rx="2" fill="#e8833a"/>
+  <text x="420" y="306" font-size="13" font-weight="600" fill="#1b2430">头程成本</text>
+  <text x="420" y="327" font-size="11.5" fill="#6b7887">引用已分摊的固定成本</text>
+
+  <rect x="700" y="236" width="340" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+  <rect x="700" y="236" width="4" height="72" rx="2" fill="#19a974"/>
+  <text x="720" y="264" font-size="13" font-weight="600" fill="#1b2430">当前移动加权平均价</text>
+  <text x="720" y="285" font-size="11.5" fill="#6b7887">= 移动货物成本加权 + 移动头程成本加权</text>
+
+  <path d="M320,252 C360,252 370,234 392,234" fill="none" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+  <path d="M320,284 C360,284 370,310 392,310" fill="none" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+  <path d="M600,234 C640,234 660,258 692,262" fill="none" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+  <path d="M600,310 C640,310 660,286 692,282" fill="none" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+
+  <!-- 底部分式条 -->
+  <rect x="40" y="376" width="1000" height="48" rx="8" fill="#f7f9fc" stroke="#e6ebf2"/>
+  <text x="60" y="404" font-size="11.5" fill="#5a6675">所有仓库共用同一条滚动公式：</text>
+  <text x="222" y="404" font-size="12.5" font-weight="600" fill="#1b2430">新加权单价 =（原库存成本 + 本次入库成本）÷（原库存数量 + 本次入库数量）</text>
+  <text x="700" y="424" font-size="11" fill="#98a3b3">货物、头程分别滚动，互不影响，最后相加</text>
+</svg>
+</body>
+</html>

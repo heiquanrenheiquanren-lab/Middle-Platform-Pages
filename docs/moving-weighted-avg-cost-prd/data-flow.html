@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  html,body{margin:0;padding:0;background:#fff}
+  svg{display:block}
+  text{font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+</style>
+</head>
+<body>
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#b8c4d4"/>
+    </marker>
+    <marker id="arg" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#c3ccd8"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="34" font-size="16" font-weight="700" fill="#1b2430">数据主线：单据 → 滚动 → 展示 → 追溯</text>
+  <text x="40" y="56" font-size="11.5" fill="#8a95a5">入库类单据触发一次滚动并写入变动记录；出库类单据只引用当前价格，不改价、不留痕。</text>
+
+  <!-- 入库链路 -->
+  <rect x="40" y="86" width="260" height="118" rx="8" fill="#f7faff" stroke="#cfe3ff"/>
+  <rect x="40" y="86" width="4" height="118" rx="2" fill="#409eff"/>
+  <text x="60" y="112" font-size="13" font-weight="600" fill="#1b2430">入库类单据</text>
+  <text x="60" y="133" font-size="11.5" fill="#6b7887">采购入库 / 采购收货</text>
+  <text x="60" y="152" font-size="11.5" fill="#6b7887">海外仓上架</text>
+  <text x="60" y="171" font-size="11.5" fill="#6b7887">调整单 / 冲抵单 / 头程费用调整</text>
+  <text x="60" y="192" font-size="11" fill="#98a3b3">按仓库、按 SKU 分别触发</text>
+
+  <rect x="360" y="86" width="250" height="118" rx="8" fill="#fffaf5" stroke="#f6d3b3"/>
+  <rect x="360" y="86" width="4" height="118" rx="2" fill="#e8833a"/>
+  <text x="380" y="112" font-size="13" font-weight="600" fill="#1b2430">按公式滚动一次</text>
+  <text x="380" y="133" font-size="11.5" fill="#6b7887">货物与头程分别重算</text>
+  <text x="380" y="152" font-size="11.5" fill="#6b7887">写入一条变动记录</text>
+  <text x="380" y="173" font-size="11" fill="#98a3b3">记录变动前、入库数量与成本、变动后</text>
+
+  <rect x="670" y="70" width="310" height="76" rx="8" fill="#fff" stroke="#e2e8f0"/>
+  <rect x="670" y="70" width="4" height="76" rx="2" fill="#19a974"/>
+  <text x="690" y="97" font-size="13" font-weight="600" fill="#1b2430">成本列表</text>
+  <text x="690" y="118" font-size="11.5" fill="#6b7887">当前价格 + 较上次变动</text>
+  <text x="690" y="137" font-size="11" fill="#98a3b3">一屏看清各仓各 SKU 的当前成本</text>
+
+  <rect x="670" y="166" width="310" height="76" rx="8" fill="#fff" stroke="#e2e8f0"/>
+  <rect x="670" y="166" width="4" height="76" rx="2" fill="#19a974"/>
+  <text x="690" y="193" font-size="13" font-weight="600" fill="#1b2430">变更历史</text>
+  <text x="690" y="214" font-size="11.5" fill="#6b7887">完整变动链路，可逐条验算</text>
+  <text x="690" y="233" font-size="11" fill="#98a3b3">按单据定位到具体某一次变动</text>
+
+  <line x1="300" y1="145" x2="352" y2="145" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+  <path d="M610,145 C640,145 645,108 662,108" fill="none" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+  <path d="M610,145 C640,145 645,204 662,204" fill="none" stroke="#b8c4d4" stroke-width="1.4" marker-end="url(#ar)"/>
+
+  <!-- 出库链路 -->
+  <rect x="40" y="248" width="260" height="82" rx="8" fill="#fafbfc" stroke="#e6ebf2"/>
+  <rect x="40" y="248" width="4" height="82" rx="2" fill="#a9b6c8"/>
+  <text x="60" y="275" font-size="13" font-weight="600" fill="#5a6675">出库类单据</text>
+  <text x="60" y="296" font-size="11.5" fill="#7c8797">销售出库 / 调拨出库 / 其他出库</text>
+
+  <rect x="360" y="248" width="250" height="82" rx="8" fill="#fafbfc" stroke="#e6ebf2"/>
+  <rect x="360" y="248" width="4" height="82" rx="2" fill="#a9b6c8"/>
+  <text x="380" y="275" font-size="13" font-weight="600" fill="#5a6675">只引用当前价格</text>
+  <text x="380" y="296" font-size="11.5" fill="#7c8797">不改单价、不写变动记录</text>
+
+  <line x1="300" y1="289" x2="352" y2="289" stroke="#c3ccd8" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arg)"/>
+
+  <rect x="670" y="264" width="310" height="52" rx="8" fill="#fafbfc" stroke="#e6ebf2"/>
+  <text x="690" y="288" font-size="11.5" fill="#7c8797">数量减少，账上单价保持不变</text>
+  <text x="690" y="306" font-size="11" fill="#a3adbb">毛利按出库时点的真实成本结算</text>
+
+  <!-- 底部图例 -->
+  <text x="40" y="368" font-size="11" fill="#98a3b3">图例：</text>
+  <rect x="80" y="358" width="10" height="10" rx="2" fill="#409eff"/><text x="96" y="367" font-size="11" fill="#6b7887">入库触发</text>
+  <rect x="170" y="358" width="10" height="10" rx="2" fill="#e8833a"/><text x="186" y="367" font-size="11" fill="#6b7887">滚动计算</text>
+  <rect x="260" y="358" width="10" height="10" rx="2" fill="#19a974"/><text x="276" y="367" font-size="11" fill="#6b7887">展示与追溯</text>
+  <rect x="360" y="358" width="10" height="10" rx="2" fill="#a9b6c8"/><text x="376" y="367" font-size="11" fill="#6b7887">不改价</text>
+</svg>
+</body>
+</html>

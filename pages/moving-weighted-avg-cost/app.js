@@ -1,5 +1,13 @@
 const {createApp, reactive, ref, computed, onMounted, onUnmounted} = Vue;
 
+// 统一金额/价格精度：四舍五入保留 2 位（先消掉二进制浮点尾巴，避免 41.355 被舍成 41.35）
+const r2 = v => {
+  const n = Number(v);
+  if (!isFinite(n)) return 0;
+  const sign = n < 0 ? -1 : 1;
+  return sign * Math.round(Number((Math.abs(n) * 100).toFixed(6))) / 100;
+};
+
 // 仓库元数据：编码 + 属性。仅海外仓、平台仓涉及头程成本
 const warehouseMeta = {
   '东莞2仓': {code:'DG02', attr:'自营仓'},
@@ -39,9 +47,9 @@ for (let i = 0; i < 36; i++) {
   const t = goodTemplates[i % goodTemplates.length];
   const seq = String(n).padStart(2, '0');
   const qty = 40 + ((t.qty + n * 137) % 880);
-  const unit = Math.round((t.amount / t.qty) * 100) / 100 + (n % 5) * 0.6;
-  const amount = Math.round(qty * unit * 100) / 100;
-  const freight = Math.round(qty * (t.freight / t.qty) * 100) / 100;
+  const unit = r2(r2(t.amount / t.qty) + (n % 5) * 0.6);
+  const amount = r2(qty * unit);
+  const freight = r2(qty * r2(t.freight / t.qty));
   extraList.push({
     id: 900 + n,
     sku: t.sku + '-S' + seq,
@@ -57,32 +65,30 @@ for (let i = 0; i < 36; i++) {
   });
 }
 
-const rows = [..._seed, ...extraList].map(r => ({...r, avgPrice: r.qty > 0 ? r.amount / r.qty : 0, freightAvg: r.qty > 0 ? r.freight / r.qty : 0}));
+const rows = [..._seed, ...extraList].map(r => ({...r, avgPrice: r.qty > 0 ? r2(r.amount / r.qty) : 0, freightAvg: r.qty > 0 ? r2(r.freight / r.qty) : 0}));
 // 非海外仓/平台仓不产生头程成本，头程金额与加权价归零
 rows.forEach(r => { if (!hasFreight(r)) { r.freight = 0; r.freightAvg = 0; } });
 
-// 部分行展示完整单据链：货物成本（期初初始化/采购入库/采购收货/调整单/冲抵单）与头程成本（期初/头程费用分摊/头程费用调整）
+// 部分行展示完整单据链：货物成本（期初初始化/采购入库/采购收货）与头程成本（期初/海外上架）
 const richHistories = {
   1: {
     goods: [
-      {time:'2026-10-08 09:00', docType:'期初初始化', docNo:'期初-INIT-010724', before:0, qty:100, amount:4000.00, after:40.0000},
-      {time:'2026-10-28 11:20', docType:'采购收货', docNo:'PO26102800341', before:40.0000, qty:20, amount:963.20, after:41.3600}
+      {time:'2026-10-08 09:00', docType:'期初初始化', docNo:'期初-INIT-010724', before:0, qty:100, amount:4000.00, after:40.00},
+      {time:'2026-10-28 11:20', docType:'采购收货', docNo:'PO26102800341', before:40.00, qty:20, amount:963.20, after:41.36}
     ],
     freight: [
-      {time:'2026-10-08 09:00', docType:'期初初始化', docNo:'期初-INIT-010724', before:0, qty:100, amount:400.00, after:4.0000},
-      {time:'2026-10-30 09:26', docType:'海外上架', docNo:'FT26103000072', before:4.0000, qty:20, amount:128.00, after:4.4000}
+      {time:'2026-10-08 09:00', docType:'期初初始化', docNo:'期初-INIT-010724', before:0, qty:100, amount:400.00, after:4.00},
+      {time:'2026-10-30 09:26', docType:'海外上架', docNo:'FT26103000072', before:4.00, qty:20, amount:128.00, after:4.40}
     ]
   },
   6: {
     goods: [
-      {time:'2026-10-09 08:30', docType:'期初初始化', docNo:'期初-INIT-KBAB', before:0, qty:300, amount:26400.00, after:88.0000},
-      {time:'2026-10-20 15:45', docType:'采购入库', docNo:'RK26102000112', before:88.0000, qty:40, amount:3360.00, after:86.0000},
-      {time:'2026-10-26 10:05', docType:'调整单', docNo:'TZ26102600019', before:86.0000, qty:0, amount:-240.00, after:86.0000}
+      {time:'2026-10-09 08:30', docType:'期初初始化', docNo:'期初-INIT-KBAB', before:0, qty:280, amount:24640.00, after:88.00},
+      {time:'2026-10-20 15:45', docType:'采购入库', docNo:'RK26102000112', before:88.00, qty:40, amount:2880.00, after:86.00}
     ],
     freight: [
-      {time:'2026-10-09 08:30', docType:'期初初始化', docNo:'期初-INIT-KBAB', before:0, qty:300, amount:2400.00, after:8.0000},
-      {time:'2026-10-28 13:15', docType:'海外上架', docNo:'FT26102800120', before:8.0000, qty:40, amount:480.00, after:9.0000},
-      {time:'2026-10-29 16:40', docType:'头程费用调整', docNo:'FTTZ26102900006', before:9.0000, qty:0, amount:-320.00, after:9.0000}
+      {time:'2026-10-09 08:30', docType:'期初初始化', docNo:'期初-INIT-KBAB', before:0, qty:280, amount:2240.00, after:8.00},
+      {time:'2026-10-28 13:15', docType:'海外上架', docNo:'FT26102800120', before:8.00, qty:40, amount:640.00, after:9.00}
     ]
   },
   10: {
@@ -109,12 +115,12 @@ function historyFor(row) {
   // 让每个 SKU 最近一次入库都有确定性的涨跌（货物 ±5%、头程 ±4%）
   const gRate = (((row.id * 37) % 11) - 5) / 100;
   const fRate = (((row.id * 53) % 9) - 4) / 100;
-  const prevUnit = +(unit * (1 - gRate)).toFixed(4);
-  const prevFUnit = +(fUnit * (1 - fRate)).toFixed(4);
-  const initAmount = +(initQty * prevUnit).toFixed(2);
-  const lastAmount = +(row.amount - initAmount).toFixed(2);
-  const initFreight = +(initQty * prevFUnit).toFixed(2);
-  const lastFreight = +(row.freight - initFreight).toFixed(2);
+  const prevUnit = r2(unit * (1 - gRate));
+  const prevFUnit = r2(fUnit * (1 - fRate));
+  const initAmount = r2(initQty * prevUnit);
+  const lastAmount = r2(row.amount - initAmount);
+  const initFreight = r2(initQty * prevFUnit);
+  const lastFreight = r2(row.freight - initFreight);
   const inTime = row.lastInboundAt ? row.lastInboundAt.replace(/\d{2}:\d{2}$/, '10:00') : '2026-10-28 10:00';
   return {
     goods: [
@@ -138,11 +144,11 @@ rows.forEach(r => {
   if (!g && !f) return;
   const gPrev = g ? g.before : 0, gAfter = g ? g.after : 0;
   const fPrev = f ? f.before : 0, fAfter = f ? f.after : 0;
-  r.goodsDelta = +(gAfter - gPrev).toFixed(4);
+  r.goodsDelta = r2(gAfter - gPrev);
   r.goodsPct = gPrev > 0 ? (gAfter - gPrev) / gPrev : null;
-  r.freightDelta = +(fAfter - fPrev).toFixed(4);
+  r.freightDelta = r2(fAfter - fPrev);
   r.freightPct = fPrev > 0 ? (fAfter - fPrev) / fPrev : null;
-  r.unitDelta = +(r.goodsDelta + r.freightDelta).toFixed(4);
+  r.unitDelta = r2(r.goodsDelta + r.freightDelta);
   const unitPrev = gPrev + fPrev;
   r.unitPct = unitPrev > 0 ? r.unitDelta / unitPrev : null;
 });
@@ -180,7 +186,7 @@ createApp({
     const sortKey = ref(''), sortOrder = ref('');
     const priceOf = (row, key) => {
       if (row.type === '退货仓') return null;
-      if (key === 'unit') return row.avgPrice + row.freightAvg;
+      if (key === 'unit') return r2(row.avgPrice + row.freightAvg);
       if (key === 'goods') return row.avgPrice;
       if (key === 'freight') return row.freightAvg;
       return null;
@@ -231,12 +237,12 @@ createApp({
     const chgArrow = v => (v > 0 ? '↑' : v < 0 ? '↓' : '');
     const chgClass = v => (v > 0 ? 'chg-up' : v < 0 ? 'chg-down' : 'chg-flat');
     const chgText = (delta, pct) => {
-      const amount = `${delta > 0 ? '+' : ''}${delta.toFixed(4)}`;
+      const amount = `${delta > 0 ? '+' : ''}${r2(delta).toFixed(2)}`;
       const pctText = pct == null ? '—' : `${pct > 0 ? '+' : ''}${(pct * 100).toFixed(2)}%`;
       return `${chgArrow(delta)} ${amount} (${pctText})`.trim();
     };
 
-    const fmtPrice = v => (v > 0 ? v.toFixed(4) : '—');
+    const fmtPrice = v => (v > 0 ? r2(v).toFixed(2) : '—');
 
     const search = () => { Object.assign(applied, JSON.parse(JSON.stringify(query))); page.value = 1; ElementPlus.ElMessage.success(`查询完成，共 ${filteredRows.value.length} 条`); };
     const reset = () => { Object.assign(query, {sku:'', skuType:'sku', product:'', warehouses:[], dateRange:[]}); search(); };
@@ -256,9 +262,9 @@ createApp({
         .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
       let curGoods = 0, curFreight = 0;
       const list = events.map(e => {
-        const before = +(curGoods + curFreight).toFixed(4);
+        const before = r2(curGoods + curFreight);
         if (e.kind === 'goods') curGoods = e.after; else curFreight = e.after;
-        const after = +(curGoods + curFreight).toFixed(4);
+        const after = r2(curGoods + curFreight);
         return {...e, before, after};
       });
       return filterHist(list);
@@ -276,7 +282,7 @@ createApp({
     const exportRows = () => {
       const data = sortedRows.value;
       const heads = ['仓库','SKU','海外仓 SKU/FNSKU','品名','当前移动加权平均价（未税）','移动货物成本加权（未税）','移动头程成本加权（未税）','最新入库/变更时间'];
-      const csv = [heads, ...data.map(r => [whLabel(r.warehouse), r.sku, mappedSku(r), r.product, r.type === '退货仓' ? '' : (r.avgPrice + r.freightAvg).toFixed(4), r.type === '退货仓' ? '' : r.avgPrice.toFixed(4), r.type === '退货仓' ? '' : r.freightAvg.toFixed(4), r.lastInboundAt])]
+      const csv = [heads, ...data.map(r => [whLabel(r.warehouse), r.sku, mappedSku(r), r.product, r.type === '退货仓' ? '' : r2(r.avgPrice + r.freightAvg).toFixed(2), r.type === '退货仓' ? '' : r.avgPrice.toFixed(2), r.type === '退货仓' ? '' : r.freightAvg.toFixed(2), r.lastInboundAt])]
         .map(a => a.map(v => `"${String(v ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
       const url = URL.createObjectURL(new Blob(['\ufeff' + csv], {type:'text/csv'}));
       const a = document.createElement('a'); a.href = url; a.download = '移动加权平均价.csv'; a.click(); URL.revokeObjectURL(url);
