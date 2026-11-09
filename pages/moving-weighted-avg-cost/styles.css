@@ -55,33 +55,27 @@
 .empty{height:180px!important;text-align:center;color:#909399}
 
 .list-footer{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px;color:#909399;border-top:1px solid #ebeef5}
-.calc-note{color:#909399;font-size:12px}
 .footer-right{display:flex;align-items:center;gap:16px;margin-left:auto;flex:none}
 
 /* 抽屉：标题区 / 汇总指标 / 内容面板 三层结构 */
 .el-drawer__header{margin:0;padding:16px 20px;border-bottom:1px solid #ebeef5}
 .el-drawer__body{padding:16px 20px;background:#f7f9fc;display:flex;flex-direction:column;gap:12px}
-.drawer-head{display:flex;flex-direction:column;gap:5px}
+.drawer-head{display:flex;flex-direction:column;gap:8px}
 .drawer-head strong{font-size:17px;font-weight:600;color:#1f2d3d;letter-spacing:.2px}
-.drawer-head span{font-size:12px;color:#8b95a3}
+/* 抽屉标题下方：SKU / 仓库 / 品名 元信息 */
+.drawer-meta{display:flex;align-items:center;flex-wrap:wrap;gap:10px;min-width:0}
+.meta-item{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.meta-k{color:#98a2b1;font-size:12px;flex:none}
+.meta-v{color:#38465a;font-size:12px;font-weight:500;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta-tag{flex:none;height:18px;line-height:16px;padding:0 5px;border:1px solid #e9e9eb;border-radius:3px;background:#f4f4f5;color:#909399;font-size:11px}
+.meta-sep{width:1px;height:12px;background:#e3e8ef}
 /* 汇总：3 个白色指标卡 */
 .drawer-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .kpi-card{display:flex;flex-direction:column;gap:6px;min-width:0;padding:14px 16px;border:1px solid #ebeef5;border-radius:8px;background:#fff}
 .kpi-label{color:#8b95a3;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kpi-value{font-size:22px;font-weight:600;line-height:1.25;color:#1f2d3d;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kpi-value.is-muted{font-size:14px;font-weight:400;color:#98a2b1}
-/* 最新一次变动：移动加权平均价计算过程 */
-.calc-card{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid #ebeef5;border-radius:8px;background:#fff}
-.calc-head{color:#1f2d3d;font-size:13px;font-weight:600}
-.calc-line{display:flex;align-items:flex-start;gap:10px}
-.calc-tag{flex:none;height:20px;line-height:18px;padding:0 8px;border:1px solid #e9e9eb;border-radius:3px;background:#f4f4f5;color:#606266;font-size:11px;white-space:nowrap}
-.calc-body{display:flex;flex-direction:column;gap:2px;min-width:0}
-.calc-meta{color:#98a2b1;font-size:11px}
-.calc-exp{color:#5a6472;font-size:12px;line-height:20px;font-variant-numeric:tabular-nums}
-.calc-exp b{color:#1f2d3d;font-weight:600}
-.calc-total .calc-tag{border-color:#c6e2ff;background:#ecf5ff;color:#409eff}
-.calc-total .calc-exp b{color:#1677ff}
-/* 内容面板：筛选 + tabs + 表格 + 提示 收进一张白卡 */
+/* 内容面板：筛选 + tabs + 表格 收进一张白卡 */
 .history-panel{padding:16px;border:1px solid #ebeef5;border-radius:8px;background:#fff}
 .history-filter{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f2f5}
 .history-filter .filter-label{color:#606266;font-size:13px}

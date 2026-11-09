@@ -70,7 +70,7 @@ const richHistories = {
     ],
     freight: [
       {time:'2026-10-08 09:00', docType:'期初初始化', docNo:'期初-INIT-010724', before:0, qty:100, amount:400.00, after:4.0000},
-      {time:'2026-10-30 09:26', docType:'头程费用分摊', docNo:'FT26103000072', before:4.0000, qty:20, amount:128.00, after:4.4000}
+      {time:'2026-10-30 09:26', docType:'海外上架', docNo:'FT26103000072', before:4.0000, qty:20, amount:128.00, after:4.4000}
     ]
   },
   6: {
@@ -81,7 +81,7 @@ const richHistories = {
     ],
     freight: [
       {time:'2026-10-09 08:30', docType:'期初初始化', docNo:'期初-INIT-KBAB', before:0, qty:300, amount:2400.00, after:8.0000},
-      {time:'2026-10-28 13:15', docType:'头程费用分摊', docNo:'FT26102800120', before:8.0000, qty:40, amount:480.00, after:9.0000},
+      {time:'2026-10-28 13:15', docType:'海外上架', docNo:'FT26102800120', before:8.0000, qty:40, amount:480.00, after:9.0000},
       {time:'2026-10-29 16:40', docType:'头程费用调整', docNo:'FTTZ26102900006', before:9.0000, qty:0, amount:-320.00, after:9.0000}
     ]
   },
@@ -123,7 +123,7 @@ function historyFor(row) {
     ],
     freight: hasFreight(row) ? [
       {time:'2026-10-08 09:00', docType:'期初初始化', docNo:'期初-INIT', before:0, qty:initQty, amount:initFreight, after:prevFUnit},
-      {time:inTime, docType:'头程费用分摊', docNo:'FT-' + row.id + '-FT', before:prevFUnit, qty:lastQty, amount:lastFreight, after:fUnit}
+      {time:inTime, docType:'海外上架', docNo:'FT-' + row.id + '-FT', before:prevFUnit, qty:lastQty, amount:lastFreight, after:fUnit}
     ] : []
   };
 }
@@ -263,18 +263,6 @@ createApp({
       });
       return filterHist(list);
     });
-    // 最新一次变动计算：顶部展示移动加权平均价的推导过程
-    const calcOf = e => {
-      if (!e) return null;
-      const beforeQty = e.beforeQty || 0, qty = e.qty || 0, amount = e.amount || 0;
-      return {time: e.time, docType: e.docType, docNo: e.docNo, beforeQty, before: e.before, qty, amount,
-        beforeCost: +(beforeQty * e.before).toFixed(2), afterQty: beforeQty + qty,
-        totalCost: +(beforeQty * e.before + amount).toFixed(2), after: e.after};
-    };
-    const latestCalcs = computed(() => {
-      const g = goodsHistory.value, f = freightHistory.value;
-      return {goods: calcOf(g.length ? g[g.length - 1] : null), freight: calcOf(f.length ? f[f.length - 1] : null)};
-    });
     // 变更历史分页：三个 tab 独立页码，每页 8 条
     const HISTORY_PAGE_SIZE = 8;
     const historySlice = (list, page) => list.slice((page - 1) * HISTORY_PAGE_SIZE, page * HISTORY_PAGE_SIZE);
@@ -295,6 +283,6 @@ createApp({
       ElementPlus.ElMessage.success(`已导出 ${data.length} 条数据`);
     };
 
-    return {query, warehouses, page, pageSize, filteredRows, sortedRows, pageRows, sortKey, sortOrder, toggleSort, drawerVisible, current, historyRows, historyTab, historyDateRange, historyDraft, historyPage, goodsHistory, freightHistory, unitHistory, pagedUnitHistory, pagedGoodsHistory, pagedFreightHistory, latestCalcs, applyHistoryDate, fmtPrice, chgClass, chgText, whMeta, whLabel, mappedSku, hasFreight, search, reset, openHistory, exportRows};
+    return {query, warehouses, page, pageSize, filteredRows, sortedRows, pageRows, sortKey, sortOrder, toggleSort, drawerVisible, current, historyRows, historyTab, historyDateRange, historyDraft, historyPage, goodsHistory, freightHistory, unitHistory, pagedUnitHistory, pagedGoodsHistory, pagedFreightHistory, applyHistoryDate, fmtPrice, chgClass, chgText, whMeta, whLabel, mappedSku, hasFreight, search, reset, openHistory, exportRows};
   }
 }).use(ElementPlus).mount('#app');

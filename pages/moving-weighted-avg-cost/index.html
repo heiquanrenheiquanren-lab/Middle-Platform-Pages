@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>供应链中台｜移动加权平均价</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="styles.css?v=1.0.30">
+  <link rel="stylesheet" href="styles.css?v=1.0.33">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
 </head>
@@ -46,7 +46,7 @@
             </div>
           </section>
 
-          <div class="ui-action-row"><button class="ui-button" @click="exportRows">导出数据</button></div>
+          <div class="ui-action-row"><button class="ui-button" @click="exportRows">导出</button></div>
 
           <section class="ui-list-card">
             <div class="ui-table-wrap">
@@ -92,7 +92,6 @@
               </table>
             </div>
             <footer class="list-footer">
-              <span class="calc-note">单价 = 库存总金额 ÷ 库存总数量（均为未税价）；退货仓为零成本，不计入良品仓</span>
               <div class="footer-right">
                 <span>共 {{filteredRows.length}} 条</span>
                 <el-pagination v-model:current-page="page" background layout="prev, pager, next" :page-size="pageSize" :total="filteredRows.length"></el-pagination>
@@ -106,7 +105,16 @@
 
   <el-drawer v-model="drawerVisible" :size="960" destroy-on-close>
     <template #header>
-      <div class="drawer-head"><strong>移动加权平均价变动历史</strong><span v-if="current">{{current.sku}} · {{current.product}}</span></div>
+      <div class="drawer-head">
+        <strong>移动加权平均价变动历史</strong>
+        <div class="drawer-meta" v-if="current">
+          <span class="meta-item"><span class="meta-k">SKU</span><span class="meta-v">{{current.sku}}</span></span>
+          <span class="meta-sep"></span>
+          <span class="meta-item"><span class="meta-k">仓库</span><span class="meta-v">{{whLabel(current.warehouse)}}</span><span v-if="whMeta(current.warehouse).attr" class="meta-tag">{{whMeta(current.warehouse).attr}}</span></span>
+          <span class="meta-sep"></span>
+          <span class="meta-item"><span class="meta-k">品名</span><span class="meta-v">{{current.product}}</span></span>
+        </div>
+      </div>
     </template>
     <div class="drawer-kpis" v-if="current">
       <div class="kpi-card">
@@ -122,29 +130,6 @@
         <strong class="kpi-value" :class="hasFreight(current)?'':'is-muted'">{{hasFreight(current)?current.freightAvg.toFixed(4):(current.type==='退货仓'?'—（零成本）':'—（无头程）')}}</strong>
       </div>
     </div>
-    <div class="calc-card" v-if="current && current.type!=='退货仓' && (latestCalcs.goods || latestCalcs.freight)">
-      <div class="calc-head">最新一次变动 · 移动加权平均价计算过程</div>
-      <div class="calc-line" v-if="latestCalcs.goods">
-        <span class="calc-tag">货物成本</span>
-        <div class="calc-body">
-          <span class="calc-meta">{{latestCalcs.goods.time}} · {{latestCalcs.goods.docType}} {{latestCalcs.goods.docNo}}</span>
-          <span class="calc-exp">（原库存 {{latestCalcs.goods.beforeQty}} 件 × {{fmtPrice(latestCalcs.goods.before)}} + 本次入库 {{latestCalcs.goods.qty}} 件 × {{latestCalcs.goods.amount.toFixed(2)}}）÷ {{latestCalcs.goods.afterQty}} 件 = <b>{{fmtPrice(latestCalcs.goods.after)}}</b></span>
-        </div>
-      </div>
-      <div class="calc-line" v-if="latestCalcs.freight">
-        <span class="calc-tag">头程成本</span>
-        <div class="calc-body">
-          <span class="calc-meta">{{latestCalcs.freight.time}} · {{latestCalcs.freight.docType}} {{latestCalcs.freight.docNo}}</span>
-          <span class="calc-exp">（原库存 {{latestCalcs.freight.beforeQty}} 件 × {{fmtPrice(latestCalcs.freight.before)}} + 本次分摊 {{latestCalcs.freight.qty}} 件 × {{latestCalcs.freight.amount.toFixed(2)}}）÷ {{latestCalcs.freight.afterQty}} 件 = <b>{{fmtPrice(latestCalcs.freight.after)}}</b></span>
-        </div>
-      </div>
-      <div class="calc-line calc-total" v-if="latestCalcs.goods && latestCalcs.freight">
-        <span class="calc-tag">当前移动加权平均价</span>
-        <div class="calc-body">
-          <span class="calc-exp">{{fmtPrice(latestCalcs.goods.after)}}（货物） + {{fmtPrice(latestCalcs.freight.after)}}（头程） = <b>{{(current.avgPrice + current.freightAvg).toFixed(4)}}</b></span>
-        </div>
-      </div>
-    </div>
     <div class="history-panel">
     <div class="history-filter">
       <span class="filter-label">变更日期</span>
@@ -156,7 +141,7 @@
         <el-table :data="pagedUnitHistory" class="history-table">
           <el-table-column prop="time" label="变动时间" width="147"></el-table-column>
           <el-table-column label="入库类型/单据" width="147">
-            <template #default="{row}"><div class="stack"><span>{{row.kindLabel}} · {{row.docType}}</span><a class="link">{{row.docNo}}</a></div></template>
+            <template #default="{row}"><div class="stack"><span>{{row.docType}}</span><a class="link">{{row.docNo}}</a></div></template>
           </el-table-column>
           <el-table-column label="变动前" width="147" align="right"><template #default="{row}"><div class="stack" style="align-items:flex-end"><span :class="row.before>0?'price':'zero-price'">{{fmtPrice(row.before)}}</span><span class="sub">原在库：{{row.beforeQty||0}}</span></div></template></el-table-column>
           <el-table-column label="入库数量/成本" width="147" align="right">
@@ -218,7 +203,7 @@
 </div>
 <script src="../../vendor/vue.global.prod.js"></script>
 <script src="../../vendor/element-plus.js"></script>
-<script src="app.js?v=1.0.24"></script>
+<script src="app.js?v=1.0.26"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
 <script src="../../navigation.js?v=1.7.92"></script>
 </body>
