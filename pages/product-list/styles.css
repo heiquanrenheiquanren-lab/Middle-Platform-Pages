@@ -150,9 +150,9 @@
 .product-table th:nth-child(9),.product-table td:nth-child(9),.product-table th:nth-child(10),.product-table td:nth-child(10){width:150px!important;min-width:150px!important}
 .product-table th:nth-child(11),.product-table td:nth-child(11){width:104px!important;min-width:104px!important}
 
-/* 操作列容纳编辑、启停、删除和日志；删除始终使用危险色。 */
+/* 操作列容纳编辑、复制、启停、删除和日志；删除始终使用危险色，复制使用成功色。 */
 .product-table th:nth-child(11),.product-table td:nth-child(11){width:210px!important;min-width:210px!important}
-.product-row-actions{display:flex;align-items:center;gap:10px;white-space:nowrap}.product-row-actions .link+.link{margin-left:0}.product-row-actions .danger-link{color:#f56c6c!important}
+.product-row-actions{display:flex;align-items:center;gap:10px;white-space:nowrap}.product-row-actions .link+.link{margin-left:0}.product-row-actions .danger-link{color:#f56c6c!important}.product-row-actions .success-link{color:#67c23a!important}
 .product-delete-dialog .ui-dialog__body{padding:24px 22px;background:#fff}.product-delete-dialog .ui-dialog__body p{margin:0;color:#606266;line-height:22px}.product-delete-dialog .ui-dialog__body strong{color:#303133;font-weight:600}
 
 /* 产品批量推送入口：仅承接共享任务进度弹窗，不新增页面级卡片。 */
