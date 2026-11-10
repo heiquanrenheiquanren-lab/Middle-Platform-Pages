@@ -46,6 +46,8 @@
 .chg-up{color:#f56c6c}
 .chg-down{color:#19a974}
 .chg-flat{color:#909399}
+/* 无变化标识：灰色小标签 */
+.no-change{display:inline-block;margin-left:8px;padding:0 6px;height:20px;line-height:20px;border-radius:4px;background:#f2f3f5;color:#909399;font-size:12px;font-weight:400;white-space:nowrap;vertical-align:middle;font-variant-numeric:tabular-nums}
 .return-note{margin-left:6px;color:#a7afb8;font-size:12px}
 .product-cell{display:flex;align-items:center;gap:10px;min-width:0}
 .product-cell span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -96,3 +98,5 @@
 .history-table .chg{font-size:12px}
 .history-pager{display:flex;justify-content:flex-end;margin-top:12px}
 @media(max-width:1380px){.content{padding:10px}.ui-query-flow>.el-input{width:210px}.ui-query-flow>.el-select{width:170px}.query-combo .el-input{width:240px}.ui-query-actions{margin-left:0}}
+/* 导入记录：失败状态更醒目 */
+.import-records .ui-status-tag--clearance{background:#fde2e2;color:#f56c6c;font-weight:600}

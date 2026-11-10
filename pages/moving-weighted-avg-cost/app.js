@@ -13,9 +13,7 @@ const warehouseMeta = {
   '东莞2仓': {code:'DG02', attr:'自营仓'},
   'SZ01东莞仓': {code:'SZ01', attr:'平台仓'},
   '深圳采购仓': {code:'SZCG', attr:'供应商仓'},
-  '跨越美国洛杉矶仓': {code:'KY-LAX-01', attr:'海外仓'},
-  '东莞退货仓': {code:'DGTH', attr:'退货仓'},
-  'SZ01退货仓': {code:'SZTH', attr:'退货仓'}
+  '跨越美国洛杉矶仓': {code:'KY-LAX-01', attr:'海外仓'}
 };
 const whMeta = name => warehouseMeta[name] || {code:'—', attr:''};
 const whLabel = name => `${name}（${whMeta(name).code}）`;
@@ -32,10 +30,7 @@ const _seed = [
   {id:6, sku:'KBAB0057-009', overseasSku:'US-KBAB0057', fnsku:'B0WELDMASK', product:'重型牛皮阻燃焊接头罩自动变光款', warehouse:'跨越美国洛杉矶仓', type:'良品仓', qty:320, amount:27520.00, freight:2880.00, lastInboundAt:'2026-10-28 13:15'},
   {id:7, sku:'SPU-1001-BL', overseasSku:'US-SPU1001BL', fnsku:'B0CASE1001', product:'蓝牙耳机硅胶保护套（黑）', warehouse:'东莞2仓', type:'良品仓', qty:1500, amount:6735.00, freight:750.00, lastInboundAt:'2026-10-30 16:20'},
   {id:8, sku:'SPU-3002', overseasSku:'US-SPU3002', fnsku:'B0CLOTH302', product:'多功能清洁布 50 片装', warehouse:'SZ01东莞仓', type:'良品仓', qty:800, amount:2896.00, freight:320.00, lastInboundAt:'2026-10-29 11:05'},
-  {id:9, sku:'010725', overseasSku:'US-010725', fnsku:'B0WM8960BM', product:'1套1件 WM8960 音频模块（带咪头版）', warehouse:'深圳采购仓', type:'良品仓', qty:60, amount:2586.00, freight:270.00, lastInboundAt:'2026-10-27 17:40'},
-  {id:10, sku:'RET-010724', overseasSku:'—', fnsku:'—', product:'WM8960 音频模块（退货）', warehouse:'东莞退货仓', type:'退货仓', qty:18, amount:0, freight:0, lastInboundAt:'2026-10-28 11:20'},
-  {id:11, sku:'RET-FBBA0032', overseasSku:'—', fnsku:'—', product:'ESP32-C6-Zero 开发板（退货）', warehouse:'东莞退货仓', type:'退货仓', qty:5, amount:0, freight:0, lastInboundAt:'2026-10-27 09:10'},
-  {id:12, sku:'RET-XJ0058', overseasSku:'—', fnsku:'—', product:'PCBA 电路板（退货）', warehouse:'SZ01退货仓', type:'退货仓', qty:32, amount:0, freight:0, lastInboundAt:'2026-10-26 15:33'}
+  {id:9, sku:'010725', overseasSku:'US-010725', fnsku:'B0WM8960BM', product:'1套1件 WM8960 音频模块（带咪头版）', warehouse:'深圳采购仓', type:'良品仓', qty:60, amount:2586.00, freight:270.00, lastInboundAt:'2026-10-27 17:40'}
 ];
 
 // 追加生成数据，让列表更饱满（确定性生成，无随机）
@@ -68,6 +63,10 @@ for (let i = 0; i < 36; i++) {
 const rows = [..._seed, ...extraList].map(r => ({...r, avgPrice: r.qty > 0 ? r2(r.amount / r.qty) : 0, freightAvg: r.qty > 0 ? r2(r.freight / r.qty) : 0}));
 // 非海外仓/平台仓不产生头程成本，头程金额与加权价归零
 rows.forEach(r => { if (!hasFreight(r)) { r.freight = 0; r.freightAvg = 0; } });
+// 导入校验用：仓库编码档案、已维护映射的海外仓 SKU
+const codeMeta = {};
+Object.keys(warehouseMeta).forEach(name => { codeMeta[warehouseMeta[name].code] = { name, attr: warehouseMeta[name].attr }; });
+const overseasSkuSet = new Set(rows.map(r => r.overseasSku).filter(v => v && v !== '—'));
 
 // 部分行展示完整单据链：货物成本（期初初始化/采购入库/采购收货）与头程成本（期初/海外上架）
 const richHistories = {
@@ -90,15 +89,6 @@ const richHistories = {
       {time:'2026-10-09 08:30', docType:'期初初始化', docNo:'期初-INIT-KBAB', before:0, qty:280, amount:2240.00, after:8.00},
       {time:'2026-10-28 13:15', docType:'海外上架', docNo:'FT26102800120', before:8.00, qty:40, amount:640.00, after:9.00}
     ]
-  },
-  10: {
-    goods: [
-      {time:'2026-10-15 09:00', docType:'期初初始化', docNo:'期初-退货', before:0, qty:15, amount:0, after:0},
-      {time:'2026-10-28 11:20', docType:'采购收货', docNo:'TH26102800211', before:0, qty:3, amount:0, after:0}
-    ],
-    freight: [
-      {time:'2026-10-15 09:00', docType:'期初初始化', docNo:'期初-退货', before:0, qty:15, amount:0, after:0}
-    ]
   }
 };
 // 无头程成本的仓库，其历史里的头程记录不成立，统一清空
@@ -106,10 +96,6 @@ rows.forEach(r => { if (richHistories[r.id] && !hasFreight(r)) richHistories[r.i
 
 function historyFor(row) {
   const unit = row.avgPrice || 0, fUnit = row.freightAvg || 0;
-  if (row.type === '退货仓') {
-    const zero = [{time:'2026-10-15 09:00', docType:'期初初始化', docNo:'期初-退货', before:0, qty:row.qty, amount:0, after:0}];
-    return {goods:zero, freight:[]};
-  }
   const initQty = Math.round(row.qty * 0.6);
   const lastQty = row.qty - initQty;
   // 让每个 SKU 最近一次入库都有确定性的涨跌（货物 ±5%、头程 ±4%）
@@ -138,7 +124,6 @@ function historyFor(row) {
 rows.forEach(r => {
   r.unitDelta = r.goodsDelta = r.freightDelta = null;
   r.unitPct = r.goodsPct = r.freightPct = null;
-  if (r.type === '退货仓') return;
   const h = richHistories[r.id] || historyFor(r);
   const g = h.goods[h.goods.length - 1], f = h.freight[h.freight.length - 1];
   if (!g && !f) return;
@@ -182,10 +167,9 @@ createApp({
         && dateOk;
     }));
 
-    // 三价格列排序：按数值（不是按涨跌）；退货仓无成本，升降序均置底
+    // 三价格列排序：按数值（不是按涨跌）
     const sortKey = ref(''), sortOrder = ref('');
     const priceOf = (row, key) => {
-      if (row.type === '退货仓') return null;
       if (key === 'unit') return r2(row.avgPrice + row.freightAvg);
       if (key === 'goods') return row.avgPrice;
       if (key === 'freight') return row.freightAvg;
@@ -279,16 +263,241 @@ createApp({
       historyDateRange.value = historyDraft.value ? [...historyDraft.value] : [];
       historyPage.unit = historyPage.goods = historyPage.freight = 1;
     };
+    const TEMPLATE_URL = 'https://www.kdocs.cn/l/caigDqifgmQq';
+    // 解析 CSV，兼容引号包裹与 BOM
+    const parseCsv = text => {
+      const rows = [];
+      let row = [], cell = '', quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (quoted) {
+          if (ch === '"') {
+            if (text[i + 1] === '"') { cell += '"'; i++; }
+            else quoted = false;
+          } else cell += ch;
+        } else if (ch === '"') quoted = true;
+        else if (ch === ',') { row.push(cell); cell = ''; }
+        else if (ch === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+        else if (ch !== '\r') cell += ch;
+      }
+      if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+      return rows.filter(r => r.some(v => String(v).trim() !== ''));
+    };
+    // 读取导入文件：xlsx/xls 用本地解析库，csv 走文本解析
+    const readFlowTable = file => {
+      const name = String(file.name || '').toLowerCase();
+      if (/\.(xlsx|xls)$/.test(name)) {
+        if (typeof XLSX === 'undefined') return Promise.reject(new Error('Excel 解析组件未加载，请刷新页面后重试'));
+        return file.arrayBuffer().then(buffer => {
+          const workbook = XLSX.read(buffer, {type: 'array'});
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          return XLSX.utils.sheet_to_json(sheet, {header: 1, raw: false, defval: ''}).map(row => row.map(cell => String(cell == null ? '' : cell)));
+        });
+      }
+      return file.text().then(text => parseCsv(String(text).replace(/^\ufeff/, '')));
+    };
+    // 导入前预览：解析文件、校验必填与数值，返回表头和前若干行
+    let flowPreviewCache = null;
+    const parseFlowPreview = file => readFlowTable(file).then(table => {
+      if (!table.length) throw new Error('文件内容为空，请使用模板填写后再导入');
+      const headers = table[0].map(h => String(h).trim());
+      // 模板第 2 行为填写说明，导入时跳过
+      const data = table.slice(1).filter(r => !r.some(v => /^【(必填|选填)】/.test(String(v).trim())));
+      const col = names => {
+        const list = Array.isArray(names) ? names : [names];
+        return headers.findIndex(h => list.includes(h.replace(/\*/g, '').trim()));
+      };
+      const iCode = col('仓库编码'), iWarehouse = col(['仓库', '仓库名称']), iSku = col(['SKU', '海外仓 SKU']),
+        iDoc = col('中台发货单号'), iOverseasDoc = col(['海外仓后台单据号', '海外仓后台操作单据号']),
+        iTime = col(['入库时间', '本次入库时间']),
+        iBefore = col(['原在库数量', '本次入库前的原在库数量']), iQty = col(['入库数量', '本次入库数量']);
+      if ([iCode, iWarehouse, iSku, iDoc, iOverseasDoc, iTime, iBefore, iQty].some(i => i < 0)) throw new Error('模板表头不完整，请使用最新模板');
+      const errors = [];
+      const parseTime = value => {
+        const text = String(value || '').trim();
+        if (!text) return null;
+        const date = new Date(text.replace(/-/g, '/'));
+        return Number.isNaN(date.getTime()) ? null : date;
+      };
+      const previewRows = data.map((r, n) => {
+        const line = n + 3;
+        const code = String(r[iCode] || '').trim();
+        const warehouse = String(r[iWarehouse] || '').trim();
+        const sku = String(r[iSku] || '').trim();
+        const doc = String(r[iDoc] || '').trim();
+        const overseasDoc = String(r[iOverseasDoc] || '').trim();
+        const time = String(r[iTime] || '').trim();
+        const timeDate = parseTime(time);
+        const beforeText = String(r[iBefore] || '').trim();
+        const qtyText = String(r[iQty] || '').trim();
+        const before = Number(beforeText), qty = Number(qtyText);
+        if (!code) errors.push(`第 ${line} 行：仓库编码必填`);
+        else if (!codeMeta[code]) errors.push(`第 ${line} 行：仓库编码不存在`);
+        else if (codeMeta[code].attr !== '海外仓') errors.push(`第 ${line} 行：该仓库不是海外仓，不能导入上架流水`);
+        if (!warehouse) errors.push(`第 ${line} 行：仓库名称必填`);
+        if (!sku) errors.push(`第 ${line} 行：海外仓 SKU 必填`);
+        else if (!overseasSkuSet.has(sku)) errors.push(`第 ${line} 行：海外仓 SKU 未维护映射`);
+        if (!doc) errors.push(`第 ${line} 行：中台发货单号必填`);
+        if (!overseasDoc) errors.push(`第 ${line} 行：海外仓后台操作单据号必填`);
+        if (!time) errors.push(`第 ${line} 行：本次入库时间必填`);
+        else if (!timeDate) errors.push(`第 ${line} 行：本次入库时间格式应为 YYYY-MM-DD HH:mm`);
+        if (!beforeText || !Number.isFinite(before) || before < 0) errors.push(`第 ${line} 行：本次入库前的原在库数量需为不小于 0 的数字`);
+        if (!qtyText || !Number.isFinite(qty) || qty <= 0) errors.push(`第 ${line} 行：本次入库数量需为大于 0 的数字`);
+        return [code, warehouse, sku, '头程入库', doc, overseasDoc, time, beforeText, qtyText];
+      });
+      const result = {
+        columns: ['仓库编码', '仓库名称', '海外仓 SKU', '入库类型', '中台发货单号', '海外仓后台操作单据号', '本次入库时间', '本次入库前的原在库数量', '本次入库数量'],
+        rows: previewRows,
+        total: data.length,
+        errors
+      };
+      flowPreviewCache = result;
+      return result;
+    });
+    const escHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch]));
+    const pad2 = value => String(value).padStart(2, '0');
+    const nowText = () => {
+      const date = new Date();
+      return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+    };
+    const flowRecords = [
+      { batch: 'PB20261110093201', file: '海外仓上架流水_1101-1107.xlsx', user: '张三', time: '2026-11-10 09:32', total: 42, added: 38, overwritten: 4, failed: 0, status: '成功', failures: [] },
+      { batch: 'PB20261109170502', file: '海外仓上架流水_1025-1031.xlsx', user: '李四', time: '2026-11-09 17:05', total: 36, added: 31, overwritten: 3, failed: 2, status: '部分失败', failures: [
+        { line: 8, sku: 'KBAB0057-009', doc: 'FH26102800120', reason: '本次入库时间早于上线日' },
+        { line: 21, sku: 'XJ0058-03', doc: 'FH26103000072', reason: '海外仓 SKU 未维护映射' }
+      ] },
+      { batch: 'PB20261108112003', file: '海外仓上架流水_1018-1024.xlsx', user: '王五', time: '2026-11-08 11:20', total: 20, added: 20, overwritten: 0, failed: 0, status: '成功', failures: [] }
+    ];
+    const openImport = () => {
+      const mask = document.createElement('div');
+      mask.className = 'ui-dialog-mask';
+      mask.innerHTML = `
+        <section class="ui-dialog ui-dialog--import ui-dialog--import-preview" role="dialog" aria-modal="true" aria-label="导入海外仓上架流水">
+          <header class="ui-dialog__header ui-import__header">
+            <div><h2>导入海外仓上架流水</h2><p class="ui-import__subtitle">导入记录的入库类型统一为头程入库 · 支持 .xlsx</p></div>
+            <button class="ui-dialog__close" type="button" data-close aria-label="关闭">×</button>
+          </header>
+          <div class="ui-import__tabs"><div class="ui-tabs"><button type="button" class="is-active" data-tab="import">导入</button><button type="button" data-tab="records">导入记录</button></div></div>
+          <div class="ui-dialog__body ui-import__body">
+            <div data-panel="import"><div data-flow-body></div></div>
+            <div data-panel="records" hidden></div>
+          </div>
+          <footer class="ui-dialog__footer ui-import__footer" data-flow-footer></footer>
+          <footer class="ui-dialog__footer ui-import__footer" data-records-footer hidden>
+            <span class="ui-import__summary" data-records-summary></span>
+            <div><button class="ui-button" type="button" data-close>关闭</button></div>
+          </footer>
+        </section>`;
+      document.body.appendChild(mask);
+      const close = () => mask.remove();
+      mask.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', close));
+      mask.addEventListener('click', event => { if (event.target === mask) close(); });
+
+      const flow = UIKit.createImportFlow({
+        title: '导入海外仓上架流水',
+        subtitle: '导入记录的入库类型统一为头程入库 · 支持 .xlsx',
+        intro: '用于未对接接口的海外仓：导入上架流水，补录上架前的原在库数量和本次入库数量，系统据此重算移动加权平均价。导入记录的入库类型统一为「头程入库」，不处理出库流水。',
+        guideTitle: '第一步：下载并填写上架流水模板',
+        guideText: '入库类型统一为头程入库。重复导入将覆盖原记录。请按模板填写后上传 .xlsx。',
+        accepted: '.xlsx,.xls',
+        downloadLabel: '下载模板',
+        onDownload: () => window.open(TEMPLATE_URL, '_blank'),
+        parsePreview: parseFlowPreview,
+        onConfirm: (file, done) => {
+          const preview = flowPreviewCache || { total: 0 };
+          flowRecords.unshift({
+            batch: 'PB' + nowText().replace(/[-: ]/g, ''),
+            file: file.name,
+            user: 'Admin',
+            time: nowText(),
+            total: preview.total || 0,
+            added: preview.total || 0,
+            overwritten: 0,
+            failed: 0,
+            status: '成功',
+            failures: []
+          });
+          done();
+          ElementPlus.ElMessage.success(`已导入 ${file.name}，系统将按原在库数量与入库数量重算移动加权价`);
+        }
+      });
+      flow.mount(mask.querySelector('[data-flow-body]'), mask.querySelector('[data-flow-footer]'), { onClose: close });
+
+      const importPanel = mask.querySelector('[data-panel="import"]');
+      const recordsPanel = mask.querySelector('[data-panel="records"]');
+      const flowFooter = mask.querySelector('[data-flow-footer]');
+      const recordsFooter = mask.querySelector('[data-records-footer]');
+      const recordsSummary = mask.querySelector('[data-records-summary]');
+      let failureBatch = null;
+
+      const recordRow = record => `
+        <tr>
+          <td>${escHtml(record.file)}</td>
+          <td>${escHtml(record.user)}</td>
+          <td>${escHtml(record.time)}</td>
+          <td>${record.total}</td>
+          <td>${record.added}</td>
+          <td>${record.overwritten}</td>
+          <td>${record.failed}</td>
+          <td><span class="ui-status-tag ${record.status === '成功' ? 'ui-status-tag--regular' : 'ui-status-tag--clearance'}">${escHtml(record.status)}</span></td>
+          <td><span class="import-records-actions">${record.failed ? `<button class="ui-text-action" type="button" data-fail="${escHtml(record.batch)}">查看失败明细</button><button class="ui-text-action" type="button" data-download="${escHtml(record.batch)}">下载源文件</button>` : '<span class="import-records-empty">—</span>'}</span></td>
+        </tr>`;
+
+      const renderRecords = () => {
+        const detail = failureBatch ? flowRecords.find(item => item.batch === failureBatch) : null;
+        if (detail) {
+          recordsPanel.innerHTML = `
+            <div class="ui-import__preview import-records">
+              <div class="ui-import__preview-head">
+                <div class="ui-import__card-title"><span class="ui-import__bar"></span>失败明细 · ${escHtml(detail.file)}</div>
+                <button class="ui-text-action" type="button" data-back>返回导入记录</button>
+              </div>
+              <div class="ui-import__preview-scroll"><table class="ui-import__preview-table import-records-table"><thead><tr><th>行号</th><th>海外仓 SKU</th><th>中台发货单号</th><th>失败原因</th></tr></thead><tbody>${detail.failures.map(item => `<tr><td>${item.line}</td><td>${escHtml(item.sku)}</td><td>${escHtml(item.doc)}</td><td>${escHtml(item.reason)}</td></tr>`).join('')}</tbody></table></div>
+            </div>`;
+          return;
+        }
+        recordsPanel.innerHTML = `
+          <div class="ui-import__preview import-records">
+            <div class="ui-import__preview-head">
+              <div class="ui-import__card-title"><span class="ui-import__bar"></span>导入记录</div>
+              <span class="ui-import__preview-meta">共 ${flowRecords.length} 条</span>
+            </div>
+            <div class="ui-import__preview-scroll"><table class="ui-import__preview-table import-records-table"><thead><tr><th>文件名</th><th>操作人</th><th>导入时间</th><th>行数</th><th>新增</th><th>覆盖</th><th>失败</th><th>状态</th><th>操作</th></tr></thead><tbody>${flowRecords.map(recordRow).join('')}</tbody></table></div>
+          </div>`;
+      };
+
+      recordsPanel.addEventListener('click', event => {
+        const back = event.target.closest('[data-back]');
+        if (back) { failureBatch = null; renderRecords(); return; }
+        const fail = event.target.closest('[data-fail]');
+        if (fail) { failureBatch = fail.getAttribute('data-fail'); renderRecords(); return; }
+        if (event.target.closest('[data-download]')) ElementPlus.ElMessage.success('已下载源文件');
+      });
+
+      const tabs = [...mask.querySelectorAll('[data-tab]')];
+      const setTab = name => {
+        tabs.forEach(tab => tab.classList.toggle('is-active', tab.getAttribute('data-tab') === name));
+        importPanel.hidden = name !== 'import';
+        recordsPanel.hidden = name !== 'records';
+        flowFooter.hidden = name !== 'import';
+        recordsFooter.hidden = name !== 'records';
+        recordsSummary.textContent = `共 ${flowRecords.length} 条导入记录`;
+        if (name === 'records') { failureBatch = null; renderRecords(); }
+      };
+      tabs.forEach(tab => tab.addEventListener('click', () => setTab(tab.getAttribute('data-tab'))));
+      setTab('import');
+    };
+
     const exportRows = () => {
       const data = sortedRows.value;
       const heads = ['仓库','SKU','海外仓 SKU/FNSKU','品名','当前移动加权平均价（未税）','移动货物成本加权（未税）','移动头程成本加权（未税）','最新入库/变更时间'];
-      const csv = [heads, ...data.map(r => [whLabel(r.warehouse), r.sku, mappedSku(r), r.product, r.type === '退货仓' ? '' : r2(r.avgPrice + r.freightAvg).toFixed(2), r.type === '退货仓' ? '' : r.avgPrice.toFixed(2), r.type === '退货仓' ? '' : r.freightAvg.toFixed(2), r.lastInboundAt])]
+      const csv = [heads, ...data.map(r => [whLabel(r.warehouse), r.sku, mappedSku(r), r.product, r2(r.avgPrice + r.freightAvg).toFixed(2), r.avgPrice.toFixed(2), r.freightAvg.toFixed(2), r.lastInboundAt])]
         .map(a => a.map(v => `"${String(v ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
       const url = URL.createObjectURL(new Blob(['\ufeff' + csv], {type:'text/csv'}));
-      const a = document.createElement('a'); a.href = url; a.download = '移动加权平均价.csv'; a.click(); URL.revokeObjectURL(url);
+      const a = document.createElement('a'); a.href = url; a.download = '移动加权价.csv'; a.click(); URL.revokeObjectURL(url);
       ElementPlus.ElMessage.success(`已导出 ${data.length} 条数据`);
     };
 
-    return {query, warehouses, page, pageSize, filteredRows, sortedRows, pageRows, sortKey, sortOrder, toggleSort, drawerVisible, current, historyRows, historyTab, historyDateRange, historyDraft, historyPage, goodsHistory, freightHistory, unitHistory, pagedUnitHistory, pagedGoodsHistory, pagedFreightHistory, applyHistoryDate, fmtPrice, chgClass, chgText, whMeta, whLabel, mappedSku, hasFreight, search, reset, openHistory, exportRows};
+    return {query, warehouses, page, pageSize, filteredRows, sortedRows, pageRows, sortKey, sortOrder, toggleSort, drawerVisible, current, historyRows, historyTab, historyDateRange, historyDraft, historyPage, goodsHistory, freightHistory, unitHistory, pagedUnitHistory, pagedGoodsHistory, pagedFreightHistory, applyHistoryDate, fmtPrice, chgClass, chgText, whMeta, whLabel, mappedSku, hasFreight, search, reset, openHistory, openImport, exportRows};
   }
 }).use(ElementPlus).mount('#app');

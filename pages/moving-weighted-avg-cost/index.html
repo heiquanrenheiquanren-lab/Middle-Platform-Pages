@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>供应链中台｜移动加权平均价</title>
+  <title>供应链中台｜移动加权价</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="styles.css?v=1.0.33">
+  <link rel="stylesheet" href="styles.css?v=1.0.35">
+  <link rel="stylesheet" href="../../ui-kit.css?v=1.0.7">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
 </head>
@@ -20,7 +21,7 @@
       <aside class="sidebar">
         <div class="nav-scroll">
           <div class="nav-group-title"><span>♘</span><span>成本核算</span><span class="chev">⌃</span></div>
-          <div class="nav-item active" data-page-nav="movingWeightedAverageCost"><span class="mini">¥</span>移动加权平均价</div>
+          <div class="nav-item active" data-page-nav="movingWeightedAverageCost"><span class="mini">¥</span>移动加权价</div>
         </div>
         <div class="collapse">≡</div>
       </aside>
@@ -46,7 +47,7 @@
             </div>
           </section>
 
-          <div class="ui-action-row"><button class="ui-button" @click="exportRows">导出</button></div>
+          <div class="ui-action-row"><button class="ui-button" @click="openImport">导入海外仓上架流水</button><button class="ui-button" @click="exportRows">导出</button></div>
 
           <section class="ui-list-card">
             <div class="ui-table-wrap">
@@ -70,16 +71,11 @@
                     <td>{{mappedSku(row)}}</td>
                     <td><div class="product-cell"><img class="thumb-img" alt="产品占位图" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23f0f2f5'/%3E%3Cpath d='M12 27l6-9 5 6 3-3 6 10H12z' fill='%23c3cbd6'/%3E%3Ccircle cx='14' cy='12' r='3.5' fill='%23c3cbd6'/%3E%3C/svg%3E"><span :title="row.product">{{row.product}}</span></div></td>
                     <td class="num">
-                      <span v-if="row.type==='退货仓'" class="zero-price">—</span>
-                      <template v-else>
-                        <span class="price">{{(row.avgPrice + row.freightAvg).toFixed(2)}}</span>
-                        <span v-if="row.unitDelta != null" class="chg" :class="chgClass(row.unitDelta)">{{chgText(row.unitDelta, row.unitPct)}}</span>
-                      </template>
+                      <span class="price">{{(row.avgPrice + row.freightAvg).toFixed(2)}}</span>
+                      <span v-if="row.unitDelta === 0" class="no-change">无变化</span>
+                      <span v-else-if="row.unitDelta != null" class="chg" :class="chgClass(row.unitDelta)">{{chgText(row.unitDelta, row.unitPct)}}</span>
                     </td>
-                    <td class="num">
-                      <span v-if="row.type==='退货仓'" class="zero-price">—</span>
-                      <span v-else class="price">{{row.avgPrice.toFixed(2)}}</span>
-                    </td>
+                    <td class="num"><span class="price">{{row.avgPrice.toFixed(2)}}</span></td>
                     <td class="num">
                       <span v-if="!hasFreight(row)" class="zero-price">—</span>
                       <span v-else class="price">{{row.freightAvg.toFixed(2)}}</span>
@@ -119,15 +115,15 @@
     <div class="drawer-kpis" v-if="current">
       <div class="kpi-card">
         <span class="kpi-label">当前移动加权平均价（未税）</span>
-        <strong class="kpi-value" :class="current.type==='退货仓'?'is-muted':''">{{current.type==='退货仓'?'—（零成本）':(current.avgPrice + current.freightAvg).toFixed(2)}}</strong>
+        <strong class="kpi-value">{{(current.avgPrice + current.freightAvg).toFixed(2)}}</strong>
       </div>
       <div class="kpi-card">
         <span class="kpi-label">移动货物成本加权</span>
-        <strong class="kpi-value" :class="current.type==='退货仓'?'is-muted':''">{{current.type==='退货仓'?'—（零成本）':current.avgPrice.toFixed(2)}}</strong>
+        <strong class="kpi-value">{{current.avgPrice.toFixed(2)}}</strong>
       </div>
       <div class="kpi-card">
         <span class="kpi-label">移动头程成本加权</span>
-        <strong class="kpi-value" :class="hasFreight(current)?'':'is-muted'">{{hasFreight(current)?current.freightAvg.toFixed(2):(current.type==='退货仓'?'—（零成本）':'—（无头程）')}}</strong>
+        <strong class="kpi-value" :class="hasFreight(current)?'':'is-muted'">{{hasFreight(current)?current.freightAvg.toFixed(2):'—（无头程）'}}</strong>
       </div>
     </div>
     <div class="history-panel">
@@ -152,7 +148,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="变动后" width="147" align="right"><template #default="{row}"><span class="price">{{fmtPrice(row.after)}}</span></template></el-table-column>
+          <el-table-column label="变动后" width="147" align="right"><template #default="{row}"><span class="price">{{fmtPrice(row.after)}}</span><span v-if="row.before > 0 && row.after === row.before" class="no-change">无变化</span></template></el-table-column>
           <el-table-column label="涨跌" width="147" align="right"><template #default="{row}"><span v-if="row.before > 0" class="chg" :class="chgClass(row.after - row.before)">{{chgText(row.after - row.before, (row.after - row.before) / row.before)}}</span><span v-else class="zero-price">—</span></template></el-table-column>
         </el-table>
         <el-pagination class="history-pager" layout="prev, pager, next" :page-size="8" :total="unitHistory.length" v-model:current-page="historyPage.unit"></el-pagination>
@@ -172,7 +168,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="变动后" width="147" align="right"><template #default="{row}"><span class="price">{{fmtPrice(row.after)}}</span></template></el-table-column>
+          <el-table-column label="变动后" width="147" align="right"><template #default="{row}"><span class="price">{{fmtPrice(row.after)}}</span><span v-if="row.before > 0 && row.after === row.before" class="no-change">无变化</span></template></el-table-column>
           <el-table-column label="涨跌" width="147" align="right"><template #default="{row}"><span v-if="row.before > 0" class="chg" :class="chgClass(row.after - row.before)">{{chgText(row.after - row.before, (row.after - row.before) / row.before)}}</span><span v-else class="zero-price">—</span></template></el-table-column>
         </el-table>
         <el-pagination class="history-pager" layout="prev, pager, next" :page-size="8" :total="goodsHistory.length" v-model:current-page="historyPage.goods"></el-pagination>
@@ -192,7 +188,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="变动后" width="147" align="right"><template #default="{row}"><span class="price">{{fmtPrice(row.after)}}</span></template></el-table-column>
+          <el-table-column label="变动后" width="147" align="right"><template #default="{row}"><span class="price">{{fmtPrice(row.after)}}</span><span v-if="row.before > 0 && row.after === row.before" class="no-change">无变化</span></template></el-table-column>
           <el-table-column label="涨跌" width="147" align="right"><template #default="{row}"><span v-if="row.before > 0" class="chg" :class="chgClass(row.after - row.before)">{{chgText(row.after - row.before, (row.after - row.before) / row.before)}}</span><span v-else class="zero-price">—</span></template></el-table-column>
         </el-table>
         <el-pagination class="history-pager" layout="prev, pager, next" :page-size="8" :total="freightHistory.length" v-model:current-page="historyPage.freight"></el-pagination>
@@ -203,7 +199,9 @@
 </div>
 <script src="../../vendor/vue.global.prod.js"></script>
 <script src="../../vendor/element-plus.js"></script>
-<script src="app.js?v=1.0.28"></script>
+<script src="../../vendor/xlsx.full.min.js"></script>
+<script src="../../ui-kit.js?v=1.0.3"></script>
+<script src="app.js?v=1.0.40"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
 <script src="../../navigation.js?v=1.7.92"></script>
 </body>
