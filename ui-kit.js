@@ -21,11 +21,16 @@
       idleText: '尚未选择文件',
       subtitle: '',
       intro: '',
+      previewHint: '',
       accepted: '.xlsx,.xls,.csv',
       downloadLabel: '下载模板',
+      nextLabel: '下一步：预览',
+      previewTab: false,
       parsePreview: null,
       onDownload: function () {},
-      onConfirm: function () {}
+      onConfirm: function () {},
+      onRequestPreview: function () {},
+      onPreviewChange: null
     }, options || {});
   }
 
@@ -60,21 +65,86 @@
       function canConfirm(hasFile) {
         if (!hasFile || parsing) return false;
         if (!config.parsePreview) return true;
-        return Boolean(previewData) && !previewError && !(previewData.errors || []).length;
+        var hasValidRow = typeof previewData.validCount !== 'number' || previewData.validCount > 0;
+        return Boolean(previewData) && !previewError && !(previewData.errors || []).length && hasValidRow;
+      }
+
+      function state() {
+        return { file: selectedFile, parsing: parsing, preview: previewData, error: previewError, canConfirm: canConfirm(Boolean(selectedFile)) };
+      }
+
+      function renderPreview(container) {
+        if (!container) return;
+        if (!selectedFile) {
+          container.innerHTML = '<div class="ui-import__preview"><span class="ui-import__preview-meta">请先在「导入」页签选择文件</span></div>';
+          return;
+        }
+        if (parsing) {
+          container.innerHTML = '<div class="ui-import__preview"><span class="ui-import__preview-meta">正在校验文件…</span></div>';
+          return;
+        }
+        if (previewError) {
+          container.innerHTML = '<div class="ui-import__preview"><span class="ui-import__preview-errors">' + escapeHtml(previewError) + '</span></div>';
+          return;
+        }
+        if (!previewData) { container.innerHTML = ''; return; }
+        var cols = previewData.columns || [];
+        var rows = previewData.rows || [];
+        var rowErrors = previewData.rowErrors || [];
+        var rowStates = previewData.rowStates || [];
+        var errors = previewData.errors || [];
+        var counts = '共 ' + previewData.total + ' 行';
+        if (previewData.duplicateCount) counts += '，重复过滤 ' + previewData.duplicateCount + ' 行';
+        if (errors.length) counts += '，需修正 ' + errors.length + ' 行';
+        if (typeof previewData.validCount === 'number') counts += '，可导入 ' + previewData.validCount + ' 行';
+        container.innerHTML = '<div class="ui-import__preview ui-import__preview--full">'
+          + '<div class="ui-import__preview-head"><div class="ui-import__card-title"><span class="ui-import__bar"></span>数据预览</div><span class="ui-import__preview-meta">' + escapeHtml(selectedFile.name) + ' · ' + counts + '</span></div>'
+          + (config.previewHint ? '<div class="ui-import__preview-hint">' + escapeHtml(config.previewHint) + '</div>' : '')
+          + '<div class="ui-import__preview-scroll"><table class="ui-import__preview-table"><thead><tr>' + cols.map(function (col) { return '<th>' + escapeHtml(col) + '</th>'; }).join('') + '</tr></thead><tbody>'
+          + (rows.length ? rows.map(function (row, index) {
+            var messages = rowErrors[index] || [];
+            var rowState = rowStates[index] || (messages.length ? 'error' : '');
+            var tip = rowState === 'error' ? messages.join('；') : (rowState === 'duplicate' ? '重复数据，已过滤，不会覆盖原记录' : '');
+            return '<tr' + (rowState === 'error' ? ' class="is-error"' : rowState === 'duplicate' ? ' class="is-duplicate"' : '') + (tip ? ' title="' + escapeHtml(tip) + '"' : '') + '>' + row.map(function (cell) { return '<td>' + escapeHtml(cell) + '</td>'; }).join('') + '</tr>';
+          }).join('') : '<tr><td colspan="' + Math.max(cols.length, 1) + '">文件中没有有效数据行</td></tr>')
+          + '</tbody></table></div>'
+          + (errors.length ? '<div class="ui-import__preview-errors ui-import__preview-errors--list">' + errors.map(function (item) { return '<div>' + escapeHtml(item) + '</div>'; }).join('') + '</div>' : '')
+          + '</div>';
+      }
+
+      function confirm() {
+        if (!canConfirm(Boolean(selectedFile))) return false;
+        config.onConfirm(selectedFile, actions.onClose);
+        return true;
+      }
+
+      function reset() {
+        selectedFile = null;
+        previewData = null;
+        previewError = '';
+        parsing = false;
+        parseToken += 1;
+        render();
       }
 
       function render() {
       var hasFile = Boolean(selectedFile);
+      var canNext = hasFile && !parsing && !previewError && (!config.parsePreview || Boolean(previewData));
+      var tipText = config.previewTab ? '选择文件后点击「下一步：预览」，系统将自动校验文件，校验通过后才能确认导入。' : '选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。';
       body.innerHTML = ''
         + (config.intro ? '<div class="ui-import__intro">' + escapeHtml(config.intro) + '</div>' : '')
         + '<div class="ui-import__steps"><div class="ui-import__step is-active"><span class="ui-import__step-number">1</span><span>下载模板</span></div><i class="ui-import__line"></i><div class="ui-import__step' + (hasFile ? ' is-active' : '') + '"><span class="ui-import__step-number">2</span><span>选择文件</span></div><i class="ui-import__line"></i><div class="ui-import__step' + (canConfirm(hasFile) ? ' is-active' : '') + '"><span class="ui-import__step-number">3</span><span>确认导入</span></div></div>'
         + '<div class="ui-import__guide"><strong>' + escapeHtml(config.guideTitle) + '</strong><p>' + escapeHtml(config.guideText) + '</p><button class="ui-button" data-ui-download type="button">' + escapeHtml(config.downloadLabel) + '</button></div>'
         + '<div class="ui-import__upload" data-ui-drop-zone><input data-ui-file type="file" accept="' + escapeHtml(config.accepted) + '" hidden><span class="ui-import__upload-icon">↥</span><span>将 Excel 文件拖到此处，或 <b class="ui-import__link" data-ui-choose>点击选择文件</b></span></div>'
-        + '<p class="ui-import__tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</p>'
+        + '<p class="ui-import__tip">' + tipText + '</p>'
         + (hasFile && !config.parsePreview ? '<div class="ui-import__preview">已选择文件：' + escapeHtml(selectedFile.name) + '</div>' : '')
-        + previewHtml(hasFile);
+        + (config.previewTab ? (previewError ? '<div class="ui-import__preview"><span class="ui-import__preview-errors">' + escapeHtml(previewError) + '</span></div>' : '') : previewHtml(hasFile));
       var stateText = hasFile ? ('当前文件：' + escapeHtml(selectedFile.name) + (previewData && !parsing ? ' · 共 ' + previewData.total + ' 行' : '')) : escapeHtml(config.idleText);
-      footer.innerHTML = '<span class="ui-import__summary">' + stateText + '</span><div><button class="ui-button" type="button" data-ui-close>取消</button><button class="ui-button ui-button--primary" type="button" data-ui-confirm ' + (canConfirm(hasFile) ? '' : 'disabled') + '>确认导入</button></div>';
+      if (config.previewTab) {
+        footer.innerHTML = '<span class="ui-import__summary">' + stateText + '</span><div><button class="ui-button" type="button" data-ui-close>取消</button><button class="ui-button ui-button--primary" type="button" data-ui-next ' + (canNext ? '' : 'disabled') + '>' + escapeHtml(config.nextLabel) + '</button></div>';
+      } else {
+        footer.innerHTML = '<span class="ui-import__summary">' + stateText + '</span><div><button class="ui-button" type="button" data-ui-close>取消</button><button class="ui-button ui-button--primary" type="button" data-ui-confirm ' + (canConfirm(hasFile) ? '' : 'disabled') + '>确认导入</button></div>';
+      }
 
       var fileInput = body.querySelector('[data-ui-file]');
       var dropZone = body.querySelector('[data-ui-drop-zone]');
@@ -108,11 +178,14 @@
       dropZone.addEventListener('dragover', function (event) { event.preventDefault(); dropZone.classList.add('is-drag-over'); });
       dropZone.addEventListener('dragleave', function () { dropZone.classList.remove('is-drag-over'); });
       dropZone.addEventListener('drop', function (event) { event.preventDefault(); dropZone.classList.remove('is-drag-over'); choose(event.dataTransfer && event.dataTransfer.files[0]); });
-      var confirm = footer.querySelector('[data-ui-confirm]');
-      if (confirm) confirm.addEventListener('click', function () { if (canConfirm(Boolean(selectedFile))) config.onConfirm(selectedFile, actions.onClose); });
+      var next = footer.querySelector('[data-ui-next]');
+      if (next) next.addEventListener('click', function () { if (canNext) config.onRequestPreview(state()); });
+      var confirmButton = footer.querySelector('[data-ui-confirm]');
+      if (confirmButton) confirmButton.addEventListener('click', function () { if (canConfirm(Boolean(selectedFile))) config.onConfirm(selectedFile, actions.onClose); });
+      if (config.previewTab && typeof config.onPreviewChange === 'function') config.onPreviewChange(state());
       }
       render();
-      return { render: render, getFile: function () { return selectedFile; } };
+      return { render: render, getFile: function () { return selectedFile; }, getPreview: function () { return previewData; }, renderPreview: renderPreview, confirm: confirm, reset: reset, canConfirm: function () { return canConfirm(Boolean(selectedFile)); } };
     }
     return { config: config, mount: mount };
   }

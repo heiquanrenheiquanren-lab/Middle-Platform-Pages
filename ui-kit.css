@@ -102,7 +102,9 @@
 .ui-import__preview-errors{margin-top:6px;color:#f56c6c;font-size:12px;line-height:18px}
 /* 含数据预览的导入弹窗：加宽以完整展示字段 */
 .ui-dialog--import-preview{width:min(1080px,calc(100vw - 48px))}
-@media(max-width:760px){.ui-dialog--import-preview{width:calc(100vw - 24px)}}
+/* 预览字段超过 9 列时再放宽一档，避免关键列被截断 */
+.ui-dialog--import-wide{width:min(1240px,calc(100vw - 48px))}
+@media(max-width:760px){.ui-dialog--import-preview{width:calc(100vw - 24px)}.ui-dialog--import-wide{width:calc(100vw - 24px)}}
 
 /* 导入弹窗视觉升级：对齐新建单据弹窗的白色卡片与极简分隔 */
 .ui-dialog--import{border-radius:10px;box-shadow:0 24px 64px rgba(15,27,45,.18),0 6px 20px rgba(15,27,45,.08)}
@@ -149,6 +151,19 @@
 .import-records-table th,.import-records-table td{padding:7px 8px}
 .import-records-actions{display:inline-flex;align-items:center;gap:12px;white-space:nowrap}
 .import-records-empty{color:#c0c4cc}
+/* 导入预览页签：页签角标、整表预览与错误行 */
+.ui-tabs button[disabled]{color:#c0c4cc;cursor:not-allowed}
+.ui-tabs button[disabled]:hover{color:#c0c4cc}
+.ui-tabs__count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:9px;background:#f0f2f5;color:#909399;font-size:11px;font-weight:500;line-height:18px;vertical-align:1px}
+.ui-tabs__count.is-error{background:#fde2e2;color:#f56c6c}
+.ui-tabs__count[hidden]{display:none}
+.ui-import__preview--full .ui-import__preview-scroll{max-height:calc(100vh - 400px);min-height:220px}
+.ui-import__preview-table tr.is-error td{background:#fff6f6;color:#d83931}
+.ui-import__preview-table tr.is-error td:first-child{font-weight:600}
+.ui-import__preview-table tr.is-duplicate td{background:#fafafa;color:#a8b0bd}
+.ui-import__preview-hint{margin-top:8px;padding:8px 10px;border:1px solid #d9ecff;border-radius:6px;background:#f5faff;color:#606266;font-size:12px;line-height:18px}
+.ui-import__preview-errors--list{max-height:96px;overflow:auto}
+.import-records-table tr.is-new td{background:#f0f7ff;transition:background .4s}
 /* 明细表头「批量」填充：与采购计划共用同一套触发按钮、弹层与操作区。 */
 .batch-fill-trigger{margin-left:5px;padding:0;border:0;background:none;color:#409eff;font-size:12px;font-weight:400;line-height:1.4;cursor:pointer;white-space:nowrap}
 .batch-fill-trigger:hover,.batch-fill-trigger:focus-visible{text-decoration:underline;outline:0}
