@@ -4,60 +4,57 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>加工单</title>
-  <link rel="stylesheet" href="./styles.css?v=2.0.0">
+  <link rel="stylesheet" href="../transfer-orders/styles.css?v=1.0.25">
   <link rel="stylesheet" href="../../document-list.css?v=1.0.1">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
-  <link rel="stylesheet" href="./transfer-aligned.css?v=2.0.1">
+  <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
+  <link rel="stylesheet" href="./styles.css?v=3.1.2">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="app">
     <header class="global-bar">
-      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon" data-module="basic">基础</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button></div>
       <div class="global-right"><span class="admin">Admin⌄</span></div>
     </header>
     <div class="shell">
       <aside class="sidebar">
         <div class="nav-scroll">
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
-          <div class="nav-item active" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+          <div class="nav-item" data-page-nav="inventoryQuery">库存查询</div>
+          <div class="nav-item active" data-page-nav="processingOrder">加工单</div>
+          <div class="nav-item" data-page-nav="transferOrder">调拨单</div>
+          <div class="nav-item" data-page-nav="inventoryAdjustment">损益单</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
-          <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
-          <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
-          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+          <div class="nav-item" data-page-nav="forecast">需求预测</div><div class="nav-item" data-page-nav="stock">备货计划</div><div class="nav-item" data-page-nav="purchase">采购计划</div><div class="nav-item" data-page-nav="shipment">发货计划</div>
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
-          <div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
-          <div class="nav-item" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
+          <div class="nav-item" data-page-nav="purchaseOrder">采购单</div><div class="nav-item" data-page-nav="shipmentOrder">发货单</div><div class="nav-item" data-page-nav="skuFirstLegCost">头程费用</div>
         </div>
         <div class="collapse">≡</div>
       </aside>
-      <main class="main">
-        <section class="query-panel query-collapsed" id="queryCard">
-          <div class="query-grid" id="queryGrid">
-            <div class="query-item query-combo"><select class="control query-type-select" id="keywordType" aria-label="关键字类型"><option value="orderNo">加工单号</option><option value="batchNo">加工批次号</option><option value="finishedSku">组合 SKU</option><option value="finishedName">成品名称</option></select><input class="control query-combo-input" id="keyword" placeholder="请输入加工单号，支持多个，用逗号、空格或换行隔开" aria-label="加工单查询"></div>
-            <div class="query-item"><select class="control" id="warehouse" aria-label="仓库"><option value="">仓库</option></select></div>
-            <div class="query-item"><select class="control" id="team" aria-label="团队"><option value="">团队</option></select></div>
-            <div class="query-item"><select class="control" id="operator" aria-label="操作人"><option value="">操作人</option></select></div>
-            <div class="query-item"><select class="control" id="status" aria-label="状态"><option value="">状态</option><option value="草稿">草稿</option><option value="待审核">待审核</option><option value="待加工">待加工</option><option value="加工中">加工中</option><option value="待完工">待完工</option><option value="已完成">已完成</option><option value="已取消">已取消</option><option value="已冲销">已冲销</option></select></div>
-            <div class="query-item query-date-item"><select class="control query-time-type" id="timeType" aria-label="时间口径"><option value="completedAt">加工完成时间</option><option value="createdAt">创建时间</option></select><div class="date-group"><input id="startDate" type="date" aria-label="开始日期"><span>至</span><input id="endDate" type="date" aria-label="结束日期"></div></div>
-            <div class="query-item query-action-item"><div class="query-actions"><button class="query-inline-expand" id="queryExpand" type="button" aria-expanded="false" hidden><span>⌄</span><em>展开</em></button><button class="btn primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button></div></div>
+      <main class="main processing-main">
+        <section class="query-panel ui-query-card query-collapsed" id="queryCard">
+          <div class="query-grid ui-query-flow" id="queryGrid">
+            <div class="query-item query-combo query-sku-combo"><select class="control query-type-select" id="keywordType" aria-label="关键字类型"><option value="orderNo">加工单号</option><option value="finishedSku">组合 SKU</option><option value="finishedName">品名</option></select><input class="control query-combo-input" id="keyword" placeholder="请输入加工单号，支持多个，用逗号、空格或换行隔开" aria-label="加工单查询"></div>
+            <div class="query-item"><div class="multi" id="warehouseMulti"><div class="multi-trigger" data-trigger>请选择仓库（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="teamMulti"><div class="multi-trigger" data-trigger>请选择团队（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="operatorMulti"><div class="multi-trigger" data-trigger>请选择创建人（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item query-date-item"><select class="control query-time-type" id="timeType" aria-label="时间口径"><option value="createdAt">创建时间</option></select><div class="date-group"><input id="startDate" type="date" aria-label="开始日期"><span>至</span><input id="endDate" type="date" aria-label="结束日期"></div></div>
+            <div class="query-item"><select class="control" id="reversedFilter" aria-label="是否冲销"><option value="">是否冲销</option><option value="yes">是</option><option value="no">否</option></select></div>
+            <div class="query-item query-action-item"><div class="query-actions"><button class="query-inline-expand" id="queryExpand" type="button" hidden><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button><button class="btn primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button></div></div>
           </div>
         </section>
-        <section class="action-strip"><div class="head-actions"><button class="btn primary" id="newBtn">新建加工单</button><button class="btn" id="exportBtn">导出</button><button class="btn danger" id="batchReverseBtn" disabled>批量冲销</button></div></section>
-        <section class="status-bar"><div class="status-tabs" id="statusTabs"></div></section>
-        <section class="table-area"><table class="processing-table document-list"><colgroup><col class="check-col"><col class="expand-col"><col class="order-col"><col class="product-col"><col class="scope-col"><col class="qty-col"><col class="cost-col"><col class="time-col"><col class="operator-col"><col class="status-col"><col class="action-col"></colgroup><thead><tr><th><input id="selectAll" class="head-check" type="checkbox" aria-label="全选"></th><th></th><th>加工单号</th><th>成品信息</th><th>加工范围</th><th>数量信息</th><th>成本信息</th><th>加工时间</th><th>操作人</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"></tbody></table><div class="empty" id="empty" hidden>暂无符合条件的加工单</div></section>
-        <footer class="bottom-bar"><div>已选 <b id="selectedCount">0</b> 条结果</div><div class="pager"><span>共 <b id="totalCount">0</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="20">20张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button></div></footer>
+        <section class="action-strip ui-action-row"><div class="head-actions"><button class="btn primary" id="newBtn">新建加工单</button><button class="btn" id="exportBtn">导出</button></div></section>
+        <section class="list-card ui-list-card">
+          <section class="table-area"><table class="processing-table document-list collapsed-list"><tbody id="tableBody"></tbody></table><div class="empty" id="empty" hidden>暂无符合条件的加工单</div></section>
+          <footer class="bottom-bar"><div class="bottom-left"><span class="sum-stats" id="processingSummary"></span></div><div class="pager"><span>共 <b id="totalCount">0</b> 张</span><select class="control page-size" id="pageSize"><option value="10">10张/页</option><option value="20">20张/页</option><option value="50">50张/页</option></select><button class="page-btn" id="prevPage">‹</button><span id="pageButtons"></span><button class="page-btn" id="nextPage">›</button></div></footer>
+        </section>
       </main>
     </div>
   </div>
-  <div class="modal-mask" id="editorModal" hidden></div>
-  <div class="modal-mask" id="detailModal" hidden></div>
-  <div class="modal-mask" id="reverseModal" hidden></div>
-  <div class="modal-mask" id="fifoModal" hidden></div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="./app.js?v=2.0.0"></script>
+  <div class="toast" id="toast"></div>
+  <script src="../../ui-kit.js?v=1.0.0"></script>
+  <script src="./app.js?v=3.1.2"></script>
+  <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../navigation.js?v=1.7.92"></script>
 </body>
 </html>
