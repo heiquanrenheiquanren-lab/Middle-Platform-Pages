@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../../document-list.css?v=1.0.1">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=3.1.2">
+  <link rel="stylesheet" href="./styles.css?v=3.3.9">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="app">
@@ -34,12 +34,14 @@
       <main class="main processing-main">
         <section class="query-panel ui-query-card query-collapsed" id="queryCard">
           <div class="query-grid ui-query-flow" id="queryGrid">
-            <div class="query-item query-combo query-sku-combo"><select class="control query-type-select" id="keywordType" aria-label="关键字类型"><option value="orderNo">加工单号</option><option value="finishedSku">组合 SKU</option><option value="finishedName">品名</option></select><input class="control query-combo-input" id="keyword" placeholder="请输入加工单号，支持多个，用逗号、空格或换行隔开" aria-label="加工单查询"></div>
-            <div class="query-item"><div class="multi" id="warehouseMulti"><div class="multi-trigger" data-trigger>请选择仓库（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item"><div class="multi" id="teamMulti"><div class="multi-trigger" data-trigger>请选择团队（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item"><div class="multi" id="operatorMulti"><div class="multi-trigger" data-trigger>请选择创建人（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item query-text-item"><input class="control" id="orderNoInput" placeholder="请输入加工单号，支持多个，用逗号、空格或换行隔开" aria-label="加工单号查询"></div>
+            <div class="query-item query-text-item"><input class="control" id="skuInput" placeholder="请输入 SKU，支持多个，用逗号、空格或换行隔开" aria-label="SKU 查询"></div>
+            <div class="query-item query-text-item"><input class="control" id="finishedNameInput" placeholder="请输入品名，支持多个，用逗号、空格或换行隔开" aria-label="品名查询"></div>
+            <div class="query-item"><div class="multi" id="warehouseMulti"><div class="multi-trigger" data-trigger>请选择仓库</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="teamMulti"><div class="multi-trigger" data-trigger>请选择团队</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi" id="operatorMulti"><div class="multi-trigger" data-trigger>请选择创建人</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item query-date-item"><select class="control query-time-type" id="timeType" aria-label="时间口径"><option value="createdAt">创建时间</option></select><div class="date-group"><input id="startDate" type="date" aria-label="开始日期"><span>至</span><input id="endDate" type="date" aria-label="结束日期"></div></div>
-            <div class="query-item"><select class="control" id="reversedFilter" aria-label="是否冲销"><option value="">是否冲销</option><option value="yes">是</option><option value="no">否</option></select></div>
+            <div class="query-item"><select class="control" id="reverseStatusFilter" aria-label="冲销状态"><option value="">冲销状态</option><option value="none">未冲销</option><option value="partial">部分冲销</option><option value="full">已冲销</option></select></div>
             <div class="query-item query-action-item"><div class="query-actions"><button class="query-inline-expand" id="queryExpand" type="button" hidden><span class="query-arrow">⌄</span><span class="query-expand-text">展开</span></button><button class="btn primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button></div></div>
           </div>
         </section>
@@ -53,7 +55,7 @@
   </div>
   <div class="toast" id="toast"></div>
   <script src="../../ui-kit.js?v=1.0.0"></script>
-  <script src="./app.js?v=3.1.2"></script>
+  <script src="./app.js?v=3.4.3"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../navigation.js?v=1.7.92"></script>
 </body>

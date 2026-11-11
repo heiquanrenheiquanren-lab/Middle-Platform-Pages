@@ -2,7 +2,7 @@
 
 以下为移动加权平均价页面的原型截图，交互与字段口径以第 3 章为准。
 
-![原型：移动加权平均价列表](docs/moving-weighted-avg-cost-prd/prototype.png)
+![原型：移动加权平均价列表](../docs/moving-weighted-avg-cost-prd/prototype.png)
 
 ---
 

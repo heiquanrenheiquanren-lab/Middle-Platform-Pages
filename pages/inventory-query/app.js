@@ -188,7 +188,7 @@
           const occupied=Number(team.occupied||0),frozen=Number(team.frozen||0),other=Math.max(0,unavailableOf(team)-occupied-frozen);
           const shipment=Math.ceil(occupied*.7),processing=occupied-shipment;
           return [
-            ...(occupied?[{team:team.team,type:'发货占用',docNo:`FH202609${String(team.team.length+12).padStart(4,'0')}`,qty:shipment,creator:'刘敏',note:'待实际发货结算占用'},...(processing?[{team:team.team,type:'加工占用',docNo:`JG202609${String(team.team.length+7).padStart(4,'0')}`,qty:processing,creator:'郑豪阳',note:'加工完成后按实际耗用结算'}]:[])]:[]),
+            ...(occupied?[{team:team.team,type:'发货占用',docNo:`FH202609${String(team.team.length+12).padStart(4,'0')}`,qty:shipment,creator:'刘敏',note:'待实际发货结算占用'},...(processing?[{team:team.team,type:'加工占用',docNo:`PT260920${String(team.team.length+7).padStart(4,'0')}`,qty:processing,creator:'郑豪阳',note:'加工完成后按实际耗用结算'}]:[])]:[]),
             ...(frozen?[{team:team.team,type:'质量冻结',docNo:`DJ202609${String(team.team.length+3).padStart(4,'0')}`,qty:frozen,note:'待质量复核后解冻或报损'}]:[]),
             ...(other?[{team:team.team,type:'其他不可售',docNo:'—',qty:other,note:'盘点锁定等其他不可售库存'}]:[])
           ];
