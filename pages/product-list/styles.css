@@ -43,12 +43,45 @@
 .editor-grid label>.editor-field-label{grid-column:1;display:inline-flex;align-items:center;min-width:0}
 .editor-grid label>input,.editor-grid label>select,.editor-grid label>.editor-image-field{grid-column:2;width:100%;min-width:0}
 .editor-grid label.wide{grid-column:1 / -1}.editor-grid label.wide>input,.editor-grid label.wide>select,.editor-grid label.wide>.editor-image-field{grid-column:2 / -1}
+.editor-grid label.editor-note-field{align-items:start}.editor-grid label.editor-note-field>.editor-field-label{padding-top:10px}.editor-grid label.wide>textarea{grid-column:2 / -1}
 .editor-grid input,.editor-grid select{height:34px;border-color:#d8dee8;color:#303946;background:#fff}
 .editor-grid input:focus,.editor-grid select:focus{border-color:#409eff;box-shadow:0 0 0 2px rgba(64,158,255,.08)}
 .sku-editor-body .editor-nav{width:118px;padding:14px 8px;background:#f8fafc}
 .sku-editor-body .editor-nav button{height:38px;padding:0 10px;border-right-width:3px;border-radius:2px;font-size:13px;line-height:38px}
 .sku-editor-body .editor-nav button.active{background:#ecf5ff;color:#1677ff}
 .sku-editor-foot{height:54px;padding:0 20px}
+/* 物流报关清关：按国家维护清关费用。 */
+.clearance-fee-block{margin-top:18px}
+.clearance-fee-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+.clearance-fee-head h3{display:flex;align-items:center;margin:0;color:#303946;font-size:14px;font-weight:600}
+.clearance-fee-head h3:before{content:"";width:3px;height:14px;margin-right:8px;border-radius:2px;background:#409eff}
+.clearance-country-picker{display:none}
+.clearance-table-wrap{border:1px solid #dfe5ee;border-radius:4px;background:#fff}
+.clearance-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.clearance-table th,.clearance-table td{height:46px;padding:7px 10px;border-bottom:1px solid #e5eaf1;color:#303946;font-size:12px;text-align:left;vertical-align:middle}
+.clearance-table th{height:40px;background:#f4f6f9;color:#4d596a;font-weight:600;white-space:nowrap;position:relative}
+.clearance-table tr:last-child td{border-bottom:0}
+.clearance-table th:first-child,.clearance-table td:first-child{width:52px;text-align:center}
+.clearance-table th:nth-child(2){width:190px}
+.clearance-table th:nth-child(3){width:180px}
+.clearance-table th:nth-child(4){width:185px}
+.clearance-table th:nth-child(5){width:125px}
+.clearance-table th:last-child{width:64px;text-align:center}
+.clearance-table td:last-child{text-align:center}
+.clearance-table input{width:100%;height:30px;min-width:0;padding:0 8px;border:1px solid #cbd8e8;border-radius:4px;background:#fff;color:#303946;font:inherit}
+.clearance-table input:focus{border-color:#409eff;outline:0;box-shadow:0 0 0 2px rgba(64,158,255,.1)}
+.clearance-table input::placeholder{color:#a7b0be}
+.clearance-table input:disabled{background:#f5f7fa;color:#c0c4cc;border-color:#e4e7ed;cursor:not-allowed}
+.clearance-table .custom-select{width:100%!important;height:30px}
+.clearance-table .custom-select-trigger{padding:0 8px;font-size:12px}
+.clearance-price{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:6px}
+.clearance-rate{display:grid;grid-template-columns:minmax(0,1fr) 14px;align-items:center;gap:4px}
+.clearance-rate span{color:#606266;font-size:12px;text-align:right}
+.clearance-add-row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid #e5eaf1}
+.clearance-add-button{display:grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid #1677ff;border-radius:4px;background:#fff;color:#1677ff;font-size:20px;font-weight:300;line-height:1;cursor:pointer}
+.clearance-add-button:hover{background:#ecf5ff}
+.clearance-add-button:disabled{border-color:#e4e7ed;background:#f5f7fa;color:#c0c4cc;cursor:not-allowed}
+.clearance-add-text{color:#606266;font-size:12px}
 .purchase-info-title{margin-bottom:14px}.purchase-info-title h2{margin-bottom:0}
 .purchase-info-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.purchase-info-title h2{margin:0}.purchase-add-button{height:32px!important}
 .purchase-info-table-wrap{overflow:auto;border:1px solid #ebeef5;border-radius:4px;background:#fff}.editor-purchase-table{width:100%;min-width:1100px;border-collapse:separate;border-spacing:0;table-layout:fixed}.editor-purchase-table th,.editor-purchase-table td{padding:8px;border-right:0;border-bottom:1px solid #ebeef5;font-size:12px;vertical-align:middle}.editor-purchase-table th{height:40px;background:#f5f7fa;color:#606266;font-weight:600;text-align:center;white-space:nowrap}.editor-purchase-table td{height:50px;background:#fff}.editor-purchase-table th:nth-child(1){width:105px}.editor-purchase-table th:nth-child(2){width:200px}.editor-purchase-table th:nth-child(3){width:145px}.editor-purchase-table th:nth-child(4){width:125px}.editor-purchase-table th:nth-child(5){width:105px}.editor-purchase-table th:nth-child(6){width:95px}.editor-purchase-table th:last-child{position:sticky;z-index:2;right:0;width:104px;border-left:0;background:#f5f7fa;box-shadow:var(--ui-shadow-fixed-right)}.editor-purchase-table td:last-child{position:sticky;z-index:1;right:0;width:104px;border-left:0;background:#fff;box-shadow:var(--ui-shadow-fixed-right)}.editor-purchase-table tr:last-child td{border-bottom:0}.editor-purchase-table input,.editor-purchase-table select{width:100%;height:30px;min-width:0;padding:0 7px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font:inherit}.editor-purchase-table input::placeholder{color:#c0c4cc}.purchase-supplier-cell{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:5px;min-width:0}.purchase-reference{display:block;width:100%;height:30px;padding:5px 7px;border:1px solid #e4e7ed;border-radius:4px;background:#f5f7fa;color:#606266;line-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.purchase-reference.empty{color:#c0c4cc}.purchase-default-tag{padding:2px 4px;border:1px solid #91caff;border-radius:3px;background:#ecf5ff;color:#1677ff;font-size:11px;white-space:nowrap}.purchase-row-actions{display:flex;justify-content:center;gap:6px}.purchase-row-actions .link{font-size:12px;white-space:nowrap}.purchase-row-actions .link+.link{margin-left:0}.purchase-action-button:disabled{color:#b7c4d3!important;cursor:default}.purchase-row-actions .danger-link{color:#f56c6c!important}
@@ -99,6 +132,12 @@
 
 /* 产品列表专用查询字段遵循同一筛选流：文本条件与下拉条件使用一致的基础宽度。 */
 .product-query-card>.query-row:first-child>.query-text-input{height:32px;flex:1 1 180px;width:auto;min-width:0;padding:0 11px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font:inherit;outline:0}.product-query-card>.query-row:first-child>.query-text-input::placeholder{color:#909399}.product-query-card>.query-row:first-child>.query-text-input:focus{border-color:#409eff;box-shadow:0 0 0 2px rgba(64,158,255,.12)}.query-row-bottom>.custom-select.audit-time-type{width:112px!important;flex:0 0 112px}.query-row-bottom>.custom-select.audit-time-type .custom-select-trigger{height:32px}
+.product-query-card .query-inline-expand{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 8px;border:0;border-radius:4px;background:transparent;color:#909399;font-size:12px;cursor:pointer}
+.product-query-card .query-inline-expand:hover{color:#409eff;background:#f0f5ff}
+.product-query-card .query-inline-expand[hidden]{display:none}
+.product-query-card .query-inline-expand .query-arrow{display:inline-flex;margin:0;transition:transform .15s}
+.product-query-card .query-inline-expand[aria-expanded="true"] .query-arrow{transform:rotate(180deg)}
+.product-query-card.query-collapsed .query-overflow-item{display:none}
 
 /* 多选查询项复用 UI Kit 的输入边框、菜单与清空行为，和其他查询控件采用相同宽度。 */
 .product-query-card>.query-row:first-child>.query-multi{position:relative;flex:1 1 148px;width:auto;min-width:148px;height:32px}.product-query-card>.query-row:first-child>.custom-select.query-person-select,.query-row-bottom>.custom-select.query-person-select{flex:0 0 158px;width:158px!important;min-width:158px}
@@ -116,7 +155,12 @@
 
 /* 产品列表当前列结构：产品信息、SKU、领星 SKU 固定，状态与业务字段保持单行。 */
 .product-table{min-width:1500px!important}
-.product-table th:nth-child(2){width:270px!important}.product-table th:nth-child(3){width:150px!important}.product-table th:nth-child(4){width:155px!important}.product-table th:nth-child(5){width:220px!important}.product-table th:nth-child(6){width:112px!important}.product-table th:nth-child(7){width:80px!important}.product-table th:nth-child(8){width:140px!important}.product-table th:nth-child(9){width:150px!important}.product-table th:nth-child(10){width:104px!important}
+.product-table th:nth-child(2){width:270px!important}.product-table th:nth-child(3){width:150px!important}.product-table th:nth-child(4){width:155px!important}.product-table th:nth-child(5){width:220px!important}.product-table th:nth-child(6){width:112px!important}.product-table th:nth-child(7){width:80px!important}.product-table th:nth-child(8){width:140px!important}.product-table th:nth-child(9){width:150px!important}.product-table th:nth-child(10){width:150px!important}.product-table th:nth-child(11){width:104px!important}
+.remark-text{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sku-cell-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+.sku-copy-source{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0;border:0;background:transparent;color:#909399;font-size:12px;line-height:16px;text-align:left;cursor:pointer}
+.sku-copy-source:hover{color:#409eff}
+.sku-copy-source.is-missing{color:#c0c4cc;cursor:default}
 .product-table th:nth-child(6),.product-table td:nth-child(6){width:112px!important;min-width:112px!important;text-align:center;white-space:nowrap}
 .product-table td:nth-child(6) .status{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:28px;padding:0 8px;line-height:20px;white-space:nowrap;word-break:keep-all;vertical-align:middle}
 .product-table th:nth-child(7),.product-table td:nth-child(7){width:80px!important;min-width:80px!important}
@@ -146,12 +190,12 @@
 .product-actions{background:transparent!important;border-bottom:0!important}
 
 /* 产品列表审计信息固定为创建、更新两列，均以人员与时间两行展示。 */
-.product-table{min-width:1664px!important}
+.product-table{min-width:1814px!important}
 .product-table th:nth-child(9),.product-table td:nth-child(9),.product-table th:nth-child(10),.product-table td:nth-child(10){width:150px!important;min-width:150px!important}
 .product-table th:nth-child(11),.product-table td:nth-child(11){width:104px!important;min-width:104px!important}
 
 /* 操作列容纳编辑、复制、启停、删除和日志；删除始终使用危险色，复制使用成功色。 */
-.product-table th:nth-child(11),.product-table td:nth-child(11){width:210px!important;min-width:210px!important}
+.product-table th:nth-child(12),.product-table td:nth-child(12){width:210px!important;min-width:210px!important}
 .product-row-actions{display:flex;align-items:center;gap:10px;white-space:nowrap}.product-row-actions .link+.link{margin-left:0}.product-row-actions .danger-link{color:#f56c6c!important}.product-row-actions .success-link{color:#67c23a!important}
 .product-delete-dialog .ui-dialog__body{padding:24px 22px;background:#fff}.product-delete-dialog .ui-dialog__body p{margin:0;color:#606266;line-height:22px}.product-delete-dialog .ui-dialog__body strong{color:#303133;font-weight:600}
 

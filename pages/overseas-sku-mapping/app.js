@@ -194,8 +194,8 @@
         return baseMatch(row,'seller');
       },
       confirmDetails:function(row,group){return [['SellerSKU',row.sellerSku],['SKU',(group&&group.length?group:[row]).map(function(item){return item.sku;}).join('、')],['店铺名',sellerStoreText(row)]];},
-      exportColumns:[['SellerSKU',function(row){return row.sellerSku;}],['SKU',function(row){return row.sku;}],['品名',function(row){return row.name;}],['平台',function(row){return sellerPlatformText(row);}],['店铺名',function(row){return sellerStoreText(row);}],['创建人',function(row){return row.creator;}],['创建时间',function(row){return row.createdAt;}]],
-      template:{name:'SellerSKU映射导入模板.csv',header:'SellerSKU*,SKU*,数量,平台*,店铺名*',sample:'SMT001-示例-001-02,示例 SKU,1,AliExpress,SMT001'}
+      /* SellerSKU 页签不提供导入，导出列与列表列保持一致（含数量）。 */
+      exportColumns:[['SellerSKU',function(row){return row.sellerSku;}],['SKU',function(row){return row.sku;}],['数量',function(row){return row.qty||1;}],['品名',function(row){return row.name;}],['平台',function(row){return sellerPlatformText(row);}],['店铺名',function(row){return sellerStoreText(row);}],['创建人',function(row){return row.creator;}],['创建时间',function(row){return row.createdAt;}]]
     }
   ];
 
@@ -587,7 +587,9 @@
       });
     }
     document.querySelector('#'+tab.prefix+'AddButton').addEventListener('click',function(){if(tab.key==='fba')openFbaDialog(tab,null);else if(tab.useDialog)openSellerDialog(tab,null);else startEdit(tab,null);});
-    document.querySelector('#'+tab.prefix+'ImportButton').addEventListener('click',function(){openImport(tab);});
+    /* SellerSKU 页签不提供导入（无导入按钮），绑定前需判空。 */
+    var importButton=document.querySelector('#'+tab.prefix+'ImportButton');
+    if(importButton)importButton.addEventListener('click',function(){openImport(tab);});
     document.querySelector('#'+tab.prefix+'ExportButton').addEventListener('click',function(){exportRows(tab);});
     render(tab);
   }

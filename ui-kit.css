@@ -149,3 +149,19 @@
 .import-records-table th,.import-records-table td{padding:7px 8px}
 .import-records-actions{display:inline-flex;align-items:center;gap:12px;white-space:nowrap}
 .import-records-empty{color:#c0c4cc}
+/* 明细表头「批量」填充：与采购计划共用同一套触发按钮、弹层与操作区。 */
+.batch-fill-trigger{margin-left:5px;padding:0;border:0;background:none;color:#409eff;font-size:12px;font-weight:400;line-height:1.4;cursor:pointer;white-space:nowrap}
+.batch-fill-trigger:hover,.batch-fill-trigger:focus-visible{text-decoration:underline;outline:0}
+.batch-fill-trigger:disabled{color:#c0c4cc;cursor:default;text-decoration:none}
+.batch-fill__actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.ui-batch-fill-popover{position:absolute;z-index:60;top:calc(100% + 6px);right:0;width:232px;padding:12px;border:1px solid #ebeef5;border-radius:4px;background:#fff;box-shadow:0 12px 32px 4px rgba(0,0,0,.04),0 8px 20px rgba(0,0,0,.08);font-weight:400;text-align:left;white-space:normal}
+.ui-batch-fill-popover[hidden]{display:none}
+.ui-batch-fill-control{display:flex;align-items:center;gap:8px}
+.ui-batch-fill-control>input{flex:1;min-width:0;height:30px;padding:0 8px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font:inherit;font-size:12px;outline:0}
+.ui-batch-fill-control>input:focus{border-color:#409eff;box-shadow:0 0 0 2px rgba(64,158,255,.12)}
+.ui-batch-fill-control>.custom-select{flex:none;width:88px!important;height:30px}
+.ui-batch-fill-control>span{color:#606266;font-size:12px}
+.ui-batch-fill-button{height:24px;padding:0 11px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font-size:12px;line-height:1;cursor:pointer}
+.ui-batch-fill-button:hover{border-color:#c0c4cc;color:#409eff}
+.ui-batch-fill-button--primary{border-color:#a0cfff;background:#ecf5ff;color:#409eff}
+.ui-batch-fill-button--primary:hover{border-color:#409eff;color:#409eff}

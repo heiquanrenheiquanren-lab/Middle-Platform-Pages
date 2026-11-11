@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../../vendor/element-plus.css">
   
   
-  <link rel="stylesheet" href="styles.css?v=1.7.24">
+  <link rel="stylesheet" href="styles.css?v=1.8.0">
   <link rel="stylesheet" href="../../document-list.css?v=1.0.0">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
@@ -59,10 +59,9 @@
             </div>
           </el-form>
         </div>
-        <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button type="success" plain @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button @click="openCostApportion">其他头程费用分摊</el-button><el-dropdown @command="handleExportCommand" style="margin-left:0"><el-button>导出<el-icon style="margin-left:4px"><i class="el-icon--right">⌄</i></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="shipmentInfo">发货单信息</el-dropdown-item><el-dropdown-item command="skuDetail">发货 SKU 明细</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div>
+        <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button @click="openBatchProcessing">物流加工</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button @click="openCostApportion">其他头程费用分摊</el-button><el-dropdown @command="handleExportCommand" style="margin-left:0"><el-button>导出<el-icon style="margin-left:4px"><i class="el-icon--right">⌄</i></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="shipmentInfo">发货单信息</el-dropdown-item><el-dropdown-item command="skuDetail">发货 SKU 明细</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div>
         <div class="card status-card"><el-tabs v-model="statusTab" class="status-tabs"><el-tab-pane v-for="s in statuses" :key="s" :name="s"><template #label><span>{{s}}<i class="tab-count">{{statusCount(s)}}</i></span></template></el-tab-pane></el-tabs></div>
         <div class="card list-card">
-          <div class="list-head"><b>发货单列表</b><span class="list-count">共 {{filteredDocs?.length}} 张</span></div>
           <el-table ref="mainTableRef" :data="filteredDocs" row-key="id" class="main-table document-list" style="width:100%" @selection-change="onDocSelection">
             <el-table-column type="selection" width="46" fixed="left"></el-table-column>
             <el-table-column type="expand" width="46" fixed="left">
@@ -109,7 +108,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div v-if="filteredDocs?.length" class="pagination"><el-pagination background layout="total, prev, pager, next" :total="filteredDocs?.length||0" :page-size="10"></el-pagination></div>
+          <div v-if="filteredDocs?.length" class="pagination"><span class="pagination-total">共 {{filteredDocs.length}} 张</span><el-pagination background layout="prev, pager, next" :total="filteredDocs?.length||0" :page-size="10"></el-pagination></div>
           <el-empty v-else description="暂无符合条件的发货单" :image-size="80" style="padding:40px 0"></el-empty>
         </div>
       </section>
@@ -117,10 +116,17 @@
     </div>
   </div>
 
-  <el-dialog v-model="createVisible" :title="editingDoc?`编辑发货单｜${editingDoc.id}`:'新建发货单'" width="92vw" top="4vh" class="create-dialog" :close-on-click-modal="false">
+  <el-dialog v-model="createVisible" width="min(1500px, calc(100vw - 48px))" top="5vh" class="create-dialog" :close-on-click-modal="false">
+    <template #header>
+      <div class="minimal-dialog-head">
+        <h3>{{editingDoc?`编辑发货单｜${editingDoc.id}`:'新建发货单'}}</h3>
+        <p>{{editingDoc?'修改发货单信息与 SKU 明细，保存后单据状态不变':'从发货计划选择 SKU，填写发货单基础信息'}}</p>
+      </div>
+    </template>
     <div class="create-layout">
-      <div class="create-top">
-      <el-form ref="createFormRef" class="public-form" :model="createForm" :rules="createRules" label-position="left" label-width="100px">
+      <section class="minimal-card">
+        <div class="minimal-card-head"><div class="minimal-card-title"><span class="minimal-title-bar"></span><b>发货单资料</b></div></div>
+      <el-form ref="createFormRef" class="public-form" :model="createForm" :rules="createRules" label-position="top">
         <div class="public-grid">
           <el-form-item label="发货仓" prop="from"><el-select v-model="createForm.from" filterable placeholder="请选择发货仓" style="width:100%"><el-option v-for="x in warehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="目的仓" prop="to"><el-select v-model="createForm.to" filterable placeholder="请选择目的仓" style="width:100%"><el-option v-for="x in destWarehouses" :key="x" :label="x" :value="x"></el-option><el-option label="FBA专属仓" value="__FBA__" disabled></el-option></el-select></el-form-item>
@@ -132,27 +138,51 @@
           <el-form-item label="仓库类型"><el-select v-model="createForm.warehouseType" clearable placeholder="请选择仓库类型" style="width:100%"><el-option label="海外仓" value="海外仓"></el-option><el-option label="本地仓" value="本地仓"></el-option><el-option label="中转仓" value="中转仓"></el-option></el-select></el-form-item>
           <el-form-item label="物流商单号"><el-input v-model="createForm.logisticsNo" placeholder="选填，可提交后补录"></el-input></el-form-item>
         </div>
-        <div class="address-area address-scroll">
-          <div class="address-row"><div class="address-label">发货仓信息</div><el-input v-model="createForm.fromAddress.contact" placeholder="联系人"></el-input><el-input v-model="createForm.fromAddress.phone" placeholder="联系电话"></el-input><el-select v-model="createForm.fromAddress.country" clearable placeholder="国家"><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select><el-input v-model="createForm.fromAddress.province" placeholder="省/州"></el-input><el-input v-model="createForm.fromAddress.city" placeholder="城市"></el-input><el-input v-model="createForm.fromAddress.district" placeholder="区/县"></el-input><el-input v-model="createForm.fromAddress.detail" placeholder="详细地址"></el-input><el-input v-model="createForm.fromAddress.zip" placeholder="邮编"></el-input></div>
-          <div class="address-row"><div class="address-label">目的仓信息</div><el-input v-model="createForm.toAddress.contact" placeholder="联系人"></el-input><el-input v-model="createForm.toAddress.phone" placeholder="联系电话"></el-input><el-select v-model="createForm.toAddress.country" clearable placeholder="国家"><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select><el-input v-model="createForm.toAddress.province" placeholder="省/州"></el-input><el-input v-model="createForm.toAddress.city" placeholder="城市"></el-input><el-input v-model="createForm.toAddress.district" placeholder="区/县"></el-input><el-input v-model="createForm.toAddress.detail" placeholder="详细地址"></el-input><el-input v-model="createForm.toAddress.zip" placeholder="邮编"></el-input></div>
-          <div class="remark-row"><div class="address-label">备注</div><el-input v-model="createForm.remark" type="textarea" :rows="3" placeholder="请输入备注"></el-input></div>
+        <div class="address-area">
+          <div class="address-block">
+            <div class="address-block-title">发货仓信息</div>
+            <div class="address-grid">
+              <div class="address-field"><span>联系人</span><el-input v-model="createForm.fromAddress.contact" placeholder="请输入联系人"></el-input></div>
+              <div class="address-field"><span>联系电话</span><el-input v-model="createForm.fromAddress.phone" placeholder="请输入联系电话"></el-input></div>
+              <div class="address-field"><span>国家</span><el-select v-model="createForm.fromAddress.country" clearable placeholder="请选择国家" style="width:100%"><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="address-field"><span>省/州</span><el-input v-model="createForm.fromAddress.province" placeholder="请输入省/州"></el-input></div>
+              <div class="address-field"><span>城市</span><el-input v-model="createForm.fromAddress.city" placeholder="请输入城市"></el-input></div>
+              <div class="address-field"><span>区/县</span><el-input v-model="createForm.fromAddress.district" placeholder="请输入区/县"></el-input></div>
+              <div class="address-field address-field-wide"><span>详细地址</span><el-input v-model="createForm.fromAddress.detail" placeholder="请输入详细地址"></el-input></div>
+              <div class="address-field"><span>邮编</span><el-input v-model="createForm.fromAddress.zip" placeholder="请输入邮编"></el-input></div>
+            </div>
+          </div>
+          <div class="address-block">
+            <div class="address-block-title">目的仓信息</div>
+            <div class="address-grid">
+              <div class="address-field"><span>联系人</span><el-input v-model="createForm.toAddress.contact" placeholder="请输入联系人"></el-input></div>
+              <div class="address-field"><span>联系电话</span><el-input v-model="createForm.toAddress.phone" placeholder="请输入联系电话"></el-input></div>
+              <div class="address-field"><span>国家</span><el-select v-model="createForm.toAddress.country" clearable placeholder="请选择国家" style="width:100%"><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select></div>
+              <div class="address-field"><span>省/州</span><el-input v-model="createForm.toAddress.province" placeholder="请输入省/州"></el-input></div>
+              <div class="address-field"><span>城市</span><el-input v-model="createForm.toAddress.city" placeholder="请输入城市"></el-input></div>
+              <div class="address-field"><span>区/县</span><el-input v-model="createForm.toAddress.district" placeholder="请输入区/县"></el-input></div>
+              <div class="address-field address-field-wide"><span>详细地址</span><el-input v-model="createForm.toAddress.detail" placeholder="请输入详细地址"></el-input></div>
+              <div class="address-field"><span>邮编</span><el-input v-model="createForm.toAddress.zip" placeholder="请输入邮编"></el-input></div>
+            </div>
+          </div>
+          <div class="remark-row"><el-form-item label="备注"><el-input v-model="createForm.remark" type="textarea" :rows="3" placeholder="请输入备注"></el-input></el-form-item></div>
         </div>
       </el-form>
-      </div>
-      <div class="sku-section">
-        <div class="section-actions"><el-tooltip content="请先填写顶部必填字段" placement="top" :disabled="canAddSku"><span class="disabled-button-wrap"><el-button type="primary" :disabled="!canAddSku" @click="openSkuDialog">＋ 新增 SKU</el-button></span></el-tooltip></div>
-        <div class="sku-rule-hint">⚠ 同一发货单仅支持同一目的仓的货物合并发货；亚马逊相关发货单由领星生成，不在中台手动创建</div>
-        <div v-if="!selectedSkus.length" class="sku-empty">尚未选择 SKU，至少选择一个 SKU</div>
+      </section>
+      <section class="minimal-card minimal-card-grow">
+        <div class="minimal-card-head"><div class="minimal-card-title"><span class="minimal-title-bar"></span><b>发货明细</b></div><el-tooltip content="请先填写顶部必填字段" placement="top" :disabled="canAddSku"><span class="disabled-button-wrap"><el-button type="primary" :disabled="!canAddSku" @click="openSkuDialog">＋ 新增 SKU</el-button></span></el-tooltip></div>
+        <div class="sku-rule-hint">同一发货单仅支持同一目的仓的货物合并发货；亚马逊相关发货单由领星生成，不在中台手动创建</div>
+        <div v-if="!selectedSkus.length" class="minimal-empty"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 6 8 14v20l16 8 16-8V14L24 6Z"></path><path d="M8 14l16 8 16-8M24 22v20"></path></svg><p>尚未添加 SKU</p><span>点击右上角「新增 SKU」，从发货计划中选择商品</span></div>
         <div v-else class="selected-table-wrap">
           <el-table :data="selectedSkus" border height="100%" class="selected-sku-table">
             <el-table-column prop="sku" label="SKU" width="145"></el-table-column>
-            <el-table-column label="产品信息" width="235"><template #default="{row}"><div class="product-cell"><el-image :src="row.image" fit="contain" class="product-image"></el-image><el-tooltip :content="row.title" placement="top"><div class="product-title">{{row.title}}</div></el-tooltip></div></template></el-table-column>
+            <el-table-column label="产品信息" width="200"><template #default="{row}"><div class="product-cell"><el-image :src="row.image" fit="contain" class="product-image"></el-image><el-tooltip :content="row.title" placement="top"><div class="product-title">{{row.title}}</div></el-tooltip></div></template></el-table-column>
             <el-table-column prop="planNo" label="发货计划" width="155"></el-table-column>
             <el-table-column prop="overseasSku" label="海外仓 SKU" width="145"></el-table-column>
             <el-table-column prop="easSku" label="易仓 SKU" width="120"></el-table-column>
             <el-table-column prop="platform" label="平台" width="120"></el-table-column>
             <el-table-column prop="team" label="团队" width="110"></el-table-column>
-            <el-table-column prop="store" label="店铺" width="155" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="store" label="店铺" width="145" show-overflow-tooltip></el-table-column>
             <el-table-column prop="boxes" label="箱数" width="75"></el-table-column>
             <el-table-column label="发货量" width="135"><template #default="{row}"><el-input-number v-model="row.declareQty" :min="1" :max="row.remain" controls-position="right" style="width:110px"></el-input-number></template></el-table-column>
             <el-table-column label="重量＆体积" width="185"><template #default="{row}"><div class="measure-cell"><div>{{row.weight}} KG</div><div>{{row.length}} × {{row.width}} × {{row.height}}</div><div>{{row.volume}} m³</div></div></template></el-table-column>
@@ -161,13 +191,12 @@
             <el-table-column label="操作" width="80" fixed="right"><template #default="{row}"><el-button link type="danger" @click="removeSku(row)">移除</el-button></template></el-table-column>
           </el-table>
         </div>
-        <div class="summary-strip"><span>SKU 数 <b>{{selectedSkus.length}}</b></span><span>发货量 <b>{{declareTotal}}</b></span></div>
-      </div>
+      </section>
     </div>
-    <template #footer><div class="dialog-footer"><el-button @click="createVisible=false">取消</el-button><el-button @click="saveDraft">保存草稿</el-button><el-button type="primary" @click="submitCreate">提交</el-button></div></template>
+    <template #footer><div class="minimal-dialog-footer"><div class="minimal-stats"><span class="minimal-pill">已选 <em>{{selectedSkus.length}}</em> 个 SKU</span><span class="minimal-pill">发货量 <em>{{declareTotal}}</em></span></div><div class="minimal-footer-actions"><el-button @click="createVisible=false">取消</el-button><el-button @click="saveDraft">保存草稿</el-button><el-button type="primary" @click="submitCreate">提交</el-button></div></div></template>
   </el-dialog>
 
-  <el-dialog v-model="skuVisible" title="新增 SKU" width="78vw" top="10vh" class="sku-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="skuVisible" title="新增 SKU" width="min(1300px, calc(100vw - 48px))" top="10vh" class="sku-dialog" append-to-body :close-on-click-modal="false">
     <el-form label-position="top">
       <div class="sku-query">
         <el-form-item label="发货计划"><el-input v-model="skuSearch.planNos" type="textarea" :rows="2" placeholder="支持多个，使用逗号或换行分隔" clearable></el-input></el-form-item>
@@ -200,7 +229,7 @@
     <template #footer><div class="dialog-footer"><el-button @click="skuVisible=false">取消</el-button><el-button type="primary" @click="confirmSkuSelection">确认选择</el-button></div></template>
   </el-dialog>
 
-  <el-dialog v-model="detailVisible" :title="`发货单详情｜${currentDoc?.id||''}`" width="96vw" top="4vh" class="detail-dialog" :close-on-click-modal="false">
+  <el-dialog v-model="detailVisible" :title="`发货单详情｜${currentDoc?.id||''}`" width="min(1400px, calc(100vw - 48px))" top="4vh" class="detail-dialog" :close-on-click-modal="false">
     <div v-if="currentDoc" class="detail-layout">
       <div ref="detailScrollRef" class="detail-content" @scroll="onDetailScroll">
         <section id="detail-info" class="detail-section"><div class="detail-section-head">发货单信息</div><div class="detail-info-grid">
@@ -269,7 +298,7 @@
     <template #footer></template>
   </el-dialog>
 
-  <el-dialog v-model="pickupVisible" :title="`提货｜${pickupDoc?.id||''}`" width="78vw" top="8vh" class="pickup-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="pickupVisible" :title="`提货｜${pickupDoc?.id||''}`" width="min(1280px, calc(100vw - 48px))" top="8vh" class="pickup-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="pickupDoc">
       <el-alert
         class="pickup-usage-hint"
@@ -294,7 +323,7 @@
     <template #footer><div class="pickup-footer"><div class="pickup-result">本次提货 <b>{{pickupQtyTotal}}</b> 件　·　提交后状态 <el-tag size="small" :type="pickupNextStatus==='待发货'?'success':pickupNextStatus==='待加工'?'warning':'info'">{{pickupNextStatus}}</el-tag></div><div class="pickup-footer-actions"><el-button @click="pickupVisible=false">取消</el-button><el-button type="primary" :loading="pickupSubmitting" @click="submitPickup">确认提货</el-button></div></div></template>
   </el-dialog>
 
-  <el-dialog v-model="receiveVisible" :title="`收货｜${receiveDoc?.id||''}`" width="74vw" top="9vh" class="receive-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="receiveVisible" :title="`收货｜${receiveDoc?.id||''}`" width="min(1180px, calc(100vw - 48px))" top="9vh" class="receive-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="receiveDoc">
       <div class="pickup-summary receive-summary">
         <div class="pickup-summary-item"><span class="label">履约状态</span><span><el-tag :type="tagType(receiveDoc.status)">{{receiveDoc.status}}</el-tag></span></div>
@@ -323,7 +352,7 @@
     <template #footer><div class="pickup-footer"><div class="pickup-result">已选 <b>{{receiveSelection.length}}</b> 个 SKU　·　本次收货 <b>{{receiveQtyTotal}}</b>　·　收货后剩余 <b>{{receiveAfterRemaining}}</b>　·　提交后状态 <el-tag size="small" :type="receiveNextStatus==='已完成'?'success':receiveNextStatus==='部分收货'?'warning':'info'">{{receiveNextStatus}}</el-tag></div><div class="pickup-footer-actions"><el-button @click="receiveVisible=false">取消</el-button><el-button type="primary" :loading="receiveSubmitting" @click="submitReceive">确认收货</el-button></div></div></template>
   </el-dialog>
 
-  <el-dialog v-model="shipVisible" :title="`发货｜${shipDoc?.id||''}`" width="78vw" top="8vh" class="ship-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="shipVisible" :title="`发货｜${shipDoc?.id||''}`" width="min(1280px, calc(100vw - 48px))" top="8vh" class="ship-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="shipDoc">
       <div class="pickup-summary">
         <div class="pickup-summary-item"><span class="label">履约状态</span><span><el-tag :type="tagType(shipDoc.status)">{{shipDoc.status}}</el-tag></span></div>
@@ -423,7 +452,7 @@
     </div>
   </el-dialog>
 
-  <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量物流加工':'物流加工｜'+processingDocId" width="74vw" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量物流加工':'物流加工｜'+processingDocId" width="min(1280px, calc(100vw - 48px))" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="processingMode==='batch'" class="processing-batch-summary">
       <div class="batch-summary-info"><b>待加工发货单 {{processingBatchSummary?.docCount||0}} 张</b><span class="muted">　·　组合 SKU {{processingBatchSummary?.comboCount||0}} 个　·　提货合计 {{processingBatchSummary?.totalPick||0}} 套　·　可加工合计 {{processingBatchSummary?.totalProcessable||0}} 套</span></div>
       <div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键全部填充</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div>
@@ -482,7 +511,7 @@
         <el-table-column prop="time" label="操作时间" width="170" align="center"></el-table-column>
         </el-table>
       </div>
-      <div class="log-pagination"><el-pagination v-model:current-page="logPage" background layout="total, prev, pager, next" :total="logDoc?.logs?.length||0" :page-size="logPageSize"></el-pagination></div>
+      <div class="log-pagination"><span class="log-total">共 {{logDoc?.logs?.length||0}} 条</span><el-pagination v-model:current-page="logPage" background layout="prev, pager, next" :total="logDoc?.logs?.length||0" :page-size="logPageSize"></el-pagination></div>
     </div>
   </el-dialog>
 
@@ -506,7 +535,7 @@
   </el-dialog>
 
   <!-- 其他头程费用分摊 -->
-  <el-dialog v-model="costApportionVisible" title="其他头程费用分摊" width="85vw" top="6vh" class="cost-apportion-dialog" :close-on-click-modal="false" destroy-on-close>
+  <el-dialog v-model="costApportionVisible" title="其他头程费用分摊" width="min(1320px, calc(100vw - 48px))" top="6vh" class="cost-apportion-dialog" :close-on-click-modal="false" destroy-on-close>
     <div class="cost-apportion-section">
       <div class="cost-apportion-section-title">分摊批次筛选</div>
       <el-form ref="costApportionTypeFormRef" :model="costApportionForm" :rules="costApportionTypeRules" label-position="top" size="default">
