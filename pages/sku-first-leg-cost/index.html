@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>供应链中台｜头程费用</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="styles.css?v=1.7.24">
+  <link rel="stylesheet" href="styles.css?v=1.7.32">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
 </head>
@@ -13,24 +13,14 @@
 <div id="app" v-cloak>
   <div class="app-shell">
     <header class="global-bar">
-      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon active">财务</button><button class="top-icon">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
       <div class="global-right"><span class="admin">Admin⌄</span></div>
     </header>
     <div class="shell">
       <aside class="sidebar">
         <div class="nav-scroll">
-          <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
-          <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
-          <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
-          <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
-          <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
-          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
-          <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
-          <div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
-
+          <div class="nav-group-title"><span>♘</span><span>成本核算</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="movingWeightedAverageCost"><span class="mini">¥</span>移动加权价</div>
           <div class="nav-item active" data-page-nav="skuFirstLegCost"><span class="mini">¥</span>头程费用</div>
         </div>
         <div class="collapse">≡</div>
@@ -42,9 +32,9 @@
               <div class="query-item query-combo query-code-combo">
                 <el-select v-model="query.orderType" filterable class="query-type-select" aria-label="单号类型">
                   <el-option label="中台发货单号" value="middleOrder"></el-option>
-                  <el-option label="ERP发货单号" value="erpOrder"></el-option>
+                  <el-option label="易仓 ERP 单号" value="erpOrder"></el-option>
                 </el-select>
-                <el-input v-model="query.orderNo" clearable placeholder="请输入发货单号，支持输入多个，用逗号、空格或换行隔开" aria-label="单号查询"></el-input>
+                <el-input v-model="query.orderNo" clearable :placeholder="orderPlaceholder" aria-label="单号查询" @keyup.enter="applyQuery"></el-input>
               </div>
               <div class="query-item query-combo query-sku-combo">
                 <el-select v-model="query.skuType" filterable class="query-type-select" aria-label="SKU类型">
@@ -52,18 +42,18 @@
                   <el-option label="海外仓 SKU" value="overseasSku"></el-option>
                   <el-option label="FNSKU" value="fnsku"></el-option>
                 </el-select>
-                <el-input v-model="query.sku" clearable placeholder="请输入SKU，支持输入多个，用逗号、空格或换行隔开" aria-label="SKU查询"></el-input>
+                <el-input v-model="query.sku" clearable :placeholder="skuPlaceholder" aria-label="SKU查询" @keyup.enter="applyQuery"></el-input>
               </div>
-              <div class="query-item"><el-input v-model="query.planNo" clearable placeholder="请输入发货计划，多个请用逗号或空格隔开" aria-label="发货计划"></el-input></div>
-              <div class="query-item"><el-select v-model="query.destinations" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择目的仓（可多选）" class="query-select"><el-option v-for="item in destinations" :key="item" :label="item" :value="item"></el-option></el-select></div>
-              <div class="query-item"><el-select v-model="query.channels" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择物流渠道（可多选）" class="query-select"><el-option v-for="item in channels" :key="item" :label="item" :value="item"></el-option></el-select></div>
-              <div class="query-item"><el-select v-model="query.transports" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择运输方式（可多选）" class="query-select"><el-option v-for="item in transports" :key="item" :label="item" :value="item"></el-option></el-select></div>
-              <div class="query-item"><el-select v-model="query.platforms" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择平台（可多选）" class="query-select"><el-option v-for="item in platforms" :key="item" :label="item" :value="item"></el-option></el-select></div>
-              <div class="query-item"><el-select v-model="query.stores" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择店铺（可多选）" class="query-select"><el-option v-for="item in stores" :key="item" :label="item" :value="item"></el-option></el-select></div>
-              <div class="query-item"><el-select v-model="query.teams" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择团队（可多选）" class="query-select"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select></div>
-              <div class="query-item query-advanced-item"><el-select v-model="query.creators" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择创建人（可多选）" class="query-select"><el-option v-for="item in creators" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-input v-model="query.planNo" clearable placeholder="请输入发货计划，支持输入多个" aria-label="发货计划"></el-input></div>
+              <div class="query-item"><el-select v-model="query.destinations" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择目的仓" class="query-select"><el-option v-for="item in destinations" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.countries" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择国家" class="query-select"><el-option v-for="item in countries" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.channels" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择物流渠道" class="query-select"><el-option v-for="item in channels" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.transports" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择运输方式" class="query-select"><el-option v-for="item in transports" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.platforms" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择平台" class="query-select"><el-option v-for="item in platforms" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.stores" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择店铺" class="query-select"><el-option v-for="item in stores" :key="item" :label="item" :value="item"></el-option></el-select></div>
+              <div class="query-item"><el-select v-model="query.teams" multiple clearable filterable collapse-tags collapse-tags-tooltip placeholder="请选择团队" class="query-select"><el-option v-for="item in teams" :key="item" :label="item" :value="item"></el-option></el-select></div>
               <div class="query-item query-advanced-item query-date-item"><el-date-picker v-model="query.createdRange" type="daterange" value-format="YYYY-MM-DD" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" class="query-date-picker" aria-label="创建日期范围"></el-date-picker></div>
-              <div class="query-item query-advanced-item"><el-select v-model="query.hasDiff" clearable placeholder="是否有差异" class="query-select"><el-option label="是" value="yes"></el-option><el-option label="否" value="no"></el-option></el-select></div>
+              <div class="query-item query-advanced-item"><el-select v-model="query.hasDiff" clearable placeholder="请选择分摊差异" class="query-select"><el-option label="有差异" value="yes"></el-option><el-option label="无差异" value="no"></el-option><el-option label="数据缺失" value="missing"></el-option></el-select></div>
               <div class="query-item query-action-item">
                 <div class="query-actions">
                   <button v-show="queryOverflow" class="query-inline-expand" type="button" :aria-expanded="String(queryExpanded)" @click="queryExpanded=!queryExpanded"><span>{{queryExpanded?'⌃':'⌄'}}</span><span>{{queryExpanded?'收起':'展开'}}</span></button>
@@ -74,71 +64,149 @@
             </div>
           </div>
 
-          <div class="action-bar"><el-button type="primary" plain @click="exportData">导出</el-button><el-button :loading="refreshing" @click="refreshData">刷新</el-button></div>
+          <div class="action-bar"><el-button type="primary" plain @click="exportData">导出</el-button></div>
 
           <section class="table-card card">
-            <div class="table-head"><div><b>头程费用明细</b><span class="count">共 {{filteredRows.length}} 条</span></div></div>
+            <div v-if="clearanceIssues.length" class="clearance-warning">
+              <span class="clearance-warning-icon">!</span>
+              <div class="clearance-warning-body">
+                <b>清关税费分摊数据缺失：</b>{{clearanceIssuesText}}。<span class="clearance-warning-hint">该发货单暂不计算清关分摊与总单位头程成本，请先在商品资料「物流报关清关 → 清关费用」维护对应国家的清关单价、清关税率。</span>
+              </div>
+            </div>
             <div class="table-scroll">
-              <el-table :data="pageRows" border class="cost-table" :fit="false">
-                <el-table-column prop="destination" label="目的仓" width="140" fixed="left"></el-table-column>
-                <el-table-column label="发货单号" width="250" fixed="left">
-                  <template #default="{row}"><div class="stack-cell"><span><em>中台：</em><a>{{row.middleOrder}}</a></span><span><em>ERP：</em>{{row.erpOrder||'—'}}<el-tag v-if="row.erpOrder&&row.erpOrder!=='—'" size="small" type="info" class="erp-source-tag">易仓</el-tag></span></div></template>
+              <el-table :data="pageRows" class="cost-table" show-summary :summary-method="summaryMethod">
+                <el-table-column prop="destination" label="目的仓" min-width="92" fixed="left" label-class-name="summary-label"></el-table-column>
+                <el-table-column prop="country" label="国家" min-width="60" fixed="left"></el-table-column>
+                <el-table-column label="发货单号" min-width="210" fixed="left">
+                  <template #default="{row}"><div class="stack-cell"><span class="order-line"><em>中台：</em><a title="查看发货单" @click="openShipmentDetail(row.middleOrder)">{{row.middleOrder}}</a></span><span class="order-line"><em>易仓 ERP：</em>{{row.erpOrder||'—'}}</span></div></template>
                 </el-table-column>
-                <el-table-column label="平台 / 店铺 / 团队" width="200" fixed="left">
-                  <template #default="{row}"><div class="stack-cell"><span><em>平台：</em>{{row.platform}}</span><span class="sub-value"><em>店铺：</em>{{row.store}}</span><span class="sub-value"><em>团队：</em>{{row.team}}</span></div></template>
+                <el-table-column prop="sku" label="SKU" min-width="140" fixed="left"></el-table-column>
+                <el-table-column label="海外仓 SKU/FNSKU" min-width="190" fixed="left">
+                  <template #default="{row}"><div class="stack-cell"><span><em>海外仓 SKU：</em>{{row.overseasSku||'—'}}</span><span class="sub-value"><em>FNSKU：</em>{{row.fnsku||'—'}}</span></div></template>
                 </el-table-column>
-                <el-table-column prop="sku" label="SKU" width="170" fixed="left"></el-table-column>
-                <el-table-column prop="planNo" label="发货计划" width="175"></el-table-column>
-                <el-table-column label="履约数量" width="140" align="right">
+                <el-table-column label="履约数量" min-width="115" align="right">
                   <template #default="{row}"><div class="stack-cell number-cell"><span><em>实际发货：</em>{{row.shippedQty}}</span><span class="sub-value"><em>收货：</em>{{row.receiveQty}}</span></div></template>
                 </el-table-column>
-                <el-table-column label="发货单总费用" width="160" align="right">
+                <el-table-column label="发货单总费用" min-width="120" align="right" label-class-name="summary-money">
                   <template #header>
                     <span class="diff-header">发货单总费用<el-tooltip placement="top"><template #content>发货单总费用 = 头程物流费 + 清关税费 + 其他物流费用</template><span class="help-icon">?</span></el-tooltip></span>
                   </template>
-                  <template #default="{row}"><span>{{row.totalCost||'—'}}</span></template>
+                  <template #default="{row}"><span class="money-value">{{money(row.totalCost)}}</span></template>
                 </el-table-column>
-                <el-table-column label="SKU单位头程成本（CNY）" width="180" align="right">
-                  <template #default="{row}"><span :class="row.unitCost?'cost-value':'empty-cost'">{{row.unitCost||'—'}}</span></template>
-                </el-table-column>
-                <el-table-column label="差异" width="130" align="right">
+                <el-table-column label="物流费用" min-width="116" align="right">
                   <template #header>
-                    <span class="diff-header">差异<el-tooltip placement="top"><template #content>差异 = Σ（单位成本 × 实际发货数量）− 发货单总费用<br>0 表示费用分摊完整；负数表示有费用未分摊到 SKU<br>同一发货单下所有 SKU 明细行的差异相同</template><span class="help-icon">?</span></el-tooltip></span>
+                    <span class="diff-header">物流费用<el-tooltip placement="top"><template #content>物流费用 = 头程物流费 + 其他物流费用</template><span class="help-icon">?</span></el-tooltip></span>
                   </template>
-                  <template #default="{row}"><span :class="row.diff===0?'zero-diff':(row.diff?'diff-value':'empty-cost')">{{row.diff!=null?(row.diff===0?'0':row.diff.toFixed(2)):'—'}}</span></template>
+                  <template #default="{row}"><span :class="row.logisticsCost!=null?'money-value':'empty-cost'">{{money(row.logisticsCost)}}</span></template>
                 </el-table-column>
-                <el-table-column label="物流信息" width="200">
+                <el-table-column label="清关税费" min-width="126" align="right">
+                  <template #default="{row}"><span :class="row.clearanceTotal!=null?'money-value':'empty-cost'">{{money(row.clearanceTotal)}}</span></template>
+                </el-table-column>
+                <el-table-column label="总单位头程成本" min-width="147" align="right" label-class-name="summary-cost">
+                  <template #header>
+                    <span class="diff-header">总单位头程成本<el-tooltip placement="top"><template #content>总单位头程成本=单位物流费用分摊+单位清关税费分摊</template><span class="help-icon">?</span></el-tooltip></span>
+                  </template>
+                  <template #default="{row}"><span v-if="row.clearanceMissing&&row.clearanceMissing.length" class="empty-cost" :title="`缺少${row.clearanceMissing.join('、')}，无法计算总单位头程成本`">—</span><span v-else :class="row.unitCost?'cost-value':'empty-cost'" :title="row.clearanceBlocked?'同发货单存在清关数据缺失，暂无法计算总单位头程成本':''">{{money(row.unitCost)}}</span></template>
+                </el-table-column>
+                <el-table-column label="单位物流费用分摊" min-width="133" align="right">
+                  <template #default="{row}"><span :class="row.unitFreightCost!=null?'money-value':'empty-cost'">{{money(row.unitFreightCost)}}</span></template>
+                </el-table-column>
+                <el-table-column label="单位清关税费分摊" min-width="140" align="right">
+                  <template #header>
+                    <span class="diff-header">单位清关税费分摊<el-tooltip placement="top"><template #content>按权重分摊发货单清关税费总额：权重 = 实际发货数量 × 目的国清关单价 × 清关税率；单位分摊 = 该 SKU 分摊总额 ÷ 实际发货数量</template><span class="help-icon">?</span></el-tooltip></span>
+                  </template>
+                  <template #default="{row}"><span v-if="row.clearanceMissing&&row.clearanceMissing.length" class="clearance-missing" :title="`缺少${row.clearanceMissing.join('、')}`">数据缺失</span><span v-else :class="row.unitTariffCost!=null?'money-value':'empty-cost'" :title="row.clearanceBlocked?'同发货单存在清关数据缺失，暂不分摊':''">{{money(row.unitTariffCost)}}</span></template>
+                </el-table-column>
+                <el-table-column label="清关单价" min-width="98" align="right">
+                  <template #header>
+                    <span class="diff-header">清关单价<el-tooltip placement="top"><template #content>按 SKU + 目的国从产品列表清关费用中取的每件清关价格，人民币口径。</template><span class="help-icon">?</span></el-tooltip></span>
+                  </template>
+                  <template #default="{row}"><span :class="row.clearancePrice!=null?'money-value':'empty-cost'">{{money(row.clearancePrice)}}</span></template>
+                </el-table-column>
+                <el-table-column label="清关税率" min-width="93" align="right">
+                  <template #header>
+                    <span class="diff-header">清关税率<el-tooltip placement="top"><template #content>按 SKU + 目的国从产品列表清关费用中取的税率，用于计算分摊权重。</template><span class="help-icon">?</span></el-tooltip></span>
+                  </template>
+                  <template #default="{row}"><span :class="row.clearanceRate!=null?'money-value':'empty-cost'">{{percent(row.clearanceRate)}}</span></template>
+                </el-table-column>
+                <el-table-column label="分摊差异" min-width="130" align="right" :label-class-name="diffTotalZero?'summary-diff is-zero':'summary-diff'">
+                  <template #header>
+                    <span class="diff-header">分摊差异<el-tooltip placement="top"><template #content>分摊差异 = 物流费用差异 + 清关税费差异<br>物流费用差异 = Σ（单位物流费用分摊 × 实际发货数量）− 物流费用<br>清关税费差异 = Σ（单位清关税费分摊 × 实际发货数量）− 清关税费<br>按原始精度计算；0 表示分摊完整，负数表示有费用未分摊到 SKU；同一发货单下所有 SKU 行相同。</template><span class="help-icon">?</span></el-tooltip></span>
+                  </template>
+                  <template #default="{row}">
+                    <div class="stack-cell diff-stack">
+                      <span><em>物流差异：</em><span :class="row.freightDiff==null?'empty-cost':(Math.abs(row.freightDiff)<0.005?'zero-diff':'diff-value')">{{money(row.freightDiff)}}</span></span>
+                      <span><em>清关差异：</em><span :class="row.tariffDiff==null?'empty-cost':(Math.abs(row.tariffDiff)<0.005?'zero-diff':'diff-value')">{{money(row.tariffDiff)}}</span></span>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="物流信息" min-width="175">
                   <template #default="{row}"><div class="stack-cell"><span><em>运输方式：</em>{{row.transport}}</span><span class="sub-value"><em>物流渠道：</em>{{row.channel}}</span></div></template>
                 </el-table-column>
-                <el-table-column label="创建时间" width="160"><template #default="{row}">{{row.createdAt||'—'}}</template></el-table-column>
-                <template #append>
-                  <div class="cost-total-row">
-                    <div class="total-slot"></div>
-                    <div class="total-slot"></div>
-                    <div class="total-slot"></div>
-                    <div class="total-slot"></div>
-                    <div class="total-slot"></div>
-                    <div class="total-slot"></div>
-                    <div class="total-slot align-right"><span class="total-num">{{totalCostSum}}</span></div>
-                    <div class="total-slot align-right"><span class="total-caption">合计（CNY）</span><span class="total-num cost-value">{{totalUnitCostSum}}</span></div>
-                    <div class="total-slot align-right"><span class="total-caption">合计（CNY）</span><span class="total-num" :class="Math.abs(Number(diffTotalSum))>0.001?'diff-value':'zero-diff'">{{diffTotalSum}}</span></div>
-                    <div class="total-slot"></div>
-                    <div class="total-slot"></div>
-                  </div>
-                </template>
+                <el-table-column label="创建时间" min-width="125"><template #default="{row}">{{row.createdAt||'—'}}</template></el-table-column>
               </el-table>
             </div>
-            <div class="table-footer"><span>实际发货数量为 0 时单位成本显示 "—"</span><el-pagination v-model:current-page="page" background layout="total, prev, pager, next" :page-size="pageSize" :total="filteredRows.length"></el-pagination></div>
+            <div class="table-footer"><el-pagination v-model:current-page="page" background layout="total, prev, pager, next" :page-size="pageSize" :total="filteredRows.length"></el-pagination></div>
           </section>
         </section>
       </main>
     </div>
   </div>
+
+  <el-dialog v-model="detailVisible" :title="`发货单详情｜${detailDoc?.middleOrder||''}`" width="min(1180px, calc(100vw - 48px))" top="6vh" class="ship-detail-dialog" :close-on-click-modal="false">
+    <div v-if="detailDoc" class="ship-detail-body">
+      <div v-if="detailIssuesText" class="clearance-warning clearance-warning--modal">
+        <span class="clearance-warning-icon">!</span>
+        <div class="clearance-warning-body"><b>清关税费分摊数据缺失：</b>{{detailIssuesText}}。<span class="clearance-warning-hint">该发货单暂不计算清关分摊与总单位头程成本，请先在商品资料「物流报关清关 → 清关费用」维护对应国家的清关单价、清关税率。</span></div>
+      </div>
+      <section class="ship-detail-section">
+        <div class="ship-detail-section-head">发货单信息</div>
+        <div class="ship-detail-grid">
+          <div class="ship-detail-item"><span class="label">中台发货单：</span><span class="value">{{detailDoc.middleOrder}}</span></div>
+          <div class="ship-detail-item"><span class="label">易仓 ERP 单号：</span><span class="value">{{detailDoc.erpOrder||'—'}}</span></div>
+          <div class="ship-detail-item"><span class="label">目的仓：</span><span class="value">{{detailDoc.destination}}</span></div>
+          <div class="ship-detail-item"><span class="label">目的国：</span><span class="value">{{detailDoc.country||'—'}}</span></div>
+          <div class="ship-detail-item"><span class="label">清关税费总额：</span><span class="value">{{money(detailDoc.clearanceTotal)}} CNY</span></div>
+          <div class="ship-detail-item"><span class="label">创建时间：</span><span class="value">{{detailDoc.createdAt||'—'}}</span></div>
+          <div class="ship-detail-item"><span class="label">发货单总费用：</span><span class="value">{{money(detailDoc.totalCost)}} CNY</span></div>
+          <div class="ship-detail-item"><span class="label">分摊差异：</span><span class="value" :class="detailDoc.diff==null?'empty-cost':(Math.abs(detailDoc.diff)<0.005?'zero-diff':'diff-value')">{{money(detailDoc.diff)}}</span></div>
+          <div class="ship-detail-item"><span class="label">SKU 个数：</span><span class="value">{{detailDoc.skuCount}}</span></div>
+          <div class="ship-detail-item"><span class="label">实际发货 / 收货：</span><span class="value">{{detailDoc.shippedTotal}} / {{detailDoc.receiveTotal}}</span></div>
+        </div>
+      </section>
+      <section class="ship-detail-section">
+        <div class="ship-detail-section-head">SKU 明细</div>
+        <el-table :data="detailRows" class="ship-sku-table" size="small">
+          <el-table-column prop="sku" label="SKU" min-width="110"></el-table-column>
+          <el-table-column label="海外仓 SKU/FNSKU" min-width="160">
+            <template #default="{row}"><div class="stack-cell"><span><em>海外仓 SKU：</em>{{row.overseasSku||'—'}}</span><span class="sub-value"><em>FNSKU：</em>{{row.fnsku||'—'}}</span></div></template>
+          </el-table-column>
+          <el-table-column label="平台 / 店铺 / 团队" min-width="190">
+            <template #default="{row}"><div class="stack-cell"><span><em>平台：</em>{{row.platform}}</span><span class="sub-value"><em>店铺：</em>{{row.store}}</span><span class="sub-value"><em>团队：</em>{{row.team}}</span></div></template>
+          </el-table-column>
+          <el-table-column prop="planNo" label="发货计划" min-width="135"></el-table-column>
+          <el-table-column label="实际发货 / 收货" min-width="105" align="right">
+            <template #default="{row}"><div class="stack-cell number-cell"><span><em>发货：</em>{{row.shippedQty}}</span><span class="sub-value"><em>收货：</em>{{row.receiveQty}}</span></div></template>
+          </el-table-column>
+          <el-table-column label="总单位头程成本" min-width="135" align="right">
+            <template #default="{row}"><span :class="row.unitCost?'cost-value':'empty-cost'">{{money(row.unitCost)}}</span></template>
+          </el-table-column>
+          <el-table-column label="分摊差异" min-width="105" align="right">
+            <template #default="{row}"><span :class="row.diff==null?'empty-cost':(Math.abs(row.diff)<0.005?'zero-diff':'diff-value')">{{money(row.diff)}}</span></template>
+          </el-table-column>
+          <el-table-column label="物流信息" min-width="145">
+            <template #default="{row}"><div class="stack-cell"><span><em>运输方式：</em>{{row.transport}}</span><span class="sub-value"><em>物流渠道：</em>{{row.channel}}</span></div></template>
+          </el-table-column>
+        </el-table>
+      </section>
+    </div>
+    <template #footer><el-button @click="detailVisible=false">关闭</el-button></template>
+  </el-dialog>
 </div>
 <script src="../../vendor/vue.global.prod.js"></script>
 <script src="../../vendor/element-plus.js"></script>
-<script src="app.js?v=1.7.23"></script>
+<script src="app.js?v=1.7.37"></script>
 <script src="../../global-export.js?v=1.7.37"></script>
-  <script src="../../navigation.js?v=1.7.92"></script>
+  <script src="../../navigation.js?v=1.8.02"></script>
 </body>
 </html>

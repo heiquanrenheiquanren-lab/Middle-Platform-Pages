@@ -350,7 +350,7 @@
   }
 
   function mountHistoricalPurchasePriceNav() {
-    document.querySelectorAll('[data-page-nav="skuFirstLegCost"]').forEach(function (source) {
+    document.querySelectorAll('[data-page-nav="shipmentOrder"]').forEach(function (source) {
       var container = source.parentElement;
       if (!container || container.querySelector('[data-page-nav="historicalPurchasePrice"]')) return;
       var item = source.cloneNode(true);
