@@ -1,0 +1,80 @@
+/* 发起采购变更弹窗：左待到齐采购单导航 + 右复用采购单详情布局（仅保留「采购单信息」「采购明细」锚点，无收货明细和费用分摊 tab） */
+.ci-modal{position:fixed;inset:0;z-index:3000;background:rgba(31,35,41,.42);display:flex;align-items:center;justify-content:center;padding:24px}
+.ci-modal[hidden]{display:none!important}
+.ci-dialog{width:min(1420px,calc(100vw - 48px));height:min(88vh,860px);display:flex;flex-direction:column;border-radius:10px;background:#fff;overflow:hidden;box-shadow:0 24px 64px rgba(15,27,45,.18),0 6px 20px rgba(15,27,45,.08)}
+.ci-header{flex:0 0 62px;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#fff;border-bottom:1px solid #f0f2f5}
+.ci-header-titles h2{margin:0;font-size:16px;font-weight:600;color:#303133}
+.ci-header-titles span{display:block;margin-top:4px;font-size:12px;color:#8f959e}
+.ci-close{width:30px;height:30px;padding:0;border:0;border-radius:4px;background:transparent;font-size:25px;line-height:26px;color:#8f959e;cursor:pointer}
+.ci-close:hover{background:#f5f7fa;color:#303133}
+.ci-body{flex:1;min-height:0;display:flex;background:#f7f9fc}
+.ci-nav{flex:0 0 240px;display:flex;flex-direction:column;gap:10px;padding:14px 12px;background:#fff;border-right:1px solid #ebeef5;min-height:0}
+.ci-nav-title{font-size:14px;font-weight:600;color:#303133}
+.ci-nav-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.ci-nav-item{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid #e4e7ed;border-radius:6px;background:#fff;text-align:left;cursor:pointer}
+.ci-nav-item:hover{border-color:#c6e2ff;background:#f8fbff}
+.ci-nav-item.active{border-color:#409eff;background:#ecf5ff}
+.ci-nav-item-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.ci-nav-item-head>b,.ci-nav-item>b{font-size:13px;color:#303133;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-nav-item.active .ci-nav-item-head>b,.ci-nav-item.active>b{color:#409eff}
+.ci-nav-remove{flex:none;padding:2px 0;border:0;background:transparent;color:#f56c6c;font-size:12px;font-weight:400;line-height:1;cursor:pointer}
+.ci-nav-remove:hover{color:#f78989;text-decoration:underline}
+.ci-nav-item>span{font-size:12px;color:#606266;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-nav-item>small{font-size:12px;color:#909399}
+.ci-nav-empty{padding:24px 8px;text-align:center;color:#909399;font-size:13px}
+
+/* 右侧主体：直接复用采购单详情 .purchase-detail-layout 结构（左滚动内容 + 右锚点导航） */
+.ci-detail-wrap{flex:1;min-width:0;min-height:0;display:flex}
+.ci-detail-wrap .purchase-detail-layout{flex:1;min-width:0;min-height:0;gap:14px;padding:14px 16px 16px;background:#f7f9fc}
+.ci-detail-wrap .purchase-detail-content{min-width:0;flex:1;overflow:auto;padding-right:4px;scroll-behavior:smooth}
+.ci-detail-wrap .purchase-detail-section{margin-bottom:14px;border:1px solid #e7ecf3;border-radius:8px;background:#fff;box-shadow:0 1px 2px rgba(31,45,61,.04);overflow:hidden;scroll-margin-top:10px}
+.ci-detail-wrap .purchase-detail-section:last-child{margin-bottom:0}
+.ci-detail-wrap .purchase-detail-section-head{display:flex;align-items:center;gap:8px;height:auto;min-height:0;padding:13px 16px 10px;border-bottom:0;background:transparent;color:#303133;font-size:14px;font-weight:600}
+.ci-detail-wrap .purchase-detail-section-head::before{content:"";flex:none;width:3px;height:14px;border-radius:2px;background:#409eff}
+.ci-detail-wrap .purchase-detail-field-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 18px;border:0;padding:2px 16px 10px}
+.ci-detail-wrap .purchase-detail-field{display:grid;grid-template-columns:88px minmax(0,1fr);min-height:34px;border:0;align-items:center}
+.ci-detail-wrap .purchase-detail-field>span{padding:0;background:transparent;color:#8f959e;font-size:12px}
+.ci-detail-wrap .purchase-detail-field>b{padding:0;color:#303133;font-size:13px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.ci-control{height:30px;padding:0 10px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#303133;font-size:13px;outline:0;width:100%;box-sizing:border-box}
+/* 可编辑字段：标签顶部对齐，控件下方可出现原值行 */
+.ci-detail-wrap .purchase-detail-field.is-editable{align-items:start;padding:2px 0}
+.ci-detail-wrap .purchase-detail-field.is-editable>span{padding-top:8px}
+.ci-field-control{min-width:0}
+/* 原值：橙黄色文字 + 橙黄色删除线，仅在值被修改后显示 */
+.ci-orig{margin-top:3px;color:#e6a23c;font-size:12px;line-height:16px;text-decoration:line-through;text-decoration-color:#e6a23c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-orig[hidden]{display:none!important}
+.ci-orig.is-multiline{white-space:pre-wrap;word-break:break-word}
+.ci-sku-table td .ci-orig{text-align:center}
+.ci-control:focus{border-color:#409eff;box-shadow:0 0 0 2px rgba(64,158,255,.12)}
+textarea.ci-control{height:auto;padding:7px 10px;resize:vertical;font-family:inherit;line-height:1.5}
+.ci-remark-box{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:start;gap:8px;margin:6px 16px 12px;padding:10px 12px;border:1px solid #f0f2f5;border-radius:6px;background:#fafbfc}
+.ci-remark-box>span{padding-top:5px;color:#8f959e;font-size:12px}
+.ci-remark-box>span em{margin-left:2px;color:#f56c6c;font-style:normal}
+.ci-remark-box.is-reason{border-color:#d9ecff;background:#f8fbff}
+
+/* 采购明细表：复用采购单详情明细表视觉 */
+.ci-detail-table-wrap{padding:2px 16px 14px;overflow-x:auto}
+.ci-sku-table{width:100%;min-width:980px;border-collapse:separate;border-spacing:0;font-size:12px;color:#606266}
+.ci-sku-table th{height:38px;padding:0 10px;background:#f5f7fa;border-bottom:1px solid #f0f2f5;color:#646a73;font-size:12px;font-weight:600;text-align:center;white-space:nowrap}
+.ci-sku-table td{height:48px;padding:6px 10px;border-bottom:1px solid #f0f2f5;text-align:center;vertical-align:middle;white-space:nowrap}
+.ci-sku-table th:first-child,.ci-sku-table td:first-child{text-align:left;padding-left:12px}
+.ci-sku-cell{display:flex;align-items:center;gap:7px}
+.ci-sku-cell .sku-thumb{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:#f2f4f7;font-size:13px;flex:none}
+.ci-sku-cell b{color:#303133;font-weight:500}
+.ci-num{width:96px;text-align:center}
+.ci-amount{color:#303133;font-weight:500;font-variant-numeric:tabular-nums}
+
+.ci-footer{flex:0 0 auto;min-height:58px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:8px 22px;background:#fff;border-top:1px solid #ebeef5}
+.ci-footer-tips{display:flex;flex-direction:column;gap:2px;margin-right:auto;font-size:12px;color:#909399;line-height:16px}
+.ci-footer-tips span{white-space:nowrap}
+.ci-control:disabled{background:#f5f7fa;color:#909399;cursor:not-allowed;border-color:#e4e7ed}
+.ci-footer .btn{height:32px;padding:0 16px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font-size:14px;cursor:pointer}
+.ci-footer .btn.primary{border-color:#409eff;background:#409eff;color:#fff}
+.ci-footer .btn.primary:hover{border-color:#66b1ff;background:#66b1ff}
+
+.ci-success-toast{position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:4000;display:flex;align-items:center;gap:6px;padding:12px 20px;border:1px solid #e1f3d8;border-radius:6px;background:#f0f9eb;color:#67c23a;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.ci-success-toast a{color:#409eff;font-weight:600;text-decoration:underline;cursor:pointer}
+.ci-success-toast a:hover{color:#66b1ff}
+.ci-toast-close{margin-left:10px;color:#909399;cursor:pointer}
+@media(max-width:1180px){.ci-detail-wrap .purchase-detail-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ci-nav{flex-basis:210px}}

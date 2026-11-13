@@ -1,85 +1,90 @@
-/* FBA货件 v1.0.0：独立页面（供应链协同）。
+/* FBA货件 v2.0.0：独立页面（供应链协同），对齐采购单 / 发货计划的一二级单据列表风格。
    页面基础样式（壳层 / 查询控件 / .btn / 分页 / 弹窗外壳）来自
    ../transfer-orders/styles.css + document-list.css + ui-kit.css + custom-select.css，
-   本文件只保留 FBA货件的业务差异（从发货计划拆分迁移而来）。 */
+   本文件只保留 FBA货件的业务差异。 */
 
 /* ===== 页面骨架：查询卡片 → 透明工具行 → 货件列表卡片 ===== */
 .fba-shipment-main{display:flex;flex-direction:column;background:#f5f7fa}
 .module-view{min-width:0;min-height:0;flex:1}.module-view.hidden{display:none}
-.fba-view{display:grid;grid-template-rows:auto 48px minmax(0,1fr);gap:12px;background:transparent}
+.fba-view{display:grid;grid-template-rows:auto 32px minmax(0,1fr);gap:10px;background:transparent}
 
-/* ===== 工具行：左侧导入按钮 + 右侧工具图标 ===== */
+/* ===== 查询区：组合查询项宽度 ===== */
+.fba-view .fba-code-combo{flex:0 1 300px;width:300px}
+.fba-view .fba-date-item{flex:0 1 320px;width:320px}
+.fba-view .query-inline-expand{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 8px;border:0;background:transparent;color:#909399;font-size:12px;cursor:pointer}
+.fba-view .query-inline-expand:hover{color:var(--blue)}
+.fba-view .query-inline-expand[hidden]{display:none}
+.fba-view .query-inline-expand .query-arrow{width:12px;height:12px;margin:0;transition:transform .15s}
+.fba-view .query-inline-expand[aria-expanded="true"] .query-arrow{transform:rotate(180deg)}
+
+/* ===== 工具行：导入关联 + 刷新 ===== */
 .fba-shipment-main .action-strip{display:flex;align-items:center;justify-content:space-between;overflow-x:auto;white-space:nowrap}
 .head-actions{display:flex;align-items:center;gap:10px;white-space:nowrap}
-.btn.soft{border-color:#8bc4ff;background:#f4faff;color:var(--blue)}
-.fba-tools{display:flex;align-items:center;gap:19px;margin-left:auto}
-.fba-tools button{padding:0;border:0;background:transparent;color:#293241;font-size:20px;line-height:1}
 
-/* ===== FBA货件查询卡片 ===== */
-.fba-query-panel{padding:12px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff}
-.fba-query-row{display:flex;gap:10px;flex-wrap:wrap;align-content:flex-start}
-.fba-query-row>*{flex:1 1 180px;min-width:0}
-.fba-query-row .query-actions{flex:0 0 auto;margin-left:auto}
-.fba-query-row+.fba-query-row{margin-top:9px}
-.fba-code-input{width:100%}
-.fba-status-trigger,.fba-multi,.fba-association-select,.fba-date-group{width:100%}
-.fba-status-filter{position:relative}
-.fba-status-trigger{width:174px;height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#909399;font-family:inherit;font-size:12px;text-align:left;cursor:pointer}
-.fba-status-trigger.open{border-color:var(--blue);box-shadow:0 0 0 2px rgba(22,119,255,.1)}
-.fba-status-trigger.has-value{color:#606266;font-size:13px}
-.fba-arrow{font-size:15px;color:#a8abb2}
-.fba-status-menu{display:none;position:absolute;z-index:50;top:37px;left:0;width:174px;padding:6px 0;border:1px solid #e4e7ed;border-radius:4px;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.14)}
-.fba-status-menu.show{display:block}
-.fba-status-option{height:34px;display:flex;align-items:center;padding:0 12px;color:#606266;cursor:pointer}
-.fba-status-option:hover,.fba-status-option.active{background:#f0f7ff;color:var(--blue)}
-.fba-multi{position:relative;width:174px}
-.fba-multi-trigger{width:100%;height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#909399;font-family:inherit;font-size:12px;text-align:left;cursor:pointer}
-.fba-multi-trigger.has-value{color:#606266;font-size:13px}
-.fba-multi-trigger.open{border-color:var(--blue);box-shadow:0 0 0 2px rgba(22,119,255,.1)}
-.fba-multi-menu{display:none;position:absolute;z-index:50;top:37px;left:0;width:224px;padding:8px;border:1px solid #e4e7ed;border-radius:4px;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.14)}
-.fba-multi-menu.show{display:block}
-.fba-multi-search{width:100%;height:30px;padding:0 9px;border:1px solid #dcdfe6;border-radius:4px;color:#606266;outline:0;font-family:inherit}
-.fba-multi-search:focus{border-color:var(--blue)}
-.fba-multi-options{max-height:184px;margin-top:6px;overflow:auto}
-.fba-multi-options label{display:flex;align-items:center;gap:7px;height:30px;padding:0 4px;color:#606266;cursor:pointer}
-.fba-multi-options label:hover{background:#f0f7ff}
-.fba-multi-empty{display:block;padding:8px 4px;color:#909399;font-size:12px}
-.fba-association-select{width:144px}
-.fba-date-group{height:32px}
-.fba-date-group input{width:122px}
-.fba-query-actions{margin-left:auto}
-
-/* ===== FBA货件列表卡片 ===== */
+/* ===== 货件列表卡片 ===== */
 .fba-list-card{min-width:0;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) 53px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff;overflow:hidden}
 .fba-list-card .bottom-bar{margin:0;border:0;border-radius:0}
 .fba-bottom-bar{position:relative;z-index:8}
+.fba-list-card .sum-stats{font-size:12px;color:#909399;white-space:nowrap}
+.fba-list-card .sum-stats b{color:#303133;font-weight:600}
 .fba-table-area{min-height:0;overflow:auto;background:#fff}
-.fba-table{width:100%;min-width:1720px;border-collapse:separate;border-spacing:0;table-layout:fixed}
-.fba-table th{position:sticky;top:0;z-index:5;height:40px;border-right:1px solid #e7eaf0;border-bottom:1px solid #e4e9f2;background:#f5f7fa;color:#606266;font-weight:500;text-align:center}
-.fba-table td{height:48px;padding:0 10px;border-right:1px solid #e4e9f2;border-bottom:1px solid #e4e9f2;color:#606266;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fba-table tbody tr:hover td,.fba-table .selected-row td{background:#e8f4ff}
-.fba-group-row td{height:50px;padding:0;background:#fbfbfc;text-align:left;white-space:normal}
-.fba-group-info{display:grid;grid-template-columns:1.35fr 1.2fr 1fr 1.2fr 1.15fr 1.25fr;gap:8px;align-items:center;color:#606266;line-height:19px}
-.fba-group-info .fba-group-key{font-size:14px;color:#606266}
-.fba-group-info b{font-weight:400;color:#4b5563}
-.fba-expand{margin-right:6px;color:#909399}
-.fba-remark{width:100%;height:32px;padding:0 9px;border:1px solid #dcdfe6;border-radius:4px;color:#606266;outline:0}
-.fba-remark::placeholder{color:#c0c4cc}
+
+/* 一级列表（货件）：对齐采购计划 / 采购单的一级行 */
+.fba-table{width:100%;min-width:1275px;border-collapse:separate;border-spacing:0;table-layout:fixed;color:#606266}
+.fba-table col.col-expand{width:44px}
+.fba-table col.col-shipment{width:240px}
+.fba-table col.col-center{width:175px}
+.fba-table col.col-store{width:185px}
+.fba-table col.col-warehouse{width:180px}
+.fba-table col.col-created{width:140px}
+.fba-table col.col-delivery{width:155px}
+.fba-table col.col-cargo{width:156px}
+.fba-table th{position:sticky;top:0;z-index:7;height:47px;padding:0 12px;border-bottom:1px solid #e4e9f2;background:#f5f7fa;color:#606266;font-size:13px;font-weight:500;text-align:left;white-space:nowrap}
+.fba-table td{height:56px;padding:6px 12px;border-bottom:1px solid #e4e9f2;background:#fff;color:#606266;text-align:left;vertical-align:middle;overflow:hidden}
+.fba-table>thead>tr>th:nth-child(1),.fba-parent-row>td:nth-child(1){position:sticky;left:0;z-index:3;background:#fff}
+.fba-table>thead>tr>th:nth-child(2),.fba-parent-row>td:nth-child(2){position:sticky;left:44px;z-index:3;background:#fff;box-shadow:4px 0 8px rgba(31,35,41,.05)}
+.fba-table>thead>tr>th:nth-child(1),.fba-table>thead>tr>th:nth-child(2){z-index:8;background:#f5f7fa}
+.fba-parent-row:hover>td{background:#f7fbff}
+.fba-parent-row:hover>td:nth-child(-n+2){background:#f7fbff}
+.fba-expand-cell{text-align:center!important;padding-left:6px!important;padding-right:6px!important}
+.fba-table .doc-line{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap}
+.fba-no{color:#1677ff;font-weight:400;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.fba-no:hover{text-decoration:underline}
+.fba-table .stack-cell{display:flex;flex-direction:column;align-items:flex-start;gap:3px;line-height:18px;white-space:nowrap}
+.fba-table .stack-cell b{max-width:100%;overflow:hidden;text-overflow:ellipsis;color:#303133;font-size:13px;font-weight:500}
+.fba-table .stack-cell span{max-width:100%;overflow:hidden;text-overflow:ellipsis;color:#8f959e;font-size:12px}
+.status-tag.fba-status-info{color:#1677ff;background:#eaf3ff}
+.status-tag.fba-status-transit{color:#8b5cf6;background:#f1edff}
+.status-tag.fba-status-partial{color:#e67e22;background:#fff1e8}
+.status-tag.fba-status-done{color:#19a974;background:#e9f8f1}
+.status-tag.fba-status-void{color:#f56c6c;background:#fef0f0}
+.status-tag.fba-status-muted{color:#909399;background:#f4f4f5}
+
+/* 二级明细（货件内 SKU）：对齐采购计划的一级行下方明细表 */
+.fba-detail-row>td{height:auto!important;padding:0!important;background:#fff!important;overflow:visible}
+.fba-detail-wrap{padding:12px 18px 12px 3px;overflow:auto}
+.fba-detail-table{width:100%;min-width:1820px;border-collapse:separate;border-spacing:0;table-layout:fixed;color:#606266}
+.fba-detail-table th{position:static!important;height:40px!important;padding:7px 10px!important;background:#f5f7fa!important;color:#606266!important;font-size:12px!important;font-weight:500!important;border-bottom:1px solid #e4e9f2!important;text-align:left!important;white-space:nowrap}
+.fba-detail-table td{position:static!important;height:40px!important;padding:7px 10px!important;background:#fff!important;color:#606266!important;font-size:12px!important;border-bottom:1px solid #e6ebf2!important;text-align:left!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fba-detail-table tr:last-child td{border-bottom:0!important}
+.fba-detail-table th:first-child,.fba-detail-table td:first-child{position:sticky!important;left:0;z-index:2;background:#fff!important;box-shadow:4px 0 8px -4px rgba(31,35,41,.08)}
+.fba-detail-table th:first-child{z-index:3;background:#f5f7fa!important}
+.fba-detail-table th:last-child,.fba-detail-table td:last-child{position:sticky!important;right:0;z-index:2;background:#fff!important;box-shadow:-4px 0 8px -4px rgba(31,35,41,.08)}
+.fba-detail-table th:last-child{z-index:3;background:#f5f7fa!important}
+.fba-detail-table tbody tr:hover td{background:#f8fbff!important}
 .fba-sku-cell{text-align:left!important}
-.fba-product{max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.fba-thumb{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;margin-right:6px;border-radius:4px;background:#f4f5f7;font-size:18px;vertical-align:middle}
-.fba-link-action{border:0;background:transparent;color:var(--blue);padding:0;white-space:nowrap;cursor:pointer}
+.fba-product{display:flex;align-items:center;gap:7px;min-width:0;text-align:left}
+.fba-product b{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:400;color:#303133}
+.fba-thumb{display:inline-flex;align-items:center;justify-content:center;flex:none;width:26px;height:26px;border:1px solid #e4e9f2;border-radius:4px;background:#fafafa;font-size:16px}
+.fba-product-name{text-align:left!important;overflow:hidden;text-overflow:ellipsis}
+.fba-remark{width:100%;height:30px;padding:0 9px;border:1px solid #dcdfe6;border-radius:4px;color:#606266;outline:0;font-family:inherit;font-size:12px}
+.fba-remark:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.fba-remark::placeholder{color:#c0c4cc}
+.fba-link-action{border:0;background:transparent;color:var(--blue);padding:0;white-space:nowrap;cursor:pointer;font-size:12px}
 .fba-link-action:hover{text-decoration:underline}
 .fba-link-action.linked{color:#909399;cursor:default;text-decoration:none}
 .fba-link-action.unlink{color:#f56c6c}
-/* FBA 货件列宽：计划号/Asin/FNSKU/申报量/已发货量/签收量/申发差异/收发差异/申收差异/发货单号/备注/SKU/领星SKU/品名/操作 */
-.fba-table th:nth-child(1){width:150px}.fba-table th:nth-child(2){width:110px}.fba-table th:nth-child(3){width:120px}
-.fba-table th:nth-child(4),.fba-table th:nth-child(5){width:90px}.fba-table th:nth-child(6){width:80px}
-.fba-table th:nth-child(7),.fba-table th:nth-child(8),.fba-table th:nth-child(9){width:90px}
-.fba-table th:nth-child(10){width:170px}.fba-table th:nth-child(11){width:150px}
-.fba-table th:nth-child(12){width:110px}.fba-table th:nth-child(13){width:120px}
-.fba-table th:nth-child(14){width:170px}.fba-table th:nth-child(15){width:130px}
-.fba-empty td{height:150px!important;color:#909399!important;text-align:center!important}
+.fba-empty-row td{height:260px!important;color:#909399!important;text-align:center!important;background:#fff!important}
 
 /* ===== FBA 关联发货计划弹窗 ===== */
 .fba-link-modal-mask{position:fixed;z-index:49;inset:0;background:rgba(0,0,0,.42)}
@@ -102,6 +107,7 @@
 .fba-link-table td{height:40px;padding:0 10px;border-bottom:1px solid #e9edf3;color:#606266;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fba-link-table tbody tr{cursor:pointer}
 .fba-link-table tbody tr:hover td,.fba-link-table tbody tr.selected td{background:#f0f7ff}
+.fba-link-table .fba-plan-empty td{height:220px;color:#909399;text-align:center}
 .fba-link-table .fba-plan-radio{width:38px}
 .fba-link-table th:nth-child(2){width:150px}.fba-link-table th:nth-child(3){width:110px}
 .fba-link-table th:nth-child(4),.fba-link-table th:nth-child(5){width:150px}
@@ -180,4 +186,4 @@
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ===== 响应式 ===== */
-@media(max-width:1100px){.fba-view{padding:10px;gap:10px}}
+@media(max-width:1100px){.fba-view{padding:0 10px 10px}}

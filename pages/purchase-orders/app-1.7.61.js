@@ -126,7 +126,7 @@ function validateQuantityRange(){const min=$('#quantityMin').value,max=$('#quant
 const actionVisibility={
   '待提交':['openPurchaseCreate','batchVoidPurchase','submitPurchaseReview','batchEditOrders'],
   '待审核':['openPurchaseCreate','auditPurchaseOrders','batchVoidPurchase'],
-  '待到齐':['openPurchaseCreate','openBatchPurchaseReceive','openOwnershipAdjustment'],
+  '待到齐':['openPurchaseCreate','openBatchPurchaseReceive','openOwnershipAdjustment','openPurchaseChangeList'],
   '已完成':['openPurchaseCreate'],
   '已作废':['openPurchaseCreate'],
   '已驳回':['openPurchaseCreate','batchVoidPurchase','submitPurchaseReview']

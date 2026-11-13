@@ -51,7 +51,6 @@ function toast(text,type='success'){
 function splitValues(value){return [...new Set(value.trim().toLowerCase().split(/[\s,，;；]+/).filter(Boolean))];}
 
 /* ===================== FBA 货件数据 ===================== */
-const fbaStatusOptions=['已取消','已登记','已关闭','已删除','已送达','运输中','接收中','已发货'];
 const fbaGroupSeeds=[
   ['FBA19JV2DSSK','GSO1','8W2JA3LC','已登记','X004LQ7279','42','43201000001','10340100110','ARC焊条--碱性碳钢/E7018'],
   ['FBA19JV1KBPZ','SMF6','8XLEXZVR','已发货','X0052YFT9R','12','120US160006','10200200206','TIG200P 美规'],
@@ -81,58 +80,77 @@ const fbaPlanOptions=Array.from({length:20},(_,index)=>{
 });
 const fbaStoreOptions=['ARCCAPTAIN主账号-US','ARCCAPTAIN…','Amazon US 旗舰店'];
 const fbaCountryOptions=['美国','加拿大','英国'];
-const fbaState={status:null,shipmentNo:'',planNo:'',sku:'',lxSku:'',fnsku:'',asin:'',stores:[],countries:[],logisticsCenter:'',referenceId:'',association:'unlinked',startDate:'',endDate:'',page:1,pageSize:25,planPage:1,planPageSize:7,planSearch:'',planSku:'',planFnsku:'',planStore:'',activeChildIds:[],pendingUnlink:null};
+const fbaState={status:'',noType:'shipmentNo',noQuery:'',codeType:'sku',codeQuery:'',stores:[],countries:[],association:'unlinked',startDate:'',endDate:'',page:1,pageSize:10,planPage:1,planPageSize:7,planSearch:'',planSku:'',planFnsku:'',planStore:'',activeChildIds:[],pendingUnlink:null,expanded:new Set()};
+const fbaStatusClass={'已登记':'info','已发货':'info','运输中':'transit','接收中':'partial','已送达':'done','已关闭':'muted','已删除':'muted','已取消':'void'};
+const fbaNoPlaceholders={shipmentNo:'请输入货件单号，支持多个',planNo:'请输入发货计划号，支持多个',center:'请输入物流中心编码，支持多个',reference:'请输入 Reference ID，支持多个'};
+const fbaCodePlaceholders={sku:'请输入 SKU，支持多个',lxSku:'请输入领星 SKU，支持多个',fnsku:'请输入 FNSKU，支持多个',asin:'请输入 ASIN，支持多个'};
+let fbaStoreSelect=null,fbaCountrySelect=null,fbaQueryExpanded=false;
 
 /* ===================== FBA 查询与列表 ===================== */
 function fbaExactMatch(value,query){const terms=splitValues(query||'');return !terms.length||terms.includes(String(value||'').toLowerCase());}
 function fbaLinked(child){return Boolean(child.linkedPlans.length);}
+function fbaNoFieldValue(group,child){
+  return {shipmentNo:group.shipmentNo,planNo:[child.plan,...child.linkedPlans].join(' '),center:group.center,reference:group.reference}[fbaState.noType]||'';
+}
+function fbaCodeFieldValue(child){
+  return {sku:child.sku,lxSku:child.lxSku,fnsku:child.fnsku,asin:child.asin}[fbaState.codeType]||'';
+}
 function getFbaVisibleGroups(){
   return fbaGroups.filter(group=>{
     const created=group.created.slice(0,10);
-    return (!fbaState.status||group.status===fbaState.status)&&fbaExactMatch(group.shipmentNo,fbaState.shipmentNo)&&(!fbaState.stores.length||fbaState.stores.includes(group.seller))&&(!fbaState.countries.length||fbaState.countries.includes(group.country))&&fbaExactMatch(group.center,fbaState.logisticsCenter)&&fbaExactMatch(group.reference,fbaState.referenceId)&&(!fbaState.startDate||created>=fbaState.startDate)&&(!fbaState.endDate||created<=fbaState.endDate);
+    return (!fbaState.status||group.status===fbaState.status)&&(!fbaState.stores.length||fbaState.stores.includes(group.seller))&&(!fbaState.countries.length||fbaState.countries.includes(group.country))&&(!fbaState.startDate||created>=fbaState.startDate)&&(!fbaState.endDate||created<=fbaState.endDate);
   }).map(group=>({...group,children:group.children.filter(child=>{
-    const planNo=[child.plan,...child.linkedPlans].join(' ');
     const associationMatch=!fbaState.association||(fbaState.association==='linked'?fbaLinked(child):!fbaLinked(child));
-    return fbaExactMatch(planNo,fbaState.planNo)&&fbaExactMatch(child.sku,fbaState.sku)&&fbaExactMatch(child.lxSku,fbaState.lxSku)&&fbaExactMatch(child.fnsku,fbaState.fnsku)&&fbaExactMatch(child.asin,fbaState.asin)&&associationMatch;
+    return fbaExactMatch(fbaNoFieldValue(group,child),fbaState.noQuery)&&fbaExactMatch(fbaCodeFieldValue(child),fbaState.codeQuery)&&associationMatch;
   })})).filter(group=>group.children.length);
 }
-function renderFbaMulti(rootId,options,key,placeholder,keyword=''){
-  const root=$(rootId),trigger=root.querySelector('.fba-multi-trigger'),menu=root.querySelector('.fba-multi-menu'),optionWrap=root.querySelector('.fba-multi-options');
-  const values=options.filter(option=>option.toLowerCase().includes(keyword.toLowerCase()));
-  optionWrap.innerHTML=values.length?values.map(option=>`<label><input type="checkbox" value="${option}" ${fbaState[key].includes(option)?'checked':''}>${option}</label>`).join(''):'<span class="fba-multi-empty">暂无匹配项</span>';
-  trigger.querySelector('span').textContent=fbaState[key].length?`${fbaState[key].slice(0,2).join('、')}${fbaState[key].length>2?` +${fbaState[key].length-2}`:''}`:placeholder;
-  trigger.classList.toggle('has-value',Boolean(fbaState[key].length));
+function initFbaMultis(){
+  fbaStoreSelect=window.createUiMultiSelect({root:'#fbaStoreMulti',options:fbaStoreOptions,values:fbaState.stores,placeholder:'请选择店铺',onChange:values=>{fbaState.stores=values;}});
+  fbaCountrySelect=window.createUiMultiSelect({root:'#fbaCountryMulti',options:fbaCountryOptions,values:fbaState.countries,placeholder:'请选择国家',onChange:values=>{fbaState.countries=values;}});
 }
-function initFbaMulti(rootId,options,key,placeholder){
-  const root=$(rootId),trigger=root.querySelector('.fba-multi-trigger'),menu=root.querySelector('.fba-multi-menu'),search=root.querySelector('.fba-multi-search');
-  const render=()=>renderFbaMulti(rootId,options,key,placeholder,search.value);
-  render();
-  trigger.onclick=event=>{event.stopPropagation();$$('.fba-multi-menu').forEach(item=>{if(item!==menu)item.classList.remove('show');});$$('.fba-multi-trigger').forEach(item=>{if(item!==trigger)item.classList.remove('open');});const open=menu.classList.toggle('show');trigger.classList.toggle('open',open);if(open)search.focus();};
-  menu.onclick=event=>event.stopPropagation();search.oninput=render;menu.onchange=()=>{fbaState[key]=[...menu.querySelectorAll('input:checked')].map(input=>input.value);renderFbaMulti(rootId,options,key,placeholder,search.value);};
+function syncFbaPlaceholders(){
+  $('#fbaNoInput').placeholder=fbaNoPlaceholders[$('#fbaNoType').value]||fbaNoPlaceholders.shipmentNo;
+  $('#fbaCodeInput').placeholder=fbaCodePlaceholders[$('#fbaCodeType').value]||fbaCodePlaceholders.sku;
 }
-function closeFbaMultiMenus(){ $$('.fba-multi-menu').forEach(menu=>menu.classList.remove('show'));$$('.fba-multi-trigger').forEach(trigger=>trigger.classList.remove('open')); }
 function readFbaQuery(){
-  fbaState.shipmentNo=$('#fbaShipmentNo').value;fbaState.planNo=$('#fbaPlanNo').value;fbaState.sku=$('#fbaSku').value;fbaState.lxSku=$('#fbaLxSku').value;fbaState.fnsku=$('#fbaFnsku').value;fbaState.asin=$('#fbaAsin').value;fbaState.logisticsCenter=$('#fbaLogisticsCenter').value;fbaState.referenceId=$('#fbaReferenceId').value;fbaState.association=$('#fbaAssociation').value;fbaState.startDate=$('#fbaStartDate').value;fbaState.endDate=$('#fbaEndDate').value;
+  fbaState.status=$('#fbaStatus').value;fbaState.noType=$('#fbaNoType').value;fbaState.noQuery=$('#fbaNoInput').value;fbaState.codeType=$('#fbaCodeType').value;fbaState.codeQuery=$('#fbaCodeInput').value;fbaState.association=$('#fbaAssociation').value;fbaState.startDate=$('#fbaStartDate').value;fbaState.endDate=$('#fbaEndDate').value;
 }
 function resetFbaQuery(){
-  fbaState.status=null;fbaState.shipmentNo='';fbaState.planNo='';fbaState.sku='';fbaState.lxSku='';fbaState.fnsku='';fbaState.asin='';fbaState.stores=[];fbaState.countries=[];fbaState.logisticsCenter='';fbaState.referenceId='';fbaState.association='unlinked';fbaState.startDate='';fbaState.endDate='';fbaState.page=1;
-  ['#fbaShipmentNo','#fbaPlanNo','#fbaSku','#fbaLxSku','#fbaFnsku','#fbaAsin','#fbaLogisticsCenter','#fbaReferenceId','#fbaStartDate','#fbaEndDate'].forEach(selector=>$(selector).value='');$('#fbaAssociation').value='unlinked';$('#fbaStatusText').textContent='货件状态（全部）';$('#fbaStatusTrigger').classList.remove('has-value');['#fbaStoreMulti','#fbaCountryMulti'].forEach((selector,index)=>{const root=$(selector);root.querySelector('.fba-multi-search').value='';renderFbaMulti(selector,index?fbaCountryOptions:fbaStoreOptions,index?'countries':'stores',index?'国家（可多选）':'店铺（可多选）');});
+  fbaState.status='';fbaState.noType='shipmentNo';fbaState.noQuery='';fbaState.codeType='sku';fbaState.codeQuery='';fbaState.stores=[];fbaState.countries=[];fbaState.association='unlinked';fbaState.startDate='';fbaState.endDate='';fbaState.page=1;
+  $('#fbaStatus').value='';$('#fbaNoType').value='shipmentNo';$('#fbaNoInput').value='';$('#fbaCodeType').value='sku';$('#fbaCodeInput').value='';$('#fbaAssociation').value='unlinked';$('#fbaStartDate').value='';$('#fbaEndDate').value='';
+  fbaStoreSelect?.setValues([]);fbaCountrySelect?.setValues([]);syncFbaPlaceholders();
 }
-function fbaStatusMenu(){
-  $('#fbaStatusMenu').innerHTML=fbaStatusOptions.map(status=>`<div class="fba-status-option ${fbaState.status===status?'active':''}" data-fba-status="${status}">${status}</div>`).join('');
-  $$('.fba-status-option').forEach(option=>option.onclick=e=>{e.stopPropagation();fbaState.status=option.dataset.fbaStatus;fbaState.page=1;$('#fbaStatusText').textContent=fbaState.status;$('#fbaStatusTrigger').classList.add('has-value');closeFbaStatusMenu();renderFbaTable();fbaStatusMenu();});
+function fbaStatusTag(status){return `<span class="status-tag fba-status-${fbaStatusClass[status]||'muted'}">${status}</span>`;}
+function fbaStripRow(group){
+  const expanded=fbaState.expanded.has(group.id);
+  const totalDeclared=group.children.reduce((sum,child)=>sum+Number(child.declared||0),0);
+  const totalSent=group.children.reduce((sum,child)=>sum+Number(child.sent||0),0);
+  const detailRow=expanded?`<tr class="fba-detail-row" data-parent-id="${group.id}"><td colspan="8"><div class="fba-detail-wrap"><table class="fba-detail-table"><colgroup><col style="width:160px"><col style="width:120px"><col style="width:170px"><col style="width:145px"><col style="width:105px"><col style="width:120px"><col style="width:75px"><col style="width:85px"><col style="width:75px"><col style="width:85px"><col style="width:85px"><col style="width:85px"><col style="width:150px"><col style="width:150px"><col style="width:110px"></colgroup><thead><tr><th>SKU</th><th>领星SKU</th><th>品名</th><th>计划号</th><th>Asin</th><th>FNSKU</th><th>申报量</th><th>已发货量</th><th>签收量</th><th>申发差异</th><th>收发差异</th><th>申收差异</th><th>发货单号</th><th>备注</th><th>操作</th></tr></thead><tbody>${group.children.map(child=>{
+    const shipDiff=child.declared-child.sent,receiveDiff=child.sent-child.received,declareReceiveDiff=child.declared-child.received,linked=child.linkedPlans.length;
+    return `<tr><td class="fba-sku-cell"><div class="fba-product"><span class="fba-thumb">${child.icon}</span><b>${child.sku}</b></div></td><td>${child.lxSku}</td><td class="fba-product-name" title="${child.product}">${child.product}</td><td>${child.plan||'—'}</td><td>${child.asin||'—'}</td><td>${child.fnsku}</td><td>${child.declared}</td><td>${child.sent}</td><td>${child.received}</td><td>${shipDiff}</td><td>${receiveDiff}</td><td>${declareReceiveDiff}</td><td>${child.shippingNo||'—'}</td><td><input class="fba-remark" data-fba-remark="${child.id}" placeholder="请输入备注" value="${child.remark}"></td><td>${linked?`<button class="fba-link-action unlink" data-fba-unlink="${child.id}" type="button">取消关联</button>`:`<button class="fba-link-action" data-fba-link="${child.id}" type="button">关联发货计划</button>`}</td></tr>`;}).join('')}</tbody></table></div></td></tr>`:'';
+  return `<tr class="fba-parent-row ${expanded?'is-expanded':''}" data-id="${group.id}">
+    <td class="fba-expand-cell"><button class="document-expand ${expanded?'is-expanded':''}" data-fba-toggle="${group.id}" type="button" aria-expanded="${expanded}" aria-label="${expanded?'收起':'展开'} SKU 明细"></button></td>
+    <td><div class="doc-line"><a class="fba-no" data-fba-toggle="${group.id}" title="${expanded?'收起':'展开'} SKU 明细">${group.shipmentNo}</a>${fbaStatusTag(group.status)}</div></td>
+    <td><div class="stack-cell"><b>${group.center}</b><span>${group.reference}</span></div></td>
+    <td><div class="stack-cell"><b>${group.seller}</b><span>${group.country}</span></div></td>
+    <td><div class="stack-cell"><b>${group.shipWarehouse||'—'}</b><span>${group.destination||'—'}</span></div></td>
+    <td>${group.created}</td>
+    <td><div class="stack-cell"><b>${group.deliveryTime||'—'}</b><span>${group.transport||'—'}</span></div></td>
+    <td><div class="stack-cell"><b>${group.children.length} 个 SKU</b><span>申报量 ${totalDeclared} · 已发货量 ${totalSent}</span></div></td>
+  </tr>${detailRow}`;
 }
-function closeFbaStatusMenu(){$('#fbaStatusMenu').classList.remove('show');$('#fbaStatusTrigger').classList.remove('open');}
 function renderFbaTable(){
-  const groups=getFbaVisibleGroups(),total=groups.reduce((sum,group)=>sum+group.children.length,0),pages=Math.max(1,Math.ceil(groups.length/5));
-  fbaState.page=Math.min(fbaState.page,pages);const data=groups.slice((fbaState.page-1)*5,fbaState.page*5);$('#fbaTotalCount').textContent=total;$('#fbaJumpPage').value=fbaState.page;$('#fbaPrevPage').disabled=fbaState.page===1;$('#fbaNextPage').disabled=fbaState.page===pages;
+  const groups=getFbaVisibleGroups(),totalSkus=groups.reduce((sum,group)=>sum+group.children.length,0),pages=Math.max(1,Math.ceil(groups.length/fbaState.pageSize));
+  fbaState.page=Math.min(fbaState.page,pages);const data=groups.slice((fbaState.page-1)*fbaState.pageSize,fbaState.page*fbaState.pageSize);
+  $('#fbaTotalCount').textContent=groups.length;$('#fbaSummary').innerHTML=`共 <b>${groups.length}</b> 个货件 · <b>${totalSkus}</b> 个 SKU`;$('#fbaJumpPage').value=fbaState.page;$('#fbaPrevPage').disabled=fbaState.page===1;$('#fbaNextPage').disabled=fbaState.page===pages;
   $('#fbaPageButtons').innerHTML=Array.from({length:Math.min(pages,4)},(_,index)=>`<button class="page-btn ${fbaState.page===index+1?'current':''}" data-fba-page="${index+1}">${index+1}</button>`).join('')+(pages>4?'<span>…</span>':'');
   $$('[data-fba-page]').forEach(button=>button.onclick=()=>{fbaState.page=Number(button.dataset.fbaPage);renderFbaTable();});
-  if(!data.length){$('#fbaTableBody').innerHTML='<tr class="fba-empty"><td colspan="15">暂无符合条件的货件</td></tr>';return;}
-  $('#fbaTableBody').innerHTML=data.map(group=>{
-    const groupInfo=`<tr class="fba-group-row"><td colspan="15"><div class="fba-group-info"><div class="fba-group-key"><span class="fba-expand">⌄</span>货件单号：<b>${group.shipmentNo}</b></div><div>物流中心编码：<b>${group.center}</b><br>Reference ID：<b>${group.reference}</b></div><div>店铺：<b>${group.seller}</b><br>国家：<b>${group.country}</b></div><div>发货仓：<b>${group.shipWarehouse||'—'}</b><br>目的地仓：<b>${group.destination||'—'}</b></div><div>送达时间：<b>${group.deliveryTime||'—'}</b><br>运输方式：<b>${group.transport||'—'}</b></div><div>创建时间：<b>${group.created}</b><br>货件状态：<b>${group.status}</b></div></div></td></tr>`;
-    const childRows=group.children.map(child=>{const shipDiff=child.declared-child.sent,receiveDiff=child.sent-child.received,declareReceiveDiff=child.declared-child.received,linked=child.linkedPlans.length;return `<tr class="fba-child-row"><td>${child.plan||'—'}</td><td>${child.asin||'—'}</td><td>${child.fnsku}</td><td>${child.declared}</td><td>${child.sent}</td><td>${child.received}</td><td>${shipDiff}</td><td>${receiveDiff}</td><td>${declareReceiveDiff}</td><td>${child.shippingNo||'—'}</td><td><input class="fba-remark" data-fba-remark="${child.id}" placeholder="请输入备注" value="${child.remark}"></td><td class="fba-sku-cell"><span class="fba-thumb">${child.icon}</span>${child.sku}</td><td>${child.lxSku}</td><td><div class="fba-product">${child.product}</div></td><td>${linked?`<button class="fba-link-action unlink" data-fba-unlink="${child.id}" type="button">取消关联</button>`:`<button class="fba-link-action" data-fba-link="${child.id}" type="button">关联发货计划</button>`}</td></tr>`;}).join('');return groupInfo+childRows;
-  }).join('');
+  const expandAll=$('#fbaExpandAllBtn'),allExpanded=data.length>0&&data.every(group=>fbaState.expanded.has(group.id));
+  expandAll.classList.toggle('open',allExpanded);expandAll.setAttribute('aria-expanded',String(allExpanded));expandAll.title=allExpanded?'收起全部货件':'展开全部货件';expandAll.setAttribute('aria-label',expandAll.title);
+  expandAll.onclick=()=>{data.forEach(group=>allExpanded?fbaState.expanded.delete(group.id):fbaState.expanded.add(group.id));renderFbaTable();};
+  if(!data.length){$('#fbaTableBody').innerHTML='<tr class="fba-empty-row"><td colspan="8">暂无符合条件的货件</td></tr>';return;}
+  $('#fbaTableBody').innerHTML=data.map(fbaStripRow).join('');
+  $$('[data-fba-toggle]').forEach(button=>button.onclick=()=>{const id=button.dataset.fbaToggle;fbaState.expanded.has(id)?fbaState.expanded.delete(id):fbaState.expanded.add(id);renderFbaTable();});
   $$('[data-fba-link]').forEach(button=>button.onclick=()=>openFbaPlanPopover([button.dataset.fbaLink]));
   $$('[data-fba-unlink]').forEach(button=>button.onclick=()=>openFbaUnlinkConfirm(button.dataset.fbaUnlink));
   $$('[data-fba-remark]').forEach(input=>input.onchange=()=>{const found=fbaGroups.flatMap(group=>group.children).find(child=>child.id===input.dataset.fbaRemark);found.remark=input.value;toast('备注已保存');});
@@ -153,6 +171,7 @@ function filteredFbaPlans(){
 }
 function renderFbaPlanList(){const plans=filteredFbaPlans(),pages=Math.max(1,Math.ceil(plans.length/fbaState.planPageSize));fbaState.planPage=Math.min(fbaState.planPage,pages);const data=plans.slice((fbaState.planPage-1)*fbaState.planPageSize,fbaState.planPage*fbaState.planPageSize);$('#fbaPlanListInfo').textContent=`共 ${plans.length} 条`;
   $('#fbaPlanJumpPage').value=fbaState.planPage;$('#fbaPlanPageTotal').textContent=pages;$('#fbaPlanPrevPage').disabled=fbaState.planPage===1;$('#fbaPlanNextPage').disabled=fbaState.planPage===pages;
+  if(!data.length){$('#fbaPlanListBody').innerHTML='<tr class="fba-plan-empty"><td colspan="11">暂无符合条件的发货计划</td></tr>';return;}
   $('#fbaPlanListBody').innerHTML=data.map(plan=>`<tr data-fba-plan-row="${plan.id}"><td><input type="radio" name="fbaPlanChoice" value="${plan.id}"></td><td>${plan.plan}</td><td>${plan.sku}</td><td>${plan.fnsku}</td><td>${plan.product}</td><td>${plan.sellerSku}</td><td>${plan.store}</td><td>${plan.quantity}</td><td>${plan.shipDate}</td><td>${plan.arrivalDate}</td><td>${plan.remark||'—'}</td></tr>`).join('');
   $$('[data-fba-plan-row]').forEach(row=>row.onclick=event=>{const plan=fbaPlanOptions.find(item=>item.id===row.dataset.fbaPlanRow);fbaState.activeChildIds.forEach(id=>{const child=fbaGroups.flatMap(group=>group.children).find(item=>item.id===id);if(child)child.linkedPlans=[plan.plan];});closeFbaPlanPopover();renderFbaTable();toast(`已关联发货计划 ${plan.plan}`);});
 }
@@ -371,14 +390,46 @@ function initImportLink(){
   $('#importLinkExportFail').onclick=exportImportLinkFail;
 }
 
+/* ===================== 查询区：两行折叠 ===================== */
+function setFbaQueryExpandUi(){
+  const button=$('#queryExpand');button.querySelector('.query-expand-text').textContent=fbaQueryExpanded?'收起':'展开';button.setAttribute('aria-expanded',String(fbaQueryExpanded));
+  $('#queryCard').classList.toggle('query-collapsed',!fbaQueryExpanded);
+}
+function layoutFbaQuery(){
+  const panel=$('#queryCard'),grid=$('#queryGrid'),button=$('#queryExpand');if(!panel||!grid||!button)return;
+  panel.classList.remove('query-collapsed');
+  grid.querySelectorAll('.query-overflow-item').forEach(item=>item.classList.remove('query-overflow-item'));
+  const items=[...grid.querySelectorAll('.query-item:not(.query-action-item)')],actionItem=grid.querySelector('.query-action-item');
+  if(!items.length||!actionItem)return;
+  button.hidden=false;
+  const gridWidth=grid.getBoundingClientRect().width,gap=parseFloat(getComputedStyle(grid).columnGap)||0,btnWidth=actionItem.getBoundingClientRect().width;
+  const widthMap=new Map(items.map(item=>[item,item.getBoundingClientRect().width]));
+  const rows=[];let row=[],rowWidth=0;
+  items.forEach(item=>{const width=widthMap.get(item);if(row.length&&rowWidth+gap+width>gridWidth+1){rows.push(row);row=[];rowWidth=0;}rowWidth+=(row.length?gap:0)+width;row.push(item);});
+  if(row.length)rows.push(row);
+  const actionOwnRow=btnWidth>=gridWidth*0.95,overflowSet=new Set();
+  if(rows.length>2)rows.slice(2).forEach(group=>group.forEach(item=>overflowSet.add(item)));
+  if(rows.length>=2&&!actionOwnRow){let used=0;rows[1].forEach(item=>{const width=widthMap.get(item),next=used+(used?gap:0)+width;if(next+gap+btnWidth<=gridWidth+1)used=next;else overflowSet.add(item);});}
+  overflowSet.forEach(item=>item.classList.add('query-overflow-item'));
+  if(!overflowSet.size)fbaQueryExpanded=false;
+  button.hidden=!overflowSet.size;
+  setFbaQueryExpandUi();
+}
+
 /* ===================== 初始化（无 tab 切换） ===================== */
 function initFbaView(){
-  initFbaMulti('#fbaStoreMulti',fbaStoreOptions,'stores','店铺（可多选）');initFbaMulti('#fbaCountryMulti',fbaCountryOptions,'countries','国家（可多选）');fbaStatusMenu();renderFbaTable();
-  $('#fbaStatusTrigger').onclick=event=>{event.stopPropagation();const isOpen=$('#fbaStatusMenu').classList.toggle('show');$('#fbaStatusTrigger').classList.toggle('open',isOpen);};$('#fbaStatusMenu').onclick=event=>event.stopPropagation();
-  $('#fbaSearchBtn').onclick=()=>{readFbaQuery();fbaState.page=1;renderFbaTable();toast('查询完成');};$('#fbaResetBtn').onclick=()=>{resetFbaQuery();fbaStatusMenu();renderFbaTable();toast('已重置查询条件');};
-  ['#fbaShipmentNo','#fbaPlanNo','#fbaSku','#fbaLxSku','#fbaFnsku','#fbaAsin','#fbaLogisticsCenter','#fbaReferenceId'].forEach(selector=>$(selector).addEventListener('keydown',event=>{if(event.key==='Enter')$('#fbaSearchBtn').click();}));
-  $('#fbaRefreshBtn').onclick=()=>{renderFbaTable();toast('FBA货件数据已刷新');};$('#fbaPrevPage').onclick=()=>{if(fbaState.page>1){fbaState.page--;renderFbaTable();}};$('#fbaNextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(getFbaVisibleGroups().length/5));if(fbaState.page<pages){fbaState.page++;renderFbaTable();}};$('#fbaJumpPage').onchange=event=>{const pages=Math.max(1,Math.ceil(getFbaVisibleGroups().length/5));fbaState.page=Math.max(1,Math.min(pages,Number(event.target.value)||1));renderFbaTable();};
+  initFbaMultis();syncFbaPlaceholders();layoutFbaQuery();renderFbaTable();
+  $('#queryExpand').onclick=()=>{fbaQueryExpanded=!fbaQueryExpanded;setFbaQueryExpandUi();};
+  $('#fbaNoType').onchange=syncFbaPlaceholders;$('#fbaCodeType').onchange=syncFbaPlaceholders;
+  $('#fbaSearchBtn').onclick=()=>{readFbaQuery();fbaState.page=1;renderFbaTable();toast('查询完成');};
+  $('#fbaResetBtn').onclick=()=>{resetFbaQuery();renderFbaTable();toast('已重置查询条件');};
+  ['#fbaNoInput','#fbaCodeInput'].forEach(selector=>$(selector).addEventListener('keydown',event=>{if(event.key==='Enter')$('#fbaSearchBtn').click();}));
+  $('#fbaRefreshBtn').onclick=()=>{renderFbaTable();toast('FBA货件数据已刷新');};
+  $('#fbaPageSize').onchange=event=>{fbaState.pageSize=Number(event.target.value)||10;fbaState.page=1;renderFbaTable();};
+  $('#fbaPrevPage').onclick=()=>{if(fbaState.page>1){fbaState.page--;renderFbaTable();}};
+  $('#fbaNextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(getFbaVisibleGroups().length/fbaState.pageSize));if(fbaState.page<pages){fbaState.page++;renderFbaTable();}};
+  $('#fbaJumpPage').onchange=event=>{const pages=Math.max(1,Math.ceil(getFbaVisibleGroups().length/fbaState.pageSize));fbaState.page=Math.max(1,Math.min(pages,Number(event.target.value)||1));renderFbaTable();};
   $('#fbaPlanSearchBtn').onclick=()=>{readFbaPlanQuery();fbaState.planPage=1;renderFbaPlanList();};$('#fbaPlanResetBtn').onclick=()=>{resetFbaPlanQuery();renderFbaPlanList();};['#fbaPlanSearch','#fbaPlanSku','#fbaPlanFnsku'].forEach(selector=>$(selector).addEventListener('keydown',event=>{if(event.key==='Enter')$('#fbaPlanSearchBtn').click();}));$('#fbaPopoverClose').onclick=closeFbaPlanPopover;$('#fbaLinkModalMask').onclick=closeFbaPlanPopover;$('#fbaUnlinkConfirmClose').onclick=closeFbaUnlinkConfirm;$('#fbaUnlinkCancel').onclick=closeFbaUnlinkConfirm;$('#fbaUnlinkConfirm').onclick=confirmFbaUnlink;$('#fbaUnlinkConfirmMask').onclick=event=>{if(event.target.id==='fbaUnlinkConfirmMask')closeFbaUnlinkConfirm();};$('#fbaPlanPrevPage').onclick=()=>{if(fbaState.planPage>1){fbaState.planPage--;renderFbaPlanList();}};$('#fbaPlanNextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(filteredFbaPlans().length/fbaState.planPageSize));if(fbaState.planPage<pages){fbaState.planPage++;renderFbaPlanList();}};
-  document.addEventListener('click',event=>{if(!$('#fbaStatusFilter').contains(event.target))closeFbaStatusMenu();if(!event.target.closest('.fba-multi'))closeFbaMultiMenus();});
+  window.addEventListener('resize',()=>{layoutFbaQuery();});
 }
 initFbaView();initImportLink();
