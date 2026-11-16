@@ -1,7 +1,7 @@
 const { createApp, ref, reactive, computed, nextTick, watch } = Vue;
 createApp({
   setup() {
-    const statuses = ['全部', '草稿', '待提货', '待加工', '待发货', '待收货', '部分收货', '已完成', '已作废', '已取消'];
+    const statuses = ['全部', '草稿', '待提货', '待发货', '待收货', '部分收货', '已完成', '已作废', '已取消'];
     const warehouses = ['深圳仓', '东莞工厂', '义乌仓'],
       pickupWarehouses = ['深圳仓', '东莞工厂', '义乌仓', '华南物流中转仓', '美西集货仓'],
       destWarehouses = ['美国西部仓', '美国东部仓', '德国仓', '英国仓'];
@@ -16,7 +16,7 @@ createApp({
       {
         id: 'DN20260808001',
         creator: 'Admin',
-        status: '待加工',
+        status: '待发货',
         logistics: '未发货',
         from: '深圳仓',
         to: '美国西部仓',
@@ -71,7 +71,7 @@ createApp({
             declareReceiveDiff: '300',
             receive: 0,
             processedQty: 0,
-            status: '待加工',
+            status: '待发货',
           },
         ],
         batches: [
@@ -91,7 +91,7 @@ createApp({
       {
         id: 'DN20260808002',
         creator: '张敏',
-        status: '待加工',
+        status: '待发货',
         logistics: '未发货',
         from: '东莞工厂',
         to: '美国东部仓',
@@ -146,7 +146,7 @@ createApp({
             declareReceiveDiff: '500',
             receive: 0,
             processedQty: 100,
-            status: '待加工',
+            status: '待发货',
           },
           {
             sku: 'SPU-3001',
@@ -157,7 +157,7 @@ createApp({
             ship: 0,
             receive: 0,
             processedQty: 0,
-            status: '待加工',
+            status: '待发货',
           },
         ],
         batches: [
@@ -180,7 +180,7 @@ createApp({
       {
         id: 'DN20260808003',
         creator: '李晨',
-        status: '待加工',
+        status: '待发货',
         logistics: '未发货',
         from: '深圳仓',
         to: '美国西部仓',
@@ -235,7 +235,7 @@ createApp({
             declareReceiveDiff: '150',
             receive: 0,
             processedQty: 149,
-            status: '待加工',
+            status: '待发货',
           },
         ],
         batches: [
@@ -255,7 +255,7 @@ createApp({
       {
         id: 'DN20260808004',
         creator: '王磊',
-        status: '待加工',
+        status: '待发货',
         logistics: '未发货',
         from: '深圳仓',
         to: '美国西部仓',
@@ -310,7 +310,7 @@ createApp({
             declareReceiveDiff: '300',
             receive: 0,
             processedQty: 50,
-            status: '待加工',
+            status: '待发货',
           },
           {
             sku: 'SPU-9001',
@@ -321,7 +321,7 @@ createApp({
             ship: 0,
             receive: 0,
             processedQty: 0,
-            status: '待加工',
+            status: '待发货',
           },
           {
             sku: 'SPU-9002',
@@ -332,7 +332,7 @@ createApp({
             ship: 0,
             receive: 0,
             processedQty: 120,
-            status: '待加工',
+            status: '待发货',
           },
         ],
         batches: [
@@ -356,7 +356,7 @@ createApp({
       {
         id: 'DN20260808006',
         creator: 'Admin',
-        status: '待加工',
+        status: '待发货',
         logistics: '未发货',
         from: '义乌仓',
         to: '德国仓',
@@ -411,7 +411,7 @@ createApp({
             declareReceiveDiff: '200',
             receive: 0,
             processedQty: 0,
-            status: '待加工',
+            status: '待发货',
           },
         ],
         batches: [
@@ -2670,11 +2670,19 @@ createApp({
     const tagType = (s) =>
       ['已完成', '已签收'].includes(s)
         ? 'success'
-        : ['待收货', '部分收货', '待加工'].includes(s)
+        : ['待收货', '部分收货'].includes(s)
           ? 'warning'
           : ['已作废', '待提货', '未发货', '草稿', '未提交'].includes(s)
             ? 'info'
             : '';
+    const statusBadgeClass = (s) => {
+      if (['已完成', '已签收'].includes(s)) return 'is-done';
+      if (s === '待发货') return 'is-ready';
+      if (['待收货', '部分收货'].includes(s)) return 'is-transit';
+      if (s === '待提货') return 'is-pending';
+      if (['已作废', '已取消'].includes(s)) return 'is-void';
+      return 'is-draft';
+    };
     const createVisible = ref(false),
       createFormRef = ref(),
       editingDoc = ref(null);
@@ -3650,9 +3658,19 @@ createApp({
     const completeReasonOptions = ['货物丢失', '货物损坏', '业务取消', '其他'];
     const completeFormRules = { reason: [{ required: true, message: '请选择完结原因', trigger: 'change' }] };
     const selectedDocs = ref([]),
-      mainTableRef = ref();
+      mainTableRef = ref(),
+      expandedRowKeys = ref([]);
     const onDocSelection = (rows) => {
       selectedDocs.value = rows;
+    };
+    const onExpandChange = (row, expandedRows) => {
+      expandedRowKeys.value = (expandedRows || []).map((item) => item.id);
+    };
+    const isAllExpanded = computed(
+      () => filteredDocs.value.length > 0 && filteredDocs.value.every((doc) => expandedRowKeys.value.includes(doc.id)),
+    );
+    const toggleExpandAll = () => {
+      expandedRowKeys.value = isAllExpanded.value ? [] : filteredDocs.value.map((doc) => doc.id);
     };
     const openComplete = (row) => {
       if (row) {
@@ -3885,7 +3903,7 @@ createApp({
           doc.items
             .filter((item) => skuMeta(item.sku).skuType === '组合')
             .every((item) => Number(item.processedQty || 0) >= Number(item.subSetPickedQty || 0));
-        doc.status = hasCombo && !allComboProcessed ? '待加工' : '待发货';
+        doc.status = '待发货';
         doc.logistics = '未发货';
       } else if (doc.receive >= doc.ship) {
         doc.status = '已完成';
@@ -3903,7 +3921,7 @@ createApp({
       });
     };
     const openQuantityAdjust = (row) => {
-      if (!['待加工', '待发货', '待收货', '部分收货'].includes(row.status)) {
+      if (!['待发货', '待收货', '部分收货'].includes(row.status)) {
         ElementPlus.ElMessage.warning('当前状态不允许数量调整');
         return;
       }
@@ -4036,7 +4054,7 @@ createApp({
     const pickupNextStatus = computed(() => {
       if (pickupQtyTotal.value <= 0) return '—';
       if (pickupUnresolvedDiff.value > 0) return '待提货';
-      return pickupRows.value.some((row) => row.isCombo && Number(row.subSetQty || 0) > 0) ? '待加工' : '待发货';
+      return '待发货';
     });
     const pickupAvailable = (row) => Math.max(Number(row.planQty || 0) - Number(row.picked || 0), 0);
     const refreshSubSetMax = (row) => {
@@ -4483,11 +4501,8 @@ createApp({
         return sum + (diff && !item.diffReason ? diff : 0);
       }, 0);
       if (remaining === 0) {
-        const hasSplit = pickupDoc.value.items.some(
-          (item) => skuMeta(item.sku).skuType === '组合' && Number(item.subSetPickedQty || 0) > 0,
-        );
-        pickupDoc.value.status = hasSplit ? '待加工' : '待发货';
-        pickupDoc.value.processable = hasSplit;
+        pickupDoc.value.status = '待发货';
+        pickupDoc.value.processable = false;
       } else {
         pickupDoc.value.status = '待提货';
         pickupDoc.value.processable = false;
@@ -6414,6 +6429,11 @@ createApp({
       voidDocument,
       selectedDocs,
       mainTableRef,
+      expandedRowKeys,
+      isAllExpanded,
+      onExpandChange,
+      toggleExpandAll,
+      statusBadgeClass,
       onDocSelection,
       completeVisible,
       completeDoc,

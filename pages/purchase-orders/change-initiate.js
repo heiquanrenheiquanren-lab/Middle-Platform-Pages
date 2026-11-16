@@ -238,9 +238,9 @@ function validateDraft(draft){
 }
 function makeChangeId(){
   const d=new Date(),p=v=>String(v).padStart(2,'0');
-  const compact=`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;
+  const compact=`${String(d.getFullYear()).slice(-2)}${p(d.getMonth()+1)}${p(d.getDate())}`;
   let seq=1;try{seq=Number(sessionStorage.getItem('pcChangeSeq')||'0')+1;sessionStorage.setItem('pcChangeSeq',String(seq));}catch(e){}
-  return 'PC'+compact+String(seq).padStart(4,'0');
+  return 'POBG'+compact+String(seq).padStart(4,'0');
 }
 function nowStamp(){const d=new Date(),p=v=>String(v).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
 function successToast(changeIds){

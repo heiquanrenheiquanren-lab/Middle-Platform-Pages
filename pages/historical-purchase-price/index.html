@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>供应链中台｜历史采购价</title>
   <link rel="stylesheet" href="../../vendor/element-plus.css">
-  <link rel="stylesheet" href="styles.css?v=1.2.2">
+  <link rel="stylesheet" href="styles.css?v=1.2.4">
   <link rel="stylesheet" href="../../ui-kit.css?v=1.0.10">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
@@ -27,7 +27,7 @@
           <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
           <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
           <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
-          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划 V1</div>
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
           <div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
@@ -85,9 +85,9 @@
                   <th>采购单号</th>
                   <th>采购单状态</th>
                   <th>采购仓库</th>
-                  <th class="num">本次采购价</th>
-                  <th class="num" title="同 SKU 上一笔采购单的价格（跨供应商口径）">上次采购价 ⓘ</th>
-                  <th class="num">价差/涨跌幅</th>
+                  <th class="num">本次采购价<span class="col-help-icon" data-tooltip="本笔采购单明细的 SKU 采购单价，含税/未税口径随采购单；采购变更单审核通过后以变更后价格覆盖；作废、已驳回的采购单不计入本页面。" aria-label="本笔采购单明细的 SKU 采购单价，含税/未税口径随采购单；采购变更单审核通过后以变更后价格覆盖；作废、已驳回的采购单不计入本页面。">?</span></th>
+                  <th class="num">上次采购价<span class="col-help-icon" data-tooltip="同 SKU 上一笔有效采购单的采购单价，跨供应商口径（不区分上一单供应商）；作废、已驳回的单不参与计算。" aria-label="同 SKU 上一笔有效采购单的采购单价，跨供应商口径（不区分上一单供应商）；作废、已驳回的单不参与计算。">?</span></th>
+                  <th class="num">价差/涨跌幅<span class="col-help-icon" data-tooltip="价差 = 本次采购价 − 上次采购价；涨跌幅 = 价差 ÷ 上次采购价；↑ 红为涨价、↓ 绿为降价；首单或价差为 0 时显示「—」。" aria-label="价差 = 本次采购价 − 上次采购价；涨跌幅 = 价差 ÷ 上次采购价；↑ 红为涨价、↓ 绿为降价；首单或价差为 0 时显示「—」。">?</span></th>
                   <th class="num">采购数量</th>
                   <th class="num">收货数量</th>
                   <th>采购日期</th>

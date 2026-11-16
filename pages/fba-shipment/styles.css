@@ -1,141 +1,204 @@
-/* FBA货件 v2.0.0：独立页面（供应链协同），对齐采购单 / 发货计划的一二级单据列表风格。
-   页面基础样式（壳层 / 查询控件 / .btn / 分页 / 弹窗外壳）来自
-   ../transfer-orders/styles.css + document-list.css + ui-kit.css + custom-select.css，
-   本文件只保留 FBA货件的业务差异。 */
+/* FBA货件 v2.2.0：一级列表与二级明细列表完全对齐采购计划页面（pages/purchase-plan-2/styles-2.0.19.css）。
+   页面基础样式（shell / 查询控件 / .btn / 状态栏 / 表格 / 分页 / 弹窗外壳）来自
+   ../transfer-orders/styles.css + document-list.css + ui-kit.css。 */
 
-/* ===== 页面骨架：查询卡片 → 透明工具行 → 货件列表卡片 ===== */
-.fba-shipment-main{display:flex;flex-direction:column;background:#f5f7fa}
-.module-view{min-width:0;min-height:0;flex:1}.module-view.hidden{display:none}
-.fba-view{display:grid;grid-template-rows:auto 32px minmax(0,1fr);gap:10px;background:transparent}
-
-/* ===== 查询区：组合查询项宽度 ===== */
-.fba-view .fba-code-combo{flex:0 1 300px;width:300px}
-.fba-view .fba-date-item{flex:0 1 320px;width:320px}
-.fba-view .query-inline-expand{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 8px;border:0;background:transparent;color:#909399;font-size:12px;cursor:pointer}
-.fba-view .query-inline-expand:hover{color:var(--blue)}
-.fba-view .query-inline-expand[hidden]{display:none}
-.fba-view .query-inline-expand .query-arrow{width:12px;height:12px;margin:0;transition:transform .15s}
-.fba-view .query-inline-expand[aria-expanded="true"] .query-arrow{transform:rotate(180deg)}
-
-/* ===== 工具行：导入关联 + 刷新 ===== */
-.fba-shipment-main .action-strip{display:flex;align-items:center;justify-content:space-between;overflow-x:auto;white-space:nowrap}
+/* ===== 页面骨架：查询卡片 → 透明操作行 → 单据列表卡片 ===== */
+.fba-shipment-main{grid-template-rows:auto 32px minmax(0,1fr);padding:10px;background:#f5f7fa;gap:10px}
+.fba-shipment-main .query-panel{padding:12px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff}
+.fba-shipment-main>.query-panel,.fba-shipment-main>.action-strip,.fba-shipment-main>.list-card{margin:0!important}
+.fba-shipment-main .action-strip{height:32px;padding:0;border:0;background:transparent;overflow-x:auto;white-space:nowrap}
 .head-actions{display:flex;align-items:center;gap:10px;white-space:nowrap}
 
-/* ===== 货件列表卡片 ===== */
-.fba-list-card{min-width:0;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) 53px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff;overflow:hidden}
-.fba-list-card .bottom-bar{margin:0;border:0;border-radius:0}
-.fba-bottom-bar{position:relative;z-index:8}
-.fba-list-card .sum-stats{font-size:12px;color:#909399;white-space:nowrap}
-.fba-list-card .sum-stats b{color:#303133;font-weight:600}
-.fba-table-area{min-height:0;overflow:auto;background:#fff}
+/* ===== 查询区：组合框与两行折叠（对齐采购计划） ===== */
+.fba-shipment-main .query-document-combo{flex:0 1 350px;width:350px;gap:8px}
+.fba-shipment-main .query-document-combo>.custom-select{flex:0 0 132px!important;width:132px!important;min-width:132px}
+.fba-shipment-main .query-document-combo>.input-clear{display:flex;flex:1 1 auto;width:auto;min-width:0}
+.fba-shipment-main .query-document-combo .query-combo-input{flex:1 1 auto;width:100%;min-width:0}
+.fba-shipment-main .query-panel input::placeholder{color:#909399;font-size:12px}
+.fba-shipment-main .query-panel .multi-trigger:not(.has-value),
+.fba-shipment-main .query-panel .custom-select.is-placeholder .custom-select-label{color:#909399;font-size:12px}
+.fba-shipment-main .query-panel.query-collapsed .query-overflow-item{display:none}
+.fba-shipment-main .query-date-item{flex:0 1 430px;width:430px}
+.fba-shipment-main .date-group{padding:0 3px;gap:2px;transition:border-color .15s,box-shadow .15s}
+.fba-shipment-main .date-group:focus-within{border-color:var(--blue);box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.fba-shipment-main .date-group input{flex:1 1 0;min-width:0;height:28px;padding:0 20px 0 6px;font-size:13px;color:#303133;cursor:pointer;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a8abb2' stroke-width='1.3' stroke-linecap='round'%3E%3Crect x='2' y='3' width='12' height='11' rx='1.5'/%3E%3Cpath d='M2 6.5h12M5.5 1.5v3M10.5 1.5v3'/%3E%3C/svg%3E") no-repeat right 6px center/12px 12px}
+.fba-shipment-main .date-group input::-webkit-calendar-picker-indicator{display:none}
+.fba-shipment-main .date-group span{padding:0;font-size:12px}
+.fba-shipment-main .query-inline-expand{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 8px;border:0;border-radius:4px;background:transparent;color:#909399;font-size:12px;cursor:pointer;transition:color .15s,background .15s}
+.fba-shipment-main .query-inline-expand:hover{color:var(--blue);background:#f0f5ff}
+.fba-shipment-main .query-inline-expand[hidden]{display:none}
+.fba-shipment-main .query-inline-expand .query-arrow{width:12px;height:12px;margin:0;transition:transform .15s}
+.fba-shipment-main .query-inline-expand[aria-expanded="true"] .query-arrow{transform:rotate(180deg)}
+.fba-shipment-main .query-actions .btn{padding:0 18px}
 
-/* 一级列表（货件）：对齐采购计划 / 采购单的一级行 */
-.fba-table{width:100%;min-width:1275px;border-collapse:separate;border-spacing:0;table-layout:fixed;color:#606266}
-.fba-table col.col-expand{width:44px}
-.fba-table col.col-shipment{width:240px}
-.fba-table col.col-center{width:175px}
-.fba-table col.col-store{width:185px}
-.fba-table col.col-warehouse{width:180px}
-.fba-table col.col-created{width:140px}
-.fba-table col.col-delivery{width:155px}
-.fba-table col.col-cargo{width:156px}
-.fba-table th{position:sticky;top:0;z-index:7;height:47px;padding:0 12px;border-bottom:1px solid #e4e9f2;background:#f5f7fa;color:#606266;font-size:13px;font-weight:500;text-align:left;white-space:nowrap}
-.fba-table td{height:56px;padding:6px 12px;border-bottom:1px solid #e4e9f2;background:#fff;color:#606266;text-align:left;vertical-align:middle;overflow:hidden}
-.fba-table>thead>tr>th:nth-child(1),.fba-parent-row>td:nth-child(1){position:sticky;left:0;z-index:3;background:#fff}
-.fba-table>thead>tr>th:nth-child(2),.fba-parent-row>td:nth-child(2){position:sticky;left:44px;z-index:3;background:#fff;box-shadow:4px 0 8px rgba(31,35,41,.05)}
-.fba-table>thead>tr>th:nth-child(1),.fba-table>thead>tr>th:nth-child(2){z-index:8;background:#f5f7fa}
-.fba-parent-row:hover>td{background:#f7fbff}
-.fba-parent-row:hover>td:nth-child(-n+2){background:#f7fbff}
-.fba-expand-cell{text-align:center!important;padding-left:6px!important;padding-right:6px!important}
-.fba-table .doc-line{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap}
-.fba-no{color:#1677ff;font-weight:400;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.fba-no:hover{text-decoration:underline}
-.fba-table .stack-cell{display:flex;flex-direction:column;align-items:flex-start;gap:3px;line-height:18px;white-space:nowrap}
-.fba-table .stack-cell b{max-width:100%;overflow:hidden;text-overflow:ellipsis;color:#303133;font-size:13px;font-weight:500}
-.fba-table .stack-cell span{max-width:100%;overflow:hidden;text-overflow:ellipsis;color:#8f959e;font-size:12px}
-.status-tag.fba-status-info{color:#1677ff;background:#eaf3ff}
-.status-tag.fba-status-transit{color:#8b5cf6;background:#f1edff}
-.status-tag.fba-status-partial{color:#e67e22;background:#fff1e8}
-.status-tag.fba-status-done{color:#19a974;background:#e9f8f1}
-.status-tag.fba-status-void{color:#f56c6c;background:#fef0f0}
-.status-tag.fba-status-muted{color:#909399;background:#f4f4f5}
+/* ===== 单据列表卡片（表格 + 底部汇总，无状态栏） ===== */
+.list-card{min-width:0;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) 53px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff;overflow:hidden}
+.list-card>.table-area,.list-card>.bottom-bar{margin:0;border-left:0;border-right:0;border-radius:0}
+.list-card>.table-area{border-top:0;border-bottom:0}
+.list-card>.bottom-bar{border-bottom:0}
+.bottom-summary{flex:1 1 auto;min-width:0;overflow:hidden;color:#606266;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.bottom-summary b{color:#303133;font-weight:600}
+.list-card>.bottom-bar .pager{flex:none}
 
-/* 二级明细（货件内 SKU）：对齐采购计划的一级行下方明细表 */
-.fba-detail-row>td{height:auto!important;padding:0!important;background:#fff!important;overflow:visible}
-.fba-detail-wrap{padding:12px 18px 12px 3px;overflow:auto}
-.fba-detail-table{width:100%;min-width:1820px;border-collapse:separate;border-spacing:0;table-layout:fixed;color:#606266}
-.fba-detail-table th{position:static!important;height:40px!important;padding:7px 10px!important;background:#f5f7fa!important;color:#606266!important;font-size:12px!important;font-weight:500!important;border-bottom:1px solid #e4e9f2!important;text-align:left!important;white-space:nowrap}
-.fba-detail-table td{position:static!important;height:40px!important;padding:7px 10px!important;background:#fff!important;color:#606266!important;font-size:12px!important;border-bottom:1px solid #e6ebf2!important;text-align:left!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fba-detail-table tr:last-child td{border-bottom:0!important}
-.fba-detail-table th:first-child,.fba-detail-table td:first-child{position:sticky!important;left:0;z-index:2;background:#fff!important;box-shadow:4px 0 8px -4px rgba(31,35,41,.08)}
-.fba-detail-table th:first-child{z-index:3;background:#f5f7fa!important}
-.fba-detail-table th:last-child,.fba-detail-table td:last-child{position:sticky!important;right:0;z-index:2;background:#fff!important;box-shadow:-4px 0 8px -4px rgba(31,35,41,.08)}
-.fba-detail-table th:last-child{z-index:3;background:#f5f7fa!important}
-.fba-detail-table tbody tr:hover td{background:#f8fbff!important}
-.fba-sku-cell{text-align:left!important}
-.fba-product{display:flex;align-items:center;gap:7px;min-width:0;text-align:left}
-.fba-product b{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:400;color:#303133}
-.fba-thumb{display:inline-flex;align-items:center;justify-content:center;flex:none;width:26px;height:26px;border:1px solid #e4e9f2;border-radius:4px;background:#fafafa;font-size:16px}
-.fba-product-name{text-align:left!important;overflow:hidden;text-overflow:ellipsis}
-.fba-remark{width:100%;height:30px;padding:0 9px;border:1px solid #dcdfe6;border-radius:4px;color:#606266;outline:0;font-family:inherit;font-size:12px}
-.fba-remark:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(22,119,255,.1)}
-.fba-remark::placeholder{color:#c0c4cc}
-.fba-link-action{border:0;background:transparent;color:var(--blue);padding:0;white-space:nowrap;cursor:pointer;font-size:12px}
+/* ===== 一级列表（FBA货件主表，完全对齐采购计划 .purchase-plan-table，勾选列 + 展开列 + 7 列合并展示） ===== */
+.purchase-plan-table{border-collapse:separate;border-spacing:0;min-width:1498px;width:100%;table-layout:fixed}
+.purchase-plan-table th{position:sticky;top:0;z-index:4;height:47px;padding:0 12px;background:#f5f7fa;color:#606266;font-weight:500;text-align:left;border:0;border-bottom:1px solid #e4e9f2;white-space:nowrap}
+.purchase-plan-table td{height:58px;padding:6px 12px;color:#606266;text-align:left;vertical-align:middle;border:0;border-bottom:1px solid #e4e9f2;background:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.purchase-plan-table tbody tr.parent-row:hover>td{background:#f5faff}
+.purchase-plan-table .check-col{width:38px}
+.purchase-plan-table .expand-col{width:34px}
+.purchase-plan-table .no-col{width:310px}
+.purchase-plan-table .sta-col{width:255px}
+.purchase-plan-table .store-col{width:210px}
+.purchase-plan-table .mode-col{width:205px}
+.purchase-plan-table .order-col{width:155px}
+.purchase-plan-table .qty-col{width:165px}
+.purchase-plan-table .time-col{width:205px}
+.purchase-plan-table>thead>tr>th:first-child,.purchase-plan-table .parent-row>td:first-child{padding-left:12px;padding-right:4px;text-align:center}
+.purchase-plan-table>thead>tr>th:nth-child(2),.purchase-plan-table .parent-row>td:nth-child(2){padding-left:4px;padding-right:0;text-align:left}
+.purchase-plan-table .checkbox:disabled{cursor:not-allowed;opacity:.45}
+.purchase-plan-table .document-expand.expand-all{margin:0}
+.purchase-plan-table .doc-line{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.purchase-plan-table .doc-no{color:#1677ff;font-weight:500;padding:0;border:0;background:transparent;cursor:pointer}
+.purchase-plan-table .doc-no:hover{text-decoration:underline}
+
+/* 一级列表合并列上下双行结构 */
+.fba-cell-stack{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;line-height:18px}
+.fba-cell-main{display:flex;align-items:center;gap:4px;min-width:0;color:#303133;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fba-cell-sub{display:flex;align-items:center;gap:6px;min-width:0;color:#909399;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fba-cell-sub b{color:#606266;font-weight:500}
+.fba-cell-truncate{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fba-order-no{color:#1677ff;font-weight:400}
+.fba-qty-val{color:#303133;font-weight:600;font-size:13px}
+.fba-link-progress{display:inline-flex;align-items:center;font-size:12px;font-weight:500;white-space:nowrap}
+.fba-link-progress.is-all{color:#19a974}
+.fba-link-progress.is-partial,.fba-link-progress.is-none{color:#e6a23c}
+
+/* 复制小图标按钮（对齐采购计划） */
+.copy-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:2px;padding:0;border:0;border-radius:3px;background:transparent;color:#909399;cursor:pointer;vertical-align:middle;flex:none}
+.copy-icon-btn:hover{background:#ecf5ff;color:#409eff}
+.copy-icon-btn-head{margin-left:4px}
+
+/* 一级列表状态标签（对齐采购计划 .pp-status） */
+.pp-status{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:3px;font-size:12px;white-space:nowrap}
+.pp-status--pending_review,.pp-status--partial_received{color:#e6a23c;background:#fdf6ec}
+.pp-status--draft{color:#909399;background:#f4f4f5}
+.pp-status--pending_purchase,.pp-status--purchasing{color:#1677ff;background:#eaf3ff}
+.pp-status--completed{color:#19a974;background:#e9f8f1}
+.pp-status--rejected,.pp-status--voided{color:#f56c6c;background:#fef0f0}
+.fba-sta-tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:2px;background:#ecf5ff;color:#409eff;font-size:11px;white-space:nowrap}
+.fba-closed-badge{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:2px;font-size:11px;white-space:nowrap}
+.fba-closed-badge.is-open{color:#19a974;background:#e9f8f1}
+.fba-closed-badge.is-closed{color:#909399;background:#f4f4f5}
+
+/* ===== 二级列表（展开行：SKU 明细子表，完全对齐采购计划 .purchase-detail-table） ===== */
+.purchase-plan-table .detail-row>td{height:auto!important;padding:0!important;position:static!important;box-shadow:none!important;background:#f7f9fc!important}
+.purchase-plan-table .detail-wrap{padding:12px 18px 12px 3px;overflow:auto}
+.purchase-detail-table{min-width:1460px;width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;background:#fff}
+.purchase-detail-table th,.purchase-detail-table td{position:static!important;height:40px!important;padding:7px 8px!important;border:0!important;border-bottom:1px solid #e6ebf2!important;box-shadow:none!important;text-align:left!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.purchase-detail-table th{background:#f3f6fa!important;color:#606266!important;font-size:12px;font-weight:500}
+.purchase-detail-table td{background:#fff!important;color:#606266!important;font-size:12px;font-weight:400}
+.purchase-detail-table tbody tr:hover td{background:#f5faff!important}
+.purchase-detail-table th.detail-check,.purchase-detail-table td.detail-check{width:38px;padding-left:10px!important;padding-right:4px!important;text-align:center!important}
+.purchase-detail-table th.detail-sku,.purchase-detail-table td.detail-sku{width:150px}
+.purchase-detail-table th.detail-msku,.purchase-detail-table td.detail-msku{width:175px}
+.purchase-detail-table th.detail-fnsku,.purchase-detail-table td.detail-fnsku{width:135px}
+.purchase-detail-table th.detail-name,.purchase-detail-table td.detail-name{width:230px}
+.purchase-detail-table th.detail-qty,.purchase-detail-table td.detail-qty{width:95px}
+.purchase-detail-table th.detail-diff,.purchase-detail-table td.detail-diff{width:100px}
+.purchase-detail-table th.detail-plan,.purchase-detail-table td.detail-plan{width:165px}
+.purchase-detail-table th.detail-op,.purchase-detail-table td.detail-op{width:110px}
+
+/* 二级列表左侧固定关键识别列（勾选列 / SKU / MSKU / FNSKU / 品名，对齐采购计划） */
+.purchase-detail-table :is(th,td):is(.detail-check,.detail-sku,.detail-msku,.detail-fnsku,.detail-name){position:sticky!important;z-index:4;background:#fff!important}
+.purchase-detail-table th:is(.detail-check,.detail-sku,.detail-msku,.detail-fnsku,.detail-name){z-index:5;background:#f3f6fa!important}
+.purchase-detail-table tbody tr:hover td:is(.detail-check,.detail-sku,.detail-msku,.detail-fnsku,.detail-name){background:#f5faff!important}
+.purchase-detail-table .detail-check{left:0}
+.purchase-detail-table .detail-sku{left:38px}
+.purchase-detail-table .detail-msku{left:188px}
+.purchase-detail-table .detail-fnsku{left:363px}
+.purchase-detail-table .detail-name{left:498px;box-shadow:6px 0 8px rgba(31,35,41,.07)!important}
+.purchase-detail-table .checkbox:disabled{cursor:not-allowed;opacity:.45}
+
+.purchase-detail-table tbody td.detail-difference{color:#f56c6c!important;font-weight:400!important}
+.purchase-detail-table tfoot td{height:44px!important;background:#f5f7fa!important;color:#303133!important;font-weight:600}
+.purchase-detail-table tfoot :is(.detail-sku,.detail-msku,.detail-fnsku,.detail-name){background:#f5f7fa!important}
+.purchase-detail-table .detail-empty-row td{height:56px!important;text-align:center!important;color:#909399!important}
+
+/* 二级列表内品名缩略图与操作链接 */
+.fba-detail-product{display:flex;align-items:center;gap:6px;min-width:0}
+.fba-thumb{display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;border:1px solid #e4e9f2;border-radius:3px;background:#fafafa;font-size:13px}
+.fba-detail-product span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.fba-link-action{border:0;background:transparent;color:#1677ff;padding:0;white-space:nowrap;cursor:pointer;font-size:12px}
 .fba-link-action:hover{text-decoration:underline}
-.fba-link-action.linked{color:#909399;cursor:default;text-decoration:none}
 .fba-link-action.unlink{color:#f56c6c}
-.fba-empty-row td{height:260px!important;color:#909399!important;text-align:center!important;background:#fff!important}
+.fba-empty-row td{height:240px!important;color:#909399!important;text-align:center!important;background:#fff!important}
 
-/* ===== FBA 关联发货计划弹窗 ===== */
-.fba-link-modal-mask{position:fixed;z-index:49;inset:0;background:rgba(0,0,0,.42)}
+/* ===== FBA 关联发货计划弹窗（左侧 FBA货件+SKU 导航 + 右侧过滤明细） ===== */
+.fba-link-modal-mask{position:fixed;z-index:49;inset:0;background:rgba(31,35,41,.42)}
 .fba-link-modal-mask.hidden{display:none}
-.fba-link-popover{position:fixed;z-index:50;top:50%;left:50%;right:auto;bottom:auto;display:grid;grid-template-rows:auto auto minmax(0,1fr) 48px;width:min(1260px,calc(100vw - 48px));height:min(620px,calc(100vh - 72px));padding:0 16px;transform:translate(-50%,-50%);border:0;border-radius:6px;box-shadow:0 10px 32px rgba(0,0,0,.2);background:#fff}
+.fba-link-popover{position:fixed;z-index:50;top:50%;left:50%;right:auto;bottom:auto;display:grid;grid-template-rows:auto minmax(0,1fr) 56px;width:min(1440px,calc(100vw - 36px));height:min(760px,calc(100vh - 48px));padding:0;transform:translate(-50%,-50%);border:0;border-radius:8px;box-shadow:0 24px 64px rgba(15,27,45,.18),0 6px 20px rgba(15,27,45,.08);background:#fff;overflow:hidden}
 .fba-link-popover.hidden{display:none}
-.fba-link-head{height:56px;display:flex;align-items:center;justify-content:space-between;margin:0;border-bottom:1px solid #ebeef5}
-.fba-link-head h3{margin:0;color:#303133;font-size:16px;font-weight:600}
-.fba-popover-close{width:32px;height:32px;border:0;background:transparent;color:#909399;font-size:21px;cursor:pointer}
-.fba-plan-default-filter{display:flex;align-items:center;gap:6px;min-height:26px;margin-bottom:8px;padding:0 2px;color:#909399;font-size:12px}
-.fba-plan-default-filter b{color:#606266;font-weight:400}
-.fba-plan-default-filter span{margin-left:8px}
-.fba-plan-query{padding:12px 0 10px;border-bottom:1px solid #ebeef5}
+.fba-link-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;margin:0;border-bottom:1px solid #f0f2f5;background:#fff}
+.fba-link-head .minimal-dialog-head h3{margin:0;color:#303133;font-size:16px;font-weight:600;line-height:22px}
+.fba-link-head .minimal-dialog-head p{margin:4px 0 0;color:#909399;font-size:12px;line-height:18px}
+.fba-popover-close{width:32px;height:32px;border:0;border-radius:4px;background:transparent;color:#909399;font-size:21px;cursor:pointer}
+.fba-popover-close:hover{background:#f5f7fa;color:#303133}
+.fba-link-dialog-body{display:grid;grid-template-columns:290px minmax(0,1fr);min-height:0;background:#f7f9fc;overflow:hidden}
+.fba-link-sidebar{display:flex;flex-direction:column;min-height:0;border-right:1px solid #e7ecf3;background:#fff}
+.fba-link-nav-list{flex:1 1 auto;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.fba-link-nav-item{display:flex;flex-direction:column;gap:5px;padding:10px 12px;border:1px solid #e7ecf3;border-radius:6px;background:#fff;text-align:left;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+.fba-link-nav-item:hover{border-color:#b3d8ff;background:#f9fcff}
+.fba-link-nav-item.active{border-color:#1677ff;background:#ecf5ff;box-shadow:0 2px 6px rgba(22,119,255,.1)}
+.fba-link-nav-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.fba-link-nav-title{color:#303133;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fba-link-nav-item.active .fba-link-nav-title{color:#1677ff}
+.fba-link-nav-picked{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:3px 7px;border-radius:4px;background:#e9f8f1;color:#19a974;font-size:11px;font-weight:500}
+.fba-link-nav-picked span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fba-link-nav-clear{flex:none;width:16px;height:16px;border:0;border-radius:50%;background:transparent;color:#19a974;font-size:13px;line-height:1;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.fba-link-nav-clear:hover{background:#d1f2e4;color:#0e7a52}
+.fba-link-main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:14px 16px;background:#f7f9fc}
+.fba-link-main>.fba-plan-query{padding:12px 16px;border:1px solid #e7ecf3;border-bottom:0;border-radius:8px 8px 0 0;background:#fff}
+.fba-plan-default-filter{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-height:24px;margin-bottom:10px;color:#909399;font-size:12px}
+.fba-plan-default-filter b{color:#303133;font-weight:500}
 .fba-plan-query-row{display:flex;align-items:center;gap:10px}
-.fba-plan-code-input{width:218px}
-.fba-plan-query-actions{margin-left:auto}
-.fba-link-table-wrap{height:auto;min-height:0;overflow:auto;border-bottom:1px solid #e4e9f2}
-.fba-link-table{width:1400px;border-collapse:collapse;table-layout:fixed}
-.fba-link-table th{height:38px;background:#f5f7fa;color:#606266;font-weight:500;border-bottom:1px solid #e4e9f2;text-align:center}
-.fba-link-table td{height:40px;padding:0 10px;border-bottom:1px solid #e9edf3;color:#606266;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fba-plan-code-input{width:280px}
+.fba-plan-query-actions{margin-left:0}
+.fba-link-table-wrap{flex:1 1 auto;height:auto;min-height:0;overflow:auto;border:1px solid #e7ecf3;border-bottom:0;background:#fff}
+.fba-link-table{width:100%;min-width:1100px;border-collapse:collapse;table-layout:fixed;font-size:12px}
+.fba-link-table th{position:sticky;top:0;height:40px;padding:0 10px;background:#f5f7fa;color:#606266;font-weight:500;border-bottom:1px solid #e4e9f2;text-align:left;white-space:nowrap}
+.fba-link-table td{height:42px;padding:0 10px;border-bottom:1px solid #e9edf3;color:#606266;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fba-link-table tbody tr{cursor:pointer}
-.fba-link-table tbody tr:hover td,.fba-link-table tbody tr.selected td{background:#f0f7ff}
+.fba-link-table tbody tr:hover td,.fba-link-table tbody tr.selected td{background:#ecf5ff}
 .fba-link-table .fba-plan-empty td{height:220px;color:#909399;text-align:center}
-.fba-link-table .fba-plan-radio{width:38px}
-.fba-link-table th:nth-child(2){width:150px}.fba-link-table th:nth-child(3){width:110px}
-.fba-link-table th:nth-child(4),.fba-link-table th:nth-child(5){width:150px}
-.fba-link-table th:nth-child(6){width:130px}.fba-link-table th:nth-child(7){width:150px}
-.fba-link-table th:nth-child(8){width:100px}.fba-link-table th:nth-child(9),.fba-link-table th:nth-child(10){width:120px}
-.fba-link-table th:nth-child(11){width:140px}
-.fba-link-footer{height:48px;display:flex;align-items:center;justify-content:space-between;color:#606266}
+.fba-link-table .fba-plan-radio{width:38px;text-align:center}
+.fba-link-table th:nth-child(2){width:145px}.fba-link-table th:nth-child(3){width:115px}
+.fba-link-table th:nth-child(4){width:140px}.fba-link-table th:nth-child(5){width:120px}
+.fba-link-table th:nth-child(6){width:170px}.fba-link-table th:nth-child(7){width:145px}
+.fba-link-table th:nth-child(8){width:100px}.fba-link-table th:nth-child(9),.fba-link-table th:nth-child(10){width:110px}
+.fba-link-table th:nth-child(11){width:130px}
+.fba-link-footer{height:46px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;color:#606266;font-size:12px;border:1px solid #e7ecf3;border-radius:0 0 8px 8px;background:#fff}
 .fba-link-footer>div{display:flex;align-items:center;gap:7px}
 .fba-link-footer .jump{height:28px}
 
 /* ===== FBA 操作确认弹窗 ===== */
-.fba-confirm-mask{position:fixed;z-index:70;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.42)}
+.fba-confirm-mask{position:fixed;z-index:70;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(31,35,41,.42)}
 .fba-confirm-mask.hidden{display:none}
-.fba-confirm-dialog{width:min(430px,calc(100vw - 48px));border-radius:6px;background:#fff;box-shadow:0 10px 32px rgba(0,0,0,.2)}
+.fba-confirm-dialog{width:min(440px,calc(100vw - 48px));border-radius:8px;background:#fff;box-shadow:0 24px 64px rgba(15,27,45,.18)}
 .fba-confirm-head{display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 18px;border-bottom:1px solid #ebeef5}
 .fba-confirm-head h3{margin:0;color:#303133;font-size:16px;font-weight:600}
 .fba-confirm-text{min-height:58px;margin:0;padding:20px 18px 8px;color:#606266;line-height:22px;font-size:14px}
-.fba-confirm-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px 12px}
+.fba-confirm-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px 14px}
 
 /* ===== 导入关联 FBA 货件弹窗 ===== */
-.import-link-mask{position:fixed;z-index:49;inset:0;background:rgba(0,0,0,.42)}
+.import-link-mask{position:fixed;z-index:49;inset:0;background:rgba(31,35,41,.42)}
 .import-link-mask.hidden{display:none}
-.import-link-dialog{position:fixed;z-index:50;top:50%;left:50%;transform:translate(-50%,-50%);width:min(720px,calc(100vw - 48px));max-height:calc(100vh - 72px);background:#fff;border-radius:6px;box-shadow:0 10px 32px rgba(0,0,0,.2);display:flex;flex-direction:column}
+.import-link-dialog{position:fixed;z-index:50;top:50%;left:50%;transform:translate(-50%,-50%);width:min(720px,calc(100vw - 72px));max-height:calc(100vh - 72px);background:#fff;border-radius:8px;box-shadow:0 24px 64px rgba(15,27,45,.18);display:flex;flex-direction:column}
 .import-link-dialog.hidden{display:none}
 .import-link-head{display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 18px;border-bottom:1px solid #ebeef5;flex:0 0 54px}
 .import-link-head h3{margin:0;color:#303133;font-size:16px;font-weight:600}
-.import-link-close{width:32px;height:32px;border:0;background:transparent;font-size:24px;color:#909399;cursor:pointer}
-.import-link-close:hover{color:#606266}
+.import-link-close{width:32px;height:32px;border:0;border-radius:4px;background:transparent;font-size:24px;color:#909399;cursor:pointer}
+.import-link-close:hover{background:#f5f7fa;color:#606266}
 .import-link-body{padding:18px 20px;overflow:auto;min-height:0;flex:1 1 auto}
 .btn.plain{background:#ecf5ff;border-color:#c6e2ff;color:var(--blue)}
 .btn.plain:hover{background:#d9ecff;border-color:#a0cfff}
@@ -147,10 +210,10 @@
 .import-step.active .import-step-num{background:var(--blue);border-color:var(--blue);color:#fff}
 .import-step-text{font-size:14px;white-space:nowrap}
 .import-step-line{flex:0 0 58px;height:1px;background:#dcdfe6}
-.import-guide{padding:14px 16px;border-radius:4px;background:#fafcff;border:1px solid #e4efff;margin-bottom:16px}
+.import-guide{padding:14px 16px;border-radius:6px;background:#fafcff;border:1px solid #e4efff;margin-bottom:16px}
 .import-guide-title{font-size:14px;color:#303133;font-weight:600;margin-bottom:6px}
 .import-guide-tip{color:#909399;font-size:12px;margin-bottom:12px;line-height:20px}
-.import-upload{min-height:148px;border:1px dashed #dcdfe6;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;background:#fafafc;transition:.15s;cursor:pointer}
+.import-upload{min-height:148px;border:1px dashed #dcdfe6;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;background:#fafafc;transition:.15s;cursor:pointer}
 .import-upload:hover,.import-upload.drag-over{border-color:var(--blue);background:#f0f7ff}
 .import-upload-icon{font-size:40px;color:#c0c4cc;line-height:1}
 .import-upload-text{color:#606266;font-size:13px}
@@ -161,7 +224,7 @@
 .import-file-info .file-name{color:#606266;margin-right:8px}
 .import-file-info .file-remove{color:#f56c6c;cursor:pointer;margin-left:8px;text-decoration:underline}
 .import-link-footer-actions{display:flex;gap:8px}
-.import-result{margin-top:18px;padding:14px;border-radius:4px;background:#fff;border:1px solid #ebeef5}
+.import-result{margin-top:18px;padding:14px;border-radius:6px;background:#fff;border:1px solid #ebeef5}
 .import-result.hidden{display:none}
 .import-result-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .import-result-summary{display:flex;gap:18px}
@@ -172,18 +235,86 @@
 .import-result-item.prelink b{color:#e6a23c}
 .import-result-table-wrap{max-height:220px;overflow:auto;border:1px solid #ebeef5;border-radius:4px}
 .import-result-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
-.import-result-table th{position:sticky;top:0;height:36px;background:#f5f7fa;color:#303133;font-weight:600;border-bottom:1px solid #ebeef5;border-right:1px solid #f0f2f5;padding:0 8px;text-align:left;white-space:nowrap}
-.import-result-table th:last-child{border-right:0}
-.import-result-table td{height:34px;padding:0 8px;border-bottom:1px solid #f2f4f7;border-right:1px solid #f0f2f5;color:#606266;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
-.import-result-table td:last-child{border-right:0;max-width:none;white-space:normal}
+.import-result-table th{position:sticky;top:0;height:36px;background:#f5f7fa;color:#303133;font-weight:600;border-bottom:1px solid #ebeef5;padding:0 8px;text-align:left;white-space:nowrap}
+.import-result-table td{height:34px;padding:0 8px;border-bottom:1px solid #f2f4f7;color:#606266;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.import-result-table td:last-child{max-width:none;white-space:normal}
 .import-result-table tr.success td:first-child{color:#67c23a;font-weight:600}
 .import-result-table tr.fail td:first-child{color:#f56c6c;font-weight:600}
 .import-result-table tr.prelink td:first-child{color:#e6a23c;font-weight:600}
+
+/* ===== 生成发货单弹窗（左侧多货件导航 + 右侧复用新建发货单弹窗） ===== */
+.fba-gen-mask{position:fixed;z-index:59;inset:0;background:rgba(31,35,41,.45)}
+.fba-gen-mask.hidden{display:none}
+.fba-gen-dialog{position:fixed;z-index:60;top:50%;left:50%;transform:translate(-50%,-50%);width:min(1560px,calc(100vw - 36px));height:min(880px,calc(100vh - 36px));display:grid;grid-template-rows:auto minmax(0,1fr) 56px;border-radius:8px;background:#fff;box-shadow:0 24px 64px rgba(15,27,45,.2),0 6px 20px rgba(15,27,45,.08);overflow:hidden}
+.fba-gen-dialog.hidden{display:none}
+.fba-gen-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #f0f2f5;background:#fff}
+.fba-gen-header .minimal-dialog-head h3{margin:0;color:#303133;font-size:16px;font-weight:600;line-height:22px}
+.fba-gen-header .minimal-dialog-head p{margin:4px 0 0;color:#909399;font-size:12px;line-height:18px}
+.fba-gen-body{display:grid;grid-template-columns:256px minmax(0,1fr);min-height:0;background:#f7f9fc;overflow:hidden}
+
+/* 左侧货件导航栏 */
+.fba-gen-sidebar{display:flex;flex-direction:column;min-height:0;border-right:1px solid #e7ecf3;background:#fff}
+.fba-gen-sidebar-head{display:flex;align-items:center;justify-content:space-between;height:42px;padding:0 14px;border-bottom:1px solid #f0f2f5;color:#303133;font-size:13px;font-weight:600;flex:none}
+.fba-gen-sidebar-head em{font-style:normal;font-size:12px;font-weight:500;color:#1677ff}
+.fba-gen-nav-list{flex:1 1 auto;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.fba-gen-nav-item{display:flex;flex-direction:column;gap:5px;padding:10px 12px;border:1px solid #e7ecf3;border-radius:6px;background:#fff;text-align:left;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+.fba-gen-nav-item:hover{border-color:#b3d8ff;background:#f9fcff}
+.fba-gen-nav-item.active{border-color:#1677ff;background:#ecf5ff;box-shadow:0 2px 6px rgba(22,119,255,.1)}
+.fba-gen-nav-item.has-error{border-color:#f56c6c;background:#fff8f8}
+.fba-gen-nav-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.fba-gen-nav-no{color:#303133;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fba-gen-nav-item.active .fba-gen-nav-no{color:#1677ff}
+.fba-gen-nav-badge{flex:none;display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:3px;font-size:11px;font-weight:500}
+.fba-gen-nav-badge.is-ready{color:#19a974;background:#e9f8f1}
+.fba-gen-nav-badge.is-pending{color:#e6a23c;background:#fdf6ec}
+.fba-gen-nav-badge.is-error{color:#f56c6c;background:#fef0f0}
+.fba-gen-nav-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;color:#606266;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fba-gen-nav-sub{color:#909399;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 右侧表单与明细区（完全对齐 shipment-orders 新建发货单样式） */
+.fba-gen-main{min-width:0;min-height:0;overflow-y:auto;padding:14px 16px;background:#f7f9fc}
+.fba-gen-main .create-layout{display:flex;flex-direction:column;gap:12px}
+.fba-gen-main .minimal-card{border:1px solid #e7ecf3;border-radius:8px;background:#fff;box-shadow:0 1px 2px rgba(31,45,61,.04);overflow:hidden}
+.fba-gen-main .minimal-card-grow{display:flex;flex-direction:column;min-height:280px}
+.fba-gen-main .minimal-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+.fba-gen-main .minimal-card-title{display:flex;align-items:center;gap:8px;min-width:0;color:#303133;font-size:14px;font-weight:600}
+.fba-gen-main .minimal-title-bar{flex:none;width:3px;height:14px;border-radius:2px;background:#409eff}
+.fba-gen-current-badge{margin-left:6px;padding:2px 8px;border-radius:4px;background:#ecf5ff;color:#1677ff;font-size:12px;font-weight:500}
+.fba-gen-main .public-form{padding:0 16px 16px}
+.fba-gen-main .public-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px}
+.gen-form-item{display:flex;flex-direction:column;min-width:0}
+.gen-form-label{display:block;padding:0 0 6px;line-height:18px;font-size:12px;color:#606266}
+.req{color:#f56c6c;margin-right:3px}
+.gen-form-item .control{width:100%}
+.gen-form-item .control:disabled{background:#f5f7fa;color:#909399;cursor:not-allowed}
+.fba-gen-main .address-area{margin-top:12px;padding-top:12px;border-top:1px solid #f0f2f5}
+.fba-gen-main .address-block{margin-bottom:10px}
+.fba-gen-main .address-block-title{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:#606266;font-size:12px;font-weight:600;line-height:18px}
+.fba-gen-main .address-block-title::before{content:"";flex:none;width:3px;height:12px;border-radius:2px;background:#c8d3e2}
+.fba-gen-main .address-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 16px}
+.fba-gen-main .address-field{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:6px;min-width:0}
+.fba-gen-main .address-field>span{text-align:right;color:#909399;font-size:12px;line-height:18px;white-space:nowrap}
+.fba-gen-main .address-field .control{width:100%;background:#f5f7fa;color:#606266;cursor:not-allowed}
+.fba-gen-main .remark-row{margin-top:10px}
+.gen-textarea{height:auto!important;min-height:58px;padding:6px 10px;resize:vertical;line-height:18px}
+.fba-gen-main .sku-rule-hint{margin:0 16px 10px;padding:7px 10px;border:1px solid #f0f2f5;border-radius:6px;background:#fafbfc;color:#909399;font-size:12px;line-height:18px}
+.fba-gen-main .selected-table-wrap{flex:1;min-height:0;margin:0 16px 16px;border:1px solid #eef1f6;border-radius:6px;overflow:auto}
+.fba-gen-main .selected-sku-table{width:100%;min-width:1680px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12px}
+.fba-gen-main .selected-sku-table th{position:sticky;top:0;z-index:2;height:38px;padding:0 10px;background:#f5f7fa;color:#606266;font-weight:500;text-align:left;border-bottom:1px solid #eef1f6;white-space:nowrap}
+.fba-gen-main .selected-sku-table td{height:48px;padding:6px 10px;color:#606266;border-bottom:1px solid #f0f2f5;background:#fff;vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fba-gen-main .selected-sku-table tbody tr:hover td{background:#f5faff}
+.fba-gen-main .measure-cell{display:flex;flex-direction:column;gap:1px;line-height:15px;font-size:11px;color:#606266}
+.gen-qty-input{width:105px!important;height:30px!important;padding:0 8px!important}
+.gen-remark-input{width:100%!important;height:30px!important;padding:0 8px!important}
+
+/* 弹窗底部 */
+.fba-gen-footer{padding:0 20px;border-top:1px solid #f0f2f5;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.minimal-stats{display:flex;align-items:center;gap:8px;min-width:0;overflow-x:auto}
+.minimal-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:#f5f7fa;color:#909399;font-size:12px;line-height:18px;white-space:nowrap}
+.minimal-pill em{margin:0 3px;color:#303133;font-style:normal;font-weight:600}
+.minimal-footer-actions{display:flex;align-items:center;gap:8px;flex:none}
 
 /* ===== 提示条 ===== */
 .toast{position:fixed;z-index:100;left:50%;top:18px;transform:translateX(-50%) translateY(-8px);padding:10px 16px;border:1px solid #e1f3d8;border-radius:4px;background:#f0f9eb;color:#67c23a;box-shadow:0 4px 12px rgba(0,0,0,.1);opacity:0;pointer-events:none;transition:.2s}
 .toast.error{border-color:#fde2e2;background:#fef0f0;color:#f56c6c}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* ===== 响应式 ===== */
-@media(max-width:1100px){.fba-view{padding:0 10px 10px}}

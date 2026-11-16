@@ -93,8 +93,8 @@
   }
 
   function detailRows(o){
-    return `<tr class="detail-row"><td colspan="11"><div class="detail-wrap"><table class="pickup-detail-table"><thead><tr><th>SKU</th><th>产品名称</th><th>采购单号</th><th>入库团队</th><th>采购数量</th><th>提货前已收</th><th>本单计划</th><th>本单已提</th><th>回写后已收</th><th>差异</th><th>提货仓</th></tr></thead><tbody>${
-      o.items.map(i=>{const diff=i.planQty-i.picked,after=i.pickedBefore+i.picked;return `<tr><td>${esc(i.sku)}</td><td>${esc(i.name)}</td><td>${esc(i.po)}</td><td><span class="team-tag">${esc(i.team||'待指定')}</span></td><td>${i.purchaseQty}</td><td>${i.pickedBefore}</td><td>${i.planQty}</td><td class="qty-positive">${i.picked}</td><td class="${i.picked>0?'qty-writeback':''}">${after} / ${i.purchaseQty}</td><td class="${diff>0&&o.status==='已完成'?'shortage':''}">${diff}</td><td>${esc(i.wh)}</td></tr>`}).join('')
+    return `<tr class="detail-row"><td colspan="10"><div class="detail-wrap"><table class="pickup-detail-table"><thead><tr><th>SKU</th><th>产品名称</th><th>采购单号</th><th>入库团队</th><th class="num">采购数量</th><th class="num">提货前已收</th><th class="num">本单计划</th><th class="num">本单已提</th><th class="num">回写后已收</th><th class="num">差异</th><th>提货仓</th></tr></thead><tbody>${
+      o.items.map(i=>{const diff=i.planQty-i.picked,after=i.pickedBefore+i.picked;return `<tr><td>${esc(i.sku)}</td><td>${esc(i.name)}</td><td>${esc(i.po)}</td><td><span class="team-tag">${esc(i.team||'待指定')}</span></td><td class="num">${i.purchaseQty}</td><td class="num">${i.pickedBefore}</td><td class="num">${i.planQty}</td><td class="num qty-positive">${i.picked}</td><td class="num ${i.picked>0?'qty-writeback':''}">${after} / ${i.purchaseQty}</td><td class="num ${diff>0&&o.status==='已完成'?'shortage':''}">${diff}</td><td>${esc(i.wh)}</td></tr>`}).join('')
     }</tbody></table></div></td></tr>`;
   }
 
@@ -115,7 +115,7 @@
       const diff=plan-picked,pos=[...new Set(o.items.map(i=>i.po))],ttype=whType(o.target);
       const teams=[...new Set(o.items.map(i=>i.team||'待指定'))];
       const teamText=teams.length===1?teams[0]:`${teams[0]} 等 ${teams.length} 个团队`;
-      return `<tr data-id="${o.id}"><td><input class="row-check" type="checkbox" ${state.selected.has(o.id)?'checked':''}></td><td><button class="document-expand ${state.expanded.has(o.id)?'expanded':''}" data-action="expand" aria-label="展开明细"></button></td>
+      return `<tr data-id="${o.id}"><td><input class="row-check" type="checkbox" ${state.selected.has(o.id)?'checked':''}></td><td><button class="document-expand ${state.expanded.has(o.id)?'is-expanded':''}" data-action="expand" aria-label="展开明细"></button></td>
 <td><div class="doc-line"><span class="doc-no">${esc(o.no)}</span><span class="pickup-status status-${statusClass(o.status)}">${o.status}</span></div><div class="field-line"><span class="field-label">预计提货：</span><span class="field-value">${o.expectedDate||'—'}</span></div></td>
 <td><div class="field-line"><span class="field-label">供应商：</span><span class="field-value">${esc(o.supplier)}</span><span class="reconcile-tag">${ttype==='物流商仓'?'物流仓':ttype}</span></div><div class="field-line" title="${esc(o.source)} → ${esc(o.target)}"><span class="field-value">${esc(o.source)}<span class="route-arrow">→</span>${esc(o.target)}</span></div></td>
 <td><div class="field-line"><span class="field-label">采购单：</span><span class="field-value" title="${pos.join('、')}">${pos[0]}${pos.length>1?` 等 ${pos.length} 张`:''}</span></div><div class="field-line" title="入库团队：${esc(teams.join('、'))}"><span class="field-label">团队：</span><span class="field-value">${esc(teamText)}</span><span class="sku-count">${o.items.length} SKU</span></div></td>
@@ -129,6 +129,22 @@
     $('#totalCount').textContent=rows.length;
     $('#selectedCount').textContent=state.selected.size;
     $('#pageButtons').innerHTML=`<button class="page-btn active">${state.page}</button>`;
+    const expandAll=$('#expandAllBtn');
+    if(expandAll){
+      const allExpanded=shown.length>0&&shown.every(o=>state.expanded.has(o.id));
+      const label=allExpanded?'收起全部提货单':'展开全部提货单';
+      expandAll.disabled=!shown.length;
+      expandAll.classList.toggle('is-expanded',allExpanded);
+      expandAll.setAttribute('aria-expanded',String(allExpanded));
+      expandAll.setAttribute('aria-label',label);
+      expandAll.title=label;
+    }
+    const selectAll=$('#selectAll');
+    if(selectAll){
+      const checkedCount=shown.filter(o=>state.selected.has(o.id)).length;
+      selectAll.checked=shown.length>0&&checkedCount===shown.length;
+      selectAll.indeterminate=checkedCount>0&&checkedCount<shown.length;
+    }
     bindRows();
   }
 
@@ -144,23 +160,29 @@
   const nextNo=()=>`TH20261010${String(++seq).padStart(3,'0')}`;
 
   function editorRow(i,idx,editable){
-    const remain=i.purchaseQty-i.pickedBefore;
+    const remain=i.purchaseQty-i.pickedBefore,max=Math.min(remain,i.avail);
+    const limited=i.avail<remain;
     const teamCell=editable
       ? `<select class="control editor-team" data-team-idx="${idx}">${TEAMS.map(t=>`<option ${i.team===t?'selected':''}>${t}</option>`).join('')}</select>`
       : `<span class="team-tag">${esc(i.team||'待指定')}</span>`;
-    return `<tr data-idx="${idx}"><td>${esc(i.sku)}</td><td class="product">${esc(i.name)}</td><td>${esc(i.po)}</td><td>${teamCell}</td><td>${i.purchaseQty}</td><td>${i.pickedBefore}</td><td>${remain}</td><td>${i.avail}</td><td><input class="control editor-qty" type="number" min="1" max="${Math.min(remain,i.avail)}" value="${i.planQty}"></td><td>${editable?'<button class="link remove">移除</button>':''}</td></tr>`;
+    const availCell=`${i.avail}${limited?` <span class="limit-tag" title="受供应商仓当前可用库存限制（采购剩余 ${remain}）">受库存限</span>`:''}`;
+    return `<tr data-idx="${idx}"><td>${esc(i.sku)}</td><td class="product">${esc(i.name)}</td><td>${esc(i.po)}</td><td>${teamCell}</td><td>${i.purchaseQty}</td><td>${i.pickedBefore}</td><td>${remain}</td><td>${availCell}</td><td><div class="qty-cell"><input class="control editor-qty" type="number" min="1" max="${max}" value="${i.planQty}"><span class="qty-max">/ ${max}</span></div></td><td>${editable?'<button class="link remove">移除</button>':''}</td></tr>`;
   }
 
   function itemsTable(items,editable){
-    if(!items.length)return '<div class="empty" style="padding:40px 0;color:#909399;text-align:center">尚未选择采购单，请点击「选择采购单」添加提货明细</div>';
+    if(!items.length)return '<div class="empty" style="padding:40px 0;color:#909399;text-align:center">尚未选择采购单，请点击「选择采购单」添加提货明细（可直接选单自动带出供应商与提货仓）</div>';
     return `<table class="pickup-editor-table"><thead><tr><th>SKU</th><th>产品名称</th><th>采购单号</th><th>入库团队</th><th>采购数量</th><th>已收货</th><th>剩余可提</th><th>仓内可用</th><th>本次提货</th><th>操作</th></tr></thead><tbody>${items.map((i,n)=>editorRow(i,n,editable)).join('')}</tbody></table>`;
   }
 
   function refreshEditorSummary(mask){
     const items=state.editingItems;
-    const plan=sum(items,'planQty'),amount=items.reduce((n,i)=>n+i.planQty*i.price,0);
+    const plan=sum(items,'planQty'),amount=items.reduce((n,i)=>n+i.planQty*i.price,0),poCount=new Set(items.map(i=>i.po)).size;
     const el=$('.footer-summary',mask);
-    if(el)el.innerHTML=`已选 <b>${items.length}</b> 个 SKU，计划提货 <b>${plan}</b> 件，货值 <b>${money(amount)}</b>`;
+    if(el)el.innerHTML=`已选 <b>${items.length}</b> 个 SKU · 关联 <b>${poCount}</b> 张采购单 · 计划提货 <b>${plan}</b> 件 · 货值 <b>${money(amount)}</b>`;
+    const fillBtn=$('#fillMax',mask),clearBtn=$('#clearItems',mask),batchBtn=$('#applyBatchTeam',mask);
+    if(fillBtn)fillBtn.disabled=!items.length;
+    if(clearBtn)clearBtn.disabled=!items.length;
+    if(batchBtn)batchBtn.disabled=!items.length;
     const wrap=$('.pickup-items-wrap',mask);
     if(wrap){
       wrap.innerHTML=itemsTable(items,true);
@@ -168,7 +190,9 @@
         const i=items[n],max=Math.min(i.purchaseQty-i.pickedBefore,i.avail);
         let v=Math.round(Number(e.target.value)||0);
         if(v<0)v=0;if(v>max){v=max;e.target.value=max;toast(`${i.sku} 本次提货不得超过 ${max} 件`)}
-        i.planQty=v;refreshEditorSummary(mask);
+        i.planQty=v;
+        const plan2=sum(items,'planQty'),amount2=items.reduce((acc,x)=>acc+x.planQty*x.price,0);
+        if(el)el.innerHTML=`已选 <b>${items.length}</b> 个 SKU · 关联 <b>${poCount}</b> 张采购单 · 计划提货 <b>${plan2}</b> 件 · 货值 <b>${money(amount2)}</b>`;
       });
       $$('.remove',wrap).forEach((b,n)=>b.onclick=()=>{items.splice(n,1);refreshEditorSummary(mask)});
       wrap.onchange=e=>{const sel=e.target;if(sel&&sel.matches&&sel.matches('select.editor-team'))items[Number(sel.dataset.teamIdx)].team=sel.value;};
@@ -192,27 +216,66 @@
 <label class="ui-field"><span class="ui-field__label"><em class="ui-field__required">*</em>预计提货日期</span><input class="control" id="fExpected" type="date" value="${row?row.expectedDate||'':''}"></label>
 <label class="ui-field"><span class="ui-field__label">备注</span><input class="control" id="fRemark" maxlength="200" value="${esc(row?row.remark:'')}" placeholder="最多 200 字"></label>
 </div></section>
-<section class="pickup-items-card"><div class="pickup-items-toolbar"><strong>提货明细</strong><button class="btn" id="pickPurchase">选择采购单</button><button class="btn" id="fillMax">按上限填充</button></div><div class="pickup-hint">入库团队默认继承采购单行，决定货入仓后的货权归属；确认提货时按本单数量同步回写采购单收货量。</div><div class="pickup-items-wrap">${itemsTable(state.editingItems,true)}</div></section>
+<section class="pickup-items-card"><div class="pickup-items-toolbar"><strong>提货明细</strong><div class="batch-team-wrap"><select class="control" id="batchTeamSelect">${TEAMS.map(t=>`<option>${t}</option>`).join('')}</select><button class="btn" id="applyBatchTeam" type="button">批量改团队</button></div><button class="btn" id="pickPurchase" type="button">选择采购单</button><button class="btn" id="fillMax" type="button">按上限填充</button><button class="btn" id="clearItems" type="button">清空</button></div><div class="pickup-hint" id="editorHint">入库团队默认继承采购单行，决定货入仓后的货权归属；确认提货时按本单数量同步回写采购单收货量。</div><div class="pickup-items-wrap">${itemsTable(state.editingItems,true)}</div></section>
 </div><footer class="ui-dialog__footer"><div class="footer-summary"></div><div class="footer-actions"><button class="btn" data-close>取消</button><button class="btn" id="saveDraft">保存草稿</button><button class="btn primary" id="submitOrder">提交</button></div></footer></section>`);
 
-    $('#fSupplier',mask).onchange=e=>{
-      const s=e.target.value,list=SUPPLIER_WAREHOUSES[s]||[];
-      $('#fSource',mask).innerHTML=`<option value="">${list.length?'请选择':'请先选择供应商'}</option>`+list.map(w=>`<option>${w}</option>`).join('');
+    let prevSupplier=supplier,prevSource=source;
+    const syncSourceOptions=(sup,selected='')=>{
+      const list=SUPPLIER_WAREHOUSES[sup]||[];
+      $('#fSource',mask).innerHTML=`<option value="">${list.length?'请选择':'请先选择供应商'}</option>`+list.map(w=>`<option ${w===selected?'selected':''}>${w}</option>`).join('');
     };
-    $('#fTarget',mask).onchange=e=>{$('#fTargetType',mask).value=whType(e.target.value)};
+    const updateHint=()=>{
+      const tp=$('#fTargetType',mask).value;
+      const base='入库团队默认继承采购单行，决定货入仓后的货权归属；确认提货时按本单数量同步回写采购单收货量。';
+      const extra=tp==='物流商仓'?' 目标仓为物流商仓，提货入仓后可直接衔接后续发货或头程安排。':tp==='自有仓'?' 目标仓为我方自有仓，提货后直接计入自有仓团队可用库存。':'';
+      $('#editorHint',mask).textContent=base+extra;
+    };
+    updateHint();
+
+    $('#fSupplier',mask).onchange=e=>{
+      const nextSup=e.target.value;
+      if(state.editingItems.length&&nextSup!==prevSupplier){
+        confirmAction('切换供应商',`切换供应商将清空当前已选的 ${state.editingItems.length} 条提货明细，是否继续？`,()=>{
+          state.editingItems=[];prevSupplier=nextSup;prevSource='';syncSourceOptions(nextSup);refreshEditorSummary(mask);
+        },()=>{$('#fSupplier',mask).value=prevSupplier});
+        return;
+      }
+      prevSupplier=nextSup;prevSource='';syncSourceOptions(nextSup);
+    };
+    $('#fSource',mask).onchange=e=>{
+      const nextSrc=e.target.value;
+      if(state.editingItems.length&&nextSrc!==prevSource){
+        confirmAction('切换提货仓',`切换提货仓将清空当前已选的 ${state.editingItems.length} 条提货明细，是否继续？`,()=>{
+          state.editingItems=[];prevSource=nextSrc;refreshEditorSummary(mask);
+        },()=>{$('#fSource',mask).value=prevSource});
+        return;
+      }
+      prevSource=nextSrc;
+    };
+    $('#fTarget',mask).onchange=e=>{$('#fTargetType',mask).value=whType(e.target.value);updateHint()};
+    $('#applyBatchTeam',mask).onclick=()=>{
+      if(!state.editingItems.length)return;
+      const t=$('#batchTeamSelect',mask).value;
+      state.editingItems.forEach(i=>{i.team=t});
+      refreshEditorSummary(mask);toast(`已将全部明细入库团队设为「${t}」`);
+    };
+    $('#clearItems',mask).onclick=()=>{
+      if(!state.editingItems.length)return;
+      state.editingItems=[];refreshEditorSummary(mask);toast('已清空提货明细');
+    };
     $('#fillMax',mask).onclick=()=>{
       state.editingItems.forEach(i=>{i.planQty=Math.min(i.purchaseQty-i.pickedBefore,i.avail)});
       refreshEditorSummary(mask);toast('已按可提上限填充');
     };
-    $('#pickPurchase',mask).onclick=()=>openPicker(mask);
-    refreshEditorSummary(mask);
-    $$('.editor-qty',mask).forEach((inp,n)=>inp.oninput=e=>{
-      const i=state.editingItems[n],max=Math.min(i.purchaseQty-i.pickedBefore,i.avail);
-      let v=Math.round(Number(e.target.value)||0);
-      if(v<0)v=0;if(v>max){v=max;e.target.value=max;toast(`${i.sku} 本次提货不得超过 ${max} 件`)}
-      i.planQty=v;refreshEditorSummary(mask);
+    $('#pickPurchase',mask).onclick=()=>openPicker(mask,({supplier:s,wh:w})=>{
+      if(s&&$('#fSupplier',mask).value!==s){
+        $('#fSupplier',mask).value=s;prevSupplier=s;syncSourceOptions(s,w);
+      }
+      if(w&&$('#fSource',mask).value!==w){
+        $('#fSource',mask).value=w;prevSource=w;
+      }
     });
-    $$('.remove',mask).forEach((b,n)=>b.onclick=()=>{state.editingItems.splice(n,1);refreshEditorSummary(mask)});
+    refreshEditorSummary(mask);
 
     const collect=()=>{
       const supplier=$('#fSupplier',mask).value,source=$('#fSource',mask).value,target=$('#fTarget',mask).value,expected=$('#fExpected',mask).value;
@@ -246,23 +309,84 @@
     $('#submitOrder',mask).onclick=()=>save('待提货');
   }
 
-  function openPicker(parent){
-    const supplier=$('#fSupplier',parent).value;
-    const mask=modal(`<section class="ui-dialog execute-dialog"><header class="ui-dialog__header"><div><h2>选择采购单</h2><p>${supplier?'当前供应商：'+esc(supplier):'仅展示提货型供应商的待收货采购明细'}</p></div><button class="ui-dialog__close" data-close>×</button></header><div class="ui-dialog__body">
-<div class="pickup-items-wrap" style="flex:1"><table class="execute-table"><thead><tr><th><input type="checkbox" id="pickAll"></th><th>SKU</th><th>产品名称</th><th>采购单号</th><th>入库团队</th><th>采购数量</th><th>已收货</th><th>剩余可提</th><th>收货状态</th><th>提货仓</th><th>提货仓可用</th></tr></thead><tbody>${
-      purchasePool.filter(p=>!supplier||p.supplier===supplier).map(p=>{
-        const added=state.editingItems.some(i=>i.key===p.key),remain=poRemain(p),rs=poReceiveState(p),dead=remain<=0;
-        return `<tr data-key="${p.key}" class="${dead?'row-done':''}"><td><input type="checkbox" class="pick-check" ${added?'checked disabled':''} ${dead?'disabled':''}></td><td>${esc(p.sku)}</td><td class="product">${esc(p.name)}</td><td>${esc(p.po)}</td><td><span class="team-tag">${esc(p.team)}</span></td><td>${p.purchaseQty}</td><td>${p.pickedBefore}</td><td>${remain}</td><td><span class="po-state po-${rs.k}">${rs.t}</span></td><td>${esc(p.wh)}</td><td>${p.avail}</td></tr>`}).join('')
-    }</tbody></table></div></div><footer class="ui-dialog__footer"><div class="footer-summary">仅展示提货型供应商的待收货采购明细；已收完的采购行不可再提</div><div class="footer-actions"><button class="btn" data-close>取消</button><button class="btn primary" id="pickConfirm">确定</button></div></footer></section>`);
-    $('#pickAll',mask).onchange=e=>$$('.pick-check:not(:disabled)',mask).forEach(c=>c.checked=e.target.checked);
+  function openPicker(parent,onResolved){
+    const supplier=$('#fSupplier',parent).value,source=$('#fSource',parent).value;
+    const subTitle=supplier&&source?`当前限定：${esc(supplier)} · ${esc(source)}（仅展示同仓待收明细）`:supplier?`当前供应商：${esc(supplier)}（勾选后将自动锁定同一提货仓）`:'未选单头，勾选明细后将自动带出供应商与提货仓';
+    const mask=modal(`<section class="ui-dialog execute-dialog"><header class="ui-dialog__header"><div><h2>选择采购单</h2><p>${subTitle}</p></div><button class="ui-dialog__close" data-close>×</button></header><div class="ui-dialog__body">
+<div class="picker-toolbar">
+  <input class="control picker-search-input" id="pickerKey" placeholder="搜索采购单号 / SKU / 产品名称">
+  <select class="control picker-team-select" id="pickerTeam"><option value="">全部团队</option>${TEAMS.map(t=>`<option>${t}</option>`).join('')}</select>
+  <label class="picker-only-avail"><input type="checkbox" id="pickerOnlyAvail"><span>仅看可提（可提上限 &gt; 0）</span></label>
+  <span class="picker-meta" id="pickerMeta"></span>
+</div>
+<div class="pickup-items-wrap" style="flex:1"><table class="execute-table"><thead><tr><th><input type="checkbox" id="pickAll"></th><th>SKU</th><th>产品名称</th><th>采购单号</th><th>入库团队</th><th>采购/已收</th><th>剩余可提</th><th>仓内可用</th><th>可提上限</th><th>收货状态</th><th>提货仓</th></tr></thead><tbody id="pickerBody"></tbody></table></div></div><footer class="ui-dialog__footer"><div class="footer-summary" id="pickerSummary">请选择需要提货的采购明细</div><div class="footer-actions"><button class="btn" data-close>取消</button><button class="btn primary" id="pickConfirm">确定</button></div></footer></section>`);
+
+    const chosen=new Set();
+    const activeLock=()=>{
+      if(supplier&&source)return {supplier,wh:source};
+      if(state.editingItems.length)return {supplier:state.editingItems[0].supplier,wh:state.editingItems[0].wh};
+      const firstKey=[...chosen][0];
+      if(firstKey){const p=poolFind(firstKey);return p?{supplier:p.supplier,wh:p.wh}:null}
+      return supplier?{supplier,wh:''}:null;
+    };
+    const renderPicker=()=>{
+      const kw=$('#pickerKey',mask).value.trim().toLowerCase(),team=$('#pickerTeam',mask).value,onlyAvail=$('#pickerOnlyAvail',mask).checked;
+      const lock=activeLock();
+      const list=purchasePool
+        .filter(p=>(!supplier||p.supplier===supplier)&&(!source||p.wh===source))
+        .filter(p=>!kw||`${p.po} ${p.sku} ${p.name}`.toLowerCase().includes(kw))
+        .filter(p=>!team||p.team===team)
+        .filter(p=>!onlyAvail||Math.min(poRemain(p),p.avail)>0);
+
+      $('#pickerMeta',mask).textContent=`共 ${list.length} 条明细`;
+      $('#pickerBody',mask).innerHTML=list.length?list.map(p=>{
+        const added=state.editingItems.some(i=>i.key===p.key),remain=poRemain(p),maxPick=Math.max(0,Math.min(remain,p.avail)),rs=poReceiveState(p);
+        const dead=remain<=0||p.avail<=0;
+        const conflict=lock&&((lock.supplier&&p.supplier!==lock.supplier)||(lock.wh&&p.wh!==lock.wh));
+        const checked=added||chosen.has(p.key);
+        const disabled=added||dead||conflict;
+        const capHtml=dead
+          ? `<span class="limit-tag danger">${remain<=0?'已收完':'无库存'}</span>`
+          : p.avail<remain
+            ? `<b>${maxPick}</b> <span class="limit-tag">受库存限</span>`
+            : `<b>${maxPick}</b>`;
+        return `<tr data-key="${p.key}" class="${dead?'row-done':conflict?'row-conflict':''}"><td><input type="checkbox" class="pick-check" ${checked?'checked':''} ${disabled?'disabled':''} title="${conflict?'同单仅支持同一供应商与提货仓':''}"></td><td>${esc(p.sku)}</td><td class="product">${esc(p.name)}</td><td>${esc(p.po)}</td><td><span class="team-tag">${esc(p.team)}</span></td><td>${p.purchaseQty}/${p.pickedBefore}</td><td>${remain}</td><td>${p.avail}</td><td>${capHtml}</td><td><span class="po-state po-${rs.k}">${rs.t}</span></td><td>${esc(p.wh)}</td></tr>`;
+      }).join(''):'<tr><td colspan="11" style="padding:36px 0;color:#909399;text-align:center">暂无匹配的采购明细</td></tr>';
+
+      const selectable=$$('.pick-check:not(:disabled)',mask);
+      $('#pickAll',mask).checked=selectable.length>0&&selectable.every(c=>c.checked);
+      const pickedQty=[...chosen].reduce((n,k)=>{const p=poolFind(k);return n+(p?Math.max(0,Math.min(poRemain(p),p.avail)):0)},0);
+      $('#pickerSummary',mask).innerHTML=chosen.size?`已勾选 <b>${chosen.size}</b> 条明细，预计带入 <b>${pickedQty}</b> 件${lock&&(!supplier||!source)?`（将自动带出：${esc(lock.supplier)} · ${esc(lock.wh)}）`:''}`:'仅展示提货型供应商的待收货采购明细；同一提货单需保持供应商与提货仓一致';
+
+      $$('.pick-check:not(:disabled)',mask).forEach(c=>c.onchange=e=>{
+        const key=e.target.closest('tr').dataset.key;
+        if(e.target.checked)chosen.add(key);else chosen.delete(key);
+        renderPicker();
+      });
+    };
+
+    $('#pickerKey',mask).oninput=renderPicker;
+    $('#pickerTeam',mask).onchange=renderPicker;
+    $('#pickerOnlyAvail',mask).onchange=renderPicker;
+    $('#pickAll',mask).onchange=e=>{
+      $$('.pick-check:not(:disabled)',mask).forEach(c=>{
+        const key=c.closest('tr').dataset.key;
+        if(e.target.checked)chosen.add(key);else chosen.delete(key);
+      });
+      renderPicker();
+    };
+    renderPicker();
+
     $('#pickConfirm',mask).onclick=()=>{
-      const picked=$$('tbody tr',mask).filter(tr=>{const c=$('.pick-check',tr);return c&&c.checked&&!c.disabled});
-      if(!picked.length)return toast('请勾选需要提货的采购明细');
-      picked.forEach(tr=>{
-        const p=poolFind(tr.dataset.key);
+      if(!chosen.size)return toast('请勾选需要提货的采购明细');
+      const resolved=activeLock();
+      chosen.forEach(key=>{
+        const p=poolFind(key);
+        if(!p||state.editingItems.some(i=>i.key===p.key))return;
         state.editingItems.push({...p,planQty:Math.max(0,Math.min(poRemain(p),p.avail)),picked:0,reconciled:0});
       });
-      mask.remove();refreshEditorSummary(parent);toast(`已加入 ${picked.length} 条采购明细`);
+      if(resolved&&onResolved)onResolved(resolved);
+      mask.remove();refreshEditorSummary(parent);toast(`已加入 ${chosen.size} 条采购明细`);
     };
   }
 
@@ -373,8 +497,9 @@
     modal(`<div class="transfer-log-dialog"><header class="transfer-log-header"><div><h2>操作日志</h2><span>提货单：${esc(o.no)}</span></div><button class="transfer-log-close" data-close>×</button></header><div class="transfer-log-body"><div class="transfer-log-table-card"><table class="transfer-log-table"><thead><tr><th>操作类型</th><th>日志内容</th><th>操作人</th><th>操作时间</th></tr></thead><tbody>${o.logs.map(l=>`<tr><td>${esc(l.type)}</td><td class="transfer-log-content">${esc(l.content)}</td><td>${esc(l.operator)}</td><td>${esc(l.time)}</td></tr>`).join('')}</tbody></table></div></div><footer class="transfer-log-footer"><span>共 ${o.logs.length} 条</span><div><button class="transfer-log-page" disabled>‹</button><button class="transfer-log-page active">1</button><button class="transfer-log-page" disabled>›</button></div></footer></div>`,'transfer-log-modal');
   }
 
-  function confirmAction(title,text,fn){
+  function confirmAction(title,text,fn,onCancel){
     const mask=modal(`<section class="ui-dialog confirm-dialog"><header class="ui-dialog__header"><h2>${title}</h2><button class="ui-dialog__close" data-close>×</button></header><div class="ui-dialog__body confirm-body">${text}</div><footer class="ui-dialog__footer"><button class="btn" data-close>取消</button><button class="btn danger" id="confirmAction">确认</button></footer></section>`);
+    if(onCancel)$$('[data-close]',mask).forEach(b=>b.onclick=()=>{onCancel();mask.remove()});
     $('#confirmAction',mask).onclick=()=>{fn();mask.remove()};
   }
 
@@ -427,6 +552,13 @@
   $('#prevPage').onclick=()=>{if(state.page>1){state.page--;render()}};
   $('#nextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(filtered().length/state.pageSize));if(state.page<pages){state.page++;render()}};
   $('#selectAll').onchange=e=>{filtered().slice((state.page-1)*state.pageSize,state.page*state.pageSize).forEach(o=>e.target.checked?state.selected.add(o.id):state.selected.delete(o.id));render()};
+  $('#expandAllBtn').onclick=()=>{
+    const shown=filtered().slice((state.page-1)*state.pageSize,state.page*state.pageSize);
+    if(!shown.length)return;
+    const allExpanded=shown.every(o=>state.expanded.has(o.id));
+    shown.forEach(o=>allExpanded?state.expanded.delete(o.id):state.expanded.add(o.id));
+    render();
+  };
   $('#exportBtn').onclick=()=>toast(`已创建 ${filtered().length} 张提货单的导出任务`);
   $('#importBtn').onclick=()=>UIKit.openImportDialog({
     title:'导入新建提货单',

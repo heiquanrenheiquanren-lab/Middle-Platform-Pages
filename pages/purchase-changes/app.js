@@ -92,8 +92,8 @@ function nowStamp(){
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 function makeChangeId(){
-  const compact=nowStamp().slice(0,10).replaceAll('-','');
-  const prefix='PC'+compact;
+  const compact=nowStamp().slice(2,10).replaceAll('-','');
+  const prefix='POBG'+compact;
   const max=changes.filter(item=>item.id.startsWith(prefix)).reduce((val,item)=>Math.max(val,Number(item.id.slice(prefix.length))||0),0);
   return prefix+String(max+1).padStart(4,'0');
 }
@@ -143,12 +143,12 @@ const after4=fromOrder(purchaseOrders[0]);after4.items[2].quantity=100;
 const after5=fromOrder(purchaseOrders[2]);after5.freight=600;
 
 const changes=[
- makeChange('PC202611020006','PO202610280016','pending','张敏','2026-11-02 16:28',after1,'供应商确认价格调整，同时要求改送深圳采购仓；手套追加备货数量。'),
- makeChange('PC202611020005','PO202610290008','pending','李晨','2026-11-02 14:06',after2,'原采购负责人工作交接，并更新接头套装最新协议价。'),
- makeChange('PC202611010012','PO202610300021','effective','王磊','2026-11-01 10:32',after3,'供应商大件货物专车配送，补充运输及装卸费用。',{auditor:'Admin',auditedAt:'2026-11-01 11:08',effectiveAt:'2026-11-01 11:08',opinion:'费用凭证已核对，同意变更。'}),
- makeChange('PC202610310009','PO202610280016','effective','张敏','2026-10-31 09:45',after4,'面罩追加安全库存备货数量。',{auditor:'Admin',auditedAt:'2026-10-31 10:12',effectiveAt:'2026-10-31 10:12',opinion:'同意。'}),
- makeChange('PC202610300018','PO202610300021','rejected','王磊','2026-10-30 17:20',after5,'物流临时加急专车配送，申请调整运费金额。',{auditor:'Admin',auditedAt:'2026-10-30 18:02',opinion:'请补充物流加急报价单后再提交。'}),
- makeChange('PC202610290011','PO202610300021','void','王磊','2026-10-29 13:18',after3,'重复提交，作废本单。',{auditor:'王磊',auditedAt:'2026-10-29 13:25',opinion:'申请人主动作废'})
+ makeChange('POBG2611020006','PO202610280016','pending','张敏','2026-11-02 16:28',after1,'供应商确认价格调整，同时要求改送深圳采购仓；手套追加备货数量。'),
+ makeChange('POBG2611020005','PO202610290008','pending','李晨','2026-11-02 14:06',after2,'原采购负责人工作交接，并更新接头套装最新协议价。'),
+ makeChange('POBG2611010012','PO202610300021','effective','王磊','2026-11-01 10:32',after3,'供应商大件货物专车配送，补充运输及装卸费用。',{auditor:'Admin',auditedAt:'2026-11-01 11:08',effectiveAt:'2026-11-01 11:08',opinion:'费用凭证已核对，同意变更。'}),
+ makeChange('POBG2610310009','PO202610280016','effective','张敏','2026-10-31 09:45',after4,'面罩追加安全库存备货数量。',{auditor:'Admin',auditedAt:'2026-10-31 10:12',effectiveAt:'2026-10-31 10:12',opinion:'同意。'}),
+ makeChange('POBG2610300018','PO202610300021','rejected','王磊','2026-10-30 17:20',after5,'物流临时加急专车配送，申请调整运费金额。',{auditor:'Admin',auditedAt:'2026-10-30 18:02',opinion:'请补充物流加急报价单后再提交。'}),
+ makeChange('POBG2610290011','PO202610300021','void','王磊','2026-10-29 13:18',after3,'重复提交，作废本单。',{auditor:'王磊',auditedAt:'2026-10-29 13:25',opinion:'申请人主动作废'})
 ];
 
 changes.forEach(change=>{

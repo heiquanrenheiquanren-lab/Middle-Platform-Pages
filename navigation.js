@@ -21,6 +21,7 @@
     stock: '../stock-plan/index.html',
     purchase: '../purchase-plan-2/index.html',
     shipment: '../shipment-plan/index.html',
+    shipmentV2: '../shipment-plan-v2/index.html',
     purchaseOrder: '../purchase-orders/index.html',
     purchaseChange: '../purchase-changes/index.html',
     shipmentOrder: '../shipment-orders/index.html',
@@ -371,6 +372,32 @@
       item.classList.remove('active');
       if (location.pathname.indexOf('/fba-shipment/') >= 0) item.classList.add('active');
       item.innerHTML = '<span class="mini">♧</span>FBA货件';
+      source.insertAdjacentElement('afterend', item);
+    });
+  }
+
+  function mountShipmentV2Nav() {
+    document.querySelectorAll('[data-page-nav="shipment"]').forEach(function (source) {
+      var container = source.parentElement;
+      if (!container || container.querySelector('[data-page-nav="shipmentV2"]')) return;
+      var item = source.cloneNode(true);
+      item.setAttribute('data-page-nav', 'shipmentV2');
+      item.classList.remove('active');
+      if (location.pathname.indexOf('/shipment-plan-v2/') >= 0) item.classList.add('active');
+      var icon = item.querySelector('.mini, .nav-icon');
+      if (icon) {
+        item.innerHTML = '';
+        item.appendChild(icon.cloneNode(true));
+        if (icon.classList.contains('nav-icon')) {
+          var span = document.createElement('span');
+          span.textContent = '发货计划 V2';
+          item.appendChild(span);
+        } else {
+          item.appendChild(document.createTextNode('发货计划 V2'));
+        }
+      } else {
+        item.textContent = '发货计划 V2';
+      }
       source.insertAdjacentElement('afterend', item);
     });
   }
@@ -763,6 +790,7 @@
     mountPurchaseChangeNav();
     mountHistoricalPurchasePriceNav();
     mountFbaShipmentNav();
+    mountShipmentV2Nav();
     renameWarehouseNavigation();
 
     var collapsed = false;

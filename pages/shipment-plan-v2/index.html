@@ -1,0 +1,396 @@
+<!doctype html>
+<!-- 发货计划 V2：严格对齐测试环境字段、查询项、按钮与 68 列表格结构，采用本项目 UI 规范重构 -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>发货计划 V2</title>
+  <link rel="stylesheet" href="../../ui-kit.css">
+  <link rel="stylesheet" href="../transfer-orders/styles.css?v=1.0.24">
+  <link rel="stylesheet" href="../../document-list.css?v=1.0.1">
+  <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
+  <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
+  <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
+  <link rel="stylesheet" href="./styles.css?v=1.0.0">
+</head>
+<body data-ui-kit-page="standard" class="ui-page-canvas">
+  <div class="toast" id="toast">查询完成</div>
+  <div class="app">
+    <header class="global-bar">
+      <div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button><button class="top-icon">企业工单</button></div>
+      <div class="global-right"><span class="admin">Admin⌄</span></div>
+    </header>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="nav-scroll">
+          <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div><div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+          <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划 V1</div><div class="nav-item active" data-page-nav="shipmentV2"><span class="mini">♨</span>发货计划 V2</div>
+          <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
+          <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
+        </div>
+        <div class="collapse">≡</div>
+      </aside>
+      <main class="main spv2-main">
+        <!-- 查询区域：严格保留测试环境全部 18 项查询条件与操作按钮（按 UI_SPEC 3.9 规范排布） -->
+        <section class="query-panel ui-query-card" id="queryCard" aria-label="发货计划 V2 查询区域">
+          <div class="query-grid ui-query-flow" id="queryGrid">
+            <div class="query-item query-combo">
+              <select class="control query-type-select" id="codeType" title="编码类型">
+                <option value="sku">SKU</option>
+                <option value="supplierCode">供应商料号</option>
+                <option value="lingxingSku">领星SKU</option>
+                <option value="sellerSku">SellerSKU</option>
+                <option value="fnsku">FNSKU</option>
+                <option value="asin">ASIN</option>
+              </select>
+              <input class="control query-combo-input" id="codeInput" placeholder="请输入编码，多个用逗号或空格隔开" autocomplete="off">
+            </div>
+            <div class="query-item q-plan"><input class="control" id="planNo" placeholder="请输入计划号，多个用逗号或空格隔开" autocomplete="off"></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="shipWarehouseMulti"><div class="multi-trigger" data-trigger>发货仓（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="destinationWarehouseMulti"><div class="multi-trigger" data-trigger>目的地仓（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item">
+              <select class="control" id="destinationType" title="目的地仓类型">
+                <option value="">目的地仓类型</option>
+                <option value="海外仓">海外仓</option>
+                <option value="本地仓">本地仓</option>
+                <option value="平台仓">平台仓</option>
+              </select>
+            </div>
+            <div class="query-item">
+              <select class="control" id="firstMileProvider" title="头程物流商">
+                <option value="">头程物流商</option>
+              </select>
+            </div>
+            <div class="query-item"><input class="control" id="logisticsChannel" placeholder="物流渠道，支持模糊查询" autocomplete="off"></div>
+            <div class="query-item">
+              <select class="control" id="transportMode" title="运输方式">
+                <option value="">运输方式</option>
+                <option value="海运">海运</option>
+                <option value="空运">空运</option>
+                <option value="快递">快递</option>
+                <option value="卡航">卡航</option>
+                <option value="铁路">铁路</option>
+              </select>
+            </div>
+            <div class="query-item"><div class="multi ui-multi-select" id="platformMulti"><div class="multi-trigger" data-trigger>平台（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="countryMulti"><div class="multi-trigger" data-trigger>国家（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="storeMulti"><div class="multi-trigger" data-trigger>店铺（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="teamMulti"><div class="multi-trigger" data-trigger>团队（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item query-date-item">
+              <select class="control query-time-type" id="timeType" title="日期类型">
+                <option value="createdAt">创建时间</option>
+                <option value="updatedAt">修改时间</option>
+                <option value="estShipDate">预计发货日期</option>
+                <option value="estArrivalDate">预计到货日期</option>
+              </select>
+              <div class="date-group">
+                <input id="startDate" type="date" aria-label="开始时间">
+                <span>至</span>
+                <input id="endDate" type="date" aria-label="结束时间">
+              </div>
+            </div>
+            <div class="query-item">
+              <select class="control" id="creatorSelect" title="创建人">
+                <option value="">创建人</option>
+              </select>
+            </div>
+            <div class="query-item q-remark"><input class="control" id="remarkQuery" placeholder="发货计划备注，支持模糊查询" autocomplete="off"></div>
+            <div class="query-item q-order"><input class="control" id="purchaseNoQuery" placeholder="采购单号，多个用逗号或空格隔开" autocomplete="off"></div>
+            <div class="query-item q-order"><input class="control" id="shippingOrderNoQuery" placeholder="发货单号，多个用逗号或空格隔开" autocomplete="off"></div>
+            <div class="query-item q-order"><input class="control" id="fbaShipmentNoQuery" placeholder="货件单号，多个用逗号或空格隔开" autocomplete="off"></div>
+            <div class="query-item">
+              <select class="control" id="fbaLinkStatusQuery" title="FBA关联状态">
+                <option value="">FBA 关联状态</option>
+                <option value="unlinked">未关联</option>
+                <option value="linked">已关联</option>
+              </select>
+            </div>
+            <div class="query-item query-action-item">
+              <div class="query-actions ui-query-actions">
+                <button class="query-inline-expand" id="queryExpand" type="button" aria-expanded="false">
+                  <svg class="query-arrow" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>
+                  <span class="query-expand-text">展开</span>
+                </button>
+                <button class="btn primary" id="searchBtn" type="button">查询</button>
+                <button class="btn" id="resetBtn" type="button">重置</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 操作按钮栏：遵循 UI_SPEC 0.6 主次层级 + 右侧列配置入口 -->
+        <section class="action-strip ui-action-row" aria-label="操作按钮区">
+          <div class="head-actions">
+            <button class="btn primary" id="createPlanBtn" type="button">新建发货计划</button>
+            <button class="btn success" id="confirmBtn" type="button">确认</button>
+            <button class="btn" id="importPlanBtn" type="button">导入发货计划</button>
+            <button class="btn danger" id="batchVoidBtn" type="button">作废</button>
+          </div>
+          <button class="column-config-trigger" id="colConfigBtn" type="button" title="列配置" aria-label="列配置">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <rect x="2.5" y="3" width="15" height="14" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M7.5 3v14m5-14v14" stroke="currentColor" stroke-width="1.3"/>
+            </svg>
+          </button>
+        </section>
+
+        <!-- 列表卡片：状态 Tab + 行内可编辑表格 + 分页栏 -->
+        <section class="list-card spv2-list-card ui-list-card">
+          <section class="status-bar">
+            <div class="status-tabs" id="statusTabs"></div>
+          </section>
+
+          <section class="table-area" id="tableArea">
+            <table class="spv2-table" id="spv2Table">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+            <div class="spv2-empty" id="empty" hidden>暂无符合条件的发货计划</div>
+          </section>
+
+          <footer class="bottom-bar">
+            <div class="bottom-left">
+              <label class="spv2-bottom-select">
+                <input type="checkbox" id="bottomSelectAll" aria-label="全选当前页">
+                <span>已选 <b id="selectedCount">0</b> 条结果</span>
+              </label>
+            </div>
+            <div class="bottom-right">
+              <span>共 <b id="totalCount">0</b> 条</span>
+              <select class="control page-size" id="pageSize" title="每页条数">
+                <option value="10">10条/页</option>
+                <option value="25" selected>25条/页</option>
+                <option value="50">50条/页</option>
+                <option value="100">100条/页</option>
+              </select>
+              <button class="page-btn" id="prevPage" type="button" title="上一页">‹</button>
+              <span id="pageButtons"></span>
+              <button class="page-btn" id="nextPage" type="button" title="下一页">›</button>
+              <span>前往</span><input class="control jump" id="jumpPage" value="1" aria-label="跳转页码"><span>页</span>
+            </div>
+          </footer>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- 新建发货计划弹窗（严格对齐 UI_SPEC 1.8 新建单据弹窗设计基线） -->
+  <div class="spv2-modal-mask hidden" id="createModalMask"></div>
+  <div class="spv2-modal hidden" id="createModal" role="dialog" aria-modal="true" aria-label="新建发货计划">
+    <div class="spv2-modal-dialog spv2-create-dialog">
+      <header class="spv2-modal-head">
+        <div>
+          <h3>新建发货计划</h3>
+          <p class="spv2-modal-subtitle">填写发货计划与物流轨迹，并添加发货 SKU 明细</p>
+        </div>
+        <button class="spv2-modal-close" id="createCloseBtn" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="spv2-modal-body">
+        <section class="spv2-form-section">
+          <h4 class="spv2-section-title"><i class="spv2-title-bar"></i><span>发货计划</span></h4>
+          <div class="spv2-form-grid">
+            <label class="spv2-field">
+              <span><em>*</em>发货方式</span>
+              <select class="control" id="cShipMethod">
+                <option value="">请选择发货方式</option>
+                <option value="海外仓备货">海外仓备货</option>
+                <option value="FBA直发">FBA直发</option>
+                <option value="本地仓直发">本地仓直发</option>
+                <option value="海外仓转运">海外仓转运</option>
+              </select>
+            </label>
+            <label class="spv2-field">
+              <span><em>*</em>发货仓</span>
+              <select class="control" id="cShipWarehouse">
+                <option value="">请选择发货仓</option>
+              </select>
+            </label>
+            <div class="spv2-field">
+              <span>计划负责人</span>
+              <div class="spv2-readonly-val" id="cPlanOwner">Admin</div>
+            </div>
+            <label class="spv2-field">
+              <span>目的地仓</span>
+              <select class="control" id="cDestWarehouse">
+                <option value="">请选择目的地仓</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="spv2-form-section">
+          <h4 class="spv2-section-title"><i class="spv2-title-bar"></i><span>物流轨迹</span></h4>
+          <div class="spv2-form-grid">
+            <label class="spv2-field">
+              <span><em>*</em>预计发货日期</span>
+              <input class="control" id="cEstShipDate" type="date">
+            </label>
+            <label class="spv2-field">
+              <span><em>*</em>预计物流时长(天)</span>
+              <input class="control" id="cEstDays" type="number" min="1" placeholder="请输入天数">
+            </label>
+            <label class="spv2-field">
+              <span>预计到货日期</span>
+              <input class="control" id="cEstArrivalDate" type="date">
+            </label>
+          </div>
+        </section>
+
+        <section class="spv2-detail-section">
+          <div class="spv2-detail-toolbar">
+            <h4 class="spv2-section-title"><i class="spv2-title-bar"></i><span>SKU 明细</span></h4>
+            <button class="btn primary" id="createAddSkuBtn" type="button">添加 SKU</button>
+          </div>
+          <div class="spv2-create-table-wrap">
+            <table class="spv2-create-table">
+              <thead>
+                <tr>
+                  <th class="spv2-c-fix-1">SKU</th>
+                  <th class="spv2-c-fix-2">领星SKU</th>
+                  <th class="spv2-c-fix-3">品名</th>
+                  <th class="spv2-c-fix-4">团队<button class="spv2-batch-trigger" type="button" data-batch-field="team">批量</button></th>
+                  <th>平台<button class="spv2-batch-trigger" type="button" data-batch-field="platform">批量</button></th>
+                  <th>店铺<button class="spv2-batch-trigger" type="button" data-batch-field="store">批量</button></th>
+                  <th>国家</th>
+                  <th>运营负责人<button class="spv2-batch-trigger" type="button" data-batch-field="opsOwner">批量</button></th>
+                  <th>包装规格（cm）长宽高</th>
+                  <th>箱规（cm）长宽高</th>
+                  <th>箱规(数量)</th>
+                  <th>箱数</th>
+                  <th><em class="spv2-th-req">*</em>提货仓<button class="spv2-batch-trigger" type="button" data-batch-field="pickupWarehouse">批量</button></th>
+                  <th>计划发货数量<button class="spv2-batch-trigger" type="button" data-batch-field="planShipQty">批量</button></th>
+                  <th>备注<button class="spv2-batch-trigger" type="button" data-batch-field="remark">批量</button></th>
+                  <th>供应商料号</th>
+                  <th class="spv2-c-fix-right">操作</th>
+                </tr>
+              </thead>
+              <tbody id="createSkuBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <footer class="spv2-modal-footer">
+        <div class="spv2-footer-stats" id="createFooterStats">
+          <span class="spv2-footer-stat">已选 <em id="statSkuCount">0</em> 个 SKU</span>
+          <span class="spv2-footer-stat">总箱数 <em id="statTotalCartons">0</em> 箱</span>
+          <span class="spv2-footer-stat">计划发货总数 <em id="statTotalQty">0</em> 件</span>
+        </div>
+        <div class="spv2-footer-actions">
+          <button class="btn" id="createCancelBtn" type="button">取消</button>
+          <button class="btn primary" id="createSubmitBtn" type="button">提交</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 批量填充小浮层（参照采购计划明细表头「批量」交互） -->
+  <div class="spv2-batch-popover hidden" id="batchFillPopover" role="dialog" aria-label="批量编辑">
+    <div class="spv2-batch-popover__body" id="batchFillBody"></div>
+    <div class="spv2-batch-popover__actions">
+      <button class="btn spv2-btn-sm" id="batchFillCancelBtn" type="button">取消</button>
+      <button class="btn primary spv2-btn-sm" id="batchFillConfirmBtn" type="button">确认</button>
+    </div>
+  </div>
+
+  <!-- 添加 SKU 小弹窗（参照新建采购计划「添加 SKU」） -->
+  <div class="spv2-modal-mask spv2-sub-mask hidden" id="skuPickerMask"></div>
+  <div class="spv2-modal spv2-sub-modal hidden" id="skuPickerModal" role="dialog" aria-modal="true" aria-label="添加 SKU">
+    <div class="spv2-modal-dialog spv2-picker-dialog">
+      <header class="spv2-modal-head">
+        <h3>添加 SKU</h3>
+        <button class="spv2-modal-close" id="skuPickerCloseBtn" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="spv2-picker-body">
+        <div class="spv2-picker-search">
+          <input class="control" id="skuPickerCodeInput" placeholder="SKU（支持多个，逗号或空格分隔）" autocomplete="off">
+          <input class="control" id="skuPickerNameInput" placeholder="品名" autocomplete="off">
+          <button class="btn primary" id="skuPickerSearchBtn" type="button">查询</button>
+        </div>
+        <div class="spv2-picker-table-wrap">
+          <table class="spv2-picker-table">
+            <thead>
+              <tr>
+                <th class="spv2-picker-check-col"><input type="checkbox" id="skuPickerSelectAll" aria-label="全选SKU"></th>
+                <th>SKU</th>
+                <th>品名</th>
+              </tr>
+            </thead>
+            <tbody id="skuPickerBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <footer class="spv2-modal-footer">
+        <div class="spv2-picker-count">已选择 <span id="skuPickerSelectedCount">0</span> 个 SKU</div>
+        <div class="spv2-footer-actions">
+          <button class="btn" id="skuPickerCancelBtn" type="button">取消</button>
+          <button class="btn primary" id="skuPickerConfirmBtn" type="button">添加选中 SKU</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 列配置抽屉（对齐采购计划交互，单级列表无一二级 Tab） -->
+  <div class="spv2-drawer-mask hidden" id="colConfigMask"></div>
+  <aside class="spv2-drawer hidden" id="colConfigDrawer" role="dialog" aria-modal="true" aria-label="列配置">
+    <div class="spv2-col-config">
+      <header class="spv2-col-header">
+        <div class="spv2-col-title">列配置</div>
+      </header>
+      <div class="spv2-col-content">
+        <div class="spv2-col-options">
+          <input class="spv2-col-search" id="colConfigSearch" type="text" placeholder="搜索字段" aria-label="搜索字段" autocomplete="off">
+          <div class="spv2-col-checks" id="colConfigChecks"></div>
+          <div class="spv2-col-none hidden" id="colConfigNone">没有匹配的字段</div>
+        </div>
+        <div class="spv2-col-selected">
+          <div class="spv2-col-selected-title">已选 <span id="colConfigSelectedCount">(0)</span></div>
+          <p>拖动可调整非固定列顺序</p>
+          <div class="spv2-col-selected-list" id="colConfigSelectedList"></div>
+        </div>
+      </div>
+      <footer class="spv2-col-footer">
+        <button class="btn" id="colConfigResetBtn" type="button">恢复默认</button>
+        <div>
+          <button class="btn" id="colConfigCancelBtn" type="button">取消</button>
+          <button class="btn primary" id="colConfigSaveBtn" type="button">保存并应用</button>
+        </div>
+      </footer>
+    </div>
+  </aside>
+
+  <!-- 操作日志弹窗 -->
+  <div class="plan-log-mask hidden" id="planLogMask"></div>
+  <div class="plan-log-dialog hidden" id="planLogDialog" role="dialog" aria-modal="true" aria-label="操作日志">
+    <div class="plan-log-content">
+      <div class="plan-log-head">
+        <h3 id="planLogTitle">操作日志</h3>
+        <button class="plan-log-close" id="planLogClose" type="button" title="关闭">×</button>
+      </div>
+      <div class="plan-log-body">
+        <div class="plan-log-table-card">
+          <table class="plan-log-table">
+            <thead>
+              <tr>
+                <th class="plan-log-type-col">操作类型</th>
+                <th class="plan-log-content-col">日志内容</th>
+                <th class="plan-log-operator-col">操作人</th>
+                <th class="plan-log-time-col">操作时间</th>
+              </tr>
+            </thead>
+            <tbody id="planLogBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="plan-log-footer"><span id="planLogCount">共 0 条</span><span style="margin-left:auto">仅展示最近 200 条操作记录</span></div>
+    </div>
+  </div>
+
+  <script src="../../ui-kit.js?v=1.0.0"></script>
+  <script src="./app.js?v=1.0.0"></script>
+  <script src="../../global-export.js?v=1.7.37"></script>
+  <script src="../../custom-select.js?v=1.0.0"></script>
+  <script src="../../navigation.js?v=1.8.02"></script>
+</body>
+</html>

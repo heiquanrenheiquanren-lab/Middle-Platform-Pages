@@ -31,7 +31,7 @@
     var current = new Date();
     var before = function (minutes) { return nowText(new Date(current.getTime() - minutes * 60000)); };
     return [
-      { id: uid(), taskType: '海外仓发货计划导出', templateName: '海外仓发货计划导出', sourcePage: '发货计划', status: 'failed', operator: 'Admin', startedAt: before(18), completedAt: before(16), duration: '2秒', failureReason: '导出服务超时' },
+      { id: uid(), taskType: '海外仓发货计划导出', templateName: '海外仓发货计划导出', sourcePage: '发货计划 V1', status: 'failed', operator: 'Admin', startedAt: before(18), completedAt: before(16), duration: '2秒', failureReason: '导出服务超时' },
       { id: uid(), taskType: '需求预测导出', templateName: '需求预测导出', sourcePage: '需求预测', status: 'success', operator: 'Admin', startedAt: before(42), completedAt: before(41), duration: '1秒', failureReason: '—' },
       { id: uid(), taskType: '库存查询导出', templateName: '库存查询导出', sourcePage: '库存查询', status: 'processing', operator: 'Admin', startedAt: before(1), completedAt: '—', duration: '—', failureReason: '—' }
     ];
@@ -54,7 +54,7 @@
     var map = [
       ['产品列表', '产品列表'],
       ['需求预测', '需求预测'], ['库存查询', '库存查询'], ['备货计划', '备货计划'],
-      ['采购单', '采购单'], ['发货单', '发货单'], ['发货计划', '发货计划'], ['头程成本', 'SKU头程成本']
+      ['采购单', '采购单'], ['发货单', '发货单'], ['发货计划 V2', '发货计划 V2'], ['发货计划', '发货计划 V1'], ['头程成本', 'SKU头程成本']
     ];
     for (var i = 0; i < map.length; i += 1) if (title.indexOf(map[i][0]) >= 0) return map[i][1];
     return title || '当前页面';

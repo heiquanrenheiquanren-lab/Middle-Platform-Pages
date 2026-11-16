@@ -1,0 +1,1416 @@
+/* 发货计划 V2：严格遵循 docs/UI_SPEC.md（4.5.1 三块对齐与 10px 体系、3.9 查询区规范、4.6 列表无竖线、4.6.1 状态栏） */
+
+/* ===== 4.5.1 三块骨架：查询卡片 → 32px 透明操作行 → 列表卡片 ===== */
+.spv2-main {
+  display: grid;
+  grid-template-rows: auto 32px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ui-color-canvas, #f5f7fa);
+}
+
+/* 抵消 navigation.css 的外边距，避免与容器 padding/gap 叠加，确保三块左右边缘严格对齐 */
+.spv2-main > .query-panel {
+  margin: 0 !important;
+  min-width: 0;
+  width: 100% !important;
+}
+
+.spv2-main > .action-strip {
+  margin: 0 !important;
+  height: 32px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.spv2-main > .list-card {
+  margin: 0 !important;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ===== 3.9 查询区域规范（对齐采购计划 / 发货单 / 发货计划 V1 控件规格） ===== */
+.spv2-main .query-panel input::placeholder {
+  color: #909399;
+  font-size: 12px;
+}
+
+.spv2-main .query-panel .multi-trigger:not(.has-value),
+.spv2-main .query-panel .custom-select.is-placeholder .custom-select-label {
+  color: #909399;
+  font-size: 12px;
+}
+
+.spv2-main .query-grid {
+  gap: var(--ui-query-gap, 10px);
+}
+
+.spv2-main .query-item {
+  flex: 0 1 175px;
+  width: 175px;
+  min-width: 0;
+}
+
+.spv2-main .query-item > .control,
+.spv2-main .query-item > .multi,
+.spv2-main .query-item > .custom-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.spv2-main .query-item > .input-clear {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.spv2-main .query-item .input-clear > .control {
+  width: 100%;
+  min-width: 0;
+}
+
+.spv2-main .query-item.q-plan,
+.spv2-main .query-item.q-order {
+  flex-basis: 235px;
+  width: 235px;
+}
+
+.spv2-main .query-item.q-remark {
+  flex-basis: 260px;
+  width: 260px;
+}
+
+.spv2-main .query-combo {
+  display: flex;
+  flex: 0 1 340px;
+  width: 340px;
+  min-width: 0;
+  gap: 6px;
+}
+
+.spv2-main .query-combo > .query-type-select,
+.spv2-main .query-combo > .custom-select {
+  flex: 0 0 115px !important;
+  width: 115px !important;
+  min-width: 115px;
+}
+
+.spv2-main .query-combo > .input-clear {
+  display: flex;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}
+
+.spv2-main .query-combo > .query-combo-input,
+.spv2-main .query-combo > .input-clear > .query-combo-input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.spv2-main .query-date-item {
+  display: flex;
+  flex: 0 1 420px;
+  width: 420px;
+  min-width: 0;
+  gap: 6px;
+}
+
+.spv2-main .query-date-item > .query-time-type,
+.spv2-main .query-date-item > .custom-select {
+  flex: 0 0 118px !important;
+  width: 118px !important;
+  min-width: 118px;
+}
+
+.spv2-main .query-date-item > .date-group {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 4px;
+  gap: 2px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.spv2-main .date-group:focus-within {
+  border-color: var(--ui-color-primary, #1677ff);
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.1);
+}
+
+.spv2-main .date-group input {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  height: 28px;
+  padding: 0 20px 0 6px;
+  font-size: 13px;
+  color: #303133;
+  cursor: pointer;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a8abb2' stroke-width='1.3' stroke-linecap='round'%3E%3Crect x='2' y='3' width='12' height='11' rx='1.5'/%3E%3Cpath d='M2 6.5h12M5.5 1.5v3M10.5 1.5v3'/%3E%3C/svg%3E") no-repeat right 6px center/12px 12px;
+}
+
+.spv2-main .date-group input::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+.spv2-main .date-group span {
+  padding: 0;
+  font-size: 12px;
+}
+
+.spv2-main .query-item.is-collapsed-hidden {
+  display: none;
+}
+
+/* 3.9.6 展开/收起 → 查询 → 重置 紧跟最后一个可见查询项，不留空列 */
+.spv2-main .query-action-item {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.spv2-main .query-inline-expand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #909399;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.spv2-main .query-inline-expand:hover {
+  color: var(--ui-color-primary, #1677ff);
+  background: #f0f5ff;
+}
+
+.spv2-main .query-inline-expand[hidden] {
+  display: none;
+}
+
+.spv2-main .query-inline-expand .query-arrow {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.15s;
+}
+
+.spv2-main .query-inline-expand[aria-expanded="true"] .query-arrow {
+  transform: rotate(180deg);
+}
+
+.spv2-main .query-actions .btn {
+  padding: 0 18px;
+}
+
+/* ===== 操作按钮行（高度 32px，间距 10px，颜色沿用 document-list.css 0.6 层级） ===== */
+.spv2-main .head-actions {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-button-gap, 10px);
+  height: 32px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.spv2-main .head-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.spv2-main .column-config-trigger {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #606266;
+  cursor: pointer;
+}
+
+.spv2-main .column-config-trigger:hover {
+  background: #ecf5ff;
+  color: #1677ff;
+}
+
+.spv2-main .column-config-trigger svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== 4.6 列表卡片与状态栏 ===== */
+.spv2-list-card {
+  display: grid;
+  grid-template-rows: 50px minmax(0, 1fr) 53px;
+  overflow: hidden;
+}
+
+.spv2-list-card > .status-bar {
+  margin: 0;
+  height: 50px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.spv2-list-card .status-tabs {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 48px;
+}
+
+.spv2-status-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: #606266;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.spv2-status-tab:hover {
+  color: #409eff;
+}
+
+.spv2-status-tab .count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 18px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #f2f4f7;
+  color: #909399;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.spv2-status-tab.is-active {
+  color: #409eff;
+  font-weight: 600;
+}
+
+.spv2-status-tab.is-active .count-pill {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.spv2-status-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: #409eff;
+}
+
+/* ===== 4.6 表格：仅保留横向行分隔线，移除列间竖线 ===== */
+.spv2-list-card > .table-area {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: auto;
+  min-height: 0;
+}
+
+.spv2-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  color: var(--ui-color-text-regular, #606266);
+}
+
+.spv2-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  height: 44px;
+  padding: 0 12px;
+  background: #f5f7fa;
+  border: 0;
+  border-top: 1px solid #ebeef5;
+  border-bottom: 1px solid #e4e9f2;
+  font-weight: 600;
+  color: #303133;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.spv2-table tbody td {
+  height: 52px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid #ebeef5;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.spv2-table tbody tr:hover td {
+  background: #f5faff;
+}
+
+.spv2-table .sticky-left-0 {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  text-align: center;
+}
+
+.spv2-table thead .sticky-left-0,
+.spv2-table thead .sticky-left-1,
+.spv2-table thead .sticky-left-2,
+.spv2-table thead .sticky-left-3,
+.spv2-table thead .sticky-right {
+  z-index: 7;
+  background: #f5f7fa;
+}
+
+.spv2-table .sticky-left-1 {
+  position: sticky;
+  left: 44px;
+  z-index: 5;
+  width: 210px;
+  min-width: 210px;
+  max-width: 210px;
+}
+
+.spv2-table .sticky-left-2 {
+  position: sticky;
+  left: 254px;
+  z-index: 5;
+  width: 146px;
+  min-width: 146px;
+  max-width: 146px;
+}
+
+.spv2-table .sticky-left-3 {
+  position: sticky;
+  left: 400px;
+  z-index: 5;
+  box-shadow: var(--ui-shadow-fixed-left, 8px 0 10px -12px rgba(31, 45, 61, 0.55));
+}
+
+.spv2-table .sticky-right {
+  position: sticky;
+  right: 0;
+  z-index: 5;
+  min-width: 102px;
+  text-align: center;
+  box-shadow: var(--ui-shadow-fixed-right, -8px 0 10px -12px rgba(31, 45, 61, 0.55));
+}
+
+.spv2-sku-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 170px;
+}
+
+.spv2-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.spv2-thumb.is-empty {
+  background: #f5f7fa;
+  color: #909399;
+  font-weight: 500;
+  border: 1px solid #e4e9f2;
+}
+
+.spv2-sku-code {
+  font-weight: 500;
+  color: #303133;
+}
+
+.spv2-link-icon {
+  color: #909399;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* 行内编辑控件 */
+.spv2-inline-control {
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+  color: #606266;
+  outline: none;
+  min-width: 110px;
+  max-width: 168px;
+}
+
+.spv2-inline-control:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.12);
+}
+
+.spv2-inline-control:disabled {
+  background: #f5f7fa;
+  color: #909399;
+  border-color: #e4e7ed;
+  cursor: not-allowed;
+}
+
+.spv2-inline-num {
+  width: 82px;
+  min-width: 82px;
+  text-align: right;
+}
+
+.spv2-inline-date {
+  width: 126px;
+  min-width: 126px;
+}
+
+/* 状态标签 */
+.spv2-status-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.spv2-status-tag.pending_confirm {
+  background: #fdf6ec;
+  color: #e6a23c;
+}
+
+.spv2-status-tag.pending_ship {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.spv2-status-tag.completed {
+  background: #edf8f1;
+  color: #2fa66a;
+}
+
+.spv2-status-tag.void {
+  background: #f4f4f5;
+  color: #909399;
+}
+
+.spv2-plan-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.spv2-plan-code {
+  color: #303133;
+  font-weight: 500;
+}
+
+.spv2-plan-cell .spv2-status-tag {
+  height: 22px;
+  padding: 0 7px;
+  font-size: 11px;
+}
+
+.spv2-unlinked-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 3px;
+  background: #fef0f0;
+  color: #f56c6c;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.spv2-th-req {
+  color: #f56c6c;
+  font-style: normal;
+  margin-right: 3px;
+}
+
+.spv2-op-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spv2-op-btn {
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.spv2-op-btn.is-danger {
+  color: #f56c6c;
+}
+
+.spv2-op-btn.is-primary {
+  color: #409eff;
+}
+
+.spv2-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: #909399;
+  font-size: 13px;
+}
+
+/* 底部栏 */
+.spv2-list-card > .bottom-bar {
+  margin: 0;
+  padding: 0 16px;
+  border: 0;
+  border-top: 1px solid #e4e9f2;
+  border-radius: 0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #606266;
+}
+
+.spv2-bottom-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.spv2-list-card .bottom-bar .jump {
+  width: 48px;
+  flex: 0 0 48px;
+  text-align: center;
+}
+
+.spv2-list-card .bottom-bar .page-size {
+  width: auto;
+  min-width: 88px;
+}
+
+/* ===== 通用弹窗与 UI_SPEC 1.8 新建单据弹窗基线 ===== */
+.spv2-modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 35, 41, 0.42);
+  z-index: 1000;
+}
+
+.spv2-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.spv2-sub-mask {
+  z-index: 1020;
+}
+
+.spv2-sub-modal {
+  z-index: 1021;
+}
+
+.spv2-modal-dialog {
+  pointer-events: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(15, 27, 45, 0.18), 0 6px 20px rgba(15, 27, 45, 0.08);
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 900px);
+  overflow: hidden;
+}
+
+.spv2-create-dialog {
+  width: min(1500px, calc(100vw - 48px));
+  height: min(90vh, 900px);
+}
+
+.spv2-picker-dialog {
+  width: min(760px, calc(100vw - 48px));
+  height: min(600px, calc(100vh - 64px));
+}
+
+.spv2-medium-dialog {
+  width: min(880px, calc(100vw - 48px));
+}
+
+.spv2-small-dialog {
+  width: min(460px, calc(100vw - 48px));
+}
+
+.spv2-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fff;
+  flex: none;
+}
+
+.spv2-modal-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.spv2-modal-subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #909399;
+}
+
+.spv2-modal-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spv2-modal-close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  color: #a6adba;
+  cursor: pointer;
+  padding: 0;
+}
+
+.spv2-modal-close:hover {
+  background: #f5f7fa;
+  color: #303133;
+}
+
+.spv2-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px 22px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f7f9fc;
+}
+
+.spv2-form-section {
+  flex: none;
+  border: 1px solid #e7ecf3;
+  border-radius: 8px;
+  padding: 12px 16px 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(31, 45, 61, 0.04);
+}
+
+.spv2-detail-section {
+  flex: 1 1 auto;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e7ecf3;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(31, 45, 61, 0.04);
+}
+
+.spv2-detail-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  flex: none;
+}
+
+.spv2-detail-toolbar .btn {
+  height: 32px;
+  border-radius: 6px;
+  padding: 0 14px;
+}
+
+.spv2-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.spv2-detail-toolbar .spv2-section-title {
+  margin-bottom: 0;
+}
+
+.spv2-title-bar {
+  flex: none;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: #1677ff;
+}
+
+.spv2-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.spv2-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.spv2-field > span {
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.spv2-field em {
+  color: #f56c6c;
+  font-style: normal;
+  margin-right: 3px;
+}
+
+.spv2-field .control {
+  width: 100%;
+  height: 32px;
+}
+
+.spv2-readonly-val {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #f5f7fa;
+  color: #606266;
+  font-size: 12px;
+}
+
+/* 明细表：去竖线，前 4 列（SKU / 领星SKU / 品名 / 团队）+ 右侧操作列固定 */
+.spv2-create-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border-top: 1px solid #f0f2f5;
+  background: #fff;
+}
+
+.spv2-create-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+}
+
+.spv2-create-table th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  height: 40px;
+  background: #f5f7fa;
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 1px solid #f0f2f5;
+  text-align: left;
+  font-weight: 600;
+  color: #303133;
+  white-space: nowrap;
+}
+
+.spv2-create-table td {
+  height: 46px;
+  padding: 6px 12px;
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid #f0f2f5;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.spv2-create-table tbody tr:hover td {
+  background: #f5faff;
+}
+
+.spv2-create-table .spv2-inline-control {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.spv2-c-fix-1,
+.spv2-c-fix-2,
+.spv2-c-fix-3,
+.spv2-c-fix-4,
+.spv2-c-fix-right {
+  position: sticky;
+  z-index: 5;
+  background: #fff;
+}
+
+thead .spv2-c-fix-1,
+thead .spv2-c-fix-2,
+thead .spv2-c-fix-3,
+thead .spv2-c-fix-4,
+thead .spv2-c-fix-right {
+  z-index: 7;
+  background: #f5f7fa;
+}
+
+.spv2-c-fix-1 {
+  left: 0;
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+}
+
+.spv2-c-fix-2 {
+  left: 140px;
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+}
+
+.spv2-c-fix-3 {
+  left: 280px;
+  width: 170px;
+  min-width: 170px;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spv2-c-fix-4 {
+  left: 450px;
+  width: 145px;
+  min-width: 145px;
+  max-width: 145px;
+  box-shadow: var(--ui-shadow-fixed-left, 8px 0 10px -12px rgba(31, 45, 61, 0.55));
+}
+
+/* 明细表头「批量」按钮与批量填充小浮层（对齐采购计划） */
+.spv2-batch-trigger {
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1677ff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.spv2-batch-trigger:hover,
+.spv2-batch-trigger:focus-visible {
+  text-decoration: underline;
+  outline: 0;
+}
+
+.spv2-batch-popover {
+  position: fixed;
+  z-index: 1030;
+  width: 236px;
+  padding: 12px;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(15, 27, 45, 0.14);
+}
+
+.spv2-batch-popover::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-right: 1px solid #e4e7ed;
+  border-bottom: 1px solid #e4e7ed;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.spv2-batch-popover__body .control {
+  width: 100%;
+  height: 32px;
+}
+
+.spv2-batch-popover__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.spv2-btn-sm {
+  height: 26px !important;
+  min-width: 52px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  line-height: 24px !important;
+  border-radius: 4px !important;
+}
+
+.spv2-c-fix-right {
+  right: 0;
+  width: 74px;
+  min-width: 74px;
+  text-align: center !important;
+  box-shadow: var(--ui-shadow-fixed-right, -8px 0 10px -12px rgba(31, 45, 61, 0.55));
+}
+
+.spv2-create-empty {
+  padding: 36px 16px !important;
+  text-align: center;
+  color: #909399;
+}
+
+.spv2-create-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.spv2-create-empty-inner svg {
+  width: 40px;
+  height: 40px;
+  color: #c2cbda;
+}
+
+.spv2-create-empty-inner p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #606266;
+}
+
+.spv2-create-empty-inner span {
+  font-size: 12px;
+  color: #98a2b3;
+}
+
+/* 弹窗底部（汇总胶囊 + 取消/提交） */
+.spv2-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 22px;
+  border-top: 1px solid #f0f2f5;
+  background: #fff;
+  flex: none;
+}
+
+.spv2-footer-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.spv2-footer-stat {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.spv2-footer-stat em {
+  margin: 0 3px;
+  color: #303133;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.spv2-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.spv2-modal-footer .btn {
+  min-width: 72px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+/* 添加 SKU 小弹窗（参照图 2 新建采购计划「添加 SKU」） */
+.spv2-picker-body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 22px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.spv2-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.spv2-picker-search .control {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 32px;
+}
+
+.spv2-picker-search .btn {
+  flex: none;
+  min-width: 68px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.spv2-picker-table-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #e7ecf3;
+  border-radius: 6px;
+}
+
+.spv2-picker-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+}
+
+.spv2-picker-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 40px;
+  padding: 0 12px;
+  background: #f5f7fa;
+  border-bottom: 1px solid #f0f2f5;
+  text-align: left;
+  font-weight: 600;
+  color: #303133;
+}
+
+.spv2-picker-table td {
+  height: 44px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #f0f2f5;
+  color: #606266;
+}
+
+.spv2-picker-table tbody tr:hover td {
+  background: #f5faff;
+}
+
+.spv2-picker-check-col {
+  width: 44px;
+  text-align: center !important;
+}
+
+.spv2-picker-prod {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spv2-picker-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #ecf5ff;
+  color: #409eff;
+  font-size: 12px;
+  flex: none;
+}
+
+.spv2-picker-count {
+  font-size: 12px;
+  color: #909399;
+}
+
+/* ===== 列配置抽屉（对齐采购计划 column-config.css，单级列表无页签） ===== */
+.spv2-drawer-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+}
+
+.spv2-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(680px, 100vw);
+  background: #fff;
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.14);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+}
+
+.spv2-col-config {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: #303133;
+  font-size: 13px;
+}
+
+.spv2-col-header {
+  flex: none;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e5e9f0;
+}
+
+.spv2-col-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.spv2-col-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  flex: 1;
+  min-height: 0;
+}
+
+.spv2-col-options {
+  padding: 14px 22px;
+  overflow: auto;
+}
+
+.spv2-col-search {
+  width: 100%;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  outline: 0;
+  font: inherit;
+  color: #303133;
+}
+
+.spv2-col-search:focus {
+  border-color: #1677ff;
+}
+
+.spv2-col-search::placeholder {
+  color: #a8abb2;
+}
+
+.spv2-col-checks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 8px;
+  margin-top: 16px;
+}
+
+.spv2-col-checks label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: #606266;
+  cursor: pointer;
+}
+
+.spv2-col-checks label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spv2-col-checks label.locked {
+  color: #a8abb2;
+  cursor: not-allowed;
+}
+
+.spv2-col-checks input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  flex: none;
+  accent-color: #1677ff;
+}
+
+.spv2-col-none {
+  padding: 32px 0;
+  color: #909399;
+  text-align: center;
+}
+
+.spv2-col-selected {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 16px 14px;
+  border-left: 1px solid #e5e9f0;
+  background: #f8f9fb;
+}
+
+.spv2-col-selected-title {
+  font-weight: 600;
+}
+
+.spv2-col-selected-title span {
+  color: #909399;
+  font-weight: 400;
+}
+
+.spv2-col-selected p {
+  margin: 8px 0;
+  color: #a8abb2;
+  font-size: 12px;
+}
+
+.spv2-col-selected-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.spv2-col-selected-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 29px;
+  padding: 3px 0;
+  white-space: nowrap;
+  cursor: grab;
+  user-select: none;
+}
+
+.spv2-col-selected-item.locked {
+  color: #a8abb2;
+  cursor: default;
+}
+
+.spv2-col-selected-item:not(.locked):hover {
+  color: #1677ff;
+}
+
+.spv2-col-grip {
+  width: 13px;
+  color: #a8b6ca;
+  letter-spacing: -3px;
+  flex: none;
+}
+
+.spv2-col-order {
+  width: 18px;
+  color: #909399;
+  flex: none;
+}
+
+.spv2-col-selected-item span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spv2-col-footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 24px;
+  border-top: 1px solid #e5e9f0;
+}
+
+.spv2-col-footer > div {
+  display: flex;
+  gap: 8px;
+}
+
+.hidden {
+  display: none !important;
+}

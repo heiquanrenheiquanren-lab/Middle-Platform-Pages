@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- FBA货件 v2.0.0：独立页面（供应链协同），查询区与一二级单据列表对齐采购单 / 发货计划风格 -->
+<!-- FBA货件 v2.2.0：一二级列表严格对齐采购计划（pages/purchase-plan-2）样式；移除 ASIN/国家，改为国家编码 -->
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=2.0.0">
+  <link rel="stylesheet" href="./styles.css?v=2.2.0">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="toast" id="toast">查询完成</div>
@@ -26,110 +26,232 @@
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div><div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
+          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划 V1</div>
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div><div class="nav-item active" data-page-nav="fbaShipment"><span class="mini">♧</span>FBA货件</div></div><div class="collapse">≡</div>
       </aside>
       <main class="main fba-shipment-main">
-        <div class="module-view fba-view" id="fbaShipmentView">
-          <section class="query-panel ui-query-card" id="queryCard" aria-label="FBA货件查询区域">
-            <div class="query-grid ui-query-flow" id="queryGrid">
-              <div class="query-item query-combo fba-code-combo">
-                <select class="control query-type-select" id="fbaNoType" title="单号类型">
-                  <option value="shipmentNo">货件单号</option><option value="planNo">发货计划号</option><option value="center">物流中心编码</option><option value="reference">Reference ID</option>
-                </select>
-                <input class="control query-combo-input" id="fbaNoInput" placeholder="请输入货件单号，支持多个" autocomplete="off">
+        <!-- 查询卡片 -->
+        <section class="query-panel ui-query-card" id="queryCard" aria-label="FBA货件查询区域">
+          <div class="query-grid ui-query-flow" id="queryGrid">
+            <div class="query-item query-combo query-document-combo">
+              <select class="control query-type-select" id="fbaNoType" title="单号类型">
+                <option value="shipmentNo">货件单号</option>
+                <option value="shipmentName">货件名称</option>
+                <option value="staPlanId">STA任务号</option>
+                <option value="shipmentOrderNo">发货单号</option>
+                <option value="planNo">发货计划号</option>
+                <option value="center">物流中心编码</option>
+                <option value="reference">Reference ID</option>
+              </select>
+              <input class="control query-combo-input" id="fbaNoInput" placeholder="请输入货件单号，支持多个" autocomplete="off">
+            </div>
+            <div class="query-item query-combo query-document-combo">
+              <select class="control query-type-select" id="fbaCodeType" title="编码类型">
+                <option value="sku">SKU</option>
+                <option value="msku">MSKU</option>
+                <option value="fnsku">FNSKU</option>
+                <option value="product">品名</option>
+              </select>
+              <input class="control query-combo-input" id="fbaCodeInput" placeholder="请输入 SKU，支持多个" autocomplete="off">
+            </div>
+            <div class="query-item"><div class="multi ui-multi-select" id="fbaCountryMulti"><div class="multi-trigger" data-trigger>请选择国家编码</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="fbaStoreMulti"><div class="multi-trigger" data-trigger>请选择店铺</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item">
+              <select class="control" id="fbaStatus" title="货件状态">
+                <option value="">货件状态</option>
+                <option value="UNCONFIRMED">未确认</option>
+                <option value="WORKING">待发货-已创建</option>
+                <option value="READY_TO_SHIP">待发货-已装箱</option>
+                <option value="SHIPPED">运输中-已取件</option>
+                <option value="IN_TRANSIT">运输中-已通知</option>
+                <option value="DELIVERED">已到达-待登记</option>
+                <option value="CHECKED_IN">已到达-待入库</option>
+                <option value="RECEIVING">已到达-入库中</option>
+                <option value="CLOSED">已完成</option>
+                <option value="DELETED">已删除</option>
+                <option value="CANCELLED">已取消</option>
+                <option value="ABANDONED">已放弃</option>
+              </select>
+            </div>
+            <div class="query-item">
+              <select class="control" id="fbaShippingMode" title="运输方式">
+                <option value="">运输方式</option>
+                <option value="海运卡派">海运卡派</option>
+                <option value="美森快船">美森快船</option>
+                <option value="空派">空派</option>
+                <option value="快递直发">快递直发</option>
+              </select>
+            </div>
+            <div class="query-item">
+              <select class="control" id="fbaAssociation" title="发货计划关联状态">
+                <option value="">关联状态</option>
+                <option value="unlinked">未关联计划</option>
+                <option value="linked">已关联计划</option>
+              </select>
+            </div>
+            <div class="query-item">
+              <select class="control" id="fbaDiffFilter" title="申报差异">
+                <option value="">申报差异</option>
+                <option value="diff">有申收差异</option>
+                <option value="nodiff">无申收差异</option>
+              </select>
+            </div>
+            <div class="query-item">
+              <select class="control" id="fbaClosedFilter" title="完结状态">
+                <option value="">完结状态</option>
+                <option value="0">进行中</option>
+                <option value="1">已完结</option>
+              </select>
+            </div>
+            <div class="query-item query-date-item">
+              <select class="control query-time-type" id="fbaDateType" title="时间口径">
+                <option value="created">创建时间</option>
+                <option value="modified">更新时间</option>
+              </select>
+              <div class="date-group">
+                <input id="fbaStartDate" type="date" aria-label="开始日期">
+                <span>至</span>
+                <input id="fbaEndDate" type="date" aria-label="结束日期">
               </div>
-              <div class="query-item query-combo fba-code-combo">
-                <select class="control query-type-select" id="fbaCodeType" title="编码类型">
-                  <option value="sku">SKU</option><option value="lxSku">领星 SKU</option><option value="fnsku">FNSKU</option><option value="asin">ASIN</option>
-                </select>
-                <input class="control query-combo-input" id="fbaCodeInput" placeholder="请输入编码，支持多个" autocomplete="off">
+            </div>
+            <div class="query-item query-action-item">
+              <div class="query-actions ui-query-actions">
+                <button class="query-inline-expand" id="queryExpand" type="button" aria-expanded="false" hidden><svg class="query-arrow" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg><span class="query-expand-text">展开</span></button>
+                <button class="btn primary" id="fbaSearchBtn" type="button">查询</button>
+                <button class="btn" id="fbaResetBtn" type="button">重置</button>
               </div>
-              <div class="query-item"><select class="control" id="fbaStatus" title="货件状态"><option value="">货件状态（全部）</option><option>已取消</option><option>已登记</option><option>已关闭</option><option>已删除</option><option>已送达</option><option>运输中</option><option>接收中</option><option>已发货</option></select></div>
-              <div class="query-item"><div class="multi ui-multi-select" id="fbaStoreMulti"><div class="multi-trigger" data-trigger>请选择店铺</div><div class="dropdown" data-menu></div></div></div>
-              <div class="query-item"><div class="multi ui-multi-select" id="fbaCountryMulti"><div class="multi-trigger" data-trigger>请选择国家</div><div class="dropdown" data-menu></div></div></div>
-              <div class="query-item"><select class="control" id="fbaAssociation" title="发货计划关联状态"><option value="">关联状态（全部）</option><option value="unlinked" selected>未关联</option><option value="linked">已关联</option></select></div>
-              <div class="query-item query-date-item fba-date-item"><div class="date-group"><input id="fbaStartDate" type="date" aria-label="FBA货件创建开始日期"><span>至</span><input id="fbaEndDate" type="date" aria-label="FBA货件创建结束日期"></div></div>
-              <div class="query-item query-action-item">
-                <div class="query-actions ui-query-actions">
-                  <button class="query-inline-expand" id="queryExpand" type="button" aria-expanded="false" hidden><svg class="query-arrow" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg><span class="query-expand-text">展开</span></button>
-                  <button class="btn primary" id="fbaSearchBtn">查询</button>
-                  <button class="btn" id="fbaResetBtn">重置</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 操作按钮行（32px 高，对齐采购计划） -->
+        <section class="action-strip ui-action-row">
+          <div class="head-actions">
+            <button class="btn primary" id="createShipmentOrderBtn" type="button" disabled>生成发货单</button>
+            <button class="btn" id="batchLinkPlanBtn" type="button" disabled>关联发货计划</button>
+            <button class="btn" id="importLinkShipmentBtn" type="button">导入关联FBA货件</button>
+          </div>
+        </section>
+
+        <!-- 单据列表卡片（一二级折叠列表 + 底部汇总分页，完全对齐采购计划） -->
+        <section class="list-card ui-list-card">
+          <section class="table-area ui-table-wrap" id="fbaTableArea">
+            <table class="purchase-plan-table fba-table document-list ui-table">
+              <colgroup>
+                <col class="check-col">
+                <col class="expand-col">
+                <col class="no-col">
+                <col class="sta-col">
+                <col class="store-col">
+                <col class="mode-col">
+                <col class="order-col">
+                <col class="qty-col">
+                <col class="time-col">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>
+                    <input class="checkbox" id="fbaSelectAll" type="checkbox" aria-label="全选本页可生成发货单的货件" title="全选本页可生成发货单的货件">
+                  </th>
+                  <th>
+                    <button class="document-expand expand-all" id="fbaExpandAllBtn" type="button" aria-label="展开/折叠全部" title="展开/折叠全部"></button>
+                  </th>
+                  <th>
+                    货件单号 / 货件名称
+                    <button class="copy-icon-btn copy-icon-btn-head" id="copyPageShipmentNosBtn" type="button" title="复制本页货件单号" aria-label="复制本页货件单号">
+                      <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.6" height="6.6" rx="1.2"/><path d="M8 4V2.6A1.6 1.6 0 0 0 6.4 1H2.6A1.6 1.6 0 0 0 1 2.6v3.8A1.6 1.6 0 0 0 2.6 8H4"/></svg>
+                    </button>
+                  </th>
+                  <th>STA任务 / Reference ID</th>
+                  <th>店铺 / 国家编码 / 物流中心</th>
+                  <th>运输方式 / 送达时段</th>
+                  <th>发货单号</th>
+                  <th>总申报量</th>
+                  <th>创建 / 更新时间</th>
+                </tr>
+              </thead>
+              <tbody id="fbaTableBody"></tbody>
+            </table>
+          </section>
+          <footer class="bottom-bar">
+            <div class="bottom-summary" id="fbaSummary"></div>
+            <div class="pager">
+              <span>共 <b id="fbaTotalCount">0</b> 个货件</span>
+              <select class="control page-size" id="fbaPageSize" title="每页条数">
+                <option value="10">10条/页</option>
+                <option value="20">20条/页</option>
+                <option value="50">50条/页</option>
+              </select>
+              <button class="page-btn" id="fbaPrevPage" title="上一页" type="button">‹</button>
+              <span id="fbaPageButtons"></span>
+              <button class="page-btn" id="fbaNextPage" title="下一页" type="button">›</button>
+            </div>
+          </footer>
+        </section>
+
+        <!-- 关联发货计划弹窗（左侧 FBA 货件+SKU 导航 + 右侧过滤候选明细） -->
+        <div class="fba-link-modal-mask hidden" id="fbaLinkModalMask"></div>
+        <div class="fba-link-popover hidden" id="fbaLinkPopover" role="dialog" aria-label="关联发货计划" aria-modal="true">
+          <header class="fba-link-head">
+            <div class="minimal-dialog-head">
+              <h3>关联发货计划</h3>
+              <p id="fbaLinkSubtitle">请从左侧选择「FBA货件 + SKU」，在右侧对应的待发货计划中点选一条完成关联</p>
+            </div>
+            <button class="fba-popover-close" id="fbaPopoverClose" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="fba-link-dialog-body">
+            <!-- 左侧 FBA 货件 + SKU 导航 -->
+            <aside class="fba-link-sidebar" aria-label="待关联货件SKU导航">
+              <div class="fba-gen-sidebar-head">
+                <span>待关联明细（货件+SKU）</span>
+                <em id="fbaLinkNavProgress">0 / 0 已选</em>
+              </div>
+              <div class="fba-link-nav-list" id="fbaLinkNavList"></div>
+            </aside>
+            <!-- 右侧 候选发货计划过滤明细 -->
+            <div class="fba-link-main">
+              <section class="fba-plan-query" aria-label="关联发货计划查询区域">
+                <div class="fba-plan-default-filter">
+                  当前：<b id="fbaPlanDefaultShipment">—</b> · SKU <b id="fbaPlanDefaultSku">—</b> · FNSKU <b id="fbaPlanDefaultFnsku">—</b> · 店铺 <b id="fbaPlanDefaultStore">—</b> · 货件申报量 <b id="fbaPlanDefaultDeclared">—</b> · 状态：<b>待发货</b>
+                </div>
+                <div class="fba-plan-query-row">
+                  <input class="control fba-plan-code-input" id="fbaPlanSearch" placeholder="请输入发货计划号，支持多个，精确匹配">
+                  <div class="query-actions fba-plan-query-actions"><button class="btn primary" id="fbaPlanSearchBtn" type="button">查询</button><button class="btn" id="fbaPlanResetBtn" type="button">重置</button></div>
+                </div>
+              </section>
+              <div class="fba-link-table-wrap">
+                <table class="fba-link-table">
+                  <thead>
+                    <tr>
+                      <th class="fba-plan-radio"></th><th>计划号</th><th>SKU</th><th>MSKU</th><th>FNSKU</th><th>品名</th>
+                      <th>店铺</th><th>计划发货数量</th><th>计划发货日期</th><th>预计到货日期</th><th>备注</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fbaPlanListBody"></tbody>
+                </table>
+              </div>
+              <div class="fba-link-footer">
+                <span id="fbaPlanListInfo">共 0 条</span>
+                <div>
+                  <button class="page-btn" id="fbaPlanPrevPage" type="button">‹</button>
+                  <input class="control jump" id="fbaPlanJumpPage" value="1" aria-label="计划页码">
+                  <span>/ <b id="fbaPlanPageTotal">1</b></span>
+                  <button class="page-btn" id="fbaPlanNextPage" type="button">›</button>
                 </div>
               </div>
             </div>
-          </section>
-          <section class="action-strip ui-action-row">
-            <div class="head-actions">
-              <button class="btn" id="importLinkShipmentBtn">导入关联FBA货件</button>
-              <button class="btn" id="fbaRefreshBtn">刷新</button>
-            </div>
-          </section>
-          <section class="fba-list-card ui-list-card">
-            <section class="fba-table-area" id="fbaTableArea">
-              <table class="fba-table document-list">
-                <colgroup>
-                  <col class="col-expand"><col class="col-shipment"><col class="col-center"><col class="col-store">
-                  <col class="col-warehouse"><col class="col-created"><col class="col-delivery"><col class="col-cargo">
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th class="fba-expand-cell"><button class="expand-btn" id="fbaExpandAllBtn" type="button" aria-label="展开全部货件" aria-expanded="false" title="展开全部货件"></button></th>
-                    <th>货件单号</th><th>物流中心 / Reference ID</th><th>店铺 / 国家</th><th>发货仓 / 目的仓</th><th>创建时间</th><th>送达时间 / 运输方式</th><th>SKU / 数量信息</th>
-                  </tr>
-                </thead>
-                <tbody id="fbaTableBody"></tbody>
-              </table>
-            </section>
-            <footer class="bottom-bar fba-bottom-bar">
-              <div class="bottom-left"><span class="sum-stats" id="fbaSummary"></span></div>
-              <div class="bottom-right">
-                <span>共 <b id="fbaTotalCount">0</b> 个货件</span>
-                <select class="control page-size" id="fbaPageSize" title="每页条数">
-                  <option value="10">10个/页</option><option value="25">25个/页</option><option value="50">50个/页</option>
-                </select>
-                <button class="page-btn" id="fbaPrevPage" title="上一页">‹</button>
-                <span id="fbaPageButtons"></span>
-                <button class="page-btn" id="fbaNextPage" title="下一页">›</button>
-                <span>跳至</span><input class="control jump" id="fbaJumpPage" value="1"><span>页</span>
-              </div>
-            </footer>
-          </section>
-        </div>
-        <div class="fba-link-modal-mask hidden" id="fbaLinkModalMask"></div>
-        <div class="fba-link-popover hidden" id="fbaLinkPopover" role="dialog" aria-label="关联发货计划" aria-modal="true">
-          <div class="fba-link-head"><h3>关联发货计划</h3><button class="fba-popover-close" id="fbaPopoverClose" type="button" aria-label="关闭">×</button></div>
-          <section class="fba-plan-query" aria-label="关联发货计划查询区域">
-            <div class="fba-plan-default-filter">默认匹配：SKU <b id="fbaPlanDefaultSku">—</b> FNSKU <b id="fbaPlanDefaultFnsku">—</b> 店铺 <b id="fbaPlanDefaultStore">—</b> 状态：<b>待发货</b></div>
-            <div class="fba-plan-query-row">
-              <input class="control fba-plan-code-input" id="fbaPlanSearch" placeholder="发货计划号，支持多个，精确匹配">
-              <input class="control fba-plan-code-input" id="fbaPlanSku" placeholder="SKU，支持多个，精确匹配">
-              <input class="control fba-plan-code-input" id="fbaPlanFnsku" placeholder="FNSKU，支持多个，精确匹配">
-              <div class="query-actions fba-plan-query-actions"><button class="btn primary" id="fbaPlanSearchBtn" type="button">查询</button><button class="btn" id="fbaPlanResetBtn" type="button">重置</button></div>
-            </div>
-          </section>
-          <div class="fba-link-table-wrap">
-            <table class="fba-link-table">
-              <thead>
-                <tr>
-                  <th class="fba-plan-radio"></th><th>计划号</th><th>SKU</th><th>FNSKU</th><th>品名</th>
-                  <th>SellerSKU/Asin</th><th>店铺</th><th>计划发货数量</th><th>计划发货日期</th><th>预计到货日期</th><th>备注</th>
-                </tr>
-              </thead>
-              <tbody id="fbaPlanListBody"></tbody>
-            </table>
           </div>
-          <div class="fba-link-footer">
-            <span id="fbaPlanListInfo">共 0 条</span>
-            <div>
-              <button class="page-btn" id="fbaPlanPrevPage">‹</button>
-              <input class="control jump" id="fbaPlanJumpPage" value="1">
-              <span>/ <b id="fbaPlanPageTotal">1</b></span>
-              <button class="page-btn" id="fbaPlanNextPage">›</button>
+          <footer class="fba-gen-footer minimal-dialog-footer">
+            <div class="minimal-stats" id="fbaLinkFooterStats"></div>
+            <div class="minimal-footer-actions">
+              <button class="btn" id="fbaLinkCancelBtn" type="button">取消</button>
+              <button class="btn primary" id="fbaLinkConfirmBtn" type="button" disabled>确认关联</button>
             </div>
-          </div>
+          </footer>
         </div>
+
+        <!-- 取消关联确认弹窗 -->
         <div class="fba-confirm-mask hidden" id="fbaUnlinkConfirmMask">
           <div class="fba-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="fbaUnlinkConfirmTitle">
             <div class="fba-confirm-head"><h3 id="fbaUnlinkConfirmTitle">取消关联发货计划</h3><button class="fba-popover-close" id="fbaUnlinkConfirmClose" type="button" aria-label="关闭">×</button></div>
@@ -137,11 +259,13 @@
             <div class="fba-confirm-actions"><button class="btn" id="fbaUnlinkCancel" type="button">取消</button><button class="btn primary" id="fbaUnlinkConfirm" type="button">确认取消关联</button></div>
           </div>
         </div>
+
+        <!-- 导入关联FBA货件弹窗 -->
         <div class="import-link-mask hidden" id="importLinkMask"></div>
         <div class="import-link-dialog hidden" id="importLinkDialog">
           <div class="import-link-head">
             <h3>导入关联FBA货件</h3>
-            <button class="import-link-close" id="importLinkClose" title="关闭">×</button>
+            <button class="import-link-close" id="importLinkClose" title="关闭" type="button">×</button>
           </div>
           <div class="import-link-body" id="importLinkBody">
             <div class="import-steps">
@@ -189,12 +313,162 @@
             </div>
           </div>
         </div>
+
+        <!-- 生成发货单弹窗（左侧多货件切换导航 + 右侧完全复用新建发货单弹窗） -->
+        <div class="fba-gen-mask hidden" id="fbaGenOrderMask"></div>
+        <div class="fba-gen-dialog hidden" id="fbaGenOrderDialog" role="dialog" aria-modal="true" aria-labelledby="fbaGenOrderTitle">
+          <header class="fba-gen-header">
+            <div class="minimal-dialog-head">
+              <h3 id="fbaGenOrderTitle">生成发货单</h3>
+              <p id="fbaGenOrderSubtitle">已勾选 FBA 货件，每个货件对应生成 1 张发货单，请逐一确认或编辑各货件的发货单资料与明细</p>
+            </div>
+            <button class="fba-popover-close" id="fbaGenOrderClose" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="fba-gen-body">
+            <!-- 左侧 FBA 货件切换导航 -->
+            <aside class="fba-gen-sidebar" aria-label="勾选货件导航">
+              <div class="fba-gen-sidebar-head">
+                <span>勾选货件列表</span>
+                <em id="fbaGenNavProgress">0 / 0 已完善</em>
+              </div>
+              <div class="fba-gen-nav-list" id="fbaGenNavList"></div>
+            </aside>
+            <!-- 右侧 新建发货单表单与明细（复用发货单页结构） -->
+            <div class="fba-gen-main">
+              <div class="create-layout">
+                <section class="minimal-card">
+                  <div class="minimal-card-head">
+                    <div class="minimal-card-title">
+                      <span class="minimal-title-bar"></span>
+                      <b>发货单资料</b>
+                      <span class="fba-gen-current-badge" id="fbaGenCurrentBadge"></span>
+                    </div>
+                  </div>
+                  <div class="public-form">
+                    <div class="public-grid">
+                      <div class="gen-form-item">
+                        <label class="gen-form-label"><span class="req">*</span>发货仓</label>
+                        <select class="control" id="genFromWarehouse"></select>
+                      </div>
+                      <div class="gen-form-item">
+                        <label class="gen-form-label"><span class="req">*</span>目的仓（按店铺自动匹配）</label>
+                        <select class="control" id="genToWarehouse" disabled></select>
+                      </div>
+                      <div class="gen-form-item">
+                        <label class="gen-form-label"><span class="req">*</span>发货方式</label>
+                        <select class="control" id="genShipMode"></select>
+                      </div>
+                      <div class="gen-form-item">
+                        <label class="gen-form-label"><span class="req">*</span>头程服务商</label>
+                        <select class="control" id="genProvider"></select>
+                      </div>
+                      <div class="gen-form-item">
+                        <label class="gen-form-label"><span class="req">*</span>运输方式</label>
+                        <select class="control" id="genTransport"></select>
+                      </div>
+                      <div class="gen-form-item">
+                        <label class="gen-form-label"><span class="req">*</span>物流渠道</label>
+                        <select class="control" id="genChannel"></select>
+                      </div>
+                      <div class="gen-form-item">
+                        <label class="gen-form-label">目的地国家</label>
+                        <select class="control" id="genCountry"></select>
+                      </div>
+                      <div class="gen-form-item">
+                        <label class="gen-form-label">仓库类型</label>
+                        <select class="control" id="genWarehouseType">
+                          <option value="">请选择仓库类型</option>
+                          <option value="海外仓">海外仓</option>
+                          <option value="本地仓">本地仓</option>
+                          <option value="中转仓">中转仓</option>
+                        </select>
+                      </div>
+                      <div class="gen-form-item">
+                        <label class="gen-form-label">物流商单号</label>
+                        <input class="control" id="genLogisticsNo" placeholder="选填，可提交后补录" autocomplete="off">
+                      </div>
+                    </div>
+                    <div class="address-area">
+                      <div class="address-block">
+                        <div class="address-block-title">发货仓信息</div>
+                        <div class="address-grid">
+                          <div class="address-field"><span>联系人</span><input class="control" id="genFromContact" placeholder="请输入联系人" disabled></div>
+                          <div class="address-field"><span>联系电话</span><input class="control" id="genFromPhone" placeholder="请输入联系电话" disabled></div>
+                          <div class="address-field"><span>国家</span><input class="control" id="genFromCountry" placeholder="请选择国家" disabled></div>
+                          <div class="address-field"><span>省/州</span><input class="control" id="genFromProvince" placeholder="请输入省/州" disabled></div>
+                          <div class="address-field"><span>城市</span><input class="control" id="genFromCity" placeholder="请输入城市" disabled></div>
+                          <div class="address-field"><span>区/县</span><input class="control" id="genFromDistrict" placeholder="请输入区/县" disabled></div>
+                          <div class="address-field address-field-wide"><span>详细地址</span><input class="control" id="genFromDetail" placeholder="请输入详细地址" disabled></div>
+                          <div class="address-field"><span>邮编</span><input class="control" id="genFromZip" placeholder="请输入邮编" disabled></div>
+                        </div>
+                      </div>
+                      <div class="address-block">
+                        <div class="address-block-title">目的仓信息</div>
+                        <div class="address-grid">
+                          <div class="address-field"><span>联系人</span><input class="control" id="genToContact" placeholder="请输入联系人" disabled></div>
+                          <div class="address-field"><span>联系电话</span><input class="control" id="genToPhone" placeholder="请输入联系电话" disabled></div>
+                          <div class="address-field"><span>国家</span><input class="control" id="genToCountry" placeholder="请选择国家" disabled></div>
+                          <div class="address-field"><span>省/州</span><input class="control" id="genToProvince" placeholder="请输入省/州" disabled></div>
+                          <div class="address-field"><span>城市</span><input class="control" id="genToCity" placeholder="请输入城市" disabled></div>
+                          <div class="address-field"><span>区/县</span><input class="control" id="genToDistrict" placeholder="请输入区/县" disabled></div>
+                          <div class="address-field address-field-wide"><span>详细地址</span><input class="control" id="genToDetail" placeholder="请输入详细地址" disabled></div>
+                          <div class="address-field"><span>邮编</span><input class="control" id="genToZip" placeholder="请输入邮编" disabled></div>
+                        </div>
+                      </div>
+                      <div class="remark-row">
+                        <label class="gen-form-label">备注</label>
+                        <textarea class="control gen-textarea" id="genRemark" rows="2" placeholder="请输入备注"></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="minimal-card minimal-card-grow">
+                  <div class="minimal-card-head">
+                    <div class="minimal-card-title"><span class="minimal-title-bar"></span><b>发货明细</b></div>
+                  </div>
+                  <div class="sku-rule-hint">当前明细由所选 FBA 货件自动带出（一个货件只能生成一个发货单），可直接调整本次发货量与备注</div>
+                  <div class="selected-table-wrap">
+                    <table class="selected-sku-table">
+                      <thead>
+                        <tr>
+                          <th style="width:135px">SKU</th>
+                          <th style="width:195px">产品信息</th>
+                          <th style="width:145px">发货计划</th>
+                          <th style="width:145px">海外仓 SKU</th>
+                          <th style="width:120px">易仓 SKU</th>
+                          <th style="width:110px">平台</th>
+                          <th style="width:105px">团队</th>
+                          <th style="width:145px">店铺</th>
+                          <th style="width:75px">箱数</th>
+                          <th style="width:130px"><span class="req">*</span>发货量</th>
+                          <th style="width:175px">重量＆体积</th>
+                          <th style="width:90px">计划差额</th>
+                          <th style="width:170px">备注</th>
+                        </tr>
+                      </thead>
+                      <tbody id="genSkuTableBody"></tbody>
+                    </table>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <footer class="fba-gen-footer minimal-dialog-footer">
+            <div class="minimal-stats" id="fbaGenFooterStats"></div>
+            <div class="minimal-footer-actions">
+              <button class="btn" id="fbaGenCancelBtn" type="button">取消</button>
+              <button class="btn" id="fbaGenDraftBtn" type="button">保存草稿</button>
+              <button class="btn primary" id="fbaGenSubmitBtn" type="button">提交</button>
+            </div>
+          </footer>
+        </div>
       </main>
     </div>
   </div>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
   <script src="../../navigation.js?v=1.8.02"></script>
-  <script src="./app.js?v=2.0.0"></script>
+  <script src="./app.js?v=2.2.0"></script>
 </body>
 </html>
