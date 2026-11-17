@@ -364,14 +364,29 @@
   }
 
   function mountFbaShipmentNav() {
-    document.querySelectorAll('[data-page-nav="shipmentOrder"]').forEach(function (source) {
+    document.querySelectorAll('[data-page-nav="purchase"]').forEach(function (source) {
       var container = source.parentElement;
       if (!container || container.querySelector('[data-page-nav="fbaShipment"]')) return;
       var item = source.cloneNode(true);
       item.setAttribute('data-page-nav', 'fbaShipment');
       item.classList.remove('active');
       if (location.pathname.indexOf('/fba-shipment/') >= 0) item.classList.add('active');
-      item.innerHTML = '<span class="mini">♧</span>FBA货件';
+      var icon = item.querySelector('.mini, .nav-icon');
+      if (icon) {
+        var clonedIcon = icon.cloneNode(true);
+        clonedIcon.textContent = '♧';
+        item.innerHTML = '';
+        item.appendChild(clonedIcon);
+        if (clonedIcon.classList.contains('nav-icon')) {
+          var span = document.createElement('span');
+          span.textContent = 'FBA货件';
+          item.appendChild(span);
+        } else {
+          item.appendChild(document.createTextNode('FBA货件'));
+        }
+      } else {
+        item.textContent = 'FBA货件';
+      }
       source.insertAdjacentElement('afterend', item);
     });
   }

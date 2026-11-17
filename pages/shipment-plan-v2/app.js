@@ -43,7 +43,8 @@
     { key: 'fbaShipmentNo', label: 'FBA 货件号' },
     { key: 'fbaRefId', label: 'FBA 货件名称' },
     { key: 'remark', label: '备注', editable: 'text' },
-    { key: 'pickupWarehouse', label: '提货仓', editable: 'select', options: 'pickupWarehouses' },
+    { key: 'pickupWarehouse', label: '提货仓' },
+    { key: 'shippingOrderNo', label: '发货单号' },
     { key: 'shipWarehouse', label: '发货仓', editable: 'select', options: 'shipWarehouses' },
     { key: 'destWarehouse', label: '目的地仓', editable: 'select', options: 'destWarehouses' },
     { key: 'shipMethod', label: '发货方式', editable: 'select', options: 'shipMethods' },
@@ -75,7 +76,7 @@
   const COL_DEFS = COLUMNS.filter(c => !c.system);
   const DEFAULT_COL_KEYS = COL_DEFS.map(c => c.key);
   const COL_STORAGE_KEY = 'shipment-plan-v2-column-config';
-  const COL_CONFIG_VERSION = 3;
+  const COL_CONFIG_VERSION = 4;
 
   function normalizeColKeys(keys, mergeMissing) {
     const available = DEFAULT_COL_KEYS;
@@ -112,7 +113,7 @@
       planNo: 'YMX20261106-1', lingxingSku: 'DD123456', productName: '测试-DD123456', model: '型号-DD123456',
       cat1: '通用', cat2: '通用', saleType: '常规', fnsku: '-', sellerSku: 'SL-DD123456', asin: 'B0DD123456',
       store: 'ARCCAPTAIN_US', platform: '亚马逊', country: 'US', team: '刘绎天', teamOwner: '刘绎天', opsOwner: '毛粤风',
-      planOwner: '毛粤风', pickupWarehouse: '坪山石井本地仓', shipWarehouse: '跨跃猫物流仓',
+      planOwner: '毛粤风', pickupWarehouse: [{ warehouse: '坪山石井本地仓', qty: 16 }, { warehouse: '深圳坂田总仓', qty: 10 }], shipWarehouse: '跨跃猫物流仓',
       destWarehouse: '跨跃猫美西一件代发仓 纽约仓', destType: '海外仓', shipMethod: '海外仓备货',
       provider: '跨越猫头程', providerSub: 'KYM-US', channel: '美森限时达', boxNo: 'BOX-001',
       transportMode: '海运', estDays: 18, estShipDate: '2026-11-08', estArrivalDate: '2026-11-26',
@@ -121,7 +122,7 @@
       planPurchaseQty: 30, planDeliveryDate: '2026-11-05', demandGap: 26, suggestedOrderQty: 30, expectedDeliveryDate: '2026-11-25',
       platformInStock: 120, platformInTransit: 40, overseasInStock: 85, overseasPendingShip: 10, overseasInTransit: 20,
       localInStock: 60, localPendingShip: 5, poTotal: 30, poInTransit: 10, supplierInStock: 15, supplierInProd: 20,
-      purchaseNo: 'PO2226110630006', shippingOrderNo: 'FH2026110601', fbaShipmentNo: 'FBA18XYZ001', fbaRefId: 'REF-88210',
+      purchaseNo: 'PO2226110630006', shippingOrderNo: 'DN20260808001', fbaShipmentNo: 'FBA18XYZ001', fbaRefId: 'REF-88210',
       status: 'pending_ship', createdAt: '2026-11-06 15:56:18', updatedAt: '2026-11-06 16:12:05', creator: 'Admin'
     },
     {
@@ -155,7 +156,7 @@
       planPurchaseQty: 60, planDeliveryDate: '2026-11-04', demandGap: 55, suggestedOrderQty: 60, expectedDeliveryDate: '2026-11-15',
       platformInStock: 45, platformInTransit: 10, overseasInStock: 22, overseasPendingShip: 4, overseasInTransit: 30,
       localInStock: 80, localPendingShip: 10, poTotal: 60, poInTransit: 20, supplierInStock: 10, supplierInProd: 25,
-      purchaseNo: 'PO2226110430012', shippingOrderNo: 'FH2026110502', fbaShipmentNo: 'FBA18XYZ003', fbaRefId: 'REF-88219',
+      purchaseNo: 'PO2226110430012', shippingOrderNo: 'DN20260808002', fbaShipmentNo: 'FBA18XYZ003', fbaRefId: 'REF-88219',
       status: 'completed', createdAt: '2026-11-04 11:12:30', updatedAt: '2026-11-05 18:45:10', creator: '陈晓'
     },
     {
@@ -189,7 +190,7 @@
       planPurchaseQty: 0, planDeliveryDate: '2026-11-10', demandGap: 2, suggestedOrderQty: 2, expectedDeliveryDate: '2026-12-02',
       platformInStock: 0, platformInTransit: 0, overseasInStock: 0, overseasPendingShip: 0, overseasInTransit: 0,
       localInStock: 10, localPendingShip: 0, poTotal: 0, poInTransit: 0, supplierInStock: 0, supplierInProd: 0,
-      purchaseNo: '', shippingOrderNo: '', fbaShipmentNo: '', fbaRefId: '',
+      purchaseNo: '', shippingOrderNo: 'DN20260808003', fbaShipmentNo: '', fbaRefId: '',
       status: 'pending_ship', createdAt: '2026-11-04 08:15:00', updatedAt: '2026-11-04 08:15:00', creator: 'Admin'
     }
   ];
@@ -369,10 +370,90 @@
     return String(val || '').split(/[,，\s]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
   }
 
+  function normalizePickupAllocs(val, fallbackQty = 0) {
+    const map = new Map();
+    const pushItem = (w, q) => {
+      const name = String(w || '').trim();
+      if (!name) return;
+      const num = Number(q);
+      const cleanQty = Number.isFinite(num) && num > 0 ? Math.floor(num) : null;
+      if (map.has(name)) {
+        const prev = map.get(name);
+        map.set(name, { warehouse: name, qty: cleanQty !== null ? (Number(prev.qty || 0) + cleanQty) : prev.qty });
+      } else {
+        map.set(name, { warehouse: name, qty: cleanQty });
+      }
+    };
+    if (Array.isArray(val)) {
+      val.forEach(item => {
+        if (item && typeof item === 'object') pushItem(item.warehouse || item.name, item.qty);
+        else pushItem(item, null);
+      });
+    } else if (typeof val === 'string') {
+      val.split(/[、,，;；]+/).forEach(w => pushItem(w, null));
+    }
+    const list = Array.from(map.values());
+    if (list.length === 1 && list[0].qty === null && Number(fallbackQty) > 0) {
+      list[0].qty = Math.floor(Number(fallbackQty));
+    } else if (list.length > 1 && list.every(a => a.qty === null) && Number(fallbackQty) > 0) {
+      const total = Math.floor(Number(fallbackQty));
+      const base = Math.max(1, Math.floor(total / list.length));
+      let remain = total;
+      list.forEach((a, idx) => {
+        const take = idx === list.length - 1 ? Math.max(1, remain) : Math.min(remain, base);
+        a.qty = take;
+        remain = Math.max(0, remain - take);
+      });
+    }
+    return list;
+  }
+
+  function getPickupList(val) {
+    return normalizePickupAllocs(val).map(a => a.warehouse);
+  }
+
+  function getPickupTotalQty(val) {
+    return normalizePickupAllocs(val).reduce((acc, a) => acc + (Number(a.qty) > 0 ? Number(a.qty) : 0), 0);
+  }
+
+  function formatPickupSummary(val) {
+    return normalizePickupAllocs(val).map(a => a.qty > 0 ? `${a.warehouse}(${a.qty})` : `${a.warehouse}(待填)`).join('、');
+  }
+
+  function renderPickupCellHtml(allocs, opts) {
+    const { planQty = 0, readonly = false, delAttr = '', delIdx = '', openAttr = '', openIdx = '', emptyText = '请选择提货仓', btnText = '+ 追加' } = opts;
+    const total = getPickupTotalQty(allocs);
+    const overLimit = planQty > 0 && total > planQty;
+    const missingQty = allocs.some(a => !(Number(a.qty) > 0));
+    const visible = allocs.slice(0, 2);
+    const extra = allocs.length - visible.length;
+    const detailText = allocs.length ? allocs.map(a => `${a.warehouse} × ${a.qty > 0 ? a.qty : '待填'}`).join('、') : '暂未设置提货仓';
+    const warnSuffix = overLimit ? `（提货合计 ${total} 大于计划发货数量 ${planQty}）` : (missingQty ? '（存在未填写提货数量的仓库）' : '');
+    const fullTitle = `提货分配（合计 ${total} / 计划 ${planQty}）：${detailText}${warnSuffix}`;
+    const makeTag = a => {
+      const warn = !(Number(a.qty) > 0);
+      const qtyHtml = `<span class="spv2-pw-tag-qty">· ${a.qty > 0 ? a.qty : '待填'}</span>`;
+      const delHtml = readonly ? '' : `<button class="spv2-pw-tag-del" type="button" ${delAttr}="${delIdx}" data-pw-val="${esc(a.warehouse)}" title="移除 ${esc(a.warehouse)}" aria-label="移除 ${esc(a.warehouse)}">×</button>`;
+      return `<span class="spv2-pw-tag ${warn ? 'is-warn' : ''}"><span class="spv2-pw-tag-text">${esc(a.warehouse)}</span>${qtyHtml}${delHtml}</span>`;
+    };
+    if (readonly) {
+      if (!allocs.length) return '-';
+      const tags = visible.map(makeTag).join('');
+      const more = extra > 0 ? `<span class="spv2-pw-more" title="${esc(fullTitle)}">+${extra}</span>` : '';
+      return `<div class="spv2-pw-cell is-readonly" title="${esc(fullTitle)}">${tags}${more}</div>`;
+    }
+    const tags = visible.map(makeTag).join('');
+    const more = extra > 0 ? `<span class="spv2-pw-more" title="${esc(fullTitle)}">+${extra}</span>` : '';
+    const emptyHint = !allocs.length ? `<span class="spv2-pw-placeholder">${esc(emptyText)}</span>` : '';
+    const statusCls = !allocs.length ? 'is-empty' : (overLimit || missingQty ? 'is-overlimit' : '');
+    return `<div class="spv2-pw-cell ${statusCls}" ${openAttr}="${openIdx}" title="${esc(fullTitle + '（点击编辑仓库与提货数量）')}">${emptyHint}${tags}${more}<button class="spv2-pw-add-btn" type="button" ${openAttr}="${openIdx}">${esc(btnText)}</button></div>`;
+  }
+
   function applyFilter(showMsg = false) {
     const codeType = $('#codeType').value;
     const codeTokens = splitTokens($('#codeInput').value);
     const planTokens = splitTokens($('#planNo').value);
+    const pickupWhs = multiMap.pickupWarehouseMulti ? multiMap.pickupWarehouseMulti.selected : new Set();
     const shipWhs = multiMap.shipWarehouseMulti.selected;
     const destWhs = multiMap.destinationWarehouseMulti.selected;
     const destType = $('#destinationType').value;
@@ -396,6 +477,7 @@
     const baseFiltered = rows.filter(r => {
       if (codeTokens.length && !codeTokens.some(t => String(r[codeType] || '').toLowerCase().includes(t))) return false;
       if (planTokens.length && !planTokens.some(t => r.planNo.toLowerCase().includes(t))) return false;
+      if (pickupWhs.size && !getPickupList(r.pickupWarehouse).some(w => pickupWhs.has(w))) return false;
       if (shipWhs.size && !shipWhs.has(r.shipWarehouse)) return false;
       if (destWhs.size && !destWhs.has(r.destWarehouse)) return false;
       if (destType && r.destType !== destType) return false;
@@ -490,16 +572,46 @@
           return `<td class="${cls}"><div class="spv2-plan-cell"><span class="spv2-plan-code">${esc(r.planNo)}</span><span class="spv2-status-tag ${r.status}">${STATUS_META[r.status].label}</span></div></td>`;
         }
         if (c.key === '_action') {
-          const voidBtn = r.status !== 'void' ? `<button class="spv2-op-btn is-danger" type="button" data-row-void="${r.id}">作废</button>` : '';
-          return `<td class="${cls}"><div class="spv2-op-links">${voidBtn}<button class="spv2-op-btn is-primary" type="button" data-row-log="${r.id}">日志</button></div></td>`;
+          return `<td class="${cls}"><div class="spv2-op-links"><button class="spv2-op-btn is-gray" type="button" data-row-log="${r.id}">日志</button></div></td>`;
         }
-        if (c.key === 'fbaShipmentNo' || c.key === 'fbaRefId') {
+        if (c.key === 'fbaShipmentNo') {
+          const val = r.fbaShipmentNo;
+          if (val) {
+            const nos = String(val).split(/[、,，]+/).filter(Boolean);
+            const count = r.fbaLinkCount || nos.length;
+            const qty = Number(r.fbaLinkDeclaredQty || 0);
+            const badgeText = qty > 0
+              ? `已关联 ${count} 货件 / ${qty} 件`
+              : (count > 1 ? `已关联 ${count} 货件` : '');
+            const title = badgeText ? `${val}（${badgeText}）` : val;
+            return `<td class="${cls}" title="${esc(title)}"><div class="spv2-fba-cell"><span class="spv2-fba-nos">${esc(val)}</span>${badgeText ? `<span class="spv2-fba-link-summary">${esc(badgeText)}</span>` : ''}</div></td>`;
+          }
+          if (r.team === '亚马逊团队') {
+            return `<td class="${cls}"><span class="spv2-unlinked-tag">未关联</span></td>`;
+          }
+          return `<td class="${cls}">-</td>`;
+        }
+        if (c.key === 'fbaRefId') {
           const val = r[c.key];
-          if (val) return `<td class="${cls}">${esc(val)}</td>`;
+          if (val) return `<td class="${cls}" title="${esc(val)}">${esc(val)}</td>`;
           if (r.team === '亚马逊团队' && !r.fbaShipmentNo) {
             return `<td class="${cls}"><span class="spv2-unlinked-tag">未关联</span></td>`;
           }
           return `<td class="${cls}">-</td>`;
+        }
+        if (c.key === 'pickupWarehouse') {
+          const allocs = normalizePickupAllocs(r.pickupWarehouse, r.planShipQty);
+          const html = renderPickupCellHtml(allocs, {
+            planQty: Number(r.planShipQty) || 0,
+            readonly,
+            delAttr: 'data-pw-del-row',
+            delIdx: r.id,
+            openAttr: 'data-pw-open-row',
+            openIdx: r.id,
+            emptyText: '请选择提货仓',
+            btnText: '+ 追加'
+          });
+          return `<td class="${cls}">${html}</td>`;
         }
         if (c.editable) {
           const dis = readonly ? 'disabled' : '';
@@ -569,7 +681,15 @@
     const row = rows.find(r => r.id === editId);
     if (!row) return;
     const oldVal = row[key];
-    row[key] = target.type === 'number' ? Number(target.value) || 0 : target.value;
+    const nextVal = target.type === 'number' ? Number(target.value) || 0 : target.value;
+    if (key === 'planShipQty') {
+      const pickupTotal = getPickupTotalQty(row.pickupWarehouse);
+      if (nextVal < pickupTotal) {
+        target.value = oldVal;
+        return toast(`计划发货数量(${nextVal})不能小于各提货仓提货数量合计(${pickupTotal})`);
+      }
+    }
+    row[key] = nextVal;
     if (key === 'estShipDate' || key === 'estDays') {
       row.estArrivalDate = addDays(row.estShipDate, row.estDays);
     }
@@ -592,38 +712,99 @@
     renderTable();
   });
 
-  /* 行内作废 & 日志 */
+  /* 行内日志、提货仓多选操作 */
   $('#tableBody').addEventListener('click', e => {
-    const voidBtn = e.target.closest('[data-row-void]');
-    if (voidBtn) {
-      const id = Number(voidBtn.dataset.rowVoid);
+    const pwDelBtn = e.target.closest('[data-pw-del-row]');
+    if (pwDelBtn) {
+      e.stopPropagation();
+      const id = Number(pwDelBtn.dataset.pwDelRow);
+      const val = pwDelBtn.dataset.pwVal;
       const row = rows.find(r => r.id === id);
       if (!row) return;
-      row.status = 'void';
+      const curList = normalizePickupAllocs(row.pickupWarehouse, row.planShipQty);
+      if (curList.length <= 1) {
+        toast('请至少保留 1 个提货仓，可在浮层中勾选替换');
+        const cell = pwDelBtn.closest('.spv2-pw-cell') || pwDelBtn;
+        openPickupMgrPopover({ mode: 'list-row', rowId: id }, cell);
+        return;
+      }
+      const nextList = curList.filter(a => a.warehouse !== val);
+      row.pickupWarehouse = nextList;
       row.updatedAt = new Date().toISOString().replace('T', ' ').slice(0, 19);
-      addLog(row.id, '作废', `作废发货计划 ${row.planNo}`);
+      addLog(row.id, '修改提货仓', `移除提货仓「${val}」（当前：${formatPickupSummary(nextList)}）`);
       publishV2PlansToBridge();
       applyFilter(false);
-      toast(`发货计划 ${row.planNo} 已作废`);
+      toast(`已移除提货仓「${val}」`);
+      return;
+    }
+    const pwOpenEl = e.target.closest('[data-pw-open-row]');
+    if (pwOpenEl) {
+      e.stopPropagation();
+      const id = Number(pwOpenEl.dataset.pwOpenRow);
+      const cell = pwOpenEl.closest('.spv2-pw-cell') || pwOpenEl;
+      openPickupMgrPopover({ mode: 'list-row', rowId: id }, cell);
       return;
     }
     const logBtn = e.target.closest('[data-row-log]');
     if (logBtn) {
-      const id = Number(logBtn.dataset.rowLog);
-      const row = rows.find(r => r.id === id);
-      if (!row) return;
-      const logs = logsByPlan.get(id) || [];
-      $('#planLogTitle').textContent = `操作日志｜${row.planNo}`;
-      $('#planLogBody').innerHTML = logs.map(l => `<tr><td>${esc(l.type)}</td><td>${esc(l.content)}</td><td>${esc(l.operator)}</td><td>${esc(l.time)}</td></tr>`).join('');
-      $('#planLogCount').textContent = `共 ${logs.length} 条`;
-      $('#planLogMask').classList.remove('hidden');
-      $('#planLogDialog').classList.remove('hidden');
+      openPlanLogModal(Number(logBtn.dataset.rowLog));
     }
   });
 
-  $('#planLogClose').addEventListener('click', () => {
+  const planLogState = { rowId: 0, page: 1, pageSize: 10 };
+
+  function renderPlanLogModal() {
+    const row = rows.find(r => r.id === planLogState.rowId);
+    if (!row) return;
+    const logs = logsByPlan.get(row.id) || [];
+    const totalPages = Math.max(1, Math.ceil(logs.length / planLogState.pageSize));
+    const current = Math.min(planLogState.page, totalPages);
+    planLogState.page = current;
+    const pageLogs = logs.slice((current - 1) * planLogState.pageSize, current * planLogState.pageSize);
+    $('#planLogTitle').textContent = '操作日志';
+    $('#planLogSub').textContent = `发货计划：${row.planNo}`;
+    $('#planLogBody').innerHTML = pageLogs.length
+      ? pageLogs.map(l => `<tr><td>${esc(l.type)}</td><td class="purchase-log-content">${esc(l.content)}</td><td>${esc(l.operator)}</td><td>${esc(l.time)}</td></tr>`).join('')
+      : `<tr><td colspan="4" class="purchase-log-empty">暂无操作日志</td></tr>`;
+    $('#planLogCount').textContent = `共 ${logs.length} 条`;
+    const pagesHtml = Array.from({ length: totalPages }, (_, idx) => {
+      const p = idx + 1;
+      return `<button class="purchase-log-page ${p === current ? 'active' : ''}" type="button" data-log-page="${p}">${p}</button>`;
+    }).join('');
+    $('#planLogPager').innerHTML = `
+      <button class="purchase-log-page" type="button" data-log-page="${Math.max(1, current - 1)}" ${current <= 1 ? 'disabled' : ''}>‹</button>
+      ${pagesHtml}
+      <button class="purchase-log-page" type="button" data-log-page="${Math.min(totalPages, current + 1)}" ${current >= totalPages ? 'disabled' : ''}>›</button>
+    `;
+  }
+
+  function openPlanLogModal(id) {
+    const row = rows.find(r => r.id === id);
+    if (!row) return;
+    planLogState.rowId = id;
+    planLogState.page = 1;
+    renderPlanLogModal();
+    $('#planLogMask').classList.remove('hidden');
+  }
+
+  function closePlanLogModal() {
     $('#planLogMask').classList.add('hidden');
-    $('#planLogDialog').classList.add('hidden');
+  }
+
+  $('#planLogClose').addEventListener('click', closePlanLogModal);
+  $('#planLogMask').addEventListener('click', e => {
+    if (e.target === $('#planLogMask')) closePlanLogModal();
+  });
+  $('#planLogPager').addEventListener('click', e => {
+    const btn = e.target.closest('[data-log-page]');
+    if (!btn || btn.disabled) return;
+    planLogState.page = Number(btn.dataset.logPage) || 1;
+    renderPlanLogModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !$('#planLogMask').classList.contains('hidden')) {
+      closePlanLogModal();
+    }
   });
 
   /* 状态 Tab 切换 */
@@ -723,6 +904,16 @@
         ${placeholder ? `<option value="" ${!val ? 'selected' : ''}>${esc(placeholder)}</option>` : ''}
         ${list.map(opt => `<option value="${esc(opt)}" ${val === opt ? 'selected' : ''}>${esc(opt)}</option>`).join('')}
       </select>`;
+    const renderCreatePwCell = (s, idx) => renderPickupCellHtml(normalizePickupAllocs(s.pickupWarehouse, s.planShipQty), {
+      planQty: Number(s.planShipQty) || 0,
+      readonly: false,
+      delAttr: 'data-csku-pw-del',
+      delIdx: idx,
+      openAttr: 'data-csku-pw-idx',
+      openIdx: idx,
+      emptyText: '请选择提货仓（可多选）',
+      btnText: '+ 选仓'
+    });
     $('#createSkuBody').innerHTML = state.createSkus.length ? state.createSkus.map((s, idx) => `
       <tr>
         <td class="spv2-c-fix-1">${esc(s.sku)}</td>
@@ -737,7 +928,7 @@
         <td>${esc(s.boxSpec)}</td>
         <td>${esc(s.boxQty)}</td>
         <td data-csku-cartons="${idx}">${Math.ceil((Number(s.planShipQty) || 0) / (Number(s.boxQty) || 1))}</td>
-        <td>${selHtml(idx, 'pickupWarehouse', OPTIONS.pickupWarehouses, s.pickupWarehouse, '请选择提货仓')}</td>
+        <td>${renderCreatePwCell(s, idx)}</td>
         <td><input class="spv2-inline-control spv2-inline-num" type="number" min="1" data-csku-idx="${idx}" data-csku-key="planShipQty" value="${esc(s.planShipQty)}"></td>
         <td><input class="spv2-inline-control" data-csku-idx="${idx}" data-csku-key="remark" value="${esc(s.remark)}" placeholder="请输入备注"></td>
         <td>${esc(s.supplierCode)}</td>
@@ -747,13 +938,13 @@
     updateCreateStats();
   }
 
-  /* 明细表头「批量」编辑浮层（对齐采购计划交互） */
+  /* 明细表头「批量」编辑浮层（对齐采购计划交互，提货仓支持多选「追加 / 覆盖」） */
   const BATCH_FIELDS = {
     team: { label: '团队', type: 'select', options: 'teams', placeholder: '请选择团队' },
     platform: { label: '平台', type: 'select', options: 'platforms', placeholder: '请选择平台' },
     store: { label: '店铺', type: 'select', options: 'stores', placeholder: '请选择店铺' },
     opsOwner: { label: '运营负责人', type: 'select', options: 'planOwners', placeholder: '请选择运营负责人' },
-    pickupWarehouse: { label: '提货仓', type: 'select', options: 'pickupWarehouses', placeholder: '请选择提货仓' },
+    pickupWarehouse: { label: '提货仓', type: 'multi-pickup', options: 'pickupWarehouses', placeholder: '请勾选提货仓（可多选）' },
     planShipQty: { label: '计划发货数量', type: 'number', placeholder: '请输入计划发货数量' },
     remark: { label: '备注', type: 'text', placeholder: '请输入备注' }
   };
@@ -768,31 +959,102 @@
   function openBatchFillPopover(field, trigger) {
     const cfg = BATCH_FIELDS[field];
     if (!cfg) return;
+    closePickupMgrPopover();
     if (activeBatchField === field) {
       closeBatchFillPopover();
       return;
     }
     activeBatchField = field;
     const body = $('#batchFillBody');
-    if (cfg.type === 'select') {
+    const appendBtn = $('#batchFillAppendBtn');
+    const confirmBtn = $('#batchFillConfirmBtn');
+    if (cfg.type === 'multi-pickup') {
       const list = OPTIONS[cfg.options] || [];
-      body.innerHTML = `<select class="control" id="batchFillInput"><option value="">${esc(cfg.placeholder)}</option>${list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>`;
-    } else if (cfg.type === 'number') {
-      body.innerHTML = `<input class="control" id="batchFillInput" type="number" min="1" placeholder="${esc(cfg.placeholder)}">`;
+      body.innerHTML = `
+        <div class="spv2-batch-multi-head">勾选提货仓并填写提货数量</div>
+        <div class="spv2-batch-multi-list">
+          ${list.map(v => `
+            <div class="spv2-batch-multi-item">
+              <label class="spv2-batch-multi-check"><input type="checkbox" value="${esc(v)}" data-batch-pw-check><span>${esc(v)}</span></label>
+              <input class="control spv2-batch-qty-input" type="number" min="1" placeholder="提货数" data-batch-pw-qty="${esc(v)}" disabled>
+            </div>`).join('')}
+        </div>`;
+      if (appendBtn) appendBtn.classList.remove('hidden');
+      if (confirmBtn) confirmBtn.textContent = '覆盖';
     } else {
-      body.innerHTML = `<input class="control" id="batchFillInput" type="text" placeholder="${esc(cfg.placeholder)}">`;
+      if (appendBtn) appendBtn.classList.add('hidden');
+      if (confirmBtn) confirmBtn.textContent = '确认';
+      if (cfg.type === 'select') {
+        const list = OPTIONS[cfg.options] || [];
+        body.innerHTML = `<select class="control" id="batchFillInput"><option value="">${esc(cfg.placeholder)}</option>${list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>`;
+      } else if (cfg.type === 'number') {
+        body.innerHTML = `<input class="control" id="batchFillInput" type="number" min="1" placeholder="${esc(cfg.placeholder)}">`;
+      } else {
+        body.innerHTML = `<input class="control" id="batchFillInput" type="text" placeholder="${esc(cfg.placeholder)}">`;
+      }
     }
     const pop = $('#batchFillPopover');
     pop.classList.remove('hidden');
     const rect = trigger.getBoundingClientRect();
     const popW = pop.offsetWidth || 236;
-    const popH = pop.offsetHeight || 96;
+    const popH = pop.offsetHeight || 110;
     const left = Math.max(12, Math.min(window.innerWidth - popW - 12, rect.left + rect.width / 2 - popW / 2));
     const top = Math.max(12, rect.top - popH - 10);
     pop.style.left = `${left}px`;
     pop.style.top = `${top}px`;
     const input = $('#batchFillInput');
     if (input) input.focus();
+  }
+
+  $('#batchFillBody').addEventListener('change', e => {
+    const cb = e.target.closest('[data-batch-pw-check]');
+    if (!cb) return;
+    const val = cb.value;
+    const qtyInput = $$('[data-batch-pw-qty]').find(el => el.dataset.batchPwQty === val);
+    if (!qtyInput) return;
+    qtyInput.disabled = !cb.checked;
+    if (!cb.checked) qtyInput.value = '';
+    else qtyInput.focus();
+  });
+
+  function applyBatchPickupWarehouses(mode) {
+    const checkedBoxes = $$('[data-batch-pw-check]:checked');
+    if (!checkedBoxes.length) return toast('请至少勾选 1 个提货仓');
+    if (!state.createSkus.length) return toast('请先添加 SKU 明细');
+    const qtyInputs = $$('[data-batch-pw-qty]');
+    const picked = [];
+    for (const cb of checkedBoxes) {
+      const w = cb.value;
+      const input = qtyInputs.find(el => el.dataset.batchPwQty === w);
+      const qty = Math.floor(Number(input ? input.value : 0));
+      if (!(qty > 0)) return toast(`请为「${w}」填写大于 0 的提货数量`);
+      picked.push({ warehouse: w, qty });
+    }
+    const nextByIdx = [];
+    for (let i = 0; i < state.createSkus.length; i++) {
+      const item = state.createSkus[i];
+      const cur = normalizePickupAllocs(item.pickupWarehouse, item.planShipQty);
+      let next;
+      if (mode === 'append') {
+        const map = new Map(cur.map(a => [a.warehouse, { ...a }]));
+        picked.forEach(p => { map.set(p.warehouse, { ...p }); });
+        next = Array.from(map.values());
+      } else {
+        next = picked.map(p => ({ ...p }));
+      }
+      const total = getPickupTotalQty(next);
+      const planQty = Number(item.planShipQty) || 0;
+      if (planQty > 0 && total > planQty) {
+        return toast(`SKU ${item.sku} 提货数量合计(${total})不能大于计划发货数量(${planQty})`);
+      }
+      nextByIdx.push(next);
+    }
+    state.createSkus.forEach((item, i) => { item.pickupWarehouse = nextByIdx[i]; });
+    const count = state.createSkus.length;
+    const desc = formatPickupSummary(picked);
+    closeBatchFillPopover();
+    renderCreateSkus();
+    toast(mode === 'append' ? `已为 ${count} 个明细追加提货仓：${desc}` : `已将提货仓配置覆盖应用到 ${count} 个明细`);
   }
 
   $('#createModal').addEventListener('click', e => {
@@ -809,13 +1071,24 @@
     if (!e.target.closest('#batchFillPopover') && !e.target.closest('[data-batch-field]')) {
       closeBatchFillPopover();
     }
+    if (!e.target.closest('#pickupMgrPopover') && !e.target.closest('[data-pw-open-row]') && !e.target.closest('[data-csku-pw-idx]')) {
+      closePickupMgrPopover();
+    }
   });
 
   $('#batchFillCancelBtn').addEventListener('click', closeBatchFillPopover);
+  $('#batchFillAppendBtn').addEventListener('click', () => {
+    if (activeBatchField === 'pickupWarehouse') applyBatchPickupWarehouses('append');
+  });
   $('#batchFillConfirmBtn').addEventListener('click', () => {
     const cfg = BATCH_FIELDS[activeBatchField];
+    if (!cfg) return;
+    if (cfg.type === 'multi-pickup') {
+      applyBatchPickupWarehouses('replace');
+      return;
+    }
     const input = $('#batchFillInput');
-    if (!cfg || !input) return;
+    if (!input) return;
     const raw = input.value;
     if (raw === null || raw === undefined || raw === '') {
       return toast(`请先填写${cfg.label}`);
@@ -828,6 +1101,201 @@
     closeBatchFillPopover();
     renderCreateSkus();
     toast(`已将${label}批量应用到 ${count} 个明细`);
+  });
+
+  /* 提货仓多选与提货数量管理浮层（支持列表行与新建明细行的新增/修改/追加） */
+  const pwMgrState = {
+    open: false,
+    mode: '',
+    rowId: 0,
+    cskuIdx: -1,
+    planQty: 0,
+    draft: [],
+    search: ''
+  };
+
+  function closePickupMgrPopover() {
+    pwMgrState.open = false;
+    const pop = $('#pickupMgrPopover');
+    if (pop) pop.classList.add('hidden');
+  }
+
+  function renderPickupMgrSummary() {
+    const draft = pwMgrState.draft;
+    const total = getPickupTotalQty(draft);
+    const planQty = Number(pwMgrState.planQty) || 0;
+    const remain = planQty - total;
+    const over = planQty > 0 && remain < 0;
+    $('#pickupMgrCount').textContent = `已选 ${draft.length} 个`;
+    const quotaEl = $('#pickupMgrQuota');
+    quotaEl.classList.toggle('is-over', over);
+    quotaEl.innerHTML = `
+      <span>计划发货：<b>${planQty}</b> 件</span>
+      <span>已填提货：<b>${total}</b> 件</span>
+      <span>${over ? `超出：<b>${Math.abs(remain)}</b> 件` : `剩余可配：<b>${remain}</b> 件`}</span>
+    `;
+    const selEl = $('#pickupMgrSelected');
+    if (draft.length) {
+      selEl.innerHTML = draft.map(a => `
+        <span class="spv2-pw-tag ${!(Number(a.qty) > 0) ? 'is-warn' : ''}">
+          <span class="spv2-pw-tag-text">${esc(a.warehouse)}</span>
+          <span class="spv2-pw-tag-qty">· ${a.qty > 0 ? a.qty : '待填'}</span>
+          <button class="spv2-pw-tag-del" type="button" data-pwmgr-del="${esc(a.warehouse)}" title="移除 ${esc(a.warehouse)}" aria-label="移除 ${esc(a.warehouse)}">×</button>
+        </span>`).join('');
+    } else {
+      selEl.innerHTML = `<span class="spv2-pw-popover__empty-sel">暂未选择提货仓，请在下方勾选并填写提货数量</span>`;
+    }
+  }
+
+  function renderPickupMgrPopover() {
+    renderPickupMgrSummary();
+    const draftMap = new Map(pwMgrState.draft.map(a => [a.warehouse, a]));
+    const allOptions = [...new Set([...OPTIONS.pickupWarehouses, ...pwMgrState.draft.map(a => a.warehouse)])];
+    const q = pwMgrState.search.trim().toLowerCase();
+    const filtered = allOptions.filter(w => w.toLowerCase().includes(q));
+    const listEl = $('#pickupMgrList');
+    if (filtered.length) {
+      listEl.innerHTML = filtered.map(w => {
+        const entry = draftMap.get(w);
+        const checked = Boolean(entry);
+        const qtyVal = checked && entry.qty > 0 ? entry.qty : '';
+        return `
+          <div class="spv2-pw-option ${checked ? 'is-checked' : ''}">
+            <label class="spv2-pw-opt-check">
+              <input type="checkbox" value="${esc(w)}" data-pwmgr-check ${checked ? 'checked' : ''}>
+              <span title="${esc(w)}">${esc(w)}</span>
+            </label>
+            <div class="spv2-pw-opt-qty">
+              <input class="spv2-pw-qty-input" type="number" min="1" placeholder="数量" data-pwmgr-qty="${esc(w)}" value="${esc(qtyVal)}" ${checked ? '' : 'disabled'}>
+              <span>件</span>
+            </div>
+          </div>`;
+      }).join('');
+    } else {
+      listEl.innerHTML = `<div class="spv2-pw-popover__empty-sel" style="padding:8px 10px;">无匹配提货仓</div>`;
+    }
+  }
+
+  function openPickupMgrPopover(target, anchorEl) {
+    closeBatchFillPopover();
+    pwMgrState.open = true;
+    pwMgrState.mode = target.mode;
+    pwMgrState.rowId = target.rowId || 0;
+    pwMgrState.cskuIdx = target.cskuIdx !== undefined ? target.cskuIdx : -1;
+    pwMgrState.search = '';
+    const searchInput = $('#pickupMgrSearch');
+    if (searchInput) searchInput.value = '';
+    if (target.mode === 'list-row') {
+      const row = rows.find(r => r.id === target.rowId);
+      if (!row) return;
+      pwMgrState.planQty = Number(row.planShipQty) || 0;
+      pwMgrState.draft = normalizePickupAllocs(row.pickupWarehouse, row.planShipQty).map(a => ({ ...a }));
+      $('#pickupMgrTitle').textContent = `提货仓管理｜${row.planNo}`;
+    } else {
+      const s = state.createSkus[target.cskuIdx];
+      if (!s) return;
+      pwMgrState.planQty = Number(s.planShipQty) || 0;
+      pwMgrState.draft = normalizePickupAllocs(s.pickupWarehouse, s.planShipQty).map(a => ({ ...a }));
+      $('#pickupMgrTitle').textContent = `选择提货仓｜${s.sku}`;
+    }
+    renderPickupMgrPopover();
+    const pop = $('#pickupMgrPopover');
+    pop.classList.remove('hidden');
+    if (anchorEl) {
+      const rect = anchorEl.getBoundingClientRect();
+      const popW = pop.offsetWidth || 368;
+      const popH = pop.offsetHeight || 340;
+      const left = Math.max(12, Math.min(window.innerWidth - popW - 12, rect.left));
+      const top = rect.bottom + popH + 12 <= window.innerHeight
+        ? rect.bottom + 6
+        : Math.max(12, rect.top - popH - 6);
+      pop.style.left = `${left}px`;
+      pop.style.top = `${top}px`;
+    }
+  }
+
+  $('#pickupMgrSearch').addEventListener('input', e => {
+    pwMgrState.search = e.target.value;
+    renderPickupMgrPopover();
+  });
+  $('#pickupMgrSelected').addEventListener('click', e => {
+    const delBtn = e.target.closest('[data-pwmgr-del]');
+    if (!delBtn) return;
+    const val = delBtn.dataset.pwmgrDel;
+    pwMgrState.draft = pwMgrState.draft.filter(a => a.warehouse !== val);
+    renderPickupMgrPopover();
+  });
+  $('#pickupMgrList').addEventListener('change', e => {
+    const cb = e.target.closest('[data-pwmgr-check]');
+    if (!cb) return;
+    const val = cb.value;
+    if (cb.checked) {
+      if (!pwMgrState.draft.some(a => a.warehouse === val)) {
+        const remain = Math.max(0, (Number(pwMgrState.planQty) || 0) - getPickupTotalQty(pwMgrState.draft));
+        pwMgrState.draft.push({ warehouse: val, qty: remain > 0 ? remain : null });
+      }
+      renderPickupMgrPopover();
+      const qtyEl = $$('[data-pwmgr-qty]').find(el => el.dataset.pwmgrQty === val);
+      if (qtyEl) qtyEl.focus();
+    } else {
+      pwMgrState.draft = pwMgrState.draft.filter(a => a.warehouse !== val);
+      renderPickupMgrPopover();
+    }
+  });
+  $('#pickupMgrList').addEventListener('input', e => {
+    const qtyInput = e.target.closest('[data-pwmgr-qty]');
+    if (!qtyInput) return;
+    const val = qtyInput.dataset.pwmgrQty;
+    const entry = pwMgrState.draft.find(a => a.warehouse === val);
+    if (!entry) return;
+    const num = Math.floor(Number(qtyInput.value));
+    entry.qty = Number.isFinite(num) && num > 0 ? num : null;
+    renderPickupMgrSummary();
+  });
+  $('#pickupMgrCancelBtn').addEventListener('click', closePickupMgrPopover);
+  $('#pickupMgrConfirmBtn').addEventListener('click', () => {
+    const nextList = pwMgrState.draft.map(a => ({ warehouse: a.warehouse, qty: a.qty }));
+    if (pwMgrState.mode === 'list-row' && !nextList.length) {
+      return toast('请至少保留 1 个提货仓');
+    }
+    if (nextList.some(a => !(Number(a.qty) > 0))) {
+      return toast('请为所有已选提货仓填写大于 0 的提货数量');
+    }
+    const total = getPickupTotalQty(nextList);
+    if (pwMgrState.planQty > 0 && total > pwMgrState.planQty) {
+      return toast(`各提货仓提货数量合计(${total})不能大于计划发货数量(${pwMgrState.planQty})`);
+    }
+    if (pwMgrState.mode === 'list-row') {
+      const row = rows.find(r => r.id === pwMgrState.rowId);
+      if (!row) return;
+      const oldList = normalizePickupAllocs(row.pickupWarehouse, row.planShipQty);
+      const oldNames = new Set(oldList.map(a => a.warehouse));
+      const added = nextList.filter(a => !oldNames.has(a.warehouse));
+      row.pickupWarehouse = nextList;
+      row.updatedAt = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      const oldSummary = formatPickupSummary(oldList);
+      const newSummary = formatPickupSummary(nextList);
+      if (oldSummary !== newSummary) {
+        if (added.length && added.length === nextList.length - oldList.length) {
+          addLog(row.id, '追加提货仓', `追加提货仓：${formatPickupSummary(added)}（当前：${newSummary}）`);
+        } else {
+          addLog(row.id, '修改提货仓', `修改「提货仓及提货数量」：${oldSummary || '空'} → ${newSummary}`);
+        }
+      }
+      closePickupMgrPopover();
+      publishV2PlansToBridge();
+      applyFilter(false);
+      toast(`已更新提货仓与数量（共 ${nextList.length} 仓，合计 ${total} 件）`);
+      return;
+    }
+    if (pwMgrState.mode === 'create-row') {
+      const s = state.createSkus[pwMgrState.cskuIdx];
+      if (!s) return;
+      s.pickupWarehouse = nextList;
+      closePickupMgrPopover();
+      renderCreateSkus();
+      toast(nextList.length ? `已设置 ${nextList.length} 个提货仓（合计 ${total} 件）` : '已清空提货仓');
+    }
   });
 
   const createTableWrap = document.querySelector('.spv2-create-table-wrap');
@@ -950,7 +1418,7 @@
       if (existingSet.has(sku)) return;
       const item = SKU_POOL.find(p => p.sku === sku);
       if (item) {
-        state.createSkus.push({ ...item });
+        state.createSkus.push({ ...item, pickupWarehouse: normalizePickupAllocs(item.pickupWarehouse, item.planShipQty) });
         addedCount += 1;
       }
     });
@@ -968,6 +1436,13 @@
       if (key === 'planShipQty') {
         const cartonCell = document.querySelector(`[data-csku-cartons="${idx}"]`);
         if (cartonCell) cartonCell.textContent = Math.ceil((Number(s.planShipQty) || 0) / (Number(s.boxQty) || 1));
+        const pwCell = document.querySelector(`[data-csku-pw-idx="${idx}"]`);
+        if (pwCell) {
+          const allocs = normalizePickupAllocs(s.pickupWarehouse, s.planShipQty);
+          const total = getPickupTotalQty(allocs);
+          const planQty = Number(s.planShipQty) || 0;
+          pwCell.classList.toggle('is-overlimit', allocs.length > 0 && ((planQty > 0 && total > planQty) || allocs.some(a => !(Number(a.qty) > 0))));
+        }
         updateCreateStats();
       }
     }
@@ -980,6 +1455,25 @@
     }
   });
   $('#createSkuBody').addEventListener('click', e => {
+    const pwDel = e.target.closest('[data-csku-pw-del]');
+    if (pwDel) {
+      e.stopPropagation();
+      const idx = Number(pwDel.dataset.cskuPwDel);
+      const val = pwDel.dataset.pwVal;
+      const s = state.createSkus[idx];
+      if (!s) return;
+      s.pickupWarehouse = normalizePickupAllocs(s.pickupWarehouse, s.planShipQty).filter(a => a.warehouse !== val);
+      renderCreateSkus();
+      return;
+    }
+    const pwOpen = e.target.closest('[data-csku-pw-idx]');
+    if (pwOpen) {
+      e.stopPropagation();
+      const idx = Number(pwOpen.dataset.cskuPwIdx);
+      const cell = pwOpen.closest('.spv2-pw-cell') || pwOpen;
+      openPickupMgrPopover({ mode: 'create-row', cskuIdx: idx }, cell);
+      return;
+    }
     const del = e.target.closest('[data-csku-del]');
     if (!del) return;
     state.createSkus.splice(Number(del.dataset.cskuDel), 1);
@@ -990,7 +1484,16 @@
       return toast('请填写所有带 * 的必填项');
     }
     if (!state.createSkus.length) return toast('请至少添加一条 SKU 明细');
-    if (state.createSkus.some(s => !s.pickupWarehouse)) return toast('请为所有 SKU 明细选择提货仓');
+    for (const s of state.createSkus) {
+      const allocs = normalizePickupAllocs(s.pickupWarehouse, s.planShipQty);
+      if (!allocs.length) return toast(`请为 SKU ${s.sku} 选择提货仓`);
+      if (allocs.some(a => !(Number(a.qty) > 0))) return toast(`请为 SKU ${s.sku} 的所有提货仓填写大于 0 的提货数量`);
+      const total = getPickupTotalQty(allocs);
+      const planQty = Number(s.planShipQty) || 0;
+      if (total > planQty) {
+        return toast(`SKU ${s.sku} 各提货仓提货数量合计(${total})不能大于计划发货数量(${planQty})`);
+      }
+    }
     const planOwner = ($('#cPlanOwner').textContent || 'Admin').trim();
     const shipWarehouse = $('#cShipWarehouse').value;
     const destWarehouse = $('#cDestWarehouse').value || 'ONT8-美西FBA仓';
@@ -1001,12 +1504,13 @@
     state.createSkus.forEach((s, idx) => {
       const newId = Math.max(0, ...rows.map(r => r.id)) + 1;
       const planNo = `YMX${now.slice(0, 10).replace(/-/g, '')}-${newId}`;
+      const allocs = normalizePickupAllocs(s.pickupWarehouse, s.planShipQty);
       const newRow = {
         id: newId, sku: s.sku, thumbColor: '#2563eb', thumbText: s.sku.slice(0, 2).toUpperCase(), linked: true,
         planNo, lingxingSku: s.lingxingSku, productName: s.productName, model: s.sku,
         cat1: '焊机', cat2: '常规', saleType: '常规', fnsku: s.fnsku || '-', sellerSku: s.sellerSku, asin: '-',
         store: s.store, platform: s.platform, country: s.country, team: s.team, teamOwner: '王方圆', opsOwner: s.opsOwner,
-        planOwner, pickupWarehouse: s.pickupWarehouse, shipWarehouse,
+        planOwner, pickupWarehouse: allocs, shipWarehouse,
         destWarehouse, destType: '海外仓', shipMethod,
         provider: logistics.provider, providerSub: logistics.providerSub, channel: logistics.channel, boxNo: '',
         transportMode: logistics.transportMode, estDays: Number($('#cEstDays').value),
@@ -1175,6 +1679,7 @@
   });
 
   /* 初始化控件选项与首次渲染 */
+  initMulti('pickupWarehouseMulti', '提货仓（可多选）', OPTIONS.pickupWarehouses);
   initMulti('shipWarehouseMulti', '发货仓（可多选）', OPTIONS.shipWarehouses);
   initMulti('destinationWarehouseMulti', '目的地仓（可多选）', OPTIONS.destWarehouses);
   initMulti('platformMulti', '平台（可多选）', OPTIONS.platforms);
@@ -1190,13 +1695,14 @@
       const raw = JSON.parse(localStorage.getItem(FBA_BRIDGE_KEY) || '{}');
       return {
         links: raw && typeof raw.links === 'object' && raw.links ? raw.links : {},
+        shippingOrderLinks: raw && typeof raw.shippingOrderLinks === 'object' && raw.shippingOrderLinks ? raw.shippingOrderLinks : {},
         unlinkedPlans: Array.isArray(raw && raw.unlinkedPlans) ? raw.unlinkedPlans : [],
         v2PendingPlans: Array.isArray(raw && raw.v2PendingPlans) ? raw.v2PendingPlans : [],
         v2CustomPlans: Array.isArray(raw && raw.v2CustomPlans) ? raw.v2CustomPlans : [],
         v2Overrides: raw && typeof raw.v2Overrides === 'object' && raw.v2Overrides ? raw.v2Overrides : {}
       };
     } catch {
-      return { links: {}, unlinkedPlans: [], v2PendingPlans: [], v2CustomPlans: [], v2Overrides: {} };
+      return { links: {}, shippingOrderLinks: {}, unlinkedPlans: [], v2PendingPlans: [], v2CustomPlans: [], v2Overrides: {} };
     }
   }
 
@@ -1213,17 +1719,25 @@
       const ov = bridge.v2Overrides[r.planNo];
       if (ov && typeof ov === 'object') {
         if (ov.status) r.status = ov.status;
-        if (ov.pickupWarehouse !== undefined) r.pickupWarehouse = ov.pickupWarehouse;
+        if (ov.pickupWarehouse !== undefined) r.pickupWarehouse = normalizePickupAllocs(ov.pickupWarehouse, r.planShipQty);
         if (ov.updatedAt) r.updatedAt = ov.updatedAt;
+      }
+      r.pickupWarehouse = normalizePickupAllocs(r.pickupWarehouse, r.planShipQty);
+      if (bridge.shippingOrderLinks && bridge.shippingOrderLinks[r.planNo] !== undefined) {
+        r.shippingOrderNo = bridge.shippingOrderLinks[r.planNo];
       }
       if (unlinkedSet.has(r.planNo)) {
         r.fbaShipmentNo = '';
         r.fbaRefId = '';
+        r.fbaLinkCount = 0;
+        r.fbaLinkDeclaredQty = 0;
       }
       const link = bridge.links[r.planNo];
       if (link && link.shipmentNo) {
         r.fbaShipmentNo = link.shipmentNo;
         r.fbaRefId = link.shipmentName || '';
+        r.fbaLinkCount = Number(link.shipmentCount || String(link.shipmentNo).split(/[、,，]+/).filter(Boolean).length || 1);
+        r.fbaLinkDeclaredQty = Number(link.declaredTotal || 0);
       }
     });
   }

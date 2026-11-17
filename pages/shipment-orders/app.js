@@ -3,12 +3,32 @@ createApp({
   setup() {
     const statuses = ['全部', '草稿', '待提货', '待发货', '待收货', '部分收货', '已完成', '已作废', '已取消'];
     const warehouses = ['深圳仓', '东莞工厂', '义乌仓'],
+      createFromWarehouses = ['跨跃猫物流仓'],
       pickupWarehouses = ['深圳仓', '东莞工厂', '义乌仓', '华南物流中转仓', '美西集货仓'],
-      destWarehouses = ['美国西部仓', '美国东部仓', '德国仓', '英国仓'];
+      destWarehouses = [
+        '跨跃猫美西一件代发仓 美西仓',
+        '跨跃猫美西一件代发仓 多伦多3仓',
+        '跨跃猫美西一件代发仓 纽约仓',
+        '美国西部仓',
+        '美国东部仓',
+        '德国仓',
+        '英国仓',
+      ];
     const shipModes = ['仓库发货', '工厂直发', '供应商直发'],
+      createShipModes = ['海外仓发货'],
       providers = ['马士基', 'DHL', '顺丰国际'],
       transports = ['海运', '空运', '快递'],
+      createTransports = [
+        '海派（6000）',
+        '海卡（6000）',
+        '空派（5000）',
+        '快递（8000）',
+        '铁运（5000）',
+        '卡航（5000）',
+        '一件代发（8000）',
+      ],
       channels = ['标准海运', '空派', '国际快递'],
+      createChannels = ['普船卡派', '普船快递派', '空运', '快船快递派', '快船卡派', '铁路', '自提卡派'],
       countries = ['中国 - CN', '美国 - US', '德国 - DE', '英国 - GB'];
     const platformOptions = ['Amazon US', 'Amazon DE', 'Walmart'],
       teamOptions = ['北美一组', '北美二组', '欧洲组'];
@@ -2175,15 +2195,15 @@ createApp({
         logistics: '未提交',
         from: '未填写',
         to: '未填写',
-        plans: 0,
-        skus: 0,
-        declare: 0,
+        plans: 1,
+        skus: 1,
+        declare: 150,
         pick: 0,
         ship: 0,
-        declarePickDiff: '0',
+        declarePickDiff: '150',
         pickShipDiff: '0',
         shipReceiveDiff: '0',
-        declareReceiveDiff: '0',
+        declareReceiveDiff: '150',
         receive: 0,
         abnormal: 0,
         eta: '-',
@@ -2209,9 +2229,20 @@ createApp({
         otherLogisticsFee: '—',
         totalAccessoryCost: '—',
         firstLegTotal: '—',
-        planQty: 0,
+        planQty: 150,
         pendingReceive: 0,
-        items: [],
+        items: [
+          {
+            sku: 'SPU-1001-BL',
+            name: '蓝牙耳机 Pro 黑',
+            plan: 'FP20260807001',
+            declare: 150,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '草稿',
+          },
+        ],
         batches: [],
       },
       {
@@ -2221,15 +2252,15 @@ createApp({
         logistics: '未提交',
         from: '未填写',
         to: '未填写',
-        plans: 0,
-        skus: 0,
-        declare: 0,
+        plans: 1,
+        skus: 1,
+        declare: 120,
         pick: 0,
         ship: 0,
-        declarePickDiff: '0',
+        declarePickDiff: '120',
         pickShipDiff: '0',
         shipReceiveDiff: '0',
-        declareReceiveDiff: '0',
+        declareReceiveDiff: '120',
         receive: 0,
         abnormal: 0,
         eta: '-',
@@ -2255,9 +2286,20 @@ createApp({
         otherLogisticsFee: '—',
         totalAccessoryCost: '—',
         firstLegTotal: '—',
-        planQty: 0,
+        planQty: 120,
         pendingReceive: 0,
-        items: [],
+        items: [
+          {
+            sku: 'SPU-1001-WH',
+            name: '蓝牙耳机 Pro 白',
+            plan: 'FP20260808001',
+            declare: 120,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '草稿',
+          },
+        ],
         batches: [],
       },
       {
@@ -2267,15 +2309,15 @@ createApp({
         logistics: '未提交',
         from: '深圳仓',
         to: '美国西部仓',
-        plans: 0,
-        skus: 0,
-        declare: 0,
+        plans: 2,
+        skus: 2,
+        declare: 280,
         pick: 0,
         ship: 0,
-        declarePickDiff: '0',
+        declarePickDiff: '280',
         pickShipDiff: '0',
         shipReceiveDiff: '0',
-        declareReceiveDiff: '0',
+        declareReceiveDiff: '280',
         receive: 0,
         abnormal: 0,
         eta: '-',
@@ -2291,7 +2333,7 @@ createApp({
         provider: '马士基',
         country: '美国 - US',
         warehouseType: '海外仓',
-        remark: '已填头程信息，尚未选择SKU',
+        remark: '已填头程信息，待核对SKU后提交',
         expectedShipDate: '—',
         expectedTransitDuration: '—',
         logisticsNo: '—',
@@ -2301,9 +2343,30 @@ createApp({
         otherLogisticsFee: '—',
         totalAccessoryCost: '—',
         firstLegTotal: '—',
-        planQty: 0,
+        planQty: 280,
         pendingReceive: 0,
-        items: [],
+        items: [
+          {
+            sku: 'SPU-2003',
+            name: '智能运动手环｜标准套装',
+            plan: 'FP20260808002',
+            declare: 180,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '草稿',
+          },
+          {
+            sku: 'SPU-4001',
+            name: '厨房刀具套装｜六件套',
+            plan: 'FP20260808003',
+            declare: 100,
+            pick: 0,
+            ship: 0,
+            receive: 0,
+            status: '草稿',
+          },
+        ],
         batches: [],
       },
       {
@@ -2697,11 +2760,11 @@ createApp({
       zip: '',
     });
     const createForm = reactive({
-      from: '',
+      from: '跨跃猫物流仓',
       to: '',
-      shipMode: '',
+      shipMode: '海外仓发货',
       provider: '',
-      transport: '',
+      transport: '海卡（6000）',
       channel: '',
       country: '',
       warehouseType: '',
@@ -2727,11 +2790,11 @@ createApp({
       editingDoc.value = null;
       selectedSkus.value = [];
       Object.assign(createForm, {
-        from: '',
+        from: '跨跃猫物流仓',
         to: '',
-        shipMode: '',
+        shipMode: '海外仓发货',
         provider: '',
-        transport: '',
+        transport: '海卡（6000）',
         channel: '',
         country: '',
         warehouseType: '',
@@ -3199,10 +3262,24 @@ createApp({
       FP20260808071: '美国站数码品补货，注意防震包装',
       FP20260805022: '德国站加急补货，优先安排 DHL',
     };
-    skuCandidates.forEach((item) => {
+    skuCandidates.forEach((item, idx) => {
       item.planRemark = shipmentPlanRemarks[item.planNo] || '';
       item.skuRemark = item.skuRemark || item.planRemark;
       item.easSku = `ES-${item.sku.replace(/^[A-Z]+-/, '')}`;
+      item.lingxingSku = item.lingxingSku || `LX-${item.sku.replace(/^[A-Z]+-/, '')}`;
+      item.pickupWarehouse = item.pickupWarehouse || ['深圳仓', '东莞工厂', '义乌仓'][idx % 3];
+      if (!item.destWarehouse) {
+        if (item.platform === 'Amazon DE') {
+          item.destWarehouse = '德国仓';
+        } else {
+          const topDests = [
+            '跨跃猫美西一件代发仓 美西仓',
+            '跨跃猫美西一件代发仓 多伦多3仓',
+            '跨跃猫美西一件代发仓 纽约仓',
+          ];
+          item.destWarehouse = topDests[idx % topDests.length];
+        }
+      }
     });
     const isAmazonOption = (v) => String(v || '').includes('Amazon') || String(v || '').includes('亚马逊');
     const isAmazonPlan = (x) => isAmazonOption(x.platform) || isAmazonOption(x.store);
@@ -3363,8 +3440,8 @@ createApp({
     });
     const skuVisible = ref(false),
       skuTableRef = ref(),
-      skuSearch = reactive({ planNos: '', skus: '', platforms: [], stores: [], teams: [] }),
-      skuApplied = reactive({ planNos: '', skus: '', platforms: [], stores: [], teams: [] }),
+      skuSearch = reactive({ planNos: '', skus: '', destWarehouses: [], platforms: [], stores: [], teams: [] }),
+      skuApplied = reactive({ planNos: '', skus: '', destWarehouses: [], platforms: [], stores: [], teams: [] }),
       skuSelection = ref([]);
     const multiTerms = (v) =>
       v
@@ -3376,9 +3453,9 @@ createApp({
         ss = multiTerms(skuApplied.skus);
       return skuCandidates.filter(
         (x) =>
-          !isAmazonPlan(x) &&
           (!ps.length || ps.some((v) => x.planNo.includes(v))) &&
           (!ss.length || ss.some((v) => x.sku.includes(v))) &&
+          (!skuApplied.destWarehouses.length || skuApplied.destWarehouses.includes(x.destWarehouse)) &&
           (!skuApplied.platforms.length || skuApplied.platforms.includes(x.platform)) &&
           (!skuApplied.stores.length || skuApplied.stores.includes(x.store)) &&
           (!skuApplied.teams.length || skuApplied.teams.includes(x.team)),
@@ -3389,8 +3466,23 @@ createApp({
         ElementPlus.ElMessage.warning('请先填写顶部必填字段');
         return;
       }
-      Object.assign(skuSearch, { planNos: '', skus: '', platforms: [], stores: [], teams: [] });
-      Object.assign(skuApplied, skuSearch);
+      const defaultDest = createForm.to ? [createForm.to] : [];
+      Object.assign(skuSearch, {
+        planNos: '',
+        skus: '',
+        destWarehouses: [...defaultDest],
+        platforms: [],
+        stores: [],
+        teams: [],
+      });
+      Object.assign(skuApplied, {
+        planNos: '',
+        skus: '',
+        destWarehouses: [...defaultDest],
+        platforms: [],
+        stores: [],
+        teams: [],
+      });
       skuSelection.value = [];
       skuVisible.value = true;
       nextTick(() => {
@@ -3408,14 +3500,25 @@ createApp({
       Object.assign(skuApplied, {
         planNos: skuSearch.planNos,
         skus: skuSearch.skus,
+        destWarehouses: [...skuSearch.destWarehouses],
         platforms: [...skuSearch.platforms],
         stores: [...skuSearch.stores],
         teams: [...skuSearch.teams],
       });
     const resetSkuQuery = () => {
-      Object.assign(skuSearch, { planNos: '', skus: '', platforms: [], stores: [], teams: [] });
+      const defaultDest = createForm.to ? [createForm.to] : [];
+      Object.assign(skuSearch, {
+        planNos: '',
+        skus: '',
+        destWarehouses: [...defaultDest],
+        platforms: [],
+        stores: [],
+        teams: [],
+      });
       runSkuQuery();
     };
+    const calcSkuBoxes = (row) =>
+      Number(row?.declareQty || 0) > 0 ? Math.ceil(Number(row.declareQty) / Math.max(Number(row.boxQty || 20), 1)) : 0;
     const onSkuSelection = (rows) => (skuSelection.value = rows);
     const confirmSkuSelection = () => {
       if (!skuSelection.value.length) {
@@ -3432,7 +3535,11 @@ createApp({
         ElementPlus.ElMessage.error('FBA 专属仓与非亚马逊团队货物不可合并至同一发货单（刚性规则）');
         return;
       }
-      selectedSkus.value = skuSelection.value.map((x) => ({ ...x, skuRemark: x.skuRemark ?? x.planRemark ?? '' }));
+      selectedSkus.value = skuSelection.value.map((x) => ({
+        ...x,
+        boxes: calcSkuBoxes(x),
+        skuRemark: x.skuRemark ?? x.planRemark ?? '',
+      }));
       skuVisible.value = false;
       ElementPlus.ElMessage.success(`已选择 ${selectedSkus.value.length} 个 SKU`);
     };
@@ -3548,6 +3655,14 @@ createApp({
         item.status = '待提货';
       });
       docs.unshift(doc);
+      try {
+        const raw = JSON.parse(localStorage.getItem('dmp_fba_plan_v2_bridge') || '{}');
+        raw.shippingOrderLinks = raw.shippingOrderLinks || {};
+        doc.items.forEach((item) => {
+          if (item.plan) raw.shippingOrderLinks[item.plan] = doc.id;
+        });
+        localStorage.setItem('dmp_fba_plan_v2_bridge', JSON.stringify(raw));
+      } catch {}
       createVisible.value = false;
       statusTab.value = '待提货';
       ElementPlus.ElMessage.success('发货单已提交，进入待提货');
@@ -6371,12 +6486,16 @@ createApp({
     return {
       statuses,
       warehouses,
+      createFromWarehouses,
       pickupWarehouses,
       destWarehouses,
       shipModes,
+      createShipModes,
       providers,
       transports,
+      createTransports,
       channels,
+      createChannels,
       countries,
       platformOptions,
       teamOptions,
@@ -6416,6 +6535,8 @@ createApp({
       skuVisible,
       skuTableRef,
       skuSearch,
+      skuSelection,
+      calcSkuBoxes,
       filteredSkuCandidates,
       openSkuDialog,
       runSkuQuery,

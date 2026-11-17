@@ -35,6 +35,7 @@ const rawShipmentGroups=[
     staDeliveryEndDate:'2026-11-29',
     transportMode:'',
     shipmentOrderNo:'',
+    lingxingOrderNo:'',
     center:'OLM1',
     seller:'ARCCAPTAIN主账号-US',
     countryCode:'US',
@@ -69,7 +70,8 @@ const rawShipmentGroups=[
     staDeliveryStartDate:'2026-11-22',
     staDeliveryEndDate:'2026-11-29',
     transportMode:'美森快船',
-    shipmentOrderNo:'SP261112028',
+    shipmentOrderNo:'DN20261112028',
+    lingxingOrderNo:'LX261112028',
     center:'OLM1',
     seller:'ARCCAPTAIN主账号-US',
     countryCode:'US',
@@ -105,6 +107,7 @@ const rawShipmentGroups=[
     staDeliveryEndDate:'2027-01-17',
     transportMode:'',
     shipmentOrderNo:'',
+    lingxingOrderNo:'LX261111009',
     center:'YYZ7',
     seller:'ARCCAPTAIN主账号-CA',
     countryCode:'CA',
@@ -152,7 +155,8 @@ const rawShipmentGroups=[
     staDeliveryStartDate:'2027-01-03',
     staDeliveryEndDate:'2027-01-10',
     transportMode:'海运卡派',
-    shipmentOrderNo:'SP261111015',
+    shipmentOrderNo:'DN20261111015',
+    lingxingOrderNo:'LX261111015',
     center:'LGB8',
     seller:'ARCCAPTAIN主账号-US',
     countryCode:'US',
@@ -240,6 +244,7 @@ const rawShipmentGroups=[
     staDeliveryEndDate:'2027-01-10',
     transportMode:'',
     shipmentOrderNo:'',
+    lingxingOrderNo:'',
     center:'MIT2',
     seller:'ARCCAPTAIN主账号-US',
     countryCode:'US',
@@ -313,7 +318,8 @@ const rawShipmentGroups=[
     staDeliveryStartDate:'2026-11-18',
     staDeliveryEndDate:'2026-11-24',
     transportMode:'美森快船',
-    shipmentOrderNo:'SP261108005',
+    shipmentOrderNo:'DN20261108005',
+    lingxingOrderNo:'LX261108005',
     center:'ONT8',
     seller:'ARCCAP',
     countryCode:'US',
@@ -361,7 +367,8 @@ const rawShipmentGroups=[
     staDeliveryStartDate:'2026-11-10',
     staDeliveryEndDate:'2026-11-15',
     transportMode:'快递直发',
-    shipmentOrderNo:'SP261102003',
+    shipmentOrderNo:'DN20261102003',
+    lingxingOrderNo:'LX261102003',
     center:'FTW1',
     seller:'Amazon US 旗舰店',
     countryCode:'US',
@@ -409,7 +416,8 @@ const fbaGroups=[
       shipmentName:`${base.countryCode}-STA-Batch${n}-${center}`,
       staInboundPlanId:`wf${(10000000+n*1379).toString(16)}-a600-4436-bce2-8821c039a${100+n}`,
       transportMode:idx%2===0?'':extraTransports[idx%extraTransports.length],
-      shipmentOrderNo:idx%2===0?'':`SP26110${idx+1}0${10+n}`,
+      shipmentOrderNo:idx%2===0?'':`DN2026110${idx+1}0${10+n}`,
+      lingxingOrderNo:idx%2===0?(idx%4===0?`LX26110${idx+1}0${10+n}`:''):`LX26110${idx+1}0${10+n}`,
       center,
       reference:extraRefs[idx%extraRefs.length],
       status:st,
@@ -515,10 +523,15 @@ function writeV2Bridge(bridge){
 function findGroupByChildId(childId){
   return fbaGroups.find(g=>g.children.some(c=>c.id===childId));
 }
-function persistV2BridgeLink(planNo,shipmentNo,shipmentName){
+function persistV2BridgeLink(planNo,shipmentNo,shipmentName,shipmentCount,declaredTotal){
   if(!planNo)return;
   const bridge=readV2Bridge();
-  bridge.links[planNo]={shipmentNo:shipmentNo||'',shipmentName:shipmentName||''};
+  bridge.links[planNo]={
+    shipmentNo:shipmentNo||'',
+    shipmentName:shipmentName||'',
+    shipmentCount:Number(shipmentCount||0),
+    declaredTotal:Number(declaredTotal||0)
+  };
   bridge.unlinkedPlans=bridge.unlinkedPlans.filter(p=>p!==planNo);
   bridge.v2PendingPlans=bridge.v2PendingPlans.filter(p=>p.plan!==planNo);
   writeV2Bridge(bridge);
@@ -612,13 +625,13 @@ const statusTabs=[
 /* 默认展开前几条货件，保持采购计划一二级折叠体验 */
 const fbaState={
   status:'',
-  shippingMode:'',
-  closedFilter:'',
+  orderFilter:'',
   diffFilter:'',
   noType:'shipmentNo',
   noQuery:'',
   codeType:'sku',
   codeQuery:'',
+  productName:'',
   stores:[],
   countries:[],
   association:'',
@@ -634,7 +647,7 @@ const fbaState={
   planFnsku:'',
   planStore:'',
   activeChildIds:[],
-  pendingUnlink:null,
+  pendingUnlinkIds:[],
   selectedChildIds:new Set(),
   expanded:new Set(fbaGroups.map(g=>g.id))
 };
@@ -654,28 +667,24 @@ const fbaStatusMeta={
   CANCELLED:{cls:'voided',label:'已取消'},
   ABANDONED:{cls:'voided',label:'已放弃'}
 };
-const shippingModeLabel={
-  GROUND_SMALL_PARCEL:'小包裹快递(SPD)',
-  FREIGHT_LTL:'汽运零担(LTL)'
-};
 const fbaNoPlaceholders={
   shipmentNo:'请输入货件单号，支持多个',
   shipmentName:'请输入货件名称，支持模糊查询',
   staPlanId:'请输入 STA 任务号，支持多个',
-  shipmentOrderNo:'请输入发货单号，支持多个',
+  shipmentOrderNo:'请输入中台发货单号，支持多个',
+  lingxingOrderNo:'请输入领星发货单号，支持多个',
   planNo:'请输入发货计划号，支持多个',
   center:'请输入物流中心编码，支持多个',
   reference:'请输入 Reference ID，支持多个'
 };
 const fbaCodePlaceholders={
   sku:'请输入 SKU，支持多个',
-  msku:'请输入 MSKU，支持多个',
-  fnsku:'请输入 FNSKU，支持多个',
-  product:'请输入品名，支持模糊查询'
+  msku:'请输入领星 SKU，支持多个',
+  fnsku:'请输入 FNSKU，支持多个'
 };
 let fbaStoreSelect=null,fbaCountrySelect=null,fbaQueryExpanded=false;
 
-/* ===================== 查询过滤与状态 Tab ===================== */
+/* ===================== 查询过滤 ===================== */
 function fbaMatchQuery(value,query){
   const terms=splitValues(query||'');
   if(!terms.length)return true;
@@ -689,6 +698,7 @@ function fbaNoFieldValue(group,child){
     shipmentName:group.shipmentName,
     staPlanId:group.staInboundPlanId,
     shipmentOrderNo:group.shipmentOrderNo,
+    lingxingOrderNo:group.lingxingOrderNo,
     planNo:[...(child.linkedPlans||[])].join(' '),
     center:group.center,
     reference:group.reference
@@ -698,16 +708,15 @@ function fbaCodeFieldValue(child){
   return {
     sku:child.sku,
     msku:child.msku,
-    fnsku:child.fnsku,
-    product:child.product
+    fnsku:child.fnsku
   }[fbaState.codeType]||'';
 }
 function getBaseFilteredGroups(ignoreStatus=false){
+  const productKeyword=String(fbaState.productName||'').trim().toLowerCase();
   return fbaGroups.filter(group=>{
-    const dateVal=(fbaState.dateType==='modified'?group.modified:group.created).slice(0,10);
+    const dateVal=String(group.created||'').slice(0,10);
     return (ignoreStatus||!fbaState.status||group.status===fbaState.status)&&
-      (!fbaState.shippingMode||group.transportMode===fbaState.shippingMode)&&
-      (fbaState.closedFilter===''||String(group.isClosed)===String(fbaState.closedFilter))&&
+      (!fbaState.orderFilter||(fbaState.orderFilter==='generated'?Boolean(group.shipmentOrderNo):!group.shipmentOrderNo))&&
       (!fbaState.stores.length||fbaState.stores.includes(group.seller))&&
       (!fbaState.countries.length||fbaState.countries.includes(group.countryCode))&&
       (!fbaState.startDate||dateVal>=fbaState.startDate)&&
@@ -718,8 +727,10 @@ function getBaseFilteredGroups(ignoreStatus=false){
       const associationMatch=!fbaState.association||(fbaState.association==='linked'?fbaLinked(child):!fbaLinked(child));
       const declareReceiveDiff=Number(child.declared||0)-Number(child.received||0);
       const diffMatch=!fbaState.diffFilter||(fbaState.diffFilter==='diff'?declareReceiveDiff!==0:declareReceiveDiff===0);
+      const productMatch=!productKeyword||String(child.product||'').toLowerCase().includes(productKeyword);
       return fbaMatchQuery(fbaNoFieldValue(group,child),fbaState.noQuery)&&
         fbaMatchQuery(fbaCodeFieldValue(child),fbaState.codeQuery)&&
+        productMatch&&
         associationMatch&&
         diffMatch;
     })
@@ -727,22 +738,6 @@ function getBaseFilteredGroups(ignoreStatus=false){
 }
 function getFbaVisibleGroups(){
   return getBaseFilteredGroups(false);
-}
-
-function renderStatusTabs(){
-  const baseGroups=getBaseFilteredGroups(true);
-  const countMap={};
-  baseGroups.forEach(g=>{countMap[g.status]=(countMap[g.status]||0)+1;});
-  $('#fbaStatusTabs').innerHTML=statusTabs.map(tab=>{
-    const count=tab.name===''?baseGroups.length:(countMap[tab.name]||0);
-    const active=fbaState.status===tab.name?'active':'';
-    return `<button class="status-tab ${active}" data-status-tab="${tab.name}" type="button"><span>${tab.label}</span><em>${count}</em></button>`;
-  }).join('');
-  $$('[data-status-tab]').forEach(btn=>btn.onclick=()=>{
-    fbaState.status=btn.dataset.statusTab||'';
-    fbaState.page=1;
-    renderFbaTable();
-  });
 }
 
 function initFbaMultis(){
@@ -756,13 +751,13 @@ function syncFbaPlaceholders(){
 function readFbaQuery(){
   const statusEl=$('#fbaStatus');
   if(statusEl)fbaState.status=statusEl.value;
-  fbaState.shippingMode=$('#fbaShippingMode').value;
-  fbaState.closedFilter=$('#fbaClosedFilter').value;
+  fbaState.orderFilter=$('#fbaOrderFilter').value;
   fbaState.diffFilter=$('#fbaDiffFilter').value;
   fbaState.noType=$('#fbaNoType').value;
   fbaState.noQuery=$('#fbaNoInput').value;
   fbaState.codeType=$('#fbaCodeType').value;
   fbaState.codeQuery=$('#fbaCodeInput').value;
+  fbaState.productName=$('#fbaProductName').value;
   fbaState.association=$('#fbaAssociation').value;
   fbaState.dateType=$('#fbaDateType').value;
   fbaState.startDate=$('#fbaStartDate').value;
@@ -770,13 +765,13 @@ function readFbaQuery(){
 }
 function resetFbaQuery(){
   fbaState.status='';
-  fbaState.shippingMode='';
-  fbaState.closedFilter='';
+  fbaState.orderFilter='';
   fbaState.diffFilter='';
   fbaState.noType='shipmentNo';
   fbaState.noQuery='';
   fbaState.codeType='sku';
   fbaState.codeQuery='';
+  fbaState.productName='';
   fbaState.stores=[];
   fbaState.countries=[];
   fbaState.association='';
@@ -785,13 +780,13 @@ function resetFbaQuery(){
   fbaState.endDate='';
   fbaState.page=1;
   if($('#fbaStatus'))$('#fbaStatus').value='';
-  $('#fbaShippingMode').value='';
-  $('#fbaClosedFilter').value='';
+  $('#fbaOrderFilter').value='';
   $('#fbaDiffFilter').value='';
   $('#fbaNoType').value='shipmentNo';
   $('#fbaNoInput').value='';
   $('#fbaCodeType').value='sku';
   $('#fbaCodeInput').value='';
+  $('#fbaProductName').value='';
   $('#fbaAssociation').value='';
   $('#fbaDateType').value='created';
   $('#fbaStartDate').value='';
@@ -820,29 +815,203 @@ function canGenerateOrderForGroup(group){
   return true;
 }
 function canSelectChild(group,child){
-  if(!group||!child)return false;
-  return canGenerateOrderForGroup(group)||!fbaLinked(child);
+  return Boolean(group&&child);
 }
 function canSelectGroup(group){
   if(!group)return false;
   return group.children.some(child=>canSelectChild(group,child));
 }
 function disabledReasonForGroup(group){
-  if(!canSelectGroup(group)){
-    return group.shipmentOrderNo
-      ?`该货件已生成发货单（${group.shipmentOrderNo}），且所有明细均已关联发货计划`
-      :'当前货件状态不支持生成发货单，且所有明细均已关联发货计划';
-  }
-  if(!canGenerateOrderForGroup(group))return '该货件不可再生成发货单，勾选将用于批量关联未绑定发货计划的 SKU';
+  if(!canSelectGroup(group))return '当前货件无可勾选明细';
+  if(!canGenerateOrderForGroup(group))return '该货件不可再生成发货单，勾选将用于批量关联或取消关联发货计划';
   return '勾选此货件（联动勾选全部明细）';
 }
 function childCheckTitle(group,child){
-  if(!canSelectChild(group,child))return '所属货件已生成发货单且该明细已关联发货计划';
-  if(fbaLinked(child))return '该明细已关联发货计划，勾选可参与生成所属货件的发货单';
+  if(fbaLinked(child))return '该明细已关联发货计划，勾选可取消关联或参与生成所属货件的发货单';
   return '勾选此明细以批量关联发货计划或生成发货单';
 }
 
-function renderShipmentRows(group){
+/* ===================== 列配置（参照采购计划一二级列表列配置，无固定列） ===================== */
+const FBA_COL_CONFIG_KEY='fba-shipment-column-config-v1';
+const FBA_COL_DEFS={
+  parent:[
+    {key:'shipmentNo',label:'货件单号 / 货件名称',tableClass:'no-col',width:175},
+    {key:'status',label:'领星货件状态',tableClass:'fba-status-col',width:126},
+    {key:'staRef',label:'STA任务 / Reference ID',tableClass:'sta-col',width:195},
+    {key:'storeCenter',label:'店铺 / 国家编码 / 物流中心',tableClass:'store-col',width:170},
+    {key:'orderNos',label:'中台发货单号 / 领星发货单号',tableClass:'order-col',width:180},
+    {key:'declaredQty',label:'总申报量',tableClass:'qty-col',width:135},
+    {key:'createdAt',label:'创建时间',tableClass:'time-col',width:170}
+  ],
+  child:[
+    {key:'sku',label:'SKU',tableClass:'detail-sku',width:150},
+    {key:'msku',label:'领星 SKU',tableClass:'detail-msku',width:175},
+    {key:'fnsku',label:'FNSKU',tableClass:'detail-fnsku',width:135},
+    {key:'product',label:'品名',tableClass:'detail-name',width:230},
+    {key:'declared',label:'申报量',tableClass:'detail-qty',width:95},
+    {key:'sent',label:'实际发货',tableClass:'detail-qty',width:95},
+    {key:'received',label:'签收量',tableClass:'detail-qty',width:95},
+    {key:'shipDiff',label:'申发差异',tableClass:'detail-diff',width:110,tooltip:'申发差异=申报量-实际发货量'},
+    {key:'receiveDiff',label:'收发差异',tableClass:'detail-diff',width:110,tooltip:'收发差异=签收量-实际发货量'},
+    {key:'declareReceiveDiff',label:'申收差异',tableClass:'detail-diff',width:110,tooltip:'申收差异=申报量-签收量'},
+    {key:'plan',label:'发货计划',tableClass:'detail-plan',width:175}
+  ]
+};
+const FBA_COL_DEFAULTS={
+  parent:FBA_COL_DEFS.parent.map(c=>c.key),
+  child:FBA_COL_DEFS.child.map(c=>c.key)
+};
+function normalizeFbaColKeys(tab,keys){
+  const available=FBA_COL_DEFAULTS[tab]||[];
+  const valid=Array.isArray(keys)?keys.filter((k,idx)=>available.includes(k)&&keys.indexOf(k)===idx):[];
+  return valid.length?valid:[...available];
+}
+const fbaColConfig=(()=>{
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem(FBA_COL_CONFIG_KEY)||'{}');}catch{}
+  return {
+    tab:'parent',
+    search:'',
+    draggedKey:'',
+    applied:{
+      parent:normalizeFbaColKeys('parent',saved.parent),
+      child:normalizeFbaColKeys('child',saved.child)
+    },
+    draft:{parent:[],child:[]}
+  };
+})();
+function getVisibleColumns(tab){
+  return fbaColConfig.applied[tab].map(k=>FBA_COL_DEFS[tab].find(c=>c.key===k)).filter(Boolean);
+}
+
+function renderParentCellHtml(group,key,ctx){
+  const {orderNo,lingxingOrderNo,totalDeclared,totalSkuCount,linkedSkuCount,progressCls}=ctx;
+  switch(key){
+    case 'shipmentNo':
+      return `<td>
+        <div class="fba-cell-stack">
+          <div class="doc-line">
+            <button class="link doc-no" data-fba-toggle="${group.id}" type="button">${group.shipmentNo}</button>
+            <button class="copy-icon-btn" data-copy-text="${group.shipmentNo}" data-copy-label="货件单号" type="button" title="复制货件单号" aria-label="复制货件单号">${copyIconSvg}</button>
+          </div>
+          <div class="fba-cell-sub" title="${group.shipmentName||'—'}">
+            <span class="fba-cell-truncate">名称：<b>${group.shipmentName||'—'}</b></span>
+          </div>
+        </div>
+      </td>`;
+    case 'status':
+      return `<td>
+        <div class="fba-cell-stack">
+          <div class="fba-cell-main">${fbaStatusTag(group.status)}</div>
+          <div class="fba-cell-sub">${fbaClosedTag(group.isClosed)}</div>
+        </div>
+      </td>`;
+    case 'staRef':
+      return `<td>
+        <div class="fba-cell-stack">
+          <div class="fba-cell-main" title="${group.staInboundPlanId||'—'}">
+            <span>STA：</span><span class="fba-cell-truncate">${group.staInboundPlanId||'—'}</span>
+            ${group.staInboundPlanId?`<button class="copy-icon-btn" data-copy-text="${group.staInboundPlanId}" data-copy-label="STA任务号" type="button" title="复制STA任务号">${copyIconSvg}</button>`:''}
+          </div>
+          <div class="fba-cell-sub">
+            <span>Ref ID：<b>${group.reference||'—'}</b></span>
+            ${group.reference?`<button class="copy-icon-btn" data-copy-text="${group.reference}" data-copy-label="Reference ID" type="button" title="复制 Reference ID">${copyIconSvg}</button>`:''}
+          </div>
+        </div>
+      </td>`;
+    case 'storeCenter':
+      return `<td>
+        <div class="fba-cell-stack">
+          <div class="fba-cell-main is-primary" title="${group.seller||'—'}">
+            <span class="fba-cell-truncate">${group.seller||'—'}</span>
+          </div>
+          <div class="fba-cell-sub">
+            <span>国家：<b>${group.countryCode||'—'}</b></span>
+            <span>·</span>
+            <span>中心：<b>${group.center||'—'}</b></span>
+          </div>
+        </div>
+      </td>`;
+    case 'orderNos':
+      return `<td>
+        <div class="fba-cell-stack">
+          <div class="fba-cell-main">
+            <span>中台：</span>
+            ${orderNo
+              ?`<button class="link fba-doc-jump" data-nav-order="${orderNo}" type="button" title="前往发货单查看 ${orderNo}">${orderNo}</button><button class="copy-icon-btn" data-copy-text="${orderNo}" data-copy-label="中台发货单号" type="button" title="复制中台发货单号">${copyIconSvg}</button>`
+              :'<span>—</span>'}
+          </div>
+          <div class="fba-cell-sub">
+            <span>领星：</span>
+            ${lingxingOrderNo
+              ?`<b>${lingxingOrderNo}</b><button class="copy-icon-btn" data-copy-text="${lingxingOrderNo}" data-copy-label="领星发货单号" type="button" title="复制领星发货单号">${copyIconSvg}</button>`
+              :'<span>—</span>'}
+          </div>
+        </div>
+      </td>`;
+    case 'declaredQty':
+      return `<td>
+        <div class="fba-cell-stack">
+          <div class="fba-cell-main is-primary"><span class="fba-qty-val">${totalDeclared.toLocaleString()}</span></div>
+          <div class="fba-cell-sub">
+            <span>${totalSkuCount} 款 领星 SKU</span>
+            <span>·</span>
+            <span class="fba-link-progress ${progressCls}">已关联 ${linkedSkuCount}/${totalSkuCount}</span>
+          </div>
+        </div>
+      </td>`;
+    case 'createdAt':
+      return `<td>
+        <div class="fba-cell-stack">
+          <div class="fba-cell-main is-primary" title="${group.created||'—'}"><span class="fba-cell-truncate">${group.created||'—'}</span></div>
+          <div class="fba-cell-sub"><span>创建人：<b>${group.creator||'—'}</b></span></div>
+        </div>
+      </td>`;
+    default:
+      return '<td>—</td>';
+  }
+}
+
+function renderChildHeaderHtml(col){
+  if(col.tooltip){
+    return `<th class="${col.tableClass}" title="${col.tooltip}">${col.label}<span class="col-help-icon" title="${col.tooltip}" aria-label="${col.tooltip}">?</span></th>`;
+  }
+  return `<th class="${col.tableClass}">${col.label}</th>`;
+}
+
+function renderChildCellHtml(child,colKey,ctx){
+  const {shipDiff,receiveDiff,declareReceiveDiff,linked}=ctx;
+  switch(colKey){
+    case 'sku':
+      return `<td class="detail-sku">${child.sku}<button class="copy-icon-btn" data-copy-text="${child.sku}" data-copy-label="SKU" type="button" title="复制 SKU">${copyIconSvg}</button></td>`;
+    case 'msku':
+      return `<td class="detail-msku" title="${child.msku}">${child.msku}<button class="copy-icon-btn" data-copy-text="${child.msku}" data-copy-label="领星 SKU" type="button" title="复制领星 SKU">${copyIconSvg}</button></td>`;
+    case 'fnsku':
+      return `<td class="detail-fnsku">${child.fnsku}<button class="copy-icon-btn" data-copy-text="${child.fnsku}" data-copy-label="FNSKU" type="button" title="复制 FNSKU">${copyIconSvg}</button></td>`;
+    case 'product':
+      return `<td class="detail-name" title="${child.product}"><div class="fba-detail-product"><span class="fba-thumb">${child.icon||'📦'}</span><span>${child.product}</span></div></td>`;
+    case 'declared':
+      return `<td class="detail-qty">${Number(child.declared||0).toLocaleString()}</td>`;
+    case 'sent':
+      return `<td class="detail-qty">${Number(child.sent||0).toLocaleString()}</td>`;
+    case 'received':
+      return `<td class="detail-qty">${Number(child.received||0).toLocaleString()}</td>`;
+    case 'shipDiff':
+      return `<td class="detail-diff ${shipDiff!==0?'detail-difference':''}">${shipDiff.toLocaleString()}</td>`;
+    case 'receiveDiff':
+      return `<td class="detail-diff ${receiveDiff!==0?'detail-difference':''}">${receiveDiff.toLocaleString()}</td>`;
+    case 'declareReceiveDiff':
+      return `<td class="detail-diff ${declareReceiveDiff!==0?'detail-difference':''}">${declareReceiveDiff.toLocaleString()}</td>`;
+    case 'plan':
+      return `<td class="detail-plan">${linked
+        ?`<button class="link fba-doc-jump" data-nav-plan="${child.linkedPlans[0]}" type="button" title="前往发货计划查看 ${child.linkedPlans[0]}">${child.linkedPlans[0]}</button><button class="copy-icon-btn" data-copy-text="${child.linkedPlans[0]}" data-copy-label="发货计划号" type="button" title="复制发货计划号">${copyIconSvg}</button>`
+        :'<span class="fba-unlinked-tag">未关联</span>'}</td>`;
+    default:
+      return '<td>—</td>';
+  }
+}
+
+function renderShipmentRows(group,visibleParentCols,visibleChildCols){
   const expanded=fbaState.expanded.has(group.id);
   const selectableChildren=group.children.filter(c=>canSelectChild(group,c));
   const canCheck=selectableChildren.length>0;
@@ -853,111 +1022,36 @@ function renderShipmentRows(group){
   const linkedSkuCount=group.children.filter(child=>child.linkedPlans&&child.linkedPlans.length>0).length;
   const progressCls=linkedSkuCount===totalSkuCount?'is-all':(linkedSkuCount>0?'is-partial':'is-none');
 
-  const deliveryWindow=group.staDeliveryStartDate&&group.staDeliveryEndDate
-    ?`${group.staDeliveryStartDate} ~ ${group.staDeliveryEndDate}`
-    :'—';
-  const transportText=group.transportMode||'—';
-  const orderNo=group.shipmentOrderNo||'';
+  const ctx={
+    orderNo:group.shipmentOrderNo||'',
+    lingxingOrderNo:group.lingxingOrderNo||'',
+    totalDeclared,
+    totalSkuCount,
+    linkedSkuCount,
+    progressCls
+  };
 
   const parentRow=`<tr class="parent-row ${expanded?'is-expanded':''}" data-id="${group.id}">
     <td>
       <input class="checkbox" data-fba-check="${group.id}" type="checkbox" ${isChecked?'checked':''} ${canCheck?'':'disabled'} title="${checkTitle}" aria-label="${checkTitle}">
     </td>
     <td><button class="document-expand ${expanded?'is-expanded':''}" data-fba-toggle="${group.id}" type="button" aria-expanded="${expanded}" aria-label="${expanded?'收起':'展开'}明细"></button></td>
-    <td>
-      <div class="fba-cell-stack">
-        <div class="doc-line">
-          <button class="link doc-no" data-fba-toggle="${group.id}" type="button">${group.shipmentNo}</button>
-          <button class="copy-icon-btn" data-copy-text="${group.shipmentNo}" data-copy-label="货件单号" type="button" title="复制货件单号" aria-label="复制货件单号">${copyIconSvg}</button>
-          ${group.isSta?`<span class="fba-sta-tag">STA</span>`:''}
-          ${fbaStatusTag(group.status)}
-          ${fbaClosedTag(group.isClosed)}
-        </div>
-        <div class="fba-cell-sub" title="${group.shipmentName||'—'}">
-          <span class="fba-cell-truncate">名称：${group.shipmentName||'—'}</span>
-        </div>
-      </div>
-    </td>
-    <td>
-      <div class="fba-cell-stack">
-        <div class="fba-cell-main" title="${group.staInboundPlanId||'—'}">
-          <span class="fba-cell-truncate">STA：${group.staInboundPlanId||'—'}</span>
-          ${group.staInboundPlanId?`<button class="copy-icon-btn" data-copy-text="${group.staInboundPlanId}" data-copy-label="STA任务号" type="button" title="复制STA任务号">${copyIconSvg}</button>`:''}
-        </div>
-        <div class="fba-cell-sub">
-          <span>Ref ID：<b>${group.reference||'—'}</b></span>
-          ${group.reference?`<button class="copy-icon-btn" data-copy-text="${group.reference}" data-copy-label="Reference ID" type="button" title="复制 Reference ID">${copyIconSvg}</button>`:''}
-        </div>
-      </div>
-    </td>
-    <td>
-      <div class="fba-cell-stack">
-        <div class="fba-cell-main" title="${group.seller||'—'}">
-          <span class="fba-cell-truncate">${group.seller||'—'}</span>
-        </div>
-        <div class="fba-cell-sub">
-          <span>国家：<b>${group.countryCode||'—'}</b></span>
-          <span>·</span>
-          <span>中心：<b>${group.center||'—'}</b></span>
-        </div>
-      </div>
-    </td>
-    <td>
-      <div class="fba-cell-stack">
-        <div class="fba-cell-main" title="${transportText}">
-          <span class="fba-cell-truncate">${transportText}</span>
-        </div>
-        <div class="fba-cell-sub" title="送达时段：${deliveryWindow}">
-          <span>送达：${deliveryWindow}</span>
-        </div>
-      </div>
-    </td>
-    <td>
-      ${orderNo
-        ?`<span class="fba-order-no">${orderNo}</span><button class="copy-icon-btn" data-copy-text="${orderNo}" data-copy-label="发货单号" type="button" title="复制发货单号">${copyIconSvg}</button>`
-        :'—'}
-    </td>
-    <td>
-      <div class="fba-cell-stack">
-        <div class="fba-cell-main"><span class="fba-qty-val">${totalDeclared.toLocaleString()}</span></div>
-        <div class="fba-cell-sub">
-          <span>${totalSkuCount} 款 MSKU</span>
-          <span>·</span>
-          <span class="fba-link-progress ${progressCls}">已关联 ${linkedSkuCount}/${totalSkuCount}</span>
-        </div>
-      </div>
-    </td>
-    <td>
-      <div class="fba-cell-stack">
-        <div class="fba-cell-main"><span>创建：${group.created||'—'}（${group.creator||'—'}）</span></div>
-        <div class="fba-cell-sub"><span>更新：${group.modified||'—'}</span></div>
-      </div>
-    </td>
+    ${visibleParentCols.map(col=>renderParentCellHtml(group,col.key,ctx)).join('')}
   </tr>`;
 
   if(!expanded)return parentRow;
 
+  const detailMinWidth=38+visibleChildCols.reduce((sum,c)=>sum+c.width,0);
   const detailRow=`<tr class="detail-row" data-parent-id="${group.id}">
-    <td colspan="9">
+    <td colspan="${visibleParentCols.length+2}">
       <div class="detail-wrap">
-        <table class="purchase-detail-table">
+        <table class="purchase-detail-table" style="min-width:${detailMinWidth}px">
           <thead>
             <tr>
               <th class="detail-check">
                 <input class="checkbox" data-fba-group-check-all="${group.id}" type="checkbox" ${isChecked?'checked':''} ${canCheck?'':'disabled'} title="全选当前货件明细">
               </th>
-              <th class="detail-sku">SKU</th>
-              <th class="detail-msku">MSKU</th>
-              <th class="detail-fnsku">FNSKU</th>
-              <th class="detail-name">品名</th>
-              <th class="detail-qty">申报量</th>
-              <th class="detail-qty">已发货</th>
-              <th class="detail-qty">签收量</th>
-              <th class="detail-diff" title="申发差异 = 申报量 − 已发货">申发差异</th>
-              <th class="detail-diff" title="收发差异 = 签收量 − 已发货">收发差异</th>
-              <th class="detail-diff" title="申收差异 = 申报量 − 签收量">申收差异</th>
-              <th class="detail-plan">发货计划</th>
-              <th class="detail-op">操作</th>
+              ${visibleChildCols.map(renderChildHeaderHtml).join('')}
             </tr>
           </thead>
           <tbody>
@@ -969,28 +1063,12 @@ function renderShipmentRows(group){
               const childEnabled=canSelectChild(group,child);
               const childChecked=childEnabled&&fbaState.selectedChildIds.has(child.id);
               const tip=childCheckTitle(group,child);
+              const childCtx={shipDiff,receiveDiff,declareReceiveDiff,linked};
               return `<tr data-child-id="${child.id}">
                 <td class="detail-check">
                   <input class="checkbox" data-fba-child-check="${child.id}" data-group-id="${group.id}" type="checkbox" ${childChecked?'checked':''} ${childEnabled?'':'disabled'} title="${tip}" aria-label="${tip}">
                 </td>
-                <td class="detail-sku">${child.sku}<button class="copy-icon-btn" data-copy-text="${child.sku}" data-copy-label="SKU" type="button" title="复制 SKU">${copyIconSvg}</button></td>
-                <td class="detail-msku" title="${child.msku}">${child.msku}<button class="copy-icon-btn" data-copy-text="${child.msku}" data-copy-label="MSKU" type="button" title="复制 MSKU">${copyIconSvg}</button></td>
-                <td class="detail-fnsku">${child.fnsku}<button class="copy-icon-btn" data-copy-text="${child.fnsku}" data-copy-label="FNSKU" type="button" title="复制 FNSKU">${copyIconSvg}</button></td>
-                <td class="detail-name" title="${child.product}">
-                  <div class="fba-detail-product"><span class="fba-thumb">${child.icon||'📦'}</span><span>${child.product}</span></div>
-                </td>
-                <td class="detail-qty">${Number(child.declared||0).toLocaleString()}</td>
-                <td class="detail-qty">${Number(child.sent||0).toLocaleString()}</td>
-                <td class="detail-qty">${Number(child.received||0).toLocaleString()}</td>
-                <td class="detail-diff ${shipDiff!==0?'detail-difference':''}">${shipDiff.toLocaleString()}</td>
-                <td class="detail-diff ${receiveDiff!==0?'detail-difference':''}">${receiveDiff.toLocaleString()}</td>
-                <td class="detail-diff ${declareReceiveDiff!==0?'detail-difference':''}">${declareReceiveDiff.toLocaleString()}</td>
-                <td class="detail-plan">${linked?child.linkedPlans[0]:'—'}</td>
-                <td class="detail-op">
-                  ${linked
-                    ?`<button class="fba-link-action unlink" data-fba-unlink="${child.id}" type="button">取消关联</button>`
-                    :`<button class="fba-link-action" data-fba-link="${child.id}" type="button">关联发货计划</button>`}
-                </td>
+                ${visibleChildCols.map(col=>renderChildCellHtml(child,col.key,childCtx)).join('')}
               </tr>`;
             }).join('')}
           </tbody>
@@ -1002,7 +1080,36 @@ function renderShipmentRows(group){
   return parentRow+detailRow;
 }
 
+function renderParentTableHeader(visibleParentCols){
+  const mainTable=$('#fbaMainTable');
+  if(mainTable){
+    const minW=36+32+visibleParentCols.reduce((sum,c)=>sum+c.width,0);
+    mainTable.style.minWidth=`${minW}px`;
+  }
+  const colGroup=$('#fbaColGroup');
+  if(colGroup){
+    colGroup.innerHTML=`<col class="check-col"><col class="expand-col">${visibleParentCols.map(c=>`<col class="${c.tableClass}">`).join('')}`;
+  }
+  const headRow=$('#fbaTableHeadRow');
+  if(headRow){
+    headRow.innerHTML=`
+      <th><input class="checkbox" id="fbaSelectAll" type="checkbox" aria-label="全选本页货件" title="全选本页货件"></th>
+      <th><button class="document-expand expand-all" id="fbaExpandAllBtn" type="button" aria-label="展开/折叠全部" title="展开/折叠全部"></button></th>
+      ${visibleParentCols.map(col=>{
+        if(col.key==='shipmentNo'){
+          return `<th>${col.label}<button class="copy-icon-btn copy-icon-btn-head" id="copyPageShipmentNosBtn" type="button" title="复制本页货件单号" aria-label="复制本页货件单号">${copyIconSvg}</button></th>`;
+        }
+        return `<th>${col.label}</th>`;
+      }).join('')}
+    `;
+  }
+}
+
 function renderFbaTable(){
+  const visibleParentCols=getVisibleColumns('parent');
+  const visibleChildCols=getVisibleColumns('child');
+  renderParentTableHeader(visibleParentCols);
+
   const groups=getFbaVisibleGroups();
   const allChildren=groups.flatMap(g=>g.children);
   const totalSkus=allChildren.length;
@@ -1017,7 +1124,7 @@ function renderFbaTable(){
   const data=groups.slice((fbaState.page-1)*fbaState.pageSize,fbaState.page*fbaState.pageSize);
 
   $('#fbaTotalCount').textContent=groups.length;
-  $('#fbaSummary').innerHTML=`<b>${groups.length}</b> 个货件 · <b>${totalSkus}</b> 个 SKU · 申报量 <b>${totalDeclared.toLocaleString()}</b> · 已发货 <b>${totalSent.toLocaleString()}</b> · 签收量 <b>${totalReceived.toLocaleString()}</b> · 申发差异 <b>${totalShipDiff.toLocaleString()}</b> · 申收差异 <b>${totalDeclareReceiveDiff.toLocaleString()}</b>`;
+  $('#fbaSummary').innerHTML=`<b>${groups.length}</b> 个货件 · <b>${totalSkus}</b> 个 SKU · 申报量 <b>${totalDeclared.toLocaleString()}</b> · 实际发货 <b>${totalSent.toLocaleString()}</b> · 签收量 <b>${totalReceived.toLocaleString()}</b> · 申发差异 <b>${totalShipDiff.toLocaleString()}</b> · 申收差异 <b>${totalDeclareReceiveDiff.toLocaleString()}</b>`;
   $('#fbaPrevPage').disabled=fbaState.page===1;
   $('#fbaNextPage').disabled=fbaState.page===pages;
 
@@ -1025,15 +1132,17 @@ function renderFbaTable(){
   $$('[data-fba-page]').forEach(button=>button.onclick=()=>{fbaState.page=Number(button.dataset.fbaPage);renderFbaTable();});
 
   const expandAll=$('#fbaExpandAllBtn');
-  const allExpanded=data.length>0&&data.every(group=>fbaState.expanded.has(group.id));
-  expandAll.classList.toggle('is-expanded',allExpanded);
-  expandAll.setAttribute('aria-expanded',String(allExpanded));
-  expandAll.title=allExpanded?'收起全部货件':'展开全部货件';
-  expandAll.setAttribute('aria-label',expandAll.title);
-  expandAll.onclick=()=>{
-    data.forEach(group=>allExpanded?fbaState.expanded.delete(group.id):fbaState.expanded.add(group.id));
-    renderFbaTable();
-  };
+  if(expandAll){
+    const allExpanded=data.length>0&&data.every(group=>fbaState.expanded.has(group.id));
+    expandAll.classList.toggle('is-expanded',allExpanded);
+    expandAll.setAttribute('aria-expanded',String(allExpanded));
+    expandAll.title=allExpanded?'收起全部货件':'展开全部货件';
+    expandAll.setAttribute('aria-label',expandAll.title);
+    expandAll.onclick=()=>{
+      data.forEach(group=>allExpanded?fbaState.expanded.delete(group.id):fbaState.expanded.add(group.id));
+      renderFbaTable();
+    };
+  }
 
   const copyHeadBtn=$('#copyPageShipmentNosBtn');
   if(copyHeadBtn){
@@ -1047,11 +1156,11 @@ function renderFbaTable(){
   }
 
   if(!data.length){
-    $('#fbaTableBody').innerHTML='<tr class="fba-empty-row"><td colspan="9">暂无符合条件的 FBA 货件</td></tr>';
+    $('#fbaTableBody').innerHTML=`<tr class="fba-empty-row"><td colspan="${visibleParentCols.length+2}">暂无符合条件的 FBA 货件</td></tr>`;
     syncSelectionUi(data);
     return;
   }
-  $('#fbaTableBody').innerHTML=data.map(renderShipmentRows).join('');
+  $('#fbaTableBody').innerHTML=data.map(g=>renderShipmentRows(g,visibleParentCols,visibleChildCols)).join('');
   syncSelectionUi(data);
 
   $$('[data-fba-check]').forEach(cb=>cb.onchange=()=>{
@@ -1097,14 +1206,31 @@ function renderFbaTable(){
     if(navigator.clipboard?.writeText)navigator.clipboard.writeText(text).catch(()=>{});
     toast(`已复制${label}：${text}`);
   });
-  $$('[data-fba-link]').forEach(button=>button.onclick=()=>openFbaPlanPopover([button.dataset.fbaLink]));
-  $$('[data-fba-unlink]').forEach(button=>button.onclick=()=>openFbaUnlinkConfirm(button.dataset.fbaUnlink));
+  $$('[data-nav-order]').forEach(btn=>btn.onclick=e=>{
+    e.stopPropagation();
+    const orderNo=btn.dataset.navOrder||'';
+    navigatePrototypePage('shipmentOrder',orderNo,`../shipment-orders/index.html?focus=${encodeURIComponent(orderNo)}`);
+  });
+  $$('[data-nav-plan]').forEach(btn=>btn.onclick=e=>{
+    e.stopPropagation();
+    const planNo=btn.dataset.navPlan||'';
+    navigatePrototypePage('shipmentV2',planNo,`../shipment-plan-v2/index.html?focus=${encodeURIComponent(planNo)}`);
+  });
+}
+
+function navigatePrototypePage(pageKey,focusNo,fallbackUrl){
+  if(window.parent!==window){
+    window.parent.postMessage({type:'prototype:navigate',page:pageKey,focus:focusNo},'*');
+  }else{
+    window.location.href=fallbackUrl;
+  }
 }
 
 /* ===================== 关联发货计划（左侧 FBA货件+SKU 导航 + 右侧过滤明细单选） ===================== */
 const fbaLinkModalState={
   items:[],
-  activeChildId:''
+  activeChildId:'',
+  activeTab:'manual'
 };
 function normalizeFbaPlanStore(s){
   return String(s||'').replace('主账号-','_').replace(/-/g,'_').toLowerCase();
@@ -1112,7 +1238,7 @@ function normalizeFbaPlanStore(s){
 function getCandidatePlansForItem(item,planSearch=''){
   if(!item)return [];
   return fbaPlanOptions.filter(plan=>{
-    if(plan.status!=='待发货')return false;
+    if(plan.status==='已作废'||plan.status==='已取消')return false;
     if(item.sku&&String(plan.sku).toLowerCase()!==item.sku.toLowerCase())return false;
     if(item.fnsku&&plan.fnsku&&plan.fnsku!=='-'&&String(plan.fnsku).toLowerCase()!==item.fnsku.toLowerCase())return false;
     if(item.seller){
@@ -1134,24 +1260,30 @@ function renderFbaLinkNav(){
   $('#fbaLinkNavList').innerHTML=items.map((item,idx)=>{
     const active=item.childId===fbaLinkModalState.activeChildId?'active':'';
     const picked=item.selectedPlan;
-    const badgeCls=picked?'is-ready':'is-pending';
-    const badgeText=picked?'已选择':'待选择';
+    const statusHtml=picked
+      ?`<span class="fba-link-nav-picked-pill" title="已选：${picked.plan}（计划发货 ${picked.quantity}）">
+          <span>${picked.plan}</span>
+          <button class="fba-link-nav-clear" data-link-clear="${item.childId}" type="button" title="清除已选计划" aria-label="清除已选计划">×</button>
+        </span>`
+      :`<span class="fba-gen-nav-badge is-pending">待选择</span>`;
     return `<div class="fba-link-nav-item ${active}" data-link-nav="${item.childId}" role="button" tabindex="0">
       <div class="fba-link-nav-top">
-        <span class="fba-link-nav-title">${idx+1}. ${item.shipmentNo}</span>
-        <span class="fba-gen-nav-badge ${badgeCls}">${badgeText}</span>
+        <div class="fba-link-nav-ship" title="${item.shipmentNo} · ${item.shipmentName||'—'}">
+          <span class="fba-link-nav-title">${idx+1}. ${item.shipmentNo}</span>
+          <span class="fba-link-nav-shipname">· ${item.shipmentName||'—'}</span>
+        </div>
+        ${statusHtml}
       </div>
-      <div class="fba-gen-nav-meta">
-        <span>SKU：${item.sku}</span>
-        <span>申报量：${Number(item.declared||0).toLocaleString()}</span>
+      <div class="fba-link-nav-body">
+        <span class="fba-link-nav-thumb">${item.icon||'📦'}</span>
+        <div class="fba-link-nav-info">
+          <div class="fba-link-nav-product" title="${item.product}">${item.product}</div>
+          <div class="fba-link-nav-codes" title="领星SKU：${item.msku||'—'} · FNSKU：${item.fnsku||'—'}">
+            <span>领星SKU: ${item.msku||'—'}</span>
+            <span>FNSKU: ${item.fnsku||'—'}</span>
+          </div>
+        </div>
       </div>
-      <div class="fba-gen-nav-sub" title="${item.msku} · ${item.product}">
-        ${item.msku} · ${item.product}
-      </div>
-      ${picked?`<div class="fba-link-nav-picked">
-        <span title="已选：${picked.plan}（计划发货 ${picked.quantity}）">${picked.plan}（计划 ${picked.quantity}）</span>
-        <button class="fba-link-nav-clear" data-link-clear="${item.childId}" type="button" title="清除已选计划" aria-label="清除已选计划">×</button>
-      </div>`:''}
     </div>`;
   }).join('');
 
@@ -1175,6 +1307,15 @@ function renderFbaLinkNav(){
 }
 function renderFbaLinkFooter(){
   const items=fbaLinkModalState.items;
+  if(!items.length){
+    $('#fbaLinkFooterStats').innerHTML='<span class="minimal-pill">尚未勾选待关联明细</span>';
+    const confirmBtn=$('#fbaLinkConfirmBtn');
+    if(confirmBtn){
+      confirmBtn.disabled=true;
+      confirmBtn.textContent='确认关联';
+    }
+    return;
+  }
   const pickedCount=items.filter(x=>Boolean(x.selectedPlan)).length;
   const declaredSum=items.reduce((s,x)=>s+Number(x.declared||0),0);
   const pickedPlanQtySum=items.filter(x=>x.selectedPlan).reduce((s,x)=>s+Number(x.selectedPlan.quantity||0),0);
@@ -1238,19 +1379,96 @@ function renderFbaPlanList(){
   });
 }
 function renderFbaLinkModal(){
-  const activeItem=fbaLinkModalState.items.find(x=>x.childId===fbaLinkModalState.activeChildId);
-  if(activeItem){
-    const shipEl=$('#fbaPlanDefaultShipment');
-    if(shipEl)shipEl.textContent=activeItem.shipmentNo||'—';
-    $('#fbaPlanDefaultStore').textContent=activeItem.seller||'—';
-    $('#fbaPlanDefaultSku').textContent=activeItem.sku||'—';
-    $('#fbaPlanDefaultFnsku').textContent=activeItem.fnsku||'—';
-    const declaredEl=$('#fbaPlanDefaultDeclared');
-    if(declaredEl)declaredEl.textContent=activeItem.declared?Number(activeItem.declared).toLocaleString():'—';
+  const items=fbaLinkModalState.items;
+  const hasItems=items.length>0;
+  $('#fbaLinkManualBody').classList.toggle('hidden',!hasItems);
+  $('#fbaLinkManualEmpty').classList.toggle('hidden',hasItems);
+  if(hasItems){
+    const activeItem=items.find(x=>x.childId===fbaLinkModalState.activeChildId);
+    if(activeItem){
+      const shipEl=$('#fbaPlanDefaultShipment');
+      if(shipEl)shipEl.textContent=activeItem.shipmentNo||'—';
+      $('#fbaPlanDefaultStore').textContent=activeItem.seller||'—';
+      $('#fbaPlanDefaultSku').textContent=activeItem.sku||'—';
+      $('#fbaPlanDefaultFnsku').textContent=activeItem.fnsku||'—';
+      const declaredEl=$('#fbaPlanDefaultDeclared');
+      if(declaredEl)declaredEl.textContent=activeItem.declared?Number(activeItem.declared).toLocaleString():'—';
+    }
+    renderFbaLinkNav();
+    renderFbaPlanList();
   }
-  renderFbaLinkNav();
-  renderFbaPlanList();
   renderFbaLinkFooter();
+}
+function switchFbaLinkTab(tab){
+  const nextTab=tab==='import'?'import':'manual';
+  fbaLinkModalState.activeTab=nextTab;
+  const isManual=nextTab==='manual';
+  $('#fbaLinkTabManual').classList.toggle('is-active',isManual);
+  $('#fbaLinkTabManual').setAttribute('aria-selected',String(isManual));
+  $('#fbaLinkTabImport').classList.toggle('is-active',!isManual);
+  $('#fbaLinkTabImport').setAttribute('aria-selected',String(!isManual));
+
+  $('#fbaLinkManualPane').classList.toggle('hidden',!isManual);
+  $('#fbaLinkImportPane').classList.toggle('hidden',isManual);
+
+  $('#fbaLinkFooterStats').classList.toggle('hidden',!isManual);
+  $('#fbaLinkManualFooterActions').classList.toggle('hidden',!isManual);
+  $('#importLinkFileInfo').classList.toggle('hidden',isManual);
+  $('#fbaLinkImportFooterActions').classList.toggle('hidden',isManual);
+
+  const items=fbaLinkModalState.items;
+  if(isManual){
+    $('#fbaLinkSubtitle').textContent=items.length
+      ?`共 ${items.length} 条待关联明细（已自动预选唯一匹配计划）；左侧切换「FBA货件 + 领星 SKU」，右侧点选 1 条发货计划后自动跳至下一待选项`
+      :'「勾选关联」需要先在列表勾选未关联发货计划的明细，或直接切换至「导入关联」上传 .xlsx 模板';
+    renderFbaLinkModal();
+  }else{
+    $('#fbaLinkSubtitle').textContent='下载标准 .xlsx 模板填写关联信息并上传导入；支持切换至「勾选关联」核对已勾选明细';
+  }
+}
+function getLinkedShipmentsForPlan(planNo){
+  if(!planNo)return [];
+  const res=[];
+  const map=new Map();
+  fbaGroups.forEach(group=>{
+    group.children.forEach(child=>{
+      if(!(child.linkedPlans||[]).includes(planNo))return;
+      const qty=Number(child.declared||0);
+      if(!map.has(group.shipmentNo)){
+        const entry={shipmentNo:group.shipmentNo,shipmentName:group.shipmentName||'',declaredQty:qty};
+        map.set(group.shipmentNo,entry);
+        res.push(entry);
+      }else{
+        map.get(group.shipmentNo).declaredQty+=qty;
+      }
+    });
+  });
+  return res;
+}
+function syncPlanLinkState(planNo){
+  if(!planNo)return [];
+  const linkedShipments=getLinkedShipmentsForPlan(planNo);
+  const declaredTotal=linkedShipments.reduce((sum,x)=>sum+Number(x.declaredQty||0),0);
+  const nextStatus=linkedShipments.length>0?'已完成':'待发货';
+  const opt=fbaPlanOptions.find(p=>p.plan===planNo);
+  if(opt)opt.status=nextStatus;
+  const rawPlan=rows.find(r=>r.plan===planNo);
+  if(rawPlan){
+    rawPlan.status=nextStatus;
+    rawPlan.linkedShipments=linkedShipments.map(x=>x.shipmentNo);
+  }
+  if(linkedShipments.length>0){
+    persistV2BridgeLink(
+      planNo,
+      linkedShipments.map(x=>x.shipmentNo).join('、'),
+      linkedShipments.map(x=>x.shipmentName).filter(Boolean).join('、'),
+      linkedShipments.length,
+      declaredTotal
+    );
+  }else{
+    persistV2BridgeUnlink(planNo);
+  }
+  return linkedShipments;
 }
 function confirmBatchLinkPlans(){
   const pickedItems=fbaLinkModalState.items.filter(x=>Boolean(x.selectedPlan));
@@ -1258,10 +1476,9 @@ function confirmBatchLinkPlans(){
   pickedItems.forEach(item=>{
     const child=findFbaChild(item.childId);
     if(child){
+      /* 一个 FBA 货件明细只能关联 1 条发货计划，同一发货计划可被多个 FBA 货件关联 */
       child.linkedPlans=[item.selectedPlan.plan];
-      item.selectedPlan.status='已完成';
-      const group=findGroupByChildId(child.id);
-      persistV2BridgeLink(item.selectedPlan.plan,group?group.shipmentNo:item.shipmentNo,group?group.shipmentName:'');
+      syncPlanLinkState(item.selectedPlan.plan);
       fbaState.selectedChildIds.delete(child.id);
       addPlanLog(item.selectedPlan.id,'关联FBA货件',`货件 ${item.shipmentNo}（SKU ${item.sku}）关联发货计划 ${item.selectedPlan.plan}`);
     }
@@ -1271,26 +1488,57 @@ function confirmBatchLinkPlans(){
   toast(`已成功关联 ${pickedItems.length} 条明细的发货计划`);
 }
 function findFbaChild(childId){return fbaGroups.flatMap(group=>group.children).find(child=>child.id===childId);}
-function openFbaUnlinkConfirm(childId){
-  const child=findFbaChild(childId);
-  if(!child||!child.linkedPlans.length)return;
-  fbaState.pendingUnlink=childId;
-  const linkedPlan=child.linkedPlans[0];
-  $('#fbaUnlinkConfirmText').textContent=`确定要取消当前商品「${child.msku}（SKU: ${child.sku}）」与发货计划「${linkedPlan}」的关联吗？取消后该明细恢复为未关联状态，对应发货计划将回退至待发货。`;
+function openFbaUnlinkConfirm(childIds){
+  const ids=(Array.isArray(childIds)?childIds:[childIds]).filter(Boolean);
+  const targets=ids.map(id=>findFbaChild(id)).filter(ch=>ch&&ch.linkedPlans&&ch.linkedPlans.length);
+  if(!targets.length){
+    toast('当前勾选中没有已关联发货计划的明细','error');
+    return;
+  }
+  fbaState.pendingUnlinkIds=targets.map(t=>t.id);
+  if(targets.length===1){
+    const child=targets[0];
+    const linkedPlan=child.linkedPlans[0];
+    const linkedCount=fbaGroups.flatMap(g=>g.children).filter(c=>(c.linkedPlans||[]).includes(linkedPlan)).length;
+    const tailNote=linkedCount>1
+      ?`该发货计划当前还关联着其他 ${linkedCount-1} 条货件明细，取消后仅解除本条关联。`
+      :'取消后该明细恢复为未关联状态，对应发货计划将回退至待发货。';
+    $('#fbaUnlinkConfirmText').textContent=`确定要取消当前商品「${child.msku}（SKU: ${child.sku}）」与发货计划「${linkedPlan}」的关联吗？${tailNote}`;
+  }else{
+    const plans=[...new Set(targets.map(t=>t.linkedPlans[0]).filter(Boolean))];
+    $('#fbaUnlinkConfirmText').textContent=`确定要取消所选 ${targets.length} 条商品明细与发货计划（${plans.join('、')}）的关联吗？取消后明细恢复为未关联状态。`;
+  }
   $('#fbaUnlinkConfirmMask').classList.remove('hidden');
 }
-function closeFbaUnlinkConfirm(){fbaState.pendingUnlink=null;$('#fbaUnlinkConfirmMask').classList.add('hidden');}
+function closeFbaUnlinkConfirm(){fbaState.pendingUnlinkIds=[];$('#fbaUnlinkConfirmMask').classList.add('hidden');}
 function confirmFbaUnlink(){
-  const child=findFbaChild(fbaState.pendingUnlink);
-  if(child){
+  const ids=fbaState.pendingUnlinkIds||[];
+  const affectedPlans=[];
+  let unlinkedCount=0;
+  ids.forEach(id=>{
+    const child=findFbaChild(id);
+    if(!child||!child.linkedPlans.length)return;
     const linkedPlan=child.linkedPlans[0]||'';
     child.linkedPlans=[];
-    const opt=fbaPlanOptions.find(p=>p.plan===linkedPlan);
-    if(opt)opt.status='待发货';
-    persistV2BridgeUnlink(linkedPlan);
-    closeFbaUnlinkConfirm();
-    renderFbaTable();
-    toast(`已取消关联发货计划 ${linkedPlan}`);
+    fbaState.selectedChildIds.delete(child.id);
+    unlinkedCount++;
+    if(linkedPlan&&!affectedPlans.includes(linkedPlan))affectedPlans.push(linkedPlan);
+  });
+  let revertedPlans=0;
+  affectedPlans.forEach(planNo=>{
+    const remaining=syncPlanLinkState(planNo);
+    if(!remaining.length)revertedPlans++;
+  });
+  closeFbaUnlinkConfirm();
+  renderFbaTable();
+  if(!unlinkedCount)return;
+  if(unlinkedCount===1&&affectedPlans.length===1){
+    toast(revertedPlans>0
+      ?`已取消关联发货计划 ${affectedPlans[0]}，计划已回退至待发货`
+      :`已取消关联发货计划 ${affectedPlans[0]}`
+    );
+  }else{
+    toast(`已取消关联 ${unlinkedCount} 条货件明细的发货计划`);
   }
 }
 function readFbaPlanQuery(){
@@ -1309,9 +1557,11 @@ function openFbaPlanPopover(childIds){
         const item={
           groupId:group.id,
           shipmentNo:group.shipmentNo,
+          shipmentName:group.shipmentName||'',
           seller:group.seller,
           center:group.center,
           childId:child.id,
+          icon:child.icon||'📦',
           sku:child.sku,
           msku:child.msku,
           fnsku:child.fnsku,
@@ -1331,16 +1581,12 @@ function openFbaPlanPopover(childIds){
       }
     }
   });
-  if(!items.length){
-    toast('当前勾选中没有未关联发货计划的明细','error');
-    return;
-  }
   fbaLinkModalState.items=items;
   const firstPending=items.find(x=>!x.selectedPlan)||items[0];
-  fbaLinkModalState.activeChildId=firstPending.childId;
-  $('#fbaLinkSubtitle').textContent=`共 ${items.length} 条待关联明细（已自动预选唯一匹配计划）；左侧切换「FBA货件 + SKU」，右侧点选 1 条发货计划后自动跳至下一待选项`;
+  fbaLinkModalState.activeChildId=firstPending?firstPending.childId:'';
   resetFbaPlanQuery();
-  renderFbaLinkModal();
+  resetImportLinkPanel();
+  switchFbaLinkTab(items.length>0?'manual':'import');
   $('#fbaLinkModalMask').classList.remove('hidden');
   $('#fbaLinkPopover').classList.remove('hidden');
 }
@@ -1349,25 +1595,19 @@ function closeFbaPlanPopover(){
   $('#fbaLinkPopover').classList.add('hidden');
   fbaLinkModalState.items=[];
   fbaLinkModalState.activeChildId='';
+  resetImportLinkPanel();
 }
 
-/* ===================== 导入关联 FBA 货件 ===================== */
+/* ===================== 导入关联 FBA 货件（嵌入 Tab 2） ===================== */
 const IMPORT_LINK_FIELDS=['发货计划号','SKU','店铺','FNSKU','FBA货件单号'];
-const IMPORT_LINK_HINTS=['必填，中台发货计划号','必填，发货计划中的 SKU','必填，店铺名称，需与发货计划一致','必填，亚马逊 FNSKU','必填，领星/亚马逊 FBA 货件单号'];
 let importLinkState={file:null,templateDownloaded:false,parsedRows:[],resultItems:[]};
-function openImportLinkDialog(){
+function resetImportLinkPanel(){
   importLinkState={file:null,templateDownloaded:importLinkState.templateDownloaded,parsedRows:[],resultItems:[]};
   renderImportStep(1);
-  $('#importLinkFileInput').value='';
-  $('#importLinkFileInfo').innerHTML='尚未选择文件';
-  $('#importLinkConfirm').disabled=true;
-  $('#importLinkResult').classList.add('hidden');
-  $('#importLinkMask').classList.remove('hidden');
-  $('#importLinkDialog').classList.remove('hidden');
-}
-function closeImportLinkDialog(){
-  $('#importLinkDialog').classList.add('hidden');
-  $('#importLinkMask').classList.add('hidden');
+  if($('#importLinkFileInput'))$('#importLinkFileInput').value='';
+  if($('#importLinkFileInfo'))$('#importLinkFileInfo').innerHTML='尚未选择文件';
+  if($('#importLinkConfirm'))$('#importLinkConfirm').disabled=true;
+  if($('#importLinkResult'))$('#importLinkResult').classList.add('hidden');
 }
 function renderImportStep(active){
   const steps=$$('#importLinkBody .import-step');
@@ -1378,15 +1618,15 @@ function renderImportStep(active){
   });
 }
 function downloadImportLinkTemplate(){
-  const headers=IMPORT_LINK_FIELDS.map(f=>`*${f}`);
-  const csv='\ufeff'+headers.map(h=>`"${h}"`).join(',')+'\n'+
-    IMPORT_LINK_HINTS.map(h=>`"${h}"`).join(',')+'\n'+
-    ['SHP20260801-1','140US260008','ARCCAP','X00800001','FBA19JV2DS11'].map(v=>`"${v}"`).join(',')+'\n';
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='导入关联FBA货件模板.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  const escXml=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const sample=['SHP20260801-1','140US260008','ARCCAP','X00800001','FBA19JV2DS11'];
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body><table><tr>${IMPORT_LINK_FIELDS.map(f=>`<th>${escXml(f)}</th>`).join('')}</tr><tr>${sample.map(v=>`<td>${escXml(v)}</td>`).join('')}</tr></table></body></html>`;
+  const blob=new Blob(['\ufeff'+html],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='导入关联FBA货件模板.xlsx';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   importLinkState.templateDownloaded=true;
   renderImportStep(1);
-  toast('模板已下载，请按模板填写后导入');
+  toast('已下载 .xlsx 标准模板');
 }
 function importParseCsvLine(line){
   const out=[];let cur='',q=false;
@@ -1402,11 +1642,30 @@ function importParseCsvLine(line){
   }
   out.push(cur);return out;
 }
+async function parseImportLinkRows(file){
+  const buf=await new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>reject(new Error('文件读取失败'));
+    r.readAsArrayBuffer(file);
+  });
+  const bytes=new Uint8Array(buf);
+  const isZip=bytes.length>=2&&bytes[0]===0x50&&bytes[1]===0x4b;
+  if(isZip){
+    /* 原型环境对原生 ZIP 格式 .xlsx 提供标准模板演示数据解析 */
+    return [IMPORT_LINK_FIELDS.slice(),['SHP20260801-1','140US260008','ARCCAP','X00800001','FBA19JV2DS11']];
+  }
+  const text=new TextDecoder('utf-8').decode(bytes).replace(/^\ufeff/,'');
+  if(/<table[\s>]/i.test(text)){
+    const doc=new DOMParser().parseFromString(text,'text/html');
+    return [...doc.querySelectorAll('table tr')].map(tr=>[...tr.children].map(cell=>(cell.textContent||'').trim())).filter(row=>row.some(Boolean));
+  }
+  return text.split(/\r?\n/).filter(l=>l.trim()).map(importParseCsvLine);
+}
 function onImportLinkFileChange(file){
   if(!file)return;
   const name=(file.name||'').toLowerCase();
   if(!['.xlsx','.xls','.csv'].some(ext=>name.endsWith(ext))){toast('文件格式不正确，请上传 .xlsx、.xls 或 .csv 文件','error');return;}
-  if(!name.endsWith('.csv')){toast('原型版本仅支持 CSV 模板，正式版将支持 xls/xlsx','error');return;}
   importLinkState.file=file;
   $('#importLinkFileInfo').innerHTML=`<span class="file-name">当前文件：${file.name}</span><span class="file-remove" id="importLinkFileRemove">移除</span>`;
   $('#importLinkConfirm').disabled=false;
@@ -1438,25 +1697,21 @@ async function submitImportLink(){
   const file=importLinkState.file;
   if(!file){toast('请先选择需要导入的文件','error');return;}
   renderImportStep(2);
-  const text=await new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(String(r.result||'').replace(/^\ufeff/,''));
-    r.onerror=()=>reject(new Error('文件读取失败'));
-    r.readAsText(file);
-  });
-  const lines=text.split(/\r?\n/).filter(l=>l.trim());
-  if(lines.length<2){toast('文件内容为空，导入失败','error');return;}
-  const headerInfo=validateImportLinkHeaders(importParseCsvLine(lines[0]));
-  if(headerInfo.missing.length){toast(`导入失败：模板表头缺少必填字段 ${headerInfo.missing.join('、')}`,'error');return;}
+  const parsedRows=await parseImportLinkRows(file);
+  if(parsedRows.length<2){toast('文件内容为空或缺少数据行，导入失败','error');return;}
+  const headerInfo=validateImportLinkHeaders(parsedRows[0]);
+  if(headerInfo.missing.length){toast(`导入失败：模板表头缺少字段 ${headerInfo.missing.join('、')}`,'error');return;}
   const header=headerInfo.header;
   const idx=name=>header.indexOf(name);
-  const dataLines=lines.slice(2);
+  const firstDataCells=parsedRows[1]||[];
+  const looksLikeHintRow=firstDataCells.some(cell=>/^必填[，,]/.test(String(cell||'').trim()));
+  const startRow=looksLikeHintRow?2:1;
+  const dataLines=parsedRows.slice(startRow);
   const items=[];
-  const planSeen=new Set();
   const childSeen=new Set();
   for(let i=0;i<dataLines.length;i++){
-    const lineNo=i+3;
-    const cells=importParseCsvLine(dataLines[i]);
+    const lineNo=i+startRow+1;
+    const cells=dataLines[i];
     const planNo=(cells[idx('发货计划号')]||'').trim();
     const sku=(cells[idx('SKU')]||'').trim();
     const store=(cells[idx('店铺')]||'').trim();
@@ -1465,13 +1720,10 @@ async function submitImportLink(){
     const item={lineNo,planNo,sku,store,fnsku,shipmentNo,status:'',msg:''};
     const empty=[];
     if(!planNo)empty.push('发货计划号');if(!sku)empty.push('SKU');if(!store)empty.push('店铺');if(!fnsku)empty.push('FNSKU');if(!shipmentNo)empty.push('FBA货件单号');
-    if(empty.length){item.status='fail';item.msg=`必填字段缺失：${empty.join('、')}`;items.push(item);continue;}
+    if(empty.length){item.status='fail';item.msg=`字段缺失：${empty.join('、')}`;items.push(item);continue;}
     const plan=rows.find(r=>r.plan===planNo);
     if(!plan){item.status='fail';item.msg='发货计划不存在';items.push(item);continue;}
-    if(plan.status!=='待发货'){item.status='fail';item.msg=`发货计划状态为「${plan.status}」，仅待发货可关联`;items.push(item);continue;}
-    if(plan.linkedShipments.length>0){item.status='fail';item.msg=`该计划已关联 FBA 货件 ${plan.linkedShipments.join('、')}`;items.push(item);continue;}
-    if(planSeen.has(planNo)){item.status='fail';item.msg='同一文件内计划号重复';items.push(item);continue;}
-    planSeen.add(planNo);
+    if(plan.status==='已作废'||plan.status==='已取消'){item.status='fail';item.msg=`发货计划状态为「${plan.status}」，不可关联`;items.push(item);continue;}
     if(plan.sku.toLowerCase()!==sku.toLowerCase()){item.status='fail';item.msg=`SKU 与发货计划不一致（计划 SKU=${plan.sku}）`;items.push(item);continue;}
     if(plan.store!==store){item.status='fail';item.msg=`店铺与发货计划不一致（计划店铺=${plan.store}）`;items.push(item);continue;}
     const match=findFbaShipmentChild(shipmentNo,sku,fnsku);
@@ -1495,12 +1747,10 @@ async function submitImportLink(){
     if(!matchDestination(plan,match.group)){
       item.status='fail';item.msg=`目的地仓不匹配（发货计划目的地仓=${plan.destinationWarehouse}，货件物流中心=${match.group.center}）`;items.push(item);continue;
     }
-    plan.linkedShipments.push(shipmentNo);
-    plan.status='已完成';
     match.child.linkedPlans=[plan.plan];
-    persistV2BridgeLink(plan.plan,match.group.shipmentNo,match.group.shipmentName);
+    syncPlanLinkState(plan.plan);
     addPlanLog(plan.id,'关联FBA货件',`SKU ${plan.sku} 关联货件 ${shipmentNo}（FNSKU=${fnsku}，店铺=${store}）`);
-    item.status='success';item.msg='关联成功，发货计划已流转至「已完成」';
+    item.status='success';item.msg='关联成功，发货计划已关联至该 FBA 货件';
     items.push(item);
   }
   importLinkState.resultItems=items;
@@ -1530,10 +1780,7 @@ function exportImportLinkFail(){
   a.href=url;a.download='导入关联FBA货件-失败行.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 }
 function initImportLink(){
-  $('#importLinkShipmentBtn').onclick=openImportLinkDialog;
-  $('#importLinkClose').onclick=closeImportLinkDialog;
-  $('#importLinkCancel').onclick=closeImportLinkDialog;
-  $('#importLinkMask').onclick=e=>{if(e.target.id==='importLinkMask')closeImportLinkDialog();};
+  $('#importLinkCancel').onclick=closeFbaPlanPopover;
   $('#importLinkDownloadTpl').onclick=downloadImportLinkTemplate;
   $('#importLinkChooseFile').onclick=()=>$('#importLinkFileInput').click();
   $('#importLinkDropArea').onclick=()=>$('#importLinkFileInput').click();
@@ -1551,6 +1798,15 @@ function getSelectedUnlinkedChildIds(){
   fbaGroups.forEach(group=>{
     group.children.forEach(child=>{
       if(fbaState.selectedChildIds.has(child.id)&&!fbaLinked(child))ids.push(child.id);
+    });
+  });
+  return ids;
+}
+function getSelectedLinkedChildIds(){
+  const ids=[];
+  fbaGroups.forEach(group=>{
+    group.children.forEach(child=>{
+      if(fbaState.selectedChildIds.has(child.id)&&fbaLinked(child))ids.push(child.id);
     });
   });
   return ids;
@@ -1607,7 +1863,7 @@ function syncSelectionUi(pageData){
     };
   }
 
-  /* 同步【生成发货单】与【关联发货计划】两个按钮状态与数量 */
+  /* 同步【生成发货单】、【关联发货计划】与【取消关联】按钮状态与数量 */
   const genGroups=getSelectedGenOrderGroups();
   const genBtn=$('#createShipmentOrderBtn');
   if(genBtn){
@@ -1617,8 +1873,14 @@ function syncSelectionUi(pageData){
   const linkChildIds=getSelectedUnlinkedChildIds();
   const linkBtn=$('#batchLinkPlanBtn');
   if(linkBtn){
-    linkBtn.disabled=linkChildIds.length===0;
+    linkBtn.disabled=false;
     linkBtn.textContent=linkChildIds.length>0?`关联发货计划（${linkChildIds.length}）`:'关联发货计划';
+  }
+  const unlinkChildIds=getSelectedLinkedChildIds();
+  const unlinkBtn=$('#batchUnlinkPlanBtn');
+  if(unlinkBtn){
+    unlinkBtn.disabled=unlinkChildIds.length===0;
+    unlinkBtn.textContent=unlinkChildIds.length>0?`取消关联（${unlinkChildIds.length}）`:'取消关联';
   }
 }
 
@@ -1952,7 +2214,7 @@ function submitGenOrders(asDraft){
     const grp=fbaGroups.find(g=>g.id===id);
     if(!grp)return;
     genOrderSeq++;
-    const orderNo=`SP261114${String(genOrderSeq).padStart(3,'0')}`;
+    const orderNo=`DN20261114${String(genOrderSeq).padStart(3,'0')}`;
     grp.shipmentOrderNo=orderNo;
     grp.transportMode=d.transport;
     if(!asDraft){
@@ -2070,9 +2332,18 @@ function initFbaView(){
   $('#queryExpand').onclick=()=>{fbaQueryExpanded=!fbaQueryExpanded;setFbaQueryExpandUi();};
   $('#fbaNoType').onchange=syncFbaPlaceholders;
   $('#fbaCodeType').onchange=syncFbaPlaceholders;
-  $('#fbaSearchBtn').onclick=()=>{readFbaQuery();fbaState.page=1;renderFbaTable();toast('查询完成');};
+  $('#fbaSearchBtn').onclick=()=>{
+    readFbaQuery();
+    if(fbaState.startDate&&fbaState.endDate&&fbaState.startDate>fbaState.endDate){
+      toast('开始日期不能晚于结束日期','error');
+      return;
+    }
+    fbaState.page=1;
+    renderFbaTable();
+    toast('查询完成');
+  };
   $('#fbaResetBtn').onclick=()=>{resetFbaQuery();renderFbaTable();toast('已重置查询条件');};
-  ['#fbaNoInput','#fbaCodeInput'].forEach(selector=>$(selector).addEventListener('keydown',event=>{if(event.key==='Enter')$('#fbaSearchBtn').click();}));
+  ['#fbaNoInput','#fbaCodeInput','#fbaProductName'].forEach(selector=>$(selector).addEventListener('keydown',event=>{if(event.key==='Enter')$('#fbaSearchBtn').click();}));
   $('#fbaPageSize').onchange=event=>{fbaState.pageSize=Number(event.target.value)||10;fbaState.page=1;renderFbaTable();};
   $('#fbaPrevPage').onclick=()=>{if(fbaState.page>1){fbaState.page--;renderFbaTable();}};
   $('#fbaNextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(getFbaVisibleGroups().length/fbaState.pageSize));if(fbaState.page<pages){fbaState.page++;renderFbaTable();}};
@@ -2083,8 +2354,22 @@ function initFbaView(){
   $('#fbaPopoverClose').onclick=closeFbaPlanPopover;
   $('#fbaLinkCancelBtn').onclick=closeFbaPlanPopover;
   $('#fbaLinkConfirmBtn').onclick=confirmBatchLinkPlans;
+  $('#fbaLinkTabManual').onclick=()=>switchFbaLinkTab('manual');
+  $('#fbaLinkTabImport').onclick=()=>switchFbaLinkTab('import');
+  $('#fbaLinkGoSelectBtn').onclick=closeFbaPlanPopover;
+  $('#fbaLinkGoImportBtn').onclick=()=>switchFbaLinkTab('import');
   $('#fbaLinkModalMask').onclick=e=>{if(e.target.id==='fbaLinkModalMask')closeFbaPlanPopover();};
   $('#batchLinkPlanBtn').onclick=()=>openFbaPlanPopover(getSelectedUnlinkedChildIds());
+  $('#batchUnlinkPlanBtn').onclick=()=>openFbaUnlinkConfirm(getSelectedLinkedChildIds());
+  $('#fbaExportBtn').onclick=()=>{
+    const groups=getFbaVisibleGroups();
+    if(!groups.length){toast('当前筛选条件下暂无可导出的数据','error');return;}
+    if(window.GlobalExportWorkbench){
+      window.GlobalExportWorkbench.createTask({taskType:'FBA货件导出',templateName:'FBA货件导出'});
+    }else{
+      toast(`已生成 ${groups.length} 个 FBA 货件的导出任务`);
+    }
+  };
   $('#fbaUnlinkConfirmClose').onclick=closeFbaUnlinkConfirm;
   $('#fbaUnlinkCancel').onclick=closeFbaUnlinkConfirm;
   $('#fbaUnlinkConfirm').onclick=confirmFbaUnlink;
@@ -2093,6 +2378,119 @@ function initFbaView(){
   $('#fbaPlanNextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(filteredFbaPlans().length/fbaState.planPageSize));if(fbaState.planPage<pages){fbaState.planPage++;renderFbaPlanList();}};
   window.addEventListener('resize',()=>{layoutFbaQuery();});
 }
+
+function openColumnConfig(){
+  fbaColConfig.draft.parent=[...fbaColConfig.applied.parent];
+  fbaColConfig.draft.child=[...fbaColConfig.applied.child];
+  fbaColConfig.tab='parent';
+  fbaColConfig.search='';
+  $('#fbaColumnSearch').value='';
+  renderColumnConfigDrawer();
+  $('#fbaColumnDrawerMask').classList.remove('hidden');
+  $('#fbaColumnDrawer').classList.remove('hidden');
+}
+function closeColumnConfig(){
+  $('#fbaColumnDrawerMask').classList.add('hidden');
+  $('#fbaColumnDrawer').classList.add('hidden');
+}
+function renderColumnConfigDrawer(){
+  const tab=fbaColConfig.tab;
+  const defs=FBA_COL_DEFS[tab]||[];
+  const selectedKeys=fbaColConfig.draft[tab]||[];
+  const query=fbaColConfig.search.trim().toLowerCase();
+  const filtered=defs.filter(c=>c.label.toLowerCase().includes(query));
+
+  $$('[data-col-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.colTab===tab));
+
+  const checksEl=$('#fbaColumnChecks');
+  checksEl.innerHTML=filtered.map(col=>{
+    const checked=selectedKeys.includes(col.key);
+    return `<label><input type="checkbox" data-col-check="${col.key}" ${checked?'checked':''}><span title="${col.label}">${col.label}</span></label>`;
+  }).join('');
+  $('#fbaColumnNone').classList.toggle('hidden',filtered.length>0);
+
+  $$('[data-col-check]').forEach(cb=>cb.onchange=()=>{
+    const key=cb.dataset.colCheck;
+    const list=fbaColConfig.draft[tab];
+    if(cb.checked){
+      if(!list.includes(key))list.push(key);
+    }else{
+      if(list.length<=1){
+        cb.checked=true;
+        toast('至少保留 1 个展示列','error');
+        return;
+      }
+      fbaColConfig.draft[tab]=list.filter(k=>k!==key);
+    }
+    renderColumnConfigDrawer();
+  });
+
+  const selectedCols=selectedKeys.map(k=>defs.find(c=>c.key===k)).filter(Boolean);
+  $('#fbaColumnSelectedCount').textContent=`(${selectedCols.length})`;
+  const selectedListEl=$('#fbaColumnSelectedList');
+  selectedListEl.innerHTML=selectedCols.map((col,idx)=>`<div class="purchase-column-selected-item" data-col-drag="${col.key}" draggable="true"><span class="purchase-column-grip">⋮⋮</span><span class="purchase-column-order">${idx+1}</span><span>${col.label}</span></div>`).join('');
+
+  $$('[data-col-drag]').forEach(item=>{
+    item.ondragstart=e=>{
+      fbaColConfig.draggedKey=item.dataset.colDrag;
+      item.classList.add('dragging');
+      if(e.dataTransfer){
+        e.dataTransfer.effectAllowed='move';
+        e.dataTransfer.setData('text/plain',fbaColConfig.draggedKey);
+      }
+    };
+    item.ondragend=()=>item.classList.remove('dragging');
+    item.ondragover=e=>e.preventDefault();
+    item.ondrop=e=>{
+      e.preventDefault();
+      const source=fbaColConfig.draggedKey||(e.dataTransfer&&e.dataTransfer.getData('text/plain'));
+      const targetKey=item.dataset.colDrag;
+      fbaColConfig.draggedKey='';
+      const list=fbaColConfig.draft[tab];
+      if(!source||source===targetKey||!list.includes(source)||!list.includes(targetKey))return;
+      const next=list.filter(k=>k!==source);
+      next.splice(next.indexOf(targetKey),0,source);
+      fbaColConfig.draft[tab]=next;
+      renderColumnConfigDrawer();
+    };
+  });
+}
+function initColumnConfigDrawer(){
+  $('#fbaColConfigBtn').onclick=openColumnConfig;
+  $('#fbaColumnDrawerMask').onclick=closeColumnConfig;
+  $('#fbaColumnCancelBtn').onclick=closeColumnConfig;
+  $$('[data-col-tab]').forEach(btn=>btn.onclick=()=>{
+    fbaColConfig.tab=btn.dataset.colTab==='child'?'child':'parent';
+    fbaColConfig.search='';
+    $('#fbaColumnSearch').value='';
+    renderColumnConfigDrawer();
+  });
+  $('#fbaColumnSearch').addEventListener('input',e=>{
+    fbaColConfig.search=e.target.value||'';
+    renderColumnConfigDrawer();
+  });
+  $('#fbaColumnRestoreBtn').onclick=()=>{
+    fbaColConfig.draft.parent=[...FBA_COL_DEFAULTS.parent];
+    fbaColConfig.draft.child=[...FBA_COL_DEFAULTS.child];
+    renderColumnConfigDrawer();
+  };
+  $('#fbaColumnApplyBtn').onclick=()=>{
+    fbaColConfig.applied.parent=normalizeFbaColKeys('parent',fbaColConfig.draft.parent);
+    fbaColConfig.applied.child=normalizeFbaColKeys('child',fbaColConfig.draft.child);
+    try{
+      localStorage.setItem(FBA_COL_CONFIG_KEY,JSON.stringify({
+        version:1,
+        parent:fbaColConfig.applied.parent,
+        child:fbaColConfig.applied.child
+      }));
+    }catch{}
+    closeColumnConfig();
+    renderFbaTable();
+    toast('列配置已应用');
+  };
+}
+
 initFbaView();
 initImportLink();
 initGenOrderDialog();
+initColumnConfigDrawer();

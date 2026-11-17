@@ -48,6 +48,7 @@
               <input class="control query-combo-input" id="codeInput" placeholder="请输入编码，多个用逗号或空格隔开" autocomplete="off">
             </div>
             <div class="query-item q-plan"><input class="control" id="planNo" placeholder="请输入计划号，多个用逗号或空格隔开" autocomplete="off"></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="pickupWarehouseMulti"><div class="multi-trigger" data-trigger>提货仓（可多选）</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item"><div class="multi ui-multi-select" id="shipWarehouseMulti"><div class="multi-trigger" data-trigger>发货仓（可多选）</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item"><div class="multi ui-multi-select" id="destinationWarehouseMulti"><div class="multi-trigger" data-trigger>目的地仓（可多选）</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item">
@@ -290,7 +291,26 @@
     <div class="spv2-batch-popover__body" id="batchFillBody"></div>
     <div class="spv2-batch-popover__actions">
       <button class="btn spv2-btn-sm" id="batchFillCancelBtn" type="button">取消</button>
+      <button class="btn spv2-btn-sm hidden" id="batchFillAppendBtn" type="button">追加</button>
       <button class="btn primary spv2-btn-sm" id="batchFillConfirmBtn" type="button">确认</button>
+    </div>
+  </div>
+
+  <!-- 提货仓多选管理浮层（支持列表行与新建明细行的新增/修改/追加提货仓及提货数量） -->
+  <div class="spv2-pw-popover hidden" id="pickupMgrPopover" role="dialog" aria-label="提货仓及提货数量管理">
+    <div class="spv2-pw-popover__head">
+      <span class="spv2-pw-popover__title" id="pickupMgrTitle">设置提货仓与提货数量</span>
+      <span class="spv2-pw-popover__count" id="pickupMgrCount">已选 0 个</span>
+    </div>
+    <div class="spv2-pw-popover__quota" id="pickupMgrQuota"></div>
+    <div class="spv2-pw-popover__selected" id="pickupMgrSelected"></div>
+    <div class="spv2-pw-popover__search-wrap">
+      <input class="control spv2-pw-popover__search" id="pickupMgrSearch" type="text" placeholder="搜索提货仓..." autocomplete="off">
+    </div>
+    <div class="spv2-pw-popover__list" id="pickupMgrList"></div>
+    <div class="spv2-pw-popover__foot">
+      <button class="btn spv2-btn-sm" id="pickupMgrCancelBtn" type="button">取消</button>
+      <button class="btn primary spv2-btn-sm" id="pickupMgrConfirmBtn" type="button">确定</button>
     </div>
   </div>
 
@@ -360,30 +380,35 @@
     </div>
   </aside>
 
-  <!-- 操作日志弹窗 -->
-  <div class="plan-log-mask hidden" id="planLogMask"></div>
-  <div class="plan-log-dialog hidden" id="planLogDialog" role="dialog" aria-modal="true" aria-label="操作日志">
-    <div class="plan-log-content">
-      <div class="plan-log-head">
-        <h3 id="planLogTitle">操作日志</h3>
-        <button class="plan-log-close" id="planLogClose" type="button" title="关闭">×</button>
-      </div>
-      <div class="plan-log-body">
-        <div class="plan-log-table-card">
-          <table class="plan-log-table">
+  <!-- 操作日志弹窗（复用统一操作日志卡片规范） -->
+  <div class="purchase-log-modal hidden" id="planLogMask" role="dialog" aria-modal="true" aria-label="操作日志">
+    <div class="purchase-log-dialog" id="planLogDialog">
+      <header class="purchase-log-header">
+        <div>
+          <h2 id="planLogTitle">操作日志</h2>
+          <span id="planLogSub">发货计划：—</span>
+        </div>
+        <button class="purchase-log-close" id="planLogClose" type="button" aria-label="关闭操作日志">×</button>
+      </header>
+      <div class="purchase-log-body">
+        <div class="purchase-log-table-card">
+          <table class="purchase-log-table">
             <thead>
               <tr>
-                <th class="plan-log-type-col">操作类型</th>
-                <th class="plan-log-content-col">日志内容</th>
-                <th class="plan-log-operator-col">操作人</th>
-                <th class="plan-log-time-col">操作时间</th>
+                <th>操作类型</th>
+                <th>日志内容</th>
+                <th>操作人</th>
+                <th>操作时间</th>
               </tr>
             </thead>
             <tbody id="planLogBody"></tbody>
           </table>
         </div>
       </div>
-      <div class="plan-log-footer"><span id="planLogCount">共 0 条</span><span style="margin-left:auto">仅展示最近 200 条操作记录</span></div>
+      <footer class="purchase-log-footer">
+        <span id="planLogCount">共 0 条</span>
+        <div id="planLogPager"></div>
+      </footer>
     </div>
   </div>
 
