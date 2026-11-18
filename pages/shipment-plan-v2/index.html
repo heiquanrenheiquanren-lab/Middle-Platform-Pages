@@ -1,17 +1,17 @@
 <!doctype html>
-<!-- 发货计划 V2：严格对齐测试环境字段、查询项、按钮与 68 列表格结构，采用本项目 UI 规范重构 -->
+<!-- 发货计划：严格对齐测试环境字段、查询项、按钮与 68 列表格结构，采用本项目 UI 规范重构 -->
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>发货计划 V2</title>
+  <title>发货计划</title>
   <link rel="stylesheet" href="../../ui-kit.css">
   <link rel="stylesheet" href="../transfer-orders/styles.css?v=1.0.24">
   <link rel="stylesheet" href="../../document-list.css?v=1.0.1">
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.0.0">
+  <link rel="stylesheet" href="./styles.css?v=1.1.0">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="toast" id="toast">查询完成</div>
@@ -26,7 +26,7 @@
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div><div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划 V1</div><div class="nav-item active" data-page-nav="shipmentV2"><span class="mini">♨</span>发货计划 V2</div>
+          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item active" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
         </div>
@@ -34,7 +34,7 @@
       </aside>
       <main class="main spv2-main">
         <!-- 查询区域：严格保留测试环境全部 18 项查询条件与操作按钮（按 UI_SPEC 3.9 规范排布） -->
-        <section class="query-panel ui-query-card" id="queryCard" aria-label="发货计划 V2 查询区域">
+        <section class="query-panel ui-query-card" id="queryCard" aria-label="发货计划 查询区域">
           <div class="query-grid ui-query-flow" id="queryGrid">
             <div class="query-item query-combo">
               <select class="control query-type-select" id="codeType" title="编码类型">
@@ -68,11 +68,13 @@
             <div class="query-item">
               <select class="control" id="transportMode" title="运输方式">
                 <option value="">运输方式</option>
-                <option value="海运">海运</option>
-                <option value="空运">空运</option>
-                <option value="快递">快递</option>
-                <option value="卡航">卡航</option>
-                <option value="铁路">铁路</option>
+                <option value="海派（6000）">海派（6000）</option>
+                <option value="海卡（6000）">海卡（6000）</option>
+                <option value="空派（5000）">空派（5000）</option>
+                <option value="快递（8000）">快递（8000）</option>
+                <option value="铁运（5000）">铁运（5000）</option>
+                <option value="卡航（5000）">卡航（5000）</option>
+                <option value="一件代发（8000）">一件代发（8000）</option>
               </select>
             </div>
             <div class="query-item"><div class="multi ui-multi-select" id="platformMulti"><div class="multi-trigger" data-trigger>平台（可多选）</div><div class="dropdown" data-menu></div></div></div>
@@ -84,7 +86,7 @@
                 <option value="createdAt">创建时间</option>
                 <option value="updatedAt">修改时间</option>
                 <option value="estShipDate">预计发货日期</option>
-                <option value="estArrivalDate">预计到货日期</option>
+                <option value="estArrivalDate">期望到货日期</option>
               </select>
               <div class="date-group">
                 <input id="startDate" type="date" aria-label="开始时间">
@@ -126,6 +128,9 @@
           <div class="head-actions">
             <button class="btn primary" id="createPlanBtn" type="button">新建发货计划</button>
             <button class="btn success" id="confirmBtn" type="button">确认</button>
+            <button class="btn" id="linkFbaBtn" type="button">关联货件</button>
+            <button class="btn" id="reviewApproveBtn" type="button">复核通过</button>
+            <button class="btn" id="reviewRejectBtn" type="button">驳回</button>
             <button class="btn" id="importPlanBtn" type="button">导入发货计划</button>
             <button class="btn danger" id="batchVoidBtn" type="button">作废</button>
           </div>
@@ -195,23 +200,22 @@
             <label class="spv2-field">
               <span><em>*</em>发货方式</span>
               <select class="control" id="cShipMethod">
-                <option value="">请选择发货方式</option>
-                <option value="海外仓备货">海外仓备货</option>
-                <option value="FBA直发">FBA直发</option>
-                <option value="本地仓直发">本地仓直发</option>
-                <option value="海外仓转运">海外仓转运</option>
+                <option value="本地仓发货" selected>本地仓发货</option>
+                <option value="工厂直发">工厂直发</option>
               </select>
             </label>
             <label class="spv2-field">
               <span><em>*</em>发货仓</span>
               <select class="control" id="cShipWarehouse">
-                <option value="">请选择发货仓</option>
+                <option value="跨跃猫物流仓" selected>跨跃猫物流仓</option>
               </select>
             </label>
-            <div class="spv2-field">
-              <span>计划负责人</span>
-              <div class="spv2-readonly-val" id="cPlanOwner">Admin</div>
-            </div>
+            <label class="spv2-field">
+              <span>运输方式</span>
+              <select class="control" id="cTransportMode">
+                <option value="">请选择运输方式</option>
+              </select>
+            </label>
             <label class="spv2-field">
               <span>目的地仓</span>
               <select class="control" id="cDestWarehouse">
@@ -225,15 +229,15 @@
           <h4 class="spv2-section-title"><i class="spv2-title-bar"></i><span>物流轨迹</span></h4>
           <div class="spv2-form-grid">
             <label class="spv2-field">
-              <span><em>*</em>预计发货日期</span>
+              <span>预计发货日期</span>
               <input class="control" id="cEstShipDate" type="date">
             </label>
             <label class="spv2-field">
-              <span><em>*</em>预计物流时长(天)</span>
+              <span>预计物流时长(天)</span>
               <input class="control" id="cEstDays" type="number" min="1" placeholder="请输入天数">
             </label>
             <label class="spv2-field">
-              <span>预计到货日期</span>
+              <span>期望到货日期</span>
               <input class="control" id="cEstArrivalDate" type="date">
             </label>
           </div>
@@ -412,8 +416,126 @@
     </div>
   </div>
 
+  <!-- 驳回差异复核原因弹窗 -->
+  <div class="purchase-log-modal spv2-reject-modal hidden" id="rejectModalMask" role="dialog" aria-modal="true" aria-label="驳回差异复核">
+    <div class="spv2-reject-dialog">
+      <header class="spv2-reject-head">
+        <h3>驳回差异复核</h3>
+        <button class="purchase-log-close" id="rejectCloseBtn" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="spv2-reject-body">
+        <p class="spv2-reject-desc" id="rejectSummaryDesc">确认驳回所选计划的 FBA 差异吗？驳回后将退回「待创建货件」并自动解绑原 FBA 货件，通知运营删单重建。</p>
+        <label class="spv2-field">
+          <span>驳回原因（选填）</span>
+          <textarea class="control spv2-reject-textarea" id="rejectReasonInput" rows="3" maxlength="200" placeholder="例如：FBA货件超建数量与计划差异过大，请删除原货件按计划数重建"></textarea>
+        </label>
+      </div>
+      <footer class="spv2-modal-footer">
+        <div></div>
+        <div class="spv2-footer-actions">
+          <button class="btn" id="rejectCancelBtn" type="button">取消</button>
+          <button class="btn danger" id="rejectConfirmBtn" type="button">确认驳回</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 关联 FBA 货件弹窗（支持单/多计划切换、1对多勾选已同步货件 + 直接粘贴预关联单号，一次性关联完成） -->
+  <div class="spv2-modal-mask hidden" id="v2FbaLinkMask"></div>
+  <div class="spv2-modal hidden" id="v2FbaLinkModal" role="dialog" aria-modal="true" aria-label="关联 FBA 货件">
+    <div class="spv2-modal-dialog spv2-fba-dialog">
+      <header class="spv2-modal-head">
+        <div>
+          <h3>关联 FBA 货件</h3>
+          <span class="spv2-modal-subtitle">支持为同一发货计划勾选多个已同步货件，或直接粘贴未同步的 FBA 单号做预关联；点击「关联完成」一次性提交</span>
+        </div>
+        <button class="spv2-modal-close" id="v2FbaCloseBtn" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="spv2-fba-link-body">
+        <aside class="spv2-fba-sidebar hidden" id="v2FbaSidebar" aria-label="待关联发货计划">
+          <div class="spv2-fba-sidebar-head">
+            <span>待关联计划</span>
+            <em id="v2FbaSidebarProgress">0 / 0</em>
+          </div>
+          <div class="spv2-fba-sidebar-list" id="v2FbaSidebarList"></div>
+        </aside>
+        <div class="spv2-fba-main">
+          <div class="spv2-fba-plan-ctx" id="v2FbaPlanCtx"></div>
+          <div class="spv2-fba-section">
+            <div class="spv2-fba-toolbar">
+              <input class="control spv2-fba-search" id="v2FbaSearchInput" placeholder="搜索或粘贴多个 FBA 货件单号 / 货件名称 / 物流中心（逗号或空格分隔）" autocomplete="off">
+              <label class="spv2-fba-match-check"><input type="checkbox" id="v2FbaMatchOnly" checked><span>仅看匹配店铺与 SKU</span></label>
+              <button class="btn spv2-btn-sm" id="v2FbaSelectMatchedBtn" type="button">一键全选匹配项</button>
+            </div>
+            <div class="spv2-fba-table-wrap">
+              <table class="spv2-fba-pick-table">
+                <thead>
+                  <tr>
+                    <th style="width:42px"><input type="checkbox" id="v2FbaSelectAllVisible" aria-label="全选当前列表"></th>
+                    <th style="width:145px">FBA 货件单号</th>
+                    <th style="width:170px">货件名称 / Ref ID</th>
+                    <th style="width:110px">货件状态</th>
+                    <th style="width:175px">店铺 / 物流中心</th>
+                    <th style="width:95px">该 SKU 申报量</th>
+                    <th style="width:165px">计划关联情况</th>
+                  </tr>
+                </thead>
+                <tbody id="v2FbaTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="spv2-fba-prelink-card">
+            <div class="spv2-fba-prelink-head">
+              <b>预关联未同步 FBA 单号（选填）</b>
+              <span>若领星尚未同步到该货件，可直接粘贴 1 个或多个 FBA 单号（支持逗号/空格/换行分隔）；待领星同步后自动匹配并校验差异</span>
+            </div>
+            <div class="spv2-fba-prelink-row">
+              <input class="control spv2-fba-prelink-input" id="v2FbaPrelinkInput" placeholder="例如：FBA18NEW001, FBA18NEW002" autocomplete="off">
+              <input class="control spv2-fba-prelink-qty" id="v2FbaPrelinkQtyInput" type="number" min="1" placeholder="预计申报量(选填)">
+              <button class="btn spv2-btn-sm" id="v2FbaPrelinkAddBtn" type="button">添加预关联</button>
+            </div>
+            <div class="spv2-fba-prelink-chips" id="v2FbaPrelinkChips"></div>
+          </div>
+        </div>
+      </div>
+      <footer class="spv2-modal-footer">
+        <div class="spv2-fba-footer-summary" id="v2FbaFooterSummary">请选择或粘贴要关联的 FBA 货件</div>
+        <div class="spv2-footer-actions">
+          <button class="btn" id="v2FbaCancelBtn" type="button">取消</button>
+          <button class="btn primary" id="v2FbaSubmitBtn" type="button">关联完成</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 关联数量差异提交复核二次确认弹窗 -->
+  <div class="purchase-log-modal spv2-reject-modal hidden" id="v2FbaDiffMask" role="dialog" aria-modal="true" aria-label="数量差异复核确认">
+    <div class="spv2-reject-dialog" style="width:min(620px,calc(100vw - 32px))">
+      <header class="spv2-reject-head">
+        <h3>存在数量差异，是否提交计划复核？</h3>
+        <button class="purchase-log-close" id="v2FbaDiffCloseBtn" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="spv2-reject-body">
+        <p class="spv2-reject-desc">以下发货计划关联后的 FBA 累计申报数量与计划发货数量不一致，确认「关联完成」后计划将流转至「待复核」等待计划员审核。</p>
+        <div class="spv2-fba-diff-wrap">
+          <table class="spv2-fba-pick-table">
+            <thead><tr><th>发货计划</th><th>SKU</th><th>计划发货量</th><th>累计申报量</th><th>计划差额</th></tr></thead>
+            <tbody id="v2FbaDiffBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <footer class="spv2-modal-footer">
+        <div></div>
+        <div class="spv2-footer-actions">
+          <button class="btn" id="v2FbaDiffCancelBtn" type="button">返回调整</button>
+          <button class="btn primary" id="v2FbaDiffConfirmBtn" type="button">确认提交复核</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
   <script src="../../ui-kit.js?v=1.0.0"></script>
-  <script src="./app.js?v=1.0.0"></script>
+  <script src="./app.js?v=1.2.2"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../navigation.js?v=1.8.02"></script>

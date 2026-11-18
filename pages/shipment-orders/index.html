@@ -24,17 +24,24 @@
         <div class="nav-scroll">
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
+          <div class="nav-item" data-page-nav="inventoryFlow"><span class="mini">▤</span>库存流水</div>
+          <div class="nav-item" data-page-nav="batchInventory"><span class="mini">▤</span>批次库存</div>
           <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
+          <div class="nav-item" data-page-nav="transferOrder"><span class="mini">▤</span>调拨单</div>
+          <div class="nav-item" data-page-nav="inventoryAdjustment"><span class="mini">▤</span>损益单</div>
+          <div class="nav-item" data-page-nav="pickupOrder"><span class="mini">▤</span>提货单</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
           <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
           <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
-          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划 V1</div>
+          <div class="nav-item" data-page-nav="fbaShipment"><span class="mini">♧</span>FBA货件</div>
+          <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
+          <div class="nav-item" data-page-nav="purchaseChange"><span class="mini">▤</span>采购变更</div>
           <div class="nav-item active" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
-
-          </div>
+          <div class="nav-item" data-page-nav="historicalPurchasePrice"><span class="mini">⌁</span>采购价分析</div>
+        </div>
         <div class="collapse">≡</div>
       </aside>
       <main class="main">
@@ -61,7 +68,7 @@
         <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button @click="openCostApportion">其他头程费用分摊</el-button><el-dropdown @command="handleExportCommand" style="margin-left:0"><el-button>导出<el-icon style="margin-left:4px"><i class="el-icon--right">⌄</i></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="shipmentInfo">发货单信息</el-dropdown-item><el-dropdown-item command="skuDetail">发货 SKU 明细</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div>
         <div class="card status-card"><el-tabs v-model="statusTab" class="status-tabs"><el-tab-pane v-for="s in statuses" :key="s" :name="s"><template #label><span>{{s}}<i class="tab-count">{{statusCount(s)}}</i></span></template></el-tab-pane></el-tabs></div>
         <div class="card list-card">
-          <el-table ref="mainTableRef" :data="filteredDocs" row-key="id" :expand-row-keys="expandedRowKeys" class="main-table document-list" style="width:100%" @selection-change="onDocSelection" @expand-change="onExpandChange">
+          <el-table ref="mainTableRef" :data="filteredDocs" row-key="id" height="100%" :expand-row-keys="expandedRowKeys" class="main-table document-list" style="width:100%" @selection-change="onDocSelection" @expand-change="onExpandChange">
             <el-table-column type="selection" width="46" fixed="left"></el-table-column>
             <el-table-column type="expand" width="46" fixed="left">
               <template #header>
@@ -87,8 +94,8 @@
             <el-table-column label="入库信息" min-width="220">
               <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">海外仓入库单号：</span><span>{{row.receiveOrderNo||'—'}}</span></div><div class="field-line"><span class="field-label">物流单号：</span><span>{{row.logisticsNo}}</span></div><div class="field-line"><span class="field-label">已收货数量：</span><span class="diff-click diff-blue" @click="openDiffDetail(row,'received')">{{row.receive}}</span></div><div class="field-line"><span class="field-label">待收货数量：</span><span class="diff-click diff-blue" @click="openDiffDetail(row,'pending')">{{row.pendingReceive}}</span></div></div></template>
             </el-table-column>
-            <el-table-column label="创建&备注" min-width="240">
-              <template #default="{row}"><div class="group-cell create-remark-cell"><div class="field-line plain-value">{{row.creator||'—'}}</div><div class="field-line plain-value muted">{{row.created||'—'}}</div><div class="field-line"><el-input v-model="row.remark" type="textarea" :rows="2" placeholder="请输入备注" resize="none" size="small" class="inline-remark-input"></el-input></div></div></template>
+            <el-table-column label="创建&备注" min-width="220">
+              <template #default="{row}"><div class="group-cell create-remark-cell"><div class="field-line plain-value">{{row.creator||'—'}}</div><div class="field-line plain-value muted">{{row.created||'—'}}</div><div class="field-line"><div class="batch-remark"><span class="batch-remark__text" :title="row.remark&&row.remark!=='—'?row.remark:'暂无备注'">{{row.remark||'—'}}</span><el-popover trigger="click" placement="bottom-end" width="248" :visible="editingRemarkId===row.id" @hide="editingRemarkId===row.id&&(editingRemarkId='')"><template #reference><button class="batch-remark__edit" type="button" @click.stop="openInlineRemark(row)" aria-label="编辑备注"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.9 2.1a1.5 1.5 0 0 1 2.1 2.1l-7.7 7.7-2.8.7.7-2.8 7.7-7.7Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="m9.8 3.2 3 3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></button></template><div class="remark-popover-box"><el-input v-model="inlineRemarkText" type="textarea" :rows="4" maxlength="500" placeholder="请输入备注"></el-input><div class="remark-popover__actions"><el-button size="small" @click="editingRemarkId=''">取消</el-button><el-button size="small" type="primary" @click="saveInlineRemark(row)">确定</el-button></div></div></el-popover></div></div></div></template>
             </el-table-column>
             <el-table-column label="头程费用" min-width="220">
               <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">头程物流费：</span><span>{{row.actualFreight}}</span></div><div class="field-line"><span class="field-label">清关税费：</span><span>{{row.customsFee}}</span></div><div class="field-line"><span class="field-label">其他物流费：</span><span>{{row.otherLogisticsFee||'—'}}</span></div><div class="field-line"><span class="field-label">总辅料成本：</span><span>{{row.totalAccessoryCost||'—'}}</span></div><div class="field-line total-line"><span class="field-label">头程费用合计：</span><span>{{row.firstLegTotal}}</span></div></div></template>
@@ -96,9 +103,8 @@
             <el-table-column label="操作" fixed="right" min-width="110">
               <template #default="{row}">
                 <div class="flow-ops">
-                  <template v-if="row.status==='草稿'"><el-button link type="primary" @click="openEdit(row)">编辑</el-button><el-button link @click="transitionStatus(row,'待提货','提交')">提交</el-button><el-button link type="danger" @click="voidDocument(row)">作废</el-button><el-button link @click="openLog(row)">日志</el-button></template>
-                  <template v-else-if="row.status==='待提货'"><el-button link @click="openPickup(row)">提货</el-button><el-button link type="warning" @click="cancelShip(row)">取消发货</el-button><el-button link @click="openLog(row)">日志</el-button></template>
-                  <template v-else-if="row.status==='待发货'"><el-button link @click="openShip(row)">发货</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link @click="openLog(row)">日志</el-button></template>
+                  <template v-if="row.status==='草稿'"><el-button link type="primary" @click="openEdit(row)">编辑</el-button><el-button link @click="transitionStatus(row,'待发货','提交')">提交</el-button><el-button link type="danger" @click="voidDocument(row)">作废</el-button><el-button link @click="openLog(row)">日志</el-button></template>
+                  <template v-else-if="row.status==='待发货'"><el-button link @click="openShip(row)">发货</el-button><el-button link type="danger" @click="cancelShip(row)">取消发货</el-button><el-button link @click="openLog(row)">日志</el-button></template>
                   <template v-else-if="row.status==='待收货'"><!-- 手动收货入口已隐藏（自动收货为主），如需恢复去掉注释即可 --><el-button link @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link @click="openLog(row)">日志</el-button></template>
                   <template v-else-if="row.status==='部分收货'"><!-- 手动收货入口已隐藏（自动收货为主），如需恢复去掉注释即可 --><el-button link @click="openReceive(row)">收货</el-button><el-button link type="warning" @click="openQuantityAdjust(row)">数量调整</el-button><el-button link type="warning" @click="openComplete(row)">手动完成</el-button><el-button link @click="openLog(row)">日志</el-button></template>
                   <template v-else-if="row.status==='已完成'"><el-button link @click="openLog(row)">日志</el-button></template>
@@ -135,8 +141,8 @@
           <el-form-item label="头程服务商" prop="provider"><el-select v-model="createForm.provider" filterable placeholder="请选择头程服务商" style="width:100%"><el-option v-for="x in providers" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="运输方式" prop="transport"><el-select v-model="createForm.transport" placeholder="请选择运输方式" style="width:100%"><el-option v-for="x in createTransports" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="物流渠道" prop="channel"><el-select v-model="createForm.channel" filterable placeholder="请选择物流渠道" style="width:100%"><el-option v-for="x in createChannels" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-          <el-form-item label="目的地国家"><el-select v-model="createForm.country" filterable clearable placeholder="请选择国家" style="width:100%"><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
-          <el-form-item label="仓库类型"><el-select v-model="createForm.warehouseType" clearable placeholder="请选择仓库类型" style="width:100%"><el-option label="海外仓" value="海外仓"></el-option><el-option label="本地仓" value="本地仓"></el-option><el-option label="中转仓" value="中转仓"></el-option></el-select></el-form-item>
+          <el-form-item label="目的地国家"><el-select v-model="createForm.country" filterable clearable placeholder="请选择国家" style="width:100%" disabled><el-option v-for="x in countries" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
+          <el-form-item label="仓库类型"><el-select v-model="createForm.warehouseType" clearable placeholder="请选择仓库类型" style="width:100%" disabled><el-option label="海外仓" value="海外仓"></el-option><el-option label="本地仓" value="本地仓"></el-option><el-option label="中转仓" value="中转仓"></el-option></el-select></el-form-item>
           <el-form-item label="物流商单号"><el-input v-model="createForm.logisticsNo" placeholder="选填，可提交后补录"></el-input></el-form-item>
         </div>
         <div class="address-area">

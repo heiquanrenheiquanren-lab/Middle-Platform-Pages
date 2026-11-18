@@ -277,7 +277,7 @@ const childCellRenderers={
   fnsku:item=>`<td>${item.fnsku}</td>`,
   supplierItemNo:item=>`<td>${item.supplierItemNo}</td>`,
   minOrderQty:item=>`<td>${item.minOrderQty}</td>`,
-  grossWeight:item=>`<td>${item.grossWeight.toFixed(2)}</td>`,
+  grossWeight:item=>`<td>${Number(item.grossWeight||0).toFixed(2)}</td>`,
   boxes:item=>`<td>${item.boxes}</td>`,
   leadTime:item=>`<td>${item.leadTime}</td>`,
   remark:(item,row)=>`<td class="detail-remark"><div class="batch-remark"><span class="batch-remark__text" title="${item.remark||'暂无备注'}">${item.remark||'—'}</span><button class="batch-remark__edit detail-remark__edit" type="button" data-remark-order="${row.id}" data-remark-item="${item.id}" aria-label="编辑 SKU ${item.sku} 的备注">${remarkEditIcon}</button></div></td>`
@@ -286,7 +286,7 @@ function renderLogistics(row){const current=row.logistics[row.logisticsIndex]||r
 function refreshErpPurchaseOrder(row,button){if(!row||!button)return;button.disabled=true;button.classList.add('is-refreshing');window.setTimeout(()=>{button.disabled=false;button.classList.remove('is-refreshing');toast(`已刷新${row.erpSource}采购单信息`);},450);}
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeRemarkPopover();closeRemoveReasonPopover();closeSupplierChangePopover();closePurchaseDetail();closePurchaseLog();closePurchaseReceive();closePurchaseBatchReceive();closeReceiveAdjust();closePurchaseComplete();closePurchaseAudit();closeMergeModal();}});
 function detailFields(fields){return `<div class="purchase-detail-field-grid">${fields.filter(([label])=>!['更新人','更新时间'].includes(label)).map(([label,value])=>`<div class="purchase-detail-field"><span>${label}</span><b>${value??'—'}</b></div>`).join('')}</div>`;}
-function purchaseLogs(row){const logs=[{type:'新增',content:`创建采购单 ${row.midNo}`,operator:row.creator,time:row.createdAt},{type:'同步',content:`采购单状态更新为${row.status}`,operator:'系统',time:row.updatedAt},{type:'编辑',content:'采购单信息更新',operator:row.updatedBy,time:row.updatedAt}];if(row.auditDecision)logs.splice(1,0,{type:'审核',content:row.auditReason||`审核${row.auditDecision==='approve'?'通过':'驳回'}`,operator:row.auditOperator||'Admin',time:row.auditAt||row.updatedAt});(row.mergeLogs||[]).forEach(log=>logs.unshift({type:'合并',content:`合并来源采购单：${log.from.join('、')}；保留本单号 ${row.midNo}`,operator:log.operator,time:log.time}));(row.supplierChanges||[]).forEach(change=>logs.unshift({type:'换供应商',content:`${change.sku}：${change.from} → ${change.to}`,operator:change.operator,time:change.time}));return logs;}
+function purchaseLogs(row){const logs=[{type:'新增',content:`创建采购单 ${row.midNo}`,operator:row.creator,time:row.createdAt},{type:'同步',content:`采购单状态更新为${row.status}`,operator:'系统',time:row.updatedAt},{type:'编辑',content:'采购单信息更新',operator:row.updatedBy,time:row.updatedAt}];if(row.auditDecision)logs.splice(1,0,{type:'审核',content:row.auditReason||`审核${row.auditDecision==='approve'?'通过':'驳回'}`,operator:row.auditOperator||'Admin',time:row.auditAt||row.updatedAt});(row.mergeLogs||[]).forEach(log=>logs.unshift({type:'合并',content:`合并来源采购单：${log.from.join('、')}；保留本单号 ${row.midNo}`,operator:log.operator,time:log.time}));(row.supplierChanges||[]).forEach(change=>logs.unshift({type:'换供应商',content:`${change.sku}：${change.from} → ${change.to}`,operator:change.operator,time:change.time}));(row.autoInboundLogs||[]).forEach(log=>logs.unshift(log));return logs;}
 function renderPurchaseDetailModal(row){const erpNo=row.erpSource==='易仓'?row.ecNo:row.lxNo,logs=purchaseLogs(row);return `<div class="purchase-detail-dialog"><header class="purchase-detail-header"><div><h2>采购单详情</h2><span>中台跟踪号：${row.midNo}</span></div><button class="purchase-detail-close" type="button" aria-label="关闭采购单详情">×</button></header><div class="purchase-detail-layout"><main class="purchase-detail-content"><section id="purchase-detail-info" class="purchase-detail-section"><div class="purchase-detail-section-head">采购单信息</div>${detailFields([['中台跟踪号',row.midNo],['ERP采购单号',`${erpNo}（${row.erpSource}）`],['采购单状态',`<span class="status-tag status-${row.status==='已完成'?'done':row.status==='已作废'?'void':row.status==='已驳回'?'rejected':'pending'}">${row.status}</span>`],['供应商名称',row.supplier],['供应商代码',row.supplierCode],['采购仓库',row.warehouse],['采购负责人',row.purchaseOwner],['采购主体',row.purchaseSubject],['结算方式',row.settlement],['结算币种',row.currency],['预付比例',`${row.prepayRate}%`],['是否含税',row.taxIncluded],['税率',`${row.tax}%`],['创建人',row.creator],['创建时间',row.createdAt],['更新人',row.updatedBy],['更新时间',row.updatedAt]])}<div class="purchase-detail-remark"><span>备注</span><p>${row.remark||'—'}</p></div></section><section id="purchase-detail-sku" class="purchase-detail-section"><div class="purchase-detail-section-head">采购明细</div>${renderDetail(row)}</section><section id="purchase-detail-receive" class="purchase-detail-section"><div class="purchase-detail-section-head">收货明细</div><div class="purchase-detail-table-wrap"><table class="purchase-detail-record-table"><thead><tr><th>序号</th><th>计划号</th><th>批次号</th><th>SKU</th><th>采购数</th><th>到货数</th><th>收货数量</th><th>在途数</th><th>收货人</th><th>收货时间</th><th>收货备注</th></tr></thead><tbody>${row.items.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td>${item.batchNo}</td><td>${item.sku}</td><td>${item.purchaseQty}</td><td>${item.arrivedQty}</td><td class="receive-number">${item.receiveQty}</td><td>${item.transitQty}</td><td>${item.receiver}</td><td>${item.receiveDate}</td><td>${item.receiveRemark}</td></tr>`).join('')}</tbody></table></div></section><section id="purchase-detail-logistics" class="purchase-detail-section"><div class="purchase-detail-section-head">物流信息</div><div class="purchase-logistics-list">${row.logistics.map((item,index)=>`<div class="purchase-logistics-card"><div><span class="purchase-logistics-index ${index===row.logisticsIndex?'active':''}">${index+1}</span><b>物流单号：${item.no}</b></div><span>物流公司：${item.company}</span><span>当前状态：${index===row.logisticsIndex?'当前物流单':'备用物流单'}</span></div>`).join('')}</div></section><section id="purchase-detail-money" class="purchase-detail-section"><div class="purchase-detail-section-head">金额与结算</div>${detailFields([['采购金额',money(row.amount)],['采购总数量',row.purchaseQty],['收货总金额',money(row.receiveQty*12)],['在途总金额',money(row.transitQty*12)],['预付金额',money(row.amount*row.prepayRate/100)],['采购单税率',`${row.tax}%`],['含税状态',row.taxIncluded],['费用合计',money(row.totalFees)],['结算方式',row.settlement],['结算币种',row.currency]])}</section><section id="purchase-detail-log" class="purchase-detail-section"><div class="purchase-detail-section-head">操作日志</div><div class="purchase-log-list">${logs.map(log=>`<div class="purchase-log-item"><span class="purchase-log-dot"></span><div><b>${log.type}</b><p>${log.content}</p><small>${log.operator} · ${log.time}</small></div></div>`).join('')}</div></section></main><nav class="purchase-detail-anchor"><button class="purchase-detail-anchor-item active" data-detail-target="purchase-detail-info">采购单信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-sku">采购明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-receive">收货明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-logistics">物流信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-money">金额与结算</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-log">操作日志</button></nav></div></div>`;}
 function renderPurchaseDetailModal(row){const erpNo=row.erpSource==='易仓'?row.ecNo:row.lxNo,logs=purchaseLogs(row),receiveRows=receiveDetailRows(row);return `<div class="purchase-detail-dialog"><header class="purchase-detail-header"><div><h2>采购单详情</h2><span>中台跟踪号：${row.midNo}</span></div><button class="purchase-detail-close" type="button" aria-label="关闭采购单详情">×</button></header><div class="purchase-detail-layout"><main class="purchase-detail-content"><section id="purchase-detail-info" class="purchase-detail-section"><div class="purchase-detail-section-head">采购单信息</div>${detailFields([['中台跟踪号',row.midNo],['ERP采购单号',`${erpNo}（${row.erpSource}）`],['采购单状态',`<span class="status-tag status-${row.status==='已完成'?'done':row.status==='已作废'?'void':row.status==='已驳回'?'rejected':'pending'}">${row.status}</span>`],['供应商名称',row.supplier],['供应商代码',row.supplierCode],['采购仓库',row.warehouse],['采购负责人',row.purchaseOwner],['采购主体',row.purchaseSubject],['结算方式',row.settlement],['结算币种',row.currency],['预付比例',`${row.prepayRate}%`],['是否含税',row.taxIncluded],['税率',`${row.tax}%`],['创建人',row.creator],['创建时间',row.createdAt],['更新人',row.updatedBy],['更新时间',row.updatedAt]])}<div class="purchase-detail-remark"><span>备注</span><p>${row.remark||'—'}</p></div></section><section id="purchase-detail-sku" class="purchase-detail-section"><div class="purchase-detail-section-head">采购明细</div>${renderDetail(row)}</section><section id="purchase-detail-receive" class="purchase-detail-section"><div class="purchase-detail-section-head">收货明细</div><div class="purchase-detail-table-wrap"><table class="purchase-detail-record-table"><thead><tr><th>序号</th><th>计划号</th><th>批次号</th><th>SKU</th><th>采购数</th><th>到货数</th><th>收货数量</th><th>在途数</th><th>收货人</th><th>收货时间</th><th>收货备注</th></tr></thead><tbody>${receiveRows.length?receiveRows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td>${item.batchNo}</td><td>${item.sku}</td><td>${item.purchaseQty}</td><td>${item.arrivedQty}</td><td class="receive-number">${item.receiveQty}</td><td>${item.transitQty}</td><td>${item.receiver}</td><td>${item.date}</td><td>${item.receiveRemark}</td></tr>`).join(''):'<tr><td colspan="11" class="detail-empty">暂无收货记录</td></tr>'}</tbody></table></div></section><section id="purchase-detail-logistics" class="purchase-detail-section"><div class="purchase-detail-section-head">物流信息</div><div class="purchase-logistics-list">${row.logistics.map((item,index)=>`<div class="purchase-logistics-card"><div><span class="purchase-logistics-index ${index===row.logisticsIndex?'active':''}">${index+1}</span><b>物流单号：${item.no}</b></div><span>物流公司：${item.company}</span><span>当前状态：${index===row.logisticsIndex?'当前物流单':'备用物流单'}</span></div>`).join('')}</div></section><section id="purchase-detail-money" class="purchase-detail-section"><div class="purchase-detail-section-head">金额与结算</div>${detailFields([['采购金额',money(row.amount)],['采购总数量',row.purchaseQty],['收货总金额',money(row.receiveQty*12)],['在途总金额',money(row.transitQty*12)],['预付金额',money(row.amount*row.prepayRate/100)],['采购单税率',`${row.tax}%`],['含税状态',row.taxIncluded],['费用合计',money(row.totalFees)],['结算方式',row.settlement],['结算币种',row.currency]])}</section><section id="purchase-detail-log" class="purchase-detail-section"><div class="purchase-detail-section-head">操作日志</div><div class="purchase-log-list">${logs.map(log=>`<div class="purchase-log-item"><span class="purchase-log-dot"></span><div><b>${log.type}</b><p>${log.content}</p><small>${log.operator} · ${log.time}</small></div></div>`).join('')}</div></section></main><nav class="purchase-detail-anchor"><button class="purchase-detail-anchor-item active" data-detail-target="purchase-detail-info">采购单信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-sku">采购明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-receive">收货明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-logistics">物流信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-money">金额与结算</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-log">操作日志</button></nav></div></div>`;}
 function renderPurchaseDetailModal(row){const erpNo=row.erpSource==='易仓'?row.ecNo:row.lxNo,receiveRows=receiveDetailRows(row),allocationRows=receiveAllocationRows(row);return `<div class="purchase-detail-dialog"><header class="purchase-detail-header"><div><h2>采购单详情</h2><span>中台跟踪号：${row.midNo}</span></div><button class="purchase-detail-close" type="button" aria-label="关闭采购单详情">×</button></header><div class="purchase-detail-layout"><main class="purchase-detail-content"><section id="purchase-detail-info" class="purchase-detail-section"><div class="purchase-detail-section-head">采购单信息</div>${detailFields([['中台跟踪号',row.midNo],['ERP采购单号',`${erpNo}（${row.erpSource}）`],['采购单状态',`<span class="status-tag status-${row.status==='已完成'?'done':row.status==='已作废'?'void':row.status==='已驳回'?'rejected':'pending'}">${row.status}</span>`],['供应商名称',row.supplier],['供应商代码',row.supplierCode],['采购仓库',row.warehouse],['采购负责人',row.purchaseOwner],['采购主体',row.purchaseSubject],['结算方式',row.settlement],['结算币种',row.currency],['预付比例',`${row.prepayRate}%`],['是否含税',row.taxIncluded],['税率',`${row.tax}%`],['创建人',row.creator],['创建时间',row.createdAt],['更新人',row.updatedBy],['更新时间',row.updatedAt]])}<div class="purchase-detail-remark"><span>备注</span><p>${row.remark||'—'}</p></div></section><section id="purchase-detail-sku" class="purchase-detail-section"><div class="purchase-detail-section-head">采购明细</div>${renderDetail(row)}</section><section id="purchase-detail-receive" class="purchase-detail-section"><div class="purchase-detail-section-head">收货明细</div><div class="purchase-detail-table-wrap"><table class="purchase-detail-record-table"><thead><tr><th>序号</th><th>计划号</th><th>批次号</th><th>SKU</th><th>采购数</th><th>收货数量</th><th>分摊费用类型</th><th>在途数</th><th>收货人</th><th>收货时间</th><th>收货备注</th></tr></thead><tbody>${receiveRows.length?receiveRows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td>${item.batchNo}</td><td>${item.sku}</td><td>${item.purchaseQty}</td><td class="receive-number">${item.receiveQty}</td><td><span class="expense-type-list">${allocationTypes(index).map(type=>`<span class="expense-type-tag">${type}</span>`).join('')}</span></td><td>${item.transitQty}</td><td>${item.receiver}</td><td>${item.date}</td><td>${item.receiveRemark}</td></tr>`).join(''):'<tr><td colspan="11" class="detail-empty">暂无收货记录</td></tr>'}</tbody></table></div></section><section id="purchase-detail-allocation" class="purchase-detail-section"><div class="purchase-detail-section-head">费用分摊明细</div><div class="purchase-detail-table-wrap"><table class="purchase-detail-record-table purchase-allocation-table"><thead><tr><th>序号</th><th>计划号</th><th>收货批次</th><th>SKU</th><th>团队</th><th>收货数量</th><th>分摊费用类型</th><th>分摊规则</th><th>分摊负责人</th><th>辅料包材费</th><th>运费</th><th>其他入库费</th><th>收货人</th><th>收货时间</th><th>收货备注</th></tr></thead><tbody>${allocationRows.length?allocationRows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td>${item.batchNo}</td><td>${item.sku}</td><td>${item.team}</td><td class="receive-number">${item.receiveQty}</td><td><span class="expense-type-tag">${item.allocationType}</span></td><td>${item.allocationRule}</td><td>${item.allocationOwner}</td><td>${money(item.materialFee)}</td><td>${money(item.freight)}</td><td>${money(item.otherInboundFee)}</td><td>${item.receiver}</td><td>${item.date}</td><td>${item.receiveRemark}</td></tr>`).join(''):'<tr><td colspan="15" class="detail-empty">暂无费用分摊记录</td></tr>'}</tbody></table></div></section></main><nav class="purchase-detail-anchor"><button class="purchase-detail-anchor-item active" data-detail-target="purchase-detail-info">采购单信息</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-sku">采购明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-receive">收货明细</button><button class="purchase-detail-anchor-item" data-detail-target="purchase-detail-allocation">费用分摊明细</button></nav></div></div>`;}
@@ -1350,3 +1350,133 @@ openPurchaseBatchReceive=function(){
   const modal=$('#purchaseBatchReceiveModal');if(!modal.hidden)enhancePurchaseBatchReceiveTabs(modal);
 };
 $('#openBatchPurchaseReceive').onclick=openPurchaseBatchReceive;
+
+/* ===== 提货入库自动冲减采购单在途（按同团队优先 FIFO → 全平台最早采购单跨团队兜底） ===== */
+const PICKUP_PO_BRIDGE_KEY='dmp_fba_plan_v2_bridge';
+const appliedAutoInboundInSession=new Set();
+function seedPickupLinkedPurchaseOrders(){
+  const extras=[
+    {
+      id:'po-pickup-1',ecNo:'ECPO2026111202',lxNo:'—',erpSource:'易仓',midNo:'PO2026111202',trackingNo:'PO2026111202',
+      supplier:'JASIC 供应商',supplierCode:'JASIC-001',warehouse:'深圳采购仓',purchaseOwner:'张敏',settlement:'月结30天',
+      purchaseSubject:'焊捷科技有限公司',currency:'CNY',taxIncluded:'是',prepayRate:30,creator:'张敏',
+      status:'部分收货',tax:13,receiveDate:'2026-11-15',
+      logistics:[{no:'SF2026111202',company:'顺丰速运'}],logisticsIndex:0,
+      remark:'提货入库自动冲减联动示范单（部分到货）',attachments:[],updatedBy:'张敏',
+      createdAt:'2026-11-12 10:30',updatedAt:'2026-11-15 11:20',
+      items:[
+        {id:'sync-line-1',sku:'DD123456',icon:'📦',urgent:true,planNo:'CGJH2026111201',batchNo:'PC2026111201',platform:'Amazon',store:'ARCCAP',team:'刘绎天',receiver:'仓库管理员',receiveDate:'2026-11-15',purchaseQty:24,unitPrice:18,lastPurchasePrice:16.5,lastPurchaseTaxIncluded:'是',transitQty:18,arrivedQty:24,pendingQty:18,receiveQty:6,materialFee:0,freight:0,otherFee:0,otherInboundFee:0,name:'测试-DD123456',lingxingSku:'LXSKU-360011',sellerSku:'SELLER-260011',fnsku:'X00FN103',supplierItemNo:'SUP-DD-01',firstOrder:false,minOrderQty:10,grossWeight:3.2,boxes:4,leadTime:15,demandGap:20,suggestedQty:20,expectedDeliveryDate:'2026-11-20',plannedShipmentQty:24,expectedShipDate:'2026-11-22',expectedArrivalDate:'2026-12-05',platformStock:2,platformTransit:20,overseasStock:300,overseasPending:20,overseasTransit:0,localStock:7,localPending:0,supplierStock:600,receiveBatches:[{batchNo:'PC2026111201-01',quantity:6,receiver:'仓库管理员',date:'2026-11-15',remark:'首批发运签收'}],receiveRemark:'首批发运签收'},
+        {id:'sync-line-2',sku:'153US0000024',icon:'🧰',urgent:false,planNo:'CGJH2026111202',batchNo:'PC2026111202',platform:'B2C',store:'WEM_Walmart_US',team:'北美大件组',receiver:'仓库管理员',receiveDate:'2026-11-15',purchaseQty:30,unitPrice:15,lastPurchasePrice:14.2,lastPurchaseTaxIncluded:'是',transitQty:30,arrivedQty:30,pendingQty:30,receiveQty:0,materialFee:0,freight:0,otherFee:0,otherInboundFee:0,name:'焊枪配件套装',lingxingSku:'153US0000024',sellerSku:'SELLER-15324',fnsku:'—',supplierItemNo:'SUP-153-24',firstOrder:false,minOrderQty:10,grossWeight:1.5,boxes:2,leadTime:10,demandGap:30,suggestedQty:30,expectedDeliveryDate:'2026-11-20',plannedShipmentQty:30,expectedShipDate:'2026-11-22',expectedArrivalDate:'2026-12-06',platformStock:2,platformTransit:20,overseasStock:0,overseasPending:0,overseasTransit:20,localStock:0,localPending:10,supplierStock:0,receiveBatches:[],receiveRemark:'—'}
+      ]
+    },
+    {
+      id:'po-pickup-2',ecNo:'—',lxNo:'LXPO2026111503',erpSource:'领星',midNo:'PO2026111503',trackingNo:'PO2026111503',
+      supplier:'ARCCAP 供应商',supplierCode:'ARCCAP-002',warehouse:'东莞采购仓',purchaseOwner:'李晨',settlement:'月结90天',
+      purchaseSubject:'焊捷供应链（深圳）有限公司',currency:'CNY',taxIncluded:'是',prepayRate:20,creator:'李晨',
+      status:'待收货',tax:13,receiveDate:'2026-11-16',
+      logistics:[{no:'UPS2026111503',company:'UPS'}],logisticsIndex:0,
+      remark:'提货单常用 SKU 在途采购单',attachments:[],updatedBy:'李晨',
+      createdAt:'2026-11-15 14:15',updatedAt:'2026-11-15 14:15',
+      items:[
+        {id:'sync-line-3',sku:'ARC-TIG200-US',icon:'🧰',urgent:true,planNo:'CGJH2026111501',batchNo:'PC2026111501',platform:'Amazon',store:'ARCCAPTAIN_US',team:'亚马逊团队',receiver:'仓库管理员',receiveDate:'2026-11-16',purchaseQty:30,unitPrice:20,lastPurchasePrice:19.5,lastPurchaseTaxIncluded:'是',transitQty:30,arrivedQty:30,pendingQty:30,receiveQty:0,materialFee:0,freight:0,otherFee:0,otherInboundFee:0,name:'氩弧焊机 TIG200',lingxingSku:'ARC-TIG200-US',sellerSku:'SELLER-TIG200',fnsku:'X004TIG200',supplierItemNo:'SUP-TIG-02',firstOrder:false,minOrderQty:1,grossWeight:5.0,boxes:6,leadTime:15,demandGap:30,suggestedQty:30,expectedDeliveryDate:'2026-11-22',plannedShipmentQty:30,expectedShipDate:'2026-11-24',expectedArrivalDate:'2026-12-08',platformStock:2,platformTransit:20,overseasStock:0,overseasPending:0,overseasTransit:0,localStock:0,localPending:0,supplierStock:0,receiveBatches:[],receiveRemark:'—'},
+        {id:'sync-line-4',sku:'ARC-MIG200-US',icon:'🎒',urgent:false,planNo:'CGJH2026111502',batchNo:'PC2026111502',platform:'Amazon',store:'ARCCAPTAIN_US',team:'亚马逊团队',receiver:'仓库管理员',receiveDate:'2026-11-16',purchaseQty:40,unitPrice:20,lastPurchasePrice:18.8,lastPurchaseTaxIncluded:'是',transitQty:40,arrivedQty:40,pendingQty:40,receiveQty:0,materialFee:0,freight:0,otherFee:0,otherInboundFee:0,name:'逆变焊机 MIG200',lingxingSku:'ARC-MIG200-US',sellerSku:'SELLER-MIG200',fnsku:'X004MIG200',supplierItemNo:'SUP-MIG-01',firstOrder:false,minOrderQty:1,grossWeight:5.0,boxes:8,leadTime:15,demandGap:40,suggestedQty:40,expectedDeliveryDate:'2026-11-22',plannedShipmentQty:40,expectedShipDate:'2026-11-24',expectedArrivalDate:'2026-12-08',platformStock:2,platformTransit:20,overseasStock:0,overseasPending:0,overseasTransit:0,localStock:0,localPending:0,supplierStock:0,receiveBatches:[],receiveRemark:'—'},
+        {id:'sync-line-5',sku:'140US260008',icon:'🧰',urgent:false,planNo:'CGJH2026111503',batchNo:'PC2026111503',platform:'Amazon',store:'ARCCAP',team:'亚马逊团队',receiver:'仓库管理员',receiveDate:'2026-11-16',purchaseQty:50,unitPrice:12,lastPurchasePrice:11.2,lastPurchaseTaxIncluded:'否',transitQty:50,arrivedQty:50,pendingQty:50,receiveQty:0,materialFee:0,freight:0,otherFee:0,otherInboundFee:0,name:'140US 焊接工具套装',lingxingSku:'LXSKU-360008',sellerSku:'SELLER-260008',fnsku:'X00FN100',supplierItemNo:'SUP-110700',firstOrder:false,minOrderQty:10,grossWeight:1.5,boxes:5,leadTime:10,demandGap:50,suggestedQty:50,expectedDeliveryDate:'2026-11-22',plannedShipmentQty:50,expectedShipDate:'2026-11-24',expectedArrivalDate:'2026-12-08',platformStock:0,platformTransit:0,overseasStock:300,overseasPending:20,overseasTransit:0,localStock:7,localPending:0,supplierStock:600,receiveBatches:[],receiveRemark:'—'}
+      ]
+    }
+  ];
+  extras.forEach(doc=>{
+    if(purchaseOrders.some(existing=>existing.midNo===doc.midNo))return;
+    doc.purchaseQty=doc.items.reduce((s,r)=>s+r.purchaseQty,0);
+    doc.transitQty=doc.items.reduce((s,r)=>s+r.transitQty,0);
+    doc.arrivedQty=doc.items.reduce((s,r)=>s+r.arrivedQty,0);
+    doc.pendingQty=doc.items.reduce((s,r)=>s+r.pendingQty,0);
+    doc.receiveQty=doc.items.reduce((s,r)=>s+r.receiveQty,0);
+    doc.freight=0;doc.discount=0;doc.otherFee=0;
+    doc.amount=doc.items.reduce((s,r)=>s+r.purchaseQty*r.unitPrice,0);
+    doc.totalFees=0;
+    purchaseOrders.unshift(doc);
+  });
+}
+
+function syncPickupAutoInboundFromBridge(){
+  let bridge={};
+  try{bridge=JSON.parse(localStorage.getItem(PICKUP_PO_BRIDGE_KEY)||'{}')||{};}catch{bridge={};}
+  const events=Array.isArray(bridge.purchaseAutoInbound)?bridge.purchaseAutoInbound:[];
+  let replayedCount=0;
+  let newToastCount=0;
+  events.forEach(entry=>{
+    const eventKey=entry.id||`${entry.pickupNo}-${entry.batchNo}-${entry.sku}`;
+    if(appliedAutoInboundInSession.has(eventKey))return;
+    const isFresh=!entry.appliedToPo;
+    (entry.allocations||[]).forEach(alloc=>{
+      const doc=purchaseOrders.find(order=>order.midNo===alloc.poNo);
+      if(!doc)return;
+      const line=doc.items.find(item=>item.sku===entry.sku&&(!alloc.poTeam||item.team===alloc.poTeam))||doc.items.find(item=>item.sku===entry.sku);
+      if(!line)return;
+      const qty=Number(alloc.qty||0);
+      if(qty<=0)return;
+      line.transitQty=Math.max(0,Number(line.transitQty||0)-qty);
+      line.receiveQty=Number(line.receiveQty||0)+qty;
+      line.arrivedQty=Math.max(Number(line.arrivedQty||0),line.receiveQty);
+      line.pendingQty=Math.max(0,Number(line.purchaseQty||0)-line.receiveQty);
+      line.receiveBatches=line.receiveBatches||[];
+      const remark=`来自提货单 ${entry.pickupNo} 自动入库${alloc.crossTeam?`（跨团队冲减：提货属「${entry.targetTeam}」）`:''}`;
+      line.receiveBatches.push({
+        batchNo:entry.batchNo||`${entry.pickupNo}-01`,
+        quantity:qty,
+        receiver:entry.receiver||'提货签收自动入库',
+        date:String(entry.time||'2026-11-17').slice(0,10),
+        remark
+      });
+      line.receiveRemark=remark;
+      line.receiver=entry.receiver||'提货签收自动入库';
+      line.receiveDate=String(entry.time||'2026-11-17').slice(0,10);
+
+      doc.purchaseQty=doc.items.reduce((s,r)=>s+Number(r.purchaseQty||0),0);
+      doc.transitQty=doc.items.reduce((s,r)=>s+Number(r.transitQty||0),0);
+      doc.arrivedQty=doc.items.reduce((s,r)=>s+Number(r.arrivedQty||0),0);
+      doc.pendingQty=doc.items.reduce((s,r)=>s+Number(r.pendingQty||0),0);
+      doc.receiveQty=doc.items.reduce((s,r)=>s+Number(r.receiveQty||0),0);
+      doc.status=doc.transitQty<=0&&doc.receiveQty>=doc.purchaseQty?'已完成':doc.receiveQty>0?'部分收货':doc.status;
+      doc.updatedBy='提货自动入库';
+      doc.updatedAt=entry.time||'2026-11-17 15:20';
+      doc.autoInboundLogs=doc.autoInboundLogs||[];
+      doc.autoInboundLogs.push({
+        type:'自动入库',
+        content:`提货单 ${entry.pickupNo}（批次 ${entry.batchNo}）自动冲减 ${entry.sku} 在途 ${qty} 件${alloc.crossTeam?`（跨团队：原提货属 ${entry.targetTeam}，记入异常）`:''}`,
+        operator:entry.receiver||'系统自动',
+        time:entry.time||'2026-11-17 15:20'
+      });
+      replayedCount++;
+      if(isFresh)newToastCount++;
+    });
+    appliedAutoInboundInSession.add(eventKey);
+    entry.appliedToPo=true;
+  });
+
+  bridge.purchaseOrderCatalog=purchaseOrders.map(po=>({
+    midNo:po.midNo,
+    createdAt:po.createdAt,
+    status:po.status,
+    supplier:po.supplier,
+    items:po.items.map(item=>({
+      id:item.id,
+      sku:item.sku,
+      team:item.team,
+      purchaseQty:item.purchaseQty,
+      arrivedQty:item.arrivedQty,
+      receiveQty:item.receiveQty,
+      transitQty:item.transitQty
+    }))
+  }));
+  try{localStorage.setItem(PICKUP_PO_BRIDGE_KEY,JSON.stringify(bridge));}catch{}
+  if(replayedCount>0){
+    applyFilters(false);renderTabs();renderTable();
+    if(newToastCount>0)toast(`已同步提货单自动入库，共冲减 ${newToastCount} 条采购在途明细`);
+  }
+}
+
+seedPickupLinkedPurchaseOrders();
+applyFilters(false);renderTabs();renderTable();
+syncPickupAutoInboundFromBridge();
+window.addEventListener('storage',event=>{if(event.key===PICKUP_PO_BRIDGE_KEY)syncPickupAutoInboundFromBridge();});

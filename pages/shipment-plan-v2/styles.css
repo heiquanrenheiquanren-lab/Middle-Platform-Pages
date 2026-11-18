@@ -529,9 +529,50 @@
   color: #e6a23c;
 }
 
+.spv2-status-tag.pending_fba_create {
+  background: #fff7e6;
+  color: #d48806;
+}
+
+.spv2-status-tag.pending_review {
+  background: #f4effc;
+  color: #722ed1;
+}
+
+.spv2-status-tag.pending_shipping_order {
+  background: #e6f7ff;
+  color: #096dd9;
+}
+
 .spv2-status-tag.pending_ship {
   background: #ecf5ff;
   color: #409eff;
+}
+
+.spv2-status-tag.pending_arrival {
+  background: #e6fffb;
+  color: #08979c;
+}
+
+.spv2-sub-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.spv2-sub-tag.pending_receive {
+  background: #e6f4ff;
+  color: #1677ff;
+}
+
+.spv2-sub-tag.partial_received {
+  background: #fff7e6;
+  color: #d46b08;
 }
 
 .spv2-status-tag.completed {
@@ -542,6 +583,64 @@
 .spv2-status-tag.void {
   background: #f4f4f5;
   color: #909399;
+}
+
+.spv2-diff-warn {
+  color: #f56c6c;
+  font-weight: 600;
+}
+
+.spv2-reject-modal {
+  align-items: center;
+  padding: 24px;
+}
+
+.spv2-reject-dialog {
+  width: min(480px, calc(100vw - 32px));
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.24);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.spv2-reject-head {
+  height: 52px;
+  padding: 0 20px;
+  border-bottom: 1px solid #ebeef5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.spv2-reject-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.spv2-reject-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.spv2-reject-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #606266;
+}
+
+.spv2-reject-textarea {
+  height: auto !important;
+  min-height: 76px;
+  padding: 8px 10px !important;
+  resize: vertical;
+  font-family: inherit;
 }
 
 .spv2-plan-cell {
@@ -2029,4 +2128,345 @@ thead .spv2-c-fix-right {
   background: #f5f7fa;
   color: #c0c4cc;
   cursor: not-allowed;
+}
+
+/* 列表行内快捷关联按钮 + 关联 FBA 货件弹窗 */
+.spv2-inline-link-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #1677ff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+}
+
+.spv2-inline-link-btn:hover {
+  background: #ecf5ff;
+}
+
+.spv2-fba-link-summary.is-prelink {
+  background: #fdf6ec;
+  color: #b88230;
+}
+
+.spv2-fba-dialog {
+  width: min(1060px, calc(100vw - 40px));
+  height: min(760px, calc(100vh - 40px));
+}
+
+.spv2-fba-link-body {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  background: #f7f9fc;
+}
+
+.spv2-fba-sidebar {
+  width: 230px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ebeef5;
+  background: #fff;
+}
+
+.spv2-fba-sidebar-head {
+  height: 40px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f2f5;
+  font-size: 12px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.spv2-fba-sidebar-head em {
+  font-style: normal;
+  color: #1677ff;
+}
+
+.spv2-fba-sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.spv2-fba-nav-item {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.spv2-fba-nav-item:hover {
+  border-color: #c6e2ff;
+  background: #f5f9ff;
+}
+
+.spv2-fba-nav-item.active {
+  border-color: #409eff;
+  background: #ecf5ff;
+}
+
+.spv2-fba-nav-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.spv2-fba-nav-sub {
+  font-size: 11px;
+  color: #909399;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spv2-fba-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 18px;
+  overflow-y: auto;
+}
+
+.spv2-fba-plan-ctx {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #eef1f6;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.spv2-fba-ctx-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.spv2-fba-ctx-item span {
+  font-size: 11px;
+  color: #909399;
+}
+
+.spv2-fba-ctx-item b {
+  font-size: 13px;
+  color: #303133;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spv2-fba-ctx-item b.is-ok {
+  color: #52a31b;
+}
+
+.spv2-fba-ctx-item b.is-warn {
+  color: #e6a23c;
+}
+
+.spv2-fba-ctx-item b.is-err {
+  color: #f56c6c;
+}
+
+.spv2-fba-section {
+  flex: 1 1 0;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5eaf1;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.spv2-fba-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fafbfc;
+  flex: none;
+}
+
+.spv2-fba-search {
+  flex: 1;
+  min-width: 200px;
+  height: 30px;
+}
+
+.spv2-fba-match-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #606266;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.spv2-fba-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.spv2-fba-pick-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.spv2-fba-pick-table th,
+.spv2-fba-pick-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #f0f2f5;
+  text-align: center;
+  color: #303133;
+  white-space: nowrap;
+}
+
+.spv2-fba-pick-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f5f7fa;
+  color: #606266;
+  font-weight: 600;
+}
+
+.spv2-fba-pick-table tbody tr:hover td {
+  background: #f5faff;
+}
+
+.spv2-fba-pick-table tr.is-picked td {
+  background: #f0f7ff;
+}
+
+.spv2-fba-pick-table tr.is-locked td {
+  color: #909399;
+}
+
+.spv2-fba-prelink-card {
+  flex: none;
+  padding: 12px 14px;
+  border: 1px solid #eef1f6;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spv2-fba-prelink-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.spv2-fba-prelink-head b {
+  color: #303133;
+}
+
+.spv2-fba-prelink-head span {
+  color: #909399;
+  font-size: 11px;
+}
+
+.spv2-fba-prelink-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spv2-fba-prelink-input {
+  flex: 1;
+  height: 32px;
+}
+
+.spv2-fba-prelink-qty {
+  width: 136px;
+  height: 32px;
+}
+
+.spv2-fba-prelink-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.spv2-prelink-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: #fdf6ec;
+  border: 1px solid #faecd8;
+  color: #b88230;
+  font-size: 12px;
+}
+
+.spv2-prelink-chip button {
+  border: 0;
+  background: transparent;
+  color: #909399;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.spv2-prelink-chip button:hover {
+  color: #f56c6c;
+}
+
+.spv2-fba-footer-summary {
+  font-size: 12px;
+  color: #606266;
+}
+
+.spv2-fba-footer-summary b {
+  color: #303133;
+}
+
+.spv2-fba-diff-wrap {
+  margin-top: 10px;
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  background: #fff;
 }

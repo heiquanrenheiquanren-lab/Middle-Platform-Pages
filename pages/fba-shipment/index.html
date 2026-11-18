@@ -27,7 +27,7 @@
           <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div><div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
           <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item active" data-page-nav="fbaShipment"><span class="mini">♧</span>FBA货件</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划 V1</div>
+          <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div><div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div><div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div><div class="nav-item active" data-page-nav="fbaShipment"><span class="mini">♧</span>FBA货件</div><div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划</div>
           <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
           <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div><div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div></div><div class="collapse">≡</div>
       </aside>
@@ -121,8 +121,8 @@
         <section class="action-strip ui-action-row">
           <div class="head-actions">
             <button class="btn primary" id="createShipmentOrderBtn" type="button" disabled>生成发货单</button>
-            <button class="btn" id="batchLinkPlanBtn" type="button">关联发货计划</button>
             <button class="btn" id="batchUnlinkPlanBtn" type="button" disabled>取消关联</button>
+            <button class="btn" id="syncFbaPrelinksBtn" type="button">同步领星货件</button>
             <button class="btn" id="fbaExportBtn" type="button">导出</button>
           </div>
           <button class="column-config-trigger" id="fbaColConfigBtn" type="button" title="列配置" aria-label="列配置">
@@ -188,127 +188,6 @@
             </div>
           </footer>
         </section>
-
-        <!-- 关联发货计划弹窗（顶部 2 页签：勾选关联 / 导入关联） -->
-        <div class="fba-link-modal-mask hidden" id="fbaLinkModalMask"></div>
-        <div class="fba-link-popover hidden" id="fbaLinkPopover" role="dialog" aria-label="关联发货计划" aria-modal="true">
-          <header class="fba-link-head">
-            <div class="minimal-dialog-head">
-              <h3>关联发货计划</h3>
-              <p id="fbaLinkSubtitle">请从左侧选择「FBA货件 + SKU」，在右侧对应的发货计划中点选一条完成关联</p>
-            </div>
-            <button class="fba-popover-close" id="fbaPopoverClose" type="button" aria-label="关闭">×</button>
-          </header>
-          <div class="ui-tabs fba-link-tabs" id="fbaLinkTabs" role="tablist">
-            <button class="is-active" id="fbaLinkTabManual" data-link-tab="manual" type="button" role="tab" aria-selected="true">勾选关联</button>
-            <button id="fbaLinkTabImport" data-link-tab="import" type="button" role="tab" aria-selected="false">导入关联</button>
-          </div>
-          <div class="fba-link-pane" id="fbaLinkManualPane">
-            <div class="fba-link-dialog-body" id="fbaLinkManualBody">
-              <!-- 左侧 FBA 货件 + SKU 导航 -->
-              <aside class="fba-link-sidebar" aria-label="待关联货件SKU导航">
-                <div class="fba-gen-sidebar-head">
-                  <span>待关联明细（货件+SKU）</span>
-                  <em id="fbaLinkNavProgress">0 / 0 已选</em>
-                </div>
-                <div class="fba-link-nav-list" id="fbaLinkNavList"></div>
-              </aside>
-              <!-- 右侧 候选发货计划过滤明细 -->
-              <div class="fba-link-main">
-                <section class="fba-plan-query" aria-label="关联发货计划查询区域">
-                  <div class="fba-plan-default-filter">
-                    当前：<b id="fbaPlanDefaultShipment">—</b> · SKU <b id="fbaPlanDefaultSku">—</b> · FNSKU <b id="fbaPlanDefaultFnsku">—</b> · 店铺 <b id="fbaPlanDefaultStore">—</b> · 货件申报量 <b id="fbaPlanDefaultDeclared">—</b>
-                  </div>
-                  <div class="fba-plan-query-row">
-                    <input class="control fba-plan-code-input" id="fbaPlanSearch" placeholder="请输入发货计划号，支持多个，精确匹配">
-                    <div class="query-actions fba-plan-query-actions"><button class="btn primary" id="fbaPlanSearchBtn" type="button">查询</button><button class="btn" id="fbaPlanResetBtn" type="button">重置</button></div>
-                  </div>
-                </section>
-                <div class="fba-link-table-wrap">
-                  <table class="fba-link-table">
-                    <thead>
-                      <tr>
-                        <th class="fba-plan-radio"></th><th>发货计划</th><th>SKU</th><th>领星 SKU</th><th>FNSKU</th><th>品名</th>
-                        <th>店铺</th><th>计划发货数量</th><th>计划发货日期</th><th>预计到货日期</th><th>备注</th>
-                      </tr>
-                    </thead>
-                    <tbody id="fbaPlanListBody"></tbody>
-                  </table>
-                </div>
-                <div class="fba-link-footer">
-                  <span id="fbaPlanListInfo">共 0 条</span>
-                  <div>
-                    <button class="page-btn" id="fbaPlanPrevPage" type="button">‹</button>
-                    <input class="control jump" id="fbaPlanJumpPage" value="1" aria-label="计划页码">
-                    <span>/ <b id="fbaPlanPageTotal">1</b></span>
-                    <button class="page-btn" id="fbaPlanNextPage" type="button">›</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="fba-link-manual-empty hidden" id="fbaLinkManualEmpty">
-              <div class="fba-link-empty-icon">☑</div>
-              <h4>请先勾选待关联的「FBA货件 + 领星 SKU」明细</h4>
-              <p>「勾选关联」需要先在列表页勾选未关联发货计划的货件明细，也可直接切换至「导入关联」上传 .xlsx 模板批量关联。</p>
-              <div class="fba-link-empty-actions">
-                <button class="btn" id="fbaLinkGoSelectBtn" type="button">返回列表勾选</button>
-                <button class="btn primary" id="fbaLinkGoImportBtn" type="button">去导入关联</button>
-              </div>
-            </div>
-          </div>
-          <div class="fba-link-pane fba-link-import-pane hidden" id="fbaLinkImportPane">
-            <div class="import-link-body fba-link-import-body" id="importLinkBody">
-              <div class="import-steps">
-                <div class="import-step"><span class="import-step-num">1</span><span class="import-step-text">下载模板</span></div>
-                <span class="import-step-line"></span>
-                <div class="import-step"><span class="import-step-num">2</span><span class="import-step-text">选择文件</span></div>
-                <span class="import-step-line"></span>
-                <div class="import-step"><span class="import-step-num">3</span><span class="import-step-text">确认导入</span></div>
-              </div>
-              <div class="import-guide">
-                <div class="import-guide-title">第一步：使用标准模板整理数据</div>
-                <div class="import-guide-tip">请勿修改模板表头，请使用标准模板整理数据，支持 .xlsx 文件，单次仅导入一个文件。</div>
-                <button class="btn plain" id="importLinkDownloadTpl" type="button">下载模板</button>
-              </div>
-              <div class="import-upload" id="importLinkDropArea">
-                <input type="file" id="importLinkFileInput" accept=".xlsx,.xls,.csv" hidden>
-                <span class="import-upload-icon">↥</span>
-                <span class="import-upload-text">将文件拖到此处，或 <b class="import-upload-link" id="importLinkChooseFile">点击选择文件</b></span>
-                <div class="import-upload-tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</div>
-              </div>
-              <div class="import-result hidden" id="importLinkResult">
-                <div class="import-result-head">
-                  <div class="import-result-summary">
-                    <span class="import-result-item success"><b id="importLinkSuccessCount">0</b>成功</span>
-                    <span class="import-result-item warn"><b id="importLinkFailCount">0</b>失败</span>
-                    <span class="import-result-item prelink" id="importLinkPrelinkWrap"><b id="importLinkPrelinkCount">0</b>预关联</span>
-                  </div>
-                  <button class="btn plain" id="importLinkExportFail" type="button" hidden>导出失败行</button>
-                </div>
-                <div class="import-result-table-wrap">
-                  <table class="import-result-table">
-                    <thead>
-                      <tr><th>状态</th><th>行号</th><th>发货计划号</th><th>SKU</th><th>FBA货件单号</th><th>说明</th></tr>
-                    </thead>
-                    <tbody id="importLinkResultBody"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          <footer class="fba-gen-footer minimal-dialog-footer" id="fbaLinkFooter">
-            <div class="minimal-stats" id="fbaLinkFooterStats"></div>
-            <div class="import-file-info hidden" id="importLinkFileInfo">尚未选择文件</div>
-            <div class="minimal-footer-actions" id="fbaLinkManualFooterActions">
-              <button class="btn" id="fbaLinkCancelBtn" type="button">取消</button>
-              <button class="btn primary" id="fbaLinkConfirmBtn" type="button" disabled>确认关联</button>
-            </div>
-            <div class="minimal-footer-actions hidden" id="fbaLinkImportFooterActions">
-              <button class="btn" id="importLinkCancel" type="button">取消</button>
-              <button class="btn primary" id="importLinkConfirm" type="button" disabled>确认导入</button>
-            </div>
-          </footer>
-        </div>
 
         <!-- 取消关联确认弹窗 -->
         <div class="fba-confirm-mask hidden" id="fbaUnlinkConfirmMask">
@@ -507,6 +386,6 @@
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
   <script src="../../navigation.js?v=1.8.02"></script>
-  <script src="./app.js?v=2.2.0"></script>
+  <script src="./app.js?v=2.3.0"></script>
 </body>
 </html>

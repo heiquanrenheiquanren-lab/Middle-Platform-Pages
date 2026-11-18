@@ -1,7 +1,7 @@
 :root{--blue:#1890ff;--blue-soft:#e6f7ff;--line:#e4e9f2;--text:#606266;--dark:#303133;--muted:#909399;--bg:#fff}
     *{box-sizing:border-box}html,body,#app{width:100%;height:100%;margin:0}body{overflow:hidden;background:#fff;color:var(--text);font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
     button,input,select{font:inherit}button{cursor:pointer}
-    [v-cloak]{display:none}.app{height:100%;display:grid;grid-template-rows:38px 1fr;background:#fff}
+    [v-cloak] el-dialog,[v-cloak] .el-dialog{display:none}[v-cloak] .query-card .el-form,[v-cloak] .action-bar,[v-cloak] .status-tabs,[v-cloak] .list-card>*{visibility:hidden}.app{height:100%;display:grid;grid-template-rows:38px 1fr;background:#fff}
     .global-bar{border-bottom:1px solid #dfe3eb;display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 19px;color:#555;background:#fff}
     .global-left,.global-right{display:flex;align-items:center;height:100%;gap:28px}
     .brand-shield{width:20px;height:25px;background:#c91f3a;clip-path:polygon(50% 0,100% 14%,88% 72%,50% 100%,12% 72%,0 14%);position:relative}
@@ -71,8 +71,12 @@
 /* ===== 简约视觉统一（对齐采购单）：页面骨架与弹窗 ===== */
 
 /* —— 页面：状态栏/列表/表头/分页 —— */
-.status-card{border-radius:8px 8px 0 0;border-bottom:0;background:#fff}
-.list-card{border-top:0;border-radius:0 0 8px 8px;background:#fff;overflow:hidden}
+.status-card{flex:none;border-radius:8px 8px 0 0;border-bottom:0;background:#fff}
+.list-card{flex:1;min-height:0;display:flex;flex-direction:column;border-top:0;border-radius:0 0 8px 8px;background:#fff;overflow:hidden}
+.content{display:flex;flex-direction:column;overflow:hidden}
+.query-card,.action-bar{flex:none}
+.main-table{flex:1;min-height:0}
+.pagination{flex:none}
 .main-table>.el-table__inner-wrapper>.el-table__header-wrapper th,.main-table>.el-table__inner-wrapper>.el-table__header-wrapper th.el-table__cell{height:44px;background:#fff!important;background-color:#fff!important;color:#303133;font-size:13px;font-weight:600;border-bottom:1px solid #e4e9f2}
 .main-table .el-table__body td.el-table__cell{border-bottom:1px solid #f0f2f5}
 .main-table .el-table__body tr:hover>td.el-table__cell{background:#f7fbff}
@@ -243,5 +247,11 @@
 .document-list .field-line .doc-status-badge.is-draft{background:#f4f4f5;color:#909399}
 .main-table th.el-table__expand-column .cell{display:flex;align-items:center;justify-content:center;padding:0}
 .main-table th.el-table__expand-column .expand-btn{cursor:pointer}
+.create-remark-cell .batch-remark{display:flex;align-items:center;gap:6px;min-width:0;width:100%}
+.create-remark-cell .batch-remark__text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#606266;font-size:12px}
+.create-remark-cell .batch-remark__edit{display:inline-flex;flex:none;align-items:center;justify-content:center;width:22px;height:22px;padding:2px;border:0;border-radius:3px;background:transparent;color:#909399;cursor:pointer}
+.create-remark-cell .batch-remark__edit:hover,.create-remark-cell .batch-remark__edit:focus-visible{background:#ecf5ff;color:#409eff;outline:0}
+.create-remark-cell .batch-remark__edit svg{width:15px;height:15px}
+.remark-popover__actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 @media(max-width:1100px){.create-dialog .public-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.create-dialog .address-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 

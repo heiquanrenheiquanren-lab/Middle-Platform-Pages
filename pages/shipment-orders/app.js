@@ -1,7 +1,20 @@
 const { createApp, ref, reactive, computed, nextTick, watch } = Vue;
 createApp({
   setup() {
-    const statuses = ['全部', '草稿', '待提货', '待发货', '待收货', '部分收货', '已完成', '已作废', '已取消'];
+    const statuses = ['全部', '草稿', '待发货', '待收货', '部分收货', '已完成', '已作废', '已取消'];
+    const BRIDGE_KEY = 'dmp_fba_plan_v2_bridge';
+    const readV2Bridge = () => {
+      try {
+        return JSON.parse(localStorage.getItem(BRIDGE_KEY) || '{}') || {};
+      } catch {
+        return {};
+      }
+    };
+    const writeV2Bridge = (data) => {
+      try {
+        localStorage.setItem(BRIDGE_KEY, JSON.stringify(data));
+      } catch {}
+    };
     const warehouses = ['深圳仓', '东莞工厂', '义乌仓'],
       createFromWarehouses = ['跨跃猫物流仓'],
       pickupWarehouses = ['深圳仓', '东莞工厂', '义乌仓', '华南物流中转仓', '美西集货仓'],
@@ -1057,16 +1070,16 @@ createApp({
       {
         id: 'DN20260728002',
         creator: 'Admin',
-        status: '待提货',
+        status: '待发货',
         logistics: '未发货',
         from: '深圳仓',
         to: '美国西部仓',
         plans: 2,
         skus: 2,
         declare: 950,
-        pick: 0,
+        pick: 950,
         ship: 0,
-        declarePickDiff: '950',
+        declarePickDiff: '0',
         pickShipDiff: '0',
         shipReceiveDiff: '0',
         declareReceiveDiff: '950',
@@ -1085,7 +1098,7 @@ createApp({
         provider: '马士基',
         country: '美国 - US',
         warehouseType: '海外仓',
-        remark: '待仓库安排提货',
+        remark: '已完成前置入库，待发货出库',
         expectedShipDate: '2026-08-10',
         expectedTransitDuration: '38天',
         logisticsNo: '—',
@@ -1103,24 +1116,24 @@ createApp({
             name: '旅行背包',
             plan: 'FP20260728021',
             declare: 600,
-            pick: 0,
+            pick: 600,
             ship: 0,
-            declarePickDiff: '950',
+            declarePickDiff: '0',
             pickShipDiff: '0',
             shipReceiveDiff: '0',
-            declareReceiveDiff: '950',
+            declareReceiveDiff: '600',
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
           {
             sku: 'SPU-5002',
             name: '背包防雨罩',
             plan: 'FP20260728022',
             declare: 350,
-            pick: 0,
+            pick: 350,
             ship: 0,
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
         ],
         batches: [],
@@ -1128,14 +1141,14 @@ createApp({
       {
         id: 'DN20260716002',
         creator: 'Admin',
-        status: '待提货',
+        status: '待发货',
         logistics: '未发货',
         from: '东莞工厂',
         to: '美国西部仓',
         plans: 2,
         skus: 2,
         declare: 420,
-        pick: 0,
+        pick: 420,
         ship: 0,
         declarePickDiff: '420',
         pickShipDiff: '0',
@@ -1181,7 +1194,7 @@ createApp({
             shipReceiveDiff: '0',
             declareReceiveDiff: '420',
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
           {
             sku: 'SPU-8002',
@@ -1191,7 +1204,7 @@ createApp({
             pick: 0,
             ship: 0,
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
         ],
         batches: [],
@@ -1199,7 +1212,7 @@ createApp({
       {
         id: 'DN20260808005',
         creator: 'Admin',
-        status: '待提货',
+        status: '待发货',
         logistics: '未发货',
         from: '义乌仓',
         to: '美国东部仓',
@@ -1252,7 +1265,7 @@ createApp({
             shipReceiveDiff: '0',
             declareReceiveDiff: '150',
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
         ],
         batches: [],
@@ -1260,7 +1273,7 @@ createApp({
       {
         id: 'DN20260808007',
         creator: 'Admin',
-        status: '待提货',
+        status: '待发货',
         logistics: '未发货',
         from: '深圳仓',
         to: '美国西部仓',
@@ -1313,7 +1326,7 @@ createApp({
             shipReceiveDiff: '0',
             declareReceiveDiff: '450',
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
           {
             sku: 'SPU-9001',
@@ -1323,7 +1336,7 @@ createApp({
             pick: 0,
             ship: 0,
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
           {
             sku: 'SPU-8003',
@@ -1333,7 +1346,7 @@ createApp({
             pick: 0,
             ship: 0,
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
           {
             sku: 'SPU-2003-A',
@@ -1343,7 +1356,7 @@ createApp({
             pick: 0,
             ship: 0,
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
         ],
         batches: [],
@@ -1351,7 +1364,7 @@ createApp({
       {
         id: 'DN20260807005',
         creator: 'Admin',
-        status: '待提货',
+        status: '待发货',
         logistics: '未发货',
         from: '东莞工厂',
         to: '美国西部仓',
@@ -1379,7 +1392,7 @@ createApp({
         provider: 'DHL',
         country: '美国 - US',
         warehouseType: '海外仓',
-        remark: 'Walmart渠道待提货',
+        remark: 'Walmart渠道待发货',
         expectedShipDate: '2026-08-12',
         expectedTransitDuration: '7天',
         logisticsNo: '—',
@@ -1404,7 +1417,7 @@ createApp({
             shipReceiveDiff: '0',
             declareReceiveDiff: '400',
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
           {
             sku: 'SPU-6001',
@@ -1414,7 +1427,7 @@ createApp({
             pick: 0,
             ship: 0,
             receive: 0,
-            status: '待提货',
+            status: '待发货',
           },
         ],
         batches: [],
@@ -2735,14 +2748,13 @@ createApp({
         ? 'success'
         : ['待收货', '部分收货'].includes(s)
           ? 'warning'
-          : ['已作废', '待提货', '未发货', '草稿', '未提交'].includes(s)
+          : ['已作废', '未发货', '草稿', '未提交'].includes(s)
             ? 'info'
             : '';
     const statusBadgeClass = (s) => {
       if (['已完成', '已签收'].includes(s)) return 'is-done';
       if (s === '待发货') return 'is-ready';
       if (['待收货', '部分收货'].includes(s)) return 'is-transit';
-      if (s === '待提货') return 'is-pending';
       if (['已作废', '已取消'].includes(s)) return 'is-void';
       return 'is-draft';
     };
@@ -2781,6 +2793,18 @@ createApp({
       transport: [{ required: true, message: '请选择运输方式', trigger: 'change' }],
       channel: [{ required: true, message: '请选择物流渠道', trigger: 'change' }],
     };
+    watch(
+      () => createForm.to,
+      (val) => {
+        if (!val) {
+          createForm.country = '';
+          createForm.warehouseType = '';
+          return;
+        }
+        createForm.country = val.includes('德国') ? '德国 - DE' : val.includes('英国') ? '英国 - GB' : '美国 - US';
+        createForm.warehouseType = '海外仓';
+      },
+    );
     const selectedSkus = ref([]),
       declareTotal = computed(() => selectedSkus.value.reduce((n, x) => n + Number(x.declareQty || 0), 0));
     const canAddSku = computed(() =>
@@ -3466,6 +3490,7 @@ createApp({
         ElementPlus.ElMessage.warning('请先填写顶部必填字段');
         return;
       }
+      if (typeof syncBridgeShippingOrders === 'function') syncBridgeShippingOrders();
       const defaultDest = createForm.to ? [createForm.to] : [];
       Object.assign(skuSearch, {
         planNos: '',
@@ -3615,13 +3640,17 @@ createApp({
             item.status = '草稿';
           });
         }
+        syncShipmentOrdersToV2Bridge(editingDoc.value);
         createVisible.value = false;
         ElementPlus.ElMessage.success(restored ? '已保存为草稿，可重新提交' : '发货单已保存');
       } else {
-        docs.unshift(buildDraftDoc());
+        const doc = buildDraftDoc();
+        doc._customDoc = true;
+        docs.unshift(doc);
+        syncShipmentOrdersToV2Bridge(doc);
         createVisible.value = false;
         statusTab.value = '草稿';
-        ElementPlus.ElMessage.success('草稿已保存，已关联发货计划（状态：已完成）');
+        ElementPlus.ElMessage.success('草稿已保存，关联计划已进入待发货');
       }
     };
     const submitCreate = async () => {
@@ -3637,43 +3666,235 @@ createApp({
       if (editingDoc.value) {
         const doc = editingDoc.value;
         applyCreateFormToDoc(doc);
-        doc.status = '待提货';
+        doc.status = '待发货';
         doc.logistics = '未发货';
         doc.items.forEach((item) => {
-          item.status = '待提货';
+          item.status = '待发货';
         });
+        syncShipmentOrdersToV2Bridge(doc);
         createVisible.value = false;
-        statusTab.value = '待提货';
-        ElementPlus.ElMessage.success('发货单已提交，进入待提货');
+        statusTab.value = '待发货';
+        ElementPlus.ElMessage.success('发货单已提交，进入待发货');
         return;
       }
       const doc = buildDraftDoc();
       doc.id = `DN${Date.now()}`;
-      doc.status = '待提货';
+      doc._customDoc = true;
+      doc.status = '待发货';
       doc.logistics = '未发货';
       doc.items.forEach((item) => {
-        item.status = '待提货';
+        item.status = '待发货';
       });
       docs.unshift(doc);
-      try {
-        const raw = JSON.parse(localStorage.getItem('dmp_fba_plan_v2_bridge') || '{}');
-        raw.shippingOrderLinks = raw.shippingOrderLinks || {};
-        doc.items.forEach((item) => {
-          if (item.plan) raw.shippingOrderLinks[item.plan] = doc.id;
-        });
-        localStorage.setItem('dmp_fba_plan_v2_bridge', JSON.stringify(raw));
-      } catch {}
+      syncShipmentOrdersToV2Bridge(doc);
       createVisible.value = false;
-      statusTab.value = '待提货';
-      ElementPlus.ElMessage.success('发货单已提交，进入待提货');
+      statusTab.value = '待发货';
+      ElementPlus.ElMessage.success('发货单已提交，进入待发货');
     };
     const updateDocDiffs = (row) => {
       row.declarePickDiff = String(Number(row.declare || 0) - (row.pick || 0));
-      row.pickShipDiff = String((row.shipped || 0) - (row.pick || 0));
-      row.shipReceiveDiff = String((row.receive || 0) - (row.shipped || 0));
+      row.pickShipDiff = String((row.ship || row.shipped || 0) - (row.pick || 0));
+      row.shipReceiveDiff = String((row.receive || 0) - (row.ship || row.shipped || 0));
       row.declareReceiveDiff = String((row.receive || 0) - Number(row.declare || 0));
     };
     docs.forEach(updateDocDiffs);
+    const computeItemV2State = (doc, item, nowStr) => {
+      const shipped = Number(item.ship || 0);
+      const received = Number(item.receive || 0);
+      if (['草稿', '待发货'].includes(doc.status)) {
+        return {
+          status: 'pending_ship',
+          arrivalSubStatus: '',
+          shippingOrderNo: doc.id,
+          updatedAt: nowStr,
+        };
+      }
+      if (doc.status === '已完成' || item.status === '已完成' || (shipped > 0 && received >= shipped)) {
+        return {
+          status: 'completed',
+          arrivalSubStatus: '',
+          shippingOrderNo: doc.id,
+          updatedAt: nowStr,
+        };
+      }
+      if (shipped > 0 && received > 0) {
+        return {
+          status: 'pending_arrival',
+          arrivalSubStatus: 'partial_received',
+          shippingOrderNo: doc.id,
+          updatedAt: nowStr,
+        };
+      }
+      if (shipped > 0) {
+        return {
+          status: 'pending_arrival',
+          arrivalSubStatus: 'pending_receive',
+          shippingOrderNo: doc.id,
+          updatedAt: nowStr,
+        };
+      }
+      return {
+        status: 'pending_ship',
+        arrivalSubStatus: '',
+        shippingOrderNo: doc.id,
+        updatedAt: nowStr,
+      };
+    };
+    const syncShipmentOrdersToV2Bridge = (targetDoc) => {
+      const bridge = readV2Bridge();
+      bridge.shippingOrderLinks = bridge.shippingOrderLinks || {};
+      bridge.shippingOrderDestMap = bridge.shippingOrderDestMap || {};
+      bridge.fbaShipmentOrderLinks = bridge.fbaShipmentOrderLinks || {};
+      bridge.v2StatusFromUpstream = bridge.v2StatusFromUpstream || {};
+      bridge.autoShippingOrders = Array.isArray(bridge.autoShippingOrders) ? bridge.autoShippingOrders : [];
+      bridge.manualShippingOrders = Array.isArray(bridge.manualShippingOrders) ? bridge.manualShippingOrders : [];
+      const knownV2Plans = new Set([
+        ...Object.keys(bridge.v2Overrides || {}),
+        ...(bridge.v2CustomPlans || []).map((p) => p.planNo),
+        ...(bridge.v2PendingPlans || []).map((p) => p.plan),
+        ...(bridge.v2ShipOrderCandidates || []).map((p) => p.plan),
+      ]);
+      const nowStr = formatOperationTime();
+      const applyDoc = (doc) => {
+        if (!doc) return;
+        if (doc.id && doc.to) bridge.shippingOrderDestMap[doc.id] = doc.to;
+        const autoIdx = bridge.autoShippingOrders.findIndex((o) => o.id === doc.id);
+        if (autoIdx >= 0) {
+          bridge.autoShippingOrders[autoIdx] = JSON.parse(JSON.stringify(doc));
+        } else if (doc._customDoc) {
+          const manIdx = bridge.manualShippingOrders.findIndex((o) => o.id === doc.id);
+          const snap = JSON.parse(JSON.stringify(doc));
+          if (manIdx >= 0) bridge.manualShippingOrders[manIdx] = snap;
+          else bridge.manualShippingOrders.unshift(snap);
+        }
+        (doc.items || []).forEach((item) => {
+          const pNo = item.plan;
+          if (!pNo || (!knownV2Plans.has(pNo) && !String(pNo).startsWith('WEM'))) return;
+          if (['已作废', '已取消'].includes(doc.status)) {
+            if (!bridge.shippingOrderLinks[pNo] || bridge.shippingOrderLinks[pNo] === doc.id) {
+              delete bridge.shippingOrderLinks[pNo];
+              bridge.v2StatusFromUpstream[pNo] = {
+                status: 'pending_shipping_order',
+                arrivalSubStatus: '',
+                shippingOrderNo: '',
+                updatedAt: nowStr,
+              };
+            }
+            if (doc.fbaShipmentNo && bridge.fbaShipmentOrderLinks[doc.fbaShipmentNo] === doc.id) {
+              delete bridge.fbaShipmentOrderLinks[doc.fbaShipmentNo];
+            }
+            return;
+          }
+          bridge.shippingOrderLinks[pNo] = doc.id;
+          if (doc.fbaShipmentNo) bridge.fbaShipmentOrderLinks[doc.fbaShipmentNo] = doc.id;
+          bridge.v2StatusFromUpstream[pNo] = computeItemV2State(doc, item, nowStr);
+        });
+      };
+      if (targetDoc) applyDoc(targetDoc);
+      else docs.forEach(applyDoc);
+      writeV2Bridge(bridge);
+    };
+    const normalizeImportedDoc = (raw) => {
+      const cloned = JSON.parse(JSON.stringify(raw));
+      const doc = {
+        yicangNo: '—',
+        lingxingNo: '—',
+        shipMode: 'FBA直发',
+        channel: '—',
+        transport: '海卡（6000）',
+        provider: '—',
+        country: '美国 - US',
+        warehouseType: '平台仓',
+        remark: '—',
+        expectedShipDate: '—',
+        expectedPortDate: '—',
+        eta: '—',
+        expectedTransitDuration: '—',
+        logisticsNo: '—',
+        receiveOrderNo: '—',
+        fee: '—',
+        carrier: '—',
+        actualFreight: '—',
+        customsFee: '—',
+        otherLogisticsFee: '—',
+        totalAccessoryCost: '—',
+        firstLegTotal: '—',
+        abnormal: 0,
+        innerTab: 'sku',
+        fromAddress: emptyAddress(),
+        toAddress: emptyAddress(),
+        batches: [],
+        logs: [],
+        ...cloned,
+      };
+      if (!doc.logs || !doc.logs.length) {
+        doc.logs = [
+          {
+            type: '创建',
+            content: doc.remark || `创建发货单 ${doc.id}`,
+            operator: doc.creator || '系统自动生成',
+            time: formatOperationTime(),
+          },
+        ];
+      }
+      updateDocDiffs(doc);
+      return doc;
+    };
+    const syncBridgeShippingOrders = () => {
+      const bridge = readV2Bridge();
+      const imported = [...(bridge.autoShippingOrders || []), ...(bridge.manualShippingOrders || [])];
+      imported.forEach((raw) => {
+        if (!raw || !raw.id) return;
+        const exists = docs.some((d) => d.id === raw.id);
+        if (!exists) {
+          docs.unshift(normalizeImportedDoc(raw));
+        }
+      });
+      const v2Cands = Array.isArray(bridge.v2ShipOrderCandidates) ? bridge.v2ShipOrderCandidates : [];
+      for (let i = skuCandidates.length - 1; i >= 0; i -= 1) {
+        if (skuCandidates[i].fromV2) skuCandidates.splice(i, 1);
+      }
+      v2Cands.forEach((c) => {
+        skuCandidates.unshift({
+          sku: c.sku,
+          title: c.product || c.sku,
+          image: makeProductImage(String(c.sku || 'SKU').slice(0, 4), '#dbeafe'),
+          planNo: c.plan,
+          overseasSku: c.msku || c.sku,
+          fnsku: c.fnsku || '-',
+          platform: c.platform || 'Amazon',
+          skuType: '普通',
+          owner: '运营',
+          team: c.team || '非亚马逊团队',
+          store: c.store || '店铺A',
+          destWarehouse: c.center || '美国西部仓',
+          boxes: Math.max(1, Math.ceil(Number(c.quantity || 1) / 20)),
+          planQty: Number(c.quantity || 0),
+          declareQty: Number(c.quantity || 0),
+          remain: Number(c.quantity || 0),
+          weight: '0.5',
+          length: '0.2',
+          width: '0.2',
+          height: '0.1',
+          volume: '0.004',
+          netWeight: '0.5',
+          dimensions: '20 × 20 × 10',
+          boxVolume: '0.004',
+          grossWeight: '0.6',
+          packageSpec: '42 × 38 × 32',
+          boxWeight: '12.0',
+          boxQty: 20,
+          packaging: '',
+          skuRemark: c.remark || '',
+          planRemark: c.remark || '',
+          fromV2: true,
+        });
+      });
+    };
+    syncBridgeShippingOrders();
+    window.addEventListener('storage', (e) => {
+      if (e.key === BRIDGE_KEY) syncBridgeShippingOrders();
+    });
     const transitionStatus = (row, next, action) => {
       const previous = row.status;
       if (previous === next) {
@@ -3685,10 +3906,7 @@ createApp({
         item.status = next;
       });
       if (next === '待发货') {
-        row.pick = row.planQty || row.declare;
-        row.items?.forEach((item) => {
-          item.pick = item.declare;
-        });
+        row.logistics = '未发货';
       }
       if (next === '待收货') {
         row.logistics = '已发货';
@@ -3703,6 +3921,7 @@ createApp({
         row.pendingReceive = Math.max((row.ship || row.declare) - row.receive, 0);
         row.logistics = '部分收货';
       }
+      syncShipmentOrdersToV2Bridge(row);
       if (next === '已完成') {
         row.receive = row.ship || row.declare;
         row.pendingReceive = 0;
@@ -3774,7 +3993,22 @@ createApp({
     const completeFormRules = { reason: [{ required: true, message: '请选择完结原因', trigger: 'change' }] };
     const selectedDocs = ref([]),
       mainTableRef = ref(),
-      expandedRowKeys = ref([]);
+      expandedRowKeys = ref([]),
+      editingRemarkId = ref(''),
+      inlineRemarkText = ref('');
+    const openInlineRemark = (row) => {
+      if (editingRemarkId.value === row.id) {
+        editingRemarkId.value = '';
+        return;
+      }
+      editingRemarkId.value = row.id;
+      inlineRemarkText.value = row.remark === '—' ? '' : row.remark || '';
+    };
+    const saveInlineRemark = (row) => {
+      row.remark = inlineRemarkText.value.trim() || '—';
+      editingRemarkId.value = '';
+      ElementPlus.ElMessage.success('备注已保存');
+    };
     const onDocSelection = (rows) => {
       selectedDocs.value = rows;
     };
@@ -3851,6 +4085,7 @@ createApp({
           status: '已完成',
           details: [{ reason: completeForm.reason, remark: completeForm.remark || '—', unreceived }],
         });
+        syncShipmentOrdersToV2Bridge(doc);
       });
       completeSubmitting.value = false;
       completeVisible.value = false;
@@ -3861,10 +4096,10 @@ createApp({
       );
     };
     const voidDocument = async (row) => {
-      if (!['草稿', '待提货'].includes(row.status)) return;
+      if (!['草稿', '待发货'].includes(row.status)) return;
       try {
         await ElementPlus.ElMessageBox.confirm(
-          `确认作废发货单 ${row.id} 吗？作废后关联发货计划将同步作废。`,
+          `确认作废发货单 ${row.id} 吗？作废后关联发货计划将释放回「待生成发货单」。`,
           '作废确认',
           { type: 'warning', confirmButtonText: '确认作废', cancelButtonText: '取消' },
         );
@@ -3876,11 +4111,12 @@ createApp({
         if (!row.logs) row.logs = [];
         row.logs.unshift({
           type: '作废',
-          content: '发货单作废，关联发货计划已同步作废',
+          content: '发货单作废，关联发货计划已释放回「待生成发货单」',
           operator: 'Admin',
           time: formatOperationTime(),
         });
-        ElementPlus.ElMessage.success('发货单已作废，关联发货计划已同步作废');
+        syncShipmentOrdersToV2Bridge(row);
+        ElementPlus.ElMessage.success('发货单已作废，关联发货计划已释放回「待生成发货单」');
       } catch {}
     };
     const cancelVisible = ref(false),
@@ -3888,8 +4124,8 @@ createApp({
       cancelRemark = ref(''),
       cancelSubmitting = ref(false);
     const cancelShip = (row) => {
-      if (row.status !== '待提货') {
-        ElementPlus.ElMessage.warning('仅待提货状态允许取消发货');
+      if (row.status !== '待发货') {
+        ElementPlus.ElMessage.warning('仅待发货状态允许取消发货');
         return;
       }
       cancelDoc.value = row;
@@ -3910,13 +4146,14 @@ createApp({
       if (!row.logs) row.logs = [];
       row.logs.unshift({
         type: '取消',
-        content: `取消发货单，关联发货计划已同步作废${remark ? `，取消原因：${remark}` : '（未填写取消原因）'}`,
+        content: `取消发货单，关联发货计划已释放回「待生成发货单」${remark ? `，取消原因：${remark}` : '（未填写取消原因）'}`,
         operator: 'Admin',
         time: formatOperationTime(),
       });
+      syncShipmentOrdersToV2Bridge(row);
       cancelSubmitting.value = false;
       cancelVisible.value = false;
-      ElementPlus.ElMessage.success('发货单已取消，关联发货计划已同步作废');
+      ElementPlus.ElMessage.success('发货单已取消，关联发货计划已释放回「待生成发货单」');
     };
     const quantityAdjustVisible = ref(false),
       quantityAdjustDoc = ref(null),
@@ -3983,7 +4220,7 @@ createApp({
           targetQty: current,
           downstreamUsed: quantityAdjustDownstream({ type, item }),
           upperLimit:
-            type === 'pickup' ? planQty : type === 'shipment' ? Number(item.pick || 0) : Number(item.ship || 0),
+            type === 'pickup' ? planQty : type === 'shipment' ? (Number(item.pick || 0) > 0 ? Number(item.pick) : Number(item.declare || 0)) : Number(item.ship || 0),
           locked: type === 'pickup' && subPartsProcessed,
           pickupMethod: isSubPickup ? '子件提货' : '成品提货',
           pickupWarehouse: isSubPickup ? '—' : (item.pickupWarehouse || primaryWarehouse),
@@ -4008,16 +4245,7 @@ createApp({
       quantityAdjustRows.value.some((row) => !row.locked && Number(row.targetQty) !== Number(row.currentQty)),
     );
     const refreshStatusAfterQuantityAdjust = (doc) => {
-      if (doc.pick <= 0) {
-        doc.status = '待提货';
-        doc.logistics = '未发货';
-      } else if (doc.ship <= 0) {
-        const hasCombo = doc.items?.some((item) => skuMeta(item.sku).skuType === '组合');
-        const allComboProcessed =
-          !hasCombo ||
-          doc.items
-            .filter((item) => skuMeta(item.sku).skuType === '组合')
-            .every((item) => Number(item.processedQty || 0) >= Number(item.subSetPickedQty || 0));
+      if (doc.ship <= 0) {
         doc.status = '待发货';
         doc.logistics = '未发货';
       } else if (doc.receive >= doc.ship) {
@@ -4032,8 +4260,14 @@ createApp({
       }
       doc.pendingReceive = Math.max(Number(doc.ship || 0) - Number(doc.receive || 0), 0);
       doc.items?.forEach((item) => {
-        item.status = doc.status;
+        const s = Number(item.ship || 0);
+        const r = Number(item.receive || 0);
+        if (s <= 0) item.status = '待发货';
+        else if (r >= s) item.status = '已完成';
+        else if (r > 0) item.status = '部分收货';
+        else item.status = '待收货';
       });
+      syncShipmentOrdersToV2Bridge(doc);
     };
     const openQuantityAdjust = (row) => {
       if (!['待发货', '待收货', '部分收货'].includes(row.status)) {
@@ -4733,7 +4967,8 @@ createApp({
         ElementPlus.ElMessage.warning('当前状态不允许发货');
         return;
       }
-      const shipQty = row.items.reduce((sum, item) => sum + Number(item.pick || 0), 0);
+      const getShipCap = (item) => (Number(item.pick || 0) > 0 ? Number(item.pick) : Number(item.declare || 0));
+      const shipQty = row.items.reduce((sum, item) => sum + getShipCap(item), 0);
       if (shipQty <= 0) {
         ElementPlus.ElMessage.error('当前发货单没有可发货量');
         return;
@@ -4750,12 +4985,12 @@ createApp({
       const details = row.items.map((item) => ({
         sku: item.sku,
         plan: item.plan,
-        qty: Number(item.pick || 0),
+        qty: getShipCap(item),
         from: row.from,
         to: row.to,
       }));
       row.items.forEach((item) => {
-        item.ship = Number(item.pick || 0);
+        item.ship = getShipCap(item);
         item.status = '待收货';
       });
       row.ship = details.reduce((sum, item) => sum + item.qty, 0);
@@ -4776,6 +5011,8 @@ createApp({
         status: '已完成',
         details,
       });
+      updateDocDiffs(row);
+      syncShipmentOrdersToV2Bridge(row);
       ElementPlus.ElMessage.success('发货成功，发货单已进入待收货');
     };
     const shipVisible = ref(false),
@@ -4799,14 +5036,15 @@ createApp({
       shipRows.value = row.items.map((item, index) => {
         const picked = Number(item.pick || 0),
           shipped = Number(item.ship || 0),
-          declared = Number(item.declare || 0);
+          declared = Number(item.declare || 0),
+          baseLimit = picked > 0 ? picked : declared;
         return {
           ...item,
           key: `${item.sku}-${item.plan}-${index}`,
-          picked,
+          picked: baseLimit,
           shipped,
           declared,
-          remain: Math.max(picked - shipped, 0),
+          remain: Math.max(baseLimit - shipped, 0),
           shipQty: null,
           shipRemark: '',
           diffReason: '',
@@ -4903,6 +5141,7 @@ createApp({
         status: '已完成',
         details,
       });
+      syncShipmentOrdersToV2Bridge(shipDoc.value);
       shipSubmitting.value = false;
       shipVisible.value = false;
       ElementPlus.ElMessage.success(`发货成功，发货单已进入待收货`);
@@ -5012,7 +5251,12 @@ createApp({
       receiveDoc.value.logistics = remaining === 0 ? '已完成' : '部分收货';
       if (remaining === 0) receiveDoc.value.actualReceiveDate = formatOperationTime().slice(0, 10);
       receiveDoc.value.items.forEach((item) => {
-        item.status = receiveDoc.value.status;
+        const s = Number(item.ship || 0);
+        const r = Number(item.receive || 0);
+        if (s <= 0) item.status = '待发货';
+        else if (r >= s) item.status = '已完成';
+        else if (r > 0) item.status = '部分收货';
+        else item.status = '待收货';
       });
       updateDocDiffs(receiveDoc.value);
       receiveDoc.value.batches.unshift({
@@ -5027,6 +5271,7 @@ createApp({
         status: '已完成',
         details,
       });
+      syncShipmentOrdersToV2Bridge(receiveDoc.value);
       receiveSubmitting.value = false;
       receiveVisible.value = false;
       ElementPlus.ElMessage.success(`收货成功，发货单已进入${receiveDoc.value.status}`);
@@ -6551,6 +6796,10 @@ createApp({
       selectedDocs,
       mainTableRef,
       expandedRowKeys,
+      editingRemarkId,
+      inlineRemarkText,
+      openInlineRemark,
+      saveInlineRemark,
       isAllExpanded,
       onExpandChange,
       toggleExpandAll,

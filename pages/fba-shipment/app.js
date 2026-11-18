@@ -393,10 +393,154 @@ const rawShipmentGroups=[
         linkedPlans:['SHP20261101-01']
       }
     ]
+  },
+  {
+    id:'fba-group-8',
+    shipmentNo:'FBA18ARC201',
+    shipmentName:'US-MIG200-ONT8-A',
+    isSta:1,
+    staInboundPlanId:'wf88110201-arc-ont8',
+    staDeliveryStartDate:'2026-11-24',
+    staDeliveryEndDate:'2026-11-30',
+    transportMode:'',
+    shipmentOrderNo:'',
+    lingxingOrderNo:'',
+    center:'ONT8',
+    seller:'ARCCAPTAIN主账号-US',
+    countryCode:'US',
+    reference:'201ONT8A',
+    creator:'王方圆',
+    created:'2026-11-17 10:15',
+    modified:'2026-11-17 10:15',
+    status:'WORKING',
+    isClosed:0,
+    children:[
+      {
+        id:'fba-8-1',
+        icon:'🧰',
+        sku:'ARC-MIG200-US',
+        msku:'SL-MIG200',
+        fnsku:'X004MIG200',
+        product:'逆变焊机 MIG200',
+        declared:12,
+        initDeclared:12,
+        sent:0,
+        received:0,
+        linkedPlans:[]
+      }
+    ]
+  },
+  {
+    id:'fba-group-9',
+    shipmentNo:'FBA18ARC202',
+    shipmentName:'US-MIG200-FTW1-B',
+    isSta:1,
+    staInboundPlanId:'wf88110202-arc-ftw1',
+    staDeliveryStartDate:'2026-11-24',
+    staDeliveryEndDate:'2026-11-30',
+    transportMode:'',
+    shipmentOrderNo:'',
+    lingxingOrderNo:'',
+    center:'FTW1',
+    seller:'ARCCAPTAIN主账号-US',
+    countryCode:'US',
+    reference:'202FTW1B',
+    creator:'王方圆',
+    created:'2026-11-17 10:18',
+    modified:'2026-11-17 10:18',
+    status:'WORKING',
+    isClosed:0,
+    children:[
+      {
+        id:'fba-9-1',
+        icon:'🧰',
+        sku:'ARC-MIG200-US',
+        msku:'SL-MIG200',
+        fnsku:'X004MIG200',
+        product:'逆变焊机 MIG200',
+        declared:8,
+        initDeclared:8,
+        sent:0,
+        received:0,
+        linkedPlans:[]
+      }
+    ]
+  },
+  {
+    id:'fba-group-10',
+    shipmentNo:'FBA18ARC203',
+    shipmentName:'US-MIG200-LGB8-C',
+    isSta:1,
+    staInboundPlanId:'wf88110203-arc-lgb8',
+    staDeliveryStartDate:'2026-11-25',
+    staDeliveryEndDate:'2026-12-01',
+    transportMode:'',
+    shipmentOrderNo:'',
+    lingxingOrderNo:'',
+    center:'LGB8',
+    seller:'ARCCAPTAIN主账号-US',
+    countryCode:'US',
+    reference:'203LGB8C',
+    creator:'王方圆',
+    created:'2026-11-17 10:25',
+    modified:'2026-11-17 10:25',
+    status:'WORKING',
+    isClosed:0,
+    children:[
+      {
+        id:'fba-10-1',
+        icon:'🧰',
+        sku:'ARC-MIG200-US',
+        msku:'SL-MIG200',
+        fnsku:'X004MIG200',
+        product:'逆变焊机 MIG200',
+        declared:15,
+        initDeclared:15,
+        sent:0,
+        received:0,
+        linkedPlans:[]
+      }
+    ]
+  },
+  {
+    id:'fba-group-11',
+    shipmentNo:'FBA18TEST001',
+    shipmentName:'US-BATCH-LGB8',
+    isSta:1,
+    staInboundPlanId:'wf88110204-test-lgb8',
+    staDeliveryStartDate:'2026-11-24',
+    staDeliveryEndDate:'2026-11-30',
+    transportMode:'',
+    shipmentOrderNo:'',
+    lingxingOrderNo:'',
+    center:'LGB8',
+    seller:'ARCCAPTAIN主账号-US',
+    countryCode:'US',
+    reference:'204TEST1',
+    creator:'Admin',
+    created:'2026-11-17 10:30',
+    modified:'2026-11-17 10:30',
+    status:'WORKING',
+    isClosed:0,
+    children:[
+      {
+        id:'fba-11-1',
+        icon:'📦',
+        sku:'TEST-LINK-INV-BATCH-OK',
+        msku:'TEST-BATCH-OK',
+        fnsku:'-',
+        product:'TEST-LINK-INV-BATCH-OK',
+        declared:2,
+        initDeclared:2,
+        sent:0,
+        received:0,
+        linkedPlans:[]
+      }
+    ]
   }
 ];
 
-/* 扩充至 16 个货件，便于验证状态、分页与筛选 */
+/* 扩充货件列表，便于验证状态、分页与筛选 */
 const extraCenters=['SMF6','SAT4','CMH3','MCO2','GYR2','MDW2','LAX9','ONT8','OLM1'];
 const extraRefs=['8XLEXZVR','61V8Z69K','8KCBLGFN','74ZCLRCP','4YCIKOEI','4A91HRQP','7KLP902W','3BNM881X','5RTY441Z'];
 const extraStatuses=['UNCONFIRMED','WORKING','READY_TO_SHIP','IN_TRANSIT','DELIVERED','CHECKED_IN','RECEIVING','CLOSED','CANCELLED'];
@@ -404,8 +548,8 @@ const extraTransports=['海运卡派','美森快船','空派','快递直发'];
 const fbaGroups=[
   ...rawShipmentGroups,
   ...Array.from({length:9},(_,idx)=>{
-    const base=rawShipmentGroups[idx%rawShipmentGroups.length];
-    const n=idx+8;
+    const base=rawShipmentGroups[idx%7];
+    const n=idx+12;
     const st=extraStatuses[idx%extraStatuses.length];
     const isClosed=st==='CLOSED'?1:0;
     const center=extraCenters[idx%extraCenters.length];
@@ -503,22 +647,56 @@ const fbaPlanOptions=rows.map(r=>({
 }));
 
 const FBA_PLAN_V2_BRIDGE_KEY='dmp_fba_plan_v2_bridge';
+if(typeof window!=='undefined'&&window.location&&window.location.search.includes('reset=1')){try{localStorage.removeItem(FBA_PLAN_V2_BRIDGE_KEY);}catch{}}
 function readV2Bridge(){
   try{
     const raw=JSON.parse(localStorage.getItem(FBA_PLAN_V2_BRIDGE_KEY)||'{}');
     return {
       links:raw&&typeof raw.links==='object'&&raw.links?raw.links:{},
+      shippingOrderLinks:raw&&typeof raw.shippingOrderLinks==='object'&&raw.shippingOrderLinks?raw.shippingOrderLinks:{},
       unlinkedPlans:Array.isArray(raw&&raw.unlinkedPlans)?raw.unlinkedPlans:[],
       v2PendingPlans:Array.isArray(raw&&raw.v2PendingPlans)?raw.v2PendingPlans:[],
       v2CustomPlans:Array.isArray(raw&&raw.v2CustomPlans)?raw.v2CustomPlans:[],
-      v2Overrides:raw&&typeof raw.v2Overrides==='object'&&raw.v2Overrides?raw.v2Overrides:{}
+      v2Overrides:raw&&typeof raw.v2Overrides==='object'&&raw.v2Overrides?raw.v2Overrides:{},
+      v2StatusFromUpstream:raw&&typeof raw.v2StatusFromUpstream==='object'&&raw.v2StatusFromUpstream?raw.v2StatusFromUpstream:{},
+      fbaShipmentsMeta:raw&&typeof raw.fbaShipmentsMeta==='object'&&raw.fbaShipmentsMeta?raw.fbaShipmentsMeta:{},
+      fbaShipmentOrderLinks:raw&&typeof raw.fbaShipmentOrderLinks==='object'&&raw.fbaShipmentOrderLinks?raw.fbaShipmentOrderLinks:{},
+      autoShippingOrders:Array.isArray(raw&&raw.autoShippingOrders)?raw.autoShippingOrders:[],
+      warehouseStockAdds:raw&&typeof raw.warehouseStockAdds==='object'&&raw.warehouseStockAdds?raw.warehouseStockAdds:{},
+      v2PickupDemands:Array.isArray(raw&&raw.v2PickupDemands)?raw.v2PickupDemands:[],
+      prelinkedShipments:Array.isArray(raw&&raw.prelinkedShipments)?raw.prelinkedShipments:[]
     };
   }catch{
-    return {links:{},unlinkedPlans:[],v2PendingPlans:[],v2CustomPlans:[],v2Overrides:{}};
+    return {links:{},shippingOrderLinks:{},unlinkedPlans:[],v2PendingPlans:[],v2CustomPlans:[],v2Overrides:{},v2StatusFromUpstream:{},fbaShipmentsMeta:{},fbaShipmentOrderLinks:{},autoShippingOrders:[],warehouseStockAdds:{},v2PickupDemands:[],prelinkedShipments:[]};
   }
 }
 function writeV2Bridge(bridge){
   try{localStorage.setItem(FBA_PLAN_V2_BRIDGE_KEY,JSON.stringify(bridge));}catch{}
+}
+function snapshotFbaShipmentsToBridge(){
+  const bridge=readV2Bridge();
+  bridge.fbaShipmentsMeta={};
+  fbaGroups.forEach(g=>{
+    bridge.fbaShipmentsMeta[g.shipmentNo]={
+      id:g.id,
+      shipmentNo:g.shipmentNo,
+      shipmentName:g.shipmentName||'',
+      reference:g.reference||'',
+      center:g.center||'',
+      seller:g.seller||'',
+      countryCode:g.countryCode||'US',
+      status:g.status||'',
+      shipmentOrderNo:g.shipmentOrderNo||'',
+      children:(g.children||[]).map(c=>({
+        id:c.id,
+        sku:c.sku,
+        product:c.product||'',
+        declared:Number(c.declared||0),
+        linkedPlans:[...(c.linkedPlans||[])]
+      }))
+    };
+  });
+  writeV2Bridge(bridge);
 }
 function findGroupByChildId(childId){
   return fbaGroups.find(g=>g.children.some(c=>c.id===childId));
@@ -533,13 +711,13 @@ function persistV2BridgeLink(planNo,shipmentNo,shipmentName,shipmentCount,declar
     declaredTotal:Number(declaredTotal||0)
   };
   bridge.unlinkedPlans=bridge.unlinkedPlans.filter(p=>p!==planNo);
-  bridge.v2PendingPlans=bridge.v2PendingPlans.filter(p=>p.plan!==planNo);
   writeV2Bridge(bridge);
 }
 function persistV2BridgeUnlink(planNo){
   if(!planNo)return;
   const bridge=readV2Bridge();
   delete bridge.links[planNo];
+  delete bridge.v2StatusFromUpstream[planNo];
   if(!bridge.unlinkedPlans.includes(planNo))bridge.unlinkedPlans.push(planNo);
   writeV2Bridge(bridge);
 }
@@ -567,18 +745,31 @@ function syncV2BridgeIntoFba(){
         store:vp.store,
         countryCode:'US',
         destinationWarehouse:vp.center,
-        status:vp.status||'待发货',
+        status:vp.status||'待创建货件',
+        statusKey:vp.statusKey||'pending_fba_create',
         quantity:vp.quantity,
         expectedShip:vp.shipDate,
         expectedArrival:vp.arrivalDate,
         remark:vp.remark||'',
+        pickupWarehouse:vp.pickupWarehouse||[],
         linkedShipments:[],
         fromV2:true
       });
+    }else{
+      const r=rows.find(x=>x.plan===vp.plan);
+      if(r){
+        r.status=vp.status||r.status;
+        r.statusKey=vp.statusKey||r.statusKey;
+        r.quantity=vp.quantity;
+        r.pickupWarehouse=vp.pickupWarehouse||r.pickupWarehouse;
+      }
     }
   });
   const unlinkedSet=new Set(bridge.unlinkedPlans);
   fbaGroups.forEach(g=>{
+    if(bridge.fbaShipmentOrderLinks&&bridge.fbaShipmentOrderLinks[g.shipmentNo]!==undefined){
+      g.shipmentOrderNo=bridge.fbaShipmentOrderLinks[g.shipmentNo];
+    }
     g.children.forEach(c=>{
       if(c.linkedPlans&&c.linkedPlans.length){
         c.linkedPlans=c.linkedPlans.filter(p=>!unlinkedSet.has(p));
@@ -586,21 +777,42 @@ function syncV2BridgeIntoFba(){
     });
   });
   fbaPlanOptions.forEach(p=>{
-    if(unlinkedSet.has(p.plan))p.status='待发货';
+    if(unlinkedSet.has(p.plan)){
+      p.status='待创建货件';
+      p.statusKey='pending_fba_create';
+    }
   });
   Object.entries(bridge.links).forEach(([planNo,info])=>{
     if(!info||!info.shipmentNo)return;
     const opt=fbaPlanOptions.find(p=>p.plan===planNo);
     const planSku=(opt&&opt.sku)||skuByPlan.get(planNo)||'';
-    if(opt)opt.status='已完成';
-    const grp=fbaGroups.find(g=>g.shipmentNo===info.shipmentNo);
-    if(!grp)return;
-    const already=grp.children.find(c=>(c.linkedPlans||[]).includes(planNo));
-    if(already)return;
-    const target=grp.children.find(c=>(!c.linkedPlans||!c.linkedPlans.length)&&(!planSku||String(c.sku).toLowerCase()===String(planSku).toLowerCase()))
-      ||grp.children.find(c=>!planSku||String(c.sku).toLowerCase()===String(planSku).toLowerCase());
-    if(target)target.linkedPlans=[planNo];
+    const up=bridge.v2StatusFromUpstream[planNo];
+    if(opt&&up){
+      opt.statusKey=up.status;
+      opt.status=up.status==='pending_review'?'待复核':up.status==='pending_shipping_order'?'待生成发货单':up.status==='pending_ship'?'待发货':opt.status;
+    }
+    const shipNos=String(info.shipmentNo).split(/[、,，]+/).map(s=>s.trim()).filter(Boolean);
+    const shipSet=new Set(shipNos);
+    fbaGroups.forEach(g=>{
+      if(!shipSet.has(g.shipmentNo)){
+        (g.children||[]).forEach(c=>{
+          if(Array.isArray(c.linkedPlans)&&c.linkedPlans.includes(planNo)){
+            c.linkedPlans=c.linkedPlans.filter(p=>p!==planNo);
+          }
+        });
+      }
+    });
+    shipNos.forEach(sNo=>{
+      const grp=fbaGroups.find(g=>g.shipmentNo===sNo);
+      if(!grp)return;
+      const already=grp.children.find(c=>(c.linkedPlans||[]).includes(planNo));
+      if(already)return;
+      const target=grp.children.find(c=>(!c.linkedPlans||!c.linkedPlans.length)&&(!planSku||String(c.sku).toLowerCase()===String(planSku).toLowerCase()))
+        ||grp.children.find(c=>!planSku||String(c.sku).toLowerCase()===String(planSku).toLowerCase());
+      if(target)target.linkedPlans=[planNo];
+    });
   });
+  snapshotFbaShipmentsToBridge();
 }
 
 const fbaStoreOptions=['ARCCAPTAIN主账号-US','ARCCAPTAIN主账号-CA','Amazon US 旗舰店','ARCCAP'];
@@ -823,12 +1035,12 @@ function canSelectGroup(group){
 }
 function disabledReasonForGroup(group){
   if(!canSelectGroup(group))return '当前货件无可勾选明细';
-  if(!canGenerateOrderForGroup(group))return '该货件不可再生成发货单，勾选将用于批量关联或取消关联发货计划';
+  if(!canGenerateOrderForGroup(group))return '该货件不可再生成发货单，勾选将用于取消关联发货计划';
   return '勾选此货件（联动勾选全部明细）';
 }
 function childCheckTitle(group,child){
   if(fbaLinked(child))return '该明细已关联发货计划，勾选可取消关联或参与生成所属货件的发货单';
-  return '勾选此明细以批量关联发货计划或生成发货单';
+  return '勾选此明细以参与生成所属货件的发货单（关联发货计划请前往「发货计划」操作）';
 }
 
 /* ===================== 列配置（参照采购计划一二级列表列配置，无固定列） ===================== */
@@ -1239,6 +1451,10 @@ function getCandidatePlansForItem(item,planSearch=''){
   if(!item)return [];
   return fbaPlanOptions.filter(plan=>{
     if(plan.status==='已作废'||plan.status==='已取消')return false;
+    if(plan.fromV2){
+      const allowed=['pending_fba_create','pending_review','pending_shipping_order'];
+      if(plan.statusKey&&!allowed.includes(plan.statusKey))return false;
+    }
     if(item.sku&&String(plan.sku).toLowerCase()!==item.sku.toLowerCase())return false;
     if(item.fnsku&&plan.fnsku&&plan.fnsku!=='-'&&String(plan.fnsku).toLowerCase()!==item.fnsku.toLowerCase())return false;
     if(item.seller){
@@ -1445,47 +1661,264 @@ function getLinkedShipmentsForPlan(planNo){
   });
   return res;
 }
+function mapDestWarehouseForAutoOrder(grp){
+  const seller=String(grp.seller||'').toUpperCase();
+  if(seller.includes('CA'))return '跨跃猫美西一件代发仓 多伦多3仓';
+  if(seller.includes('UK'))return 'UK-曼彻斯特海外仓';
+  if(seller.includes('DE'))return 'DE-法兰克福海外仓';
+  return '跨跃猫美西一件代发仓 美西仓';
+}
+function isPlanReadyForShippingOrder(planNo){
+  const bridge=readV2Bridge();
+  const up=bridge.v2StatusFromUpstream[planNo];
+  if(up)return up.status==='pending_shipping_order';
+  const opt=fbaPlanOptions.find(p=>p.plan===planNo);
+  if(opt&&opt.fromV2)return opt.statusKey==='pending_shipping_order';
+  return opt?opt.status==='待生成发货单'||opt.status==='待发货'||opt.status==='已完成':false;
+}
+function applyOrderGeneratedToPlans(bridge,planNos,fallbackOrderNo){
+  (planNos||[]).forEach(pNo=>{
+    if(!pNo)return;
+    const linkedForPlan=getLinkedShipmentsForPlan(pNo);
+    const allShipmentNos=linkedForPlan.map(x=>x.shipmentNo);
+    const hasPendingPrelink=(bridge.prelinkedShipments||[]).some(pr=>pr&&pr.planNo===pNo);
+    const allOrderNos=[...new Set(allShipmentNos.map(no=>{
+      if(bridge.fbaShipmentOrderLinks[no])return bridge.fbaShipmentOrderLinks[no];
+      const g=fbaGroups.find(x=>x.shipmentNo===no);
+      return (g&&g.shipmentOrderNo)||'';
+    }).filter(Boolean))];
+    const mergedOrderNos=allOrderNos.join('、')||fallbackOrderNo;
+    const allShipmentsGenerated=!hasPendingPrelink&&allShipmentNos.length>0&&allShipmentNos.every(no=>{
+      if(bridge.fbaShipmentOrderLinks[no])return true;
+      const g=fbaGroups.find(x=>x.shipmentNo===no);
+      return Boolean(g&&g.shipmentOrderNo);
+    });
+    bridge.shippingOrderLinks[pNo]=mergedOrderNos;
+    const curUp=bridge.v2StatusFromUpstream[pNo]||{};
+    const opt=fbaPlanOptions.find(p=>p.plan===pNo);
+    if(allShipmentsGenerated){
+      bridge.v2StatusFromUpstream[pNo]={...curUp,status:'pending_ship',arrivalSubStatus:'',shippingOrderNo:mergedOrderNos};
+      if(opt){opt.status='待发货';opt.statusKey='pending_ship';}
+    }else{
+      bridge.v2StatusFromUpstream[pNo]={...curUp,status:'pending_shipping_order',arrivalSubStatus:'',shippingOrderNo:mergedOrderNos};
+      if(opt){opt.status='待生成发货单';opt.statusKey='pending_shipping_order';}
+    }
+  });
+}
+function tryAutoGenerateDraftShippingOrders(shipmentNos){
+  const bridge=readV2Bridge();
+  const created=[];
+  const now=new Date().toISOString().replace('T',' ').slice(0,19);
+  (shipmentNos||[]).forEach(sNo=>{
+    const grp=fbaGroups.find(g=>g.shipmentNo===sNo);
+    if(!grp)return;
+    if(grp.shipmentOrderNo||bridge.fbaShipmentOrderLinks[grp.shipmentNo])return;
+    if(['DELETED','CANCELLED','ABANDONED'].includes(grp.status))return;
+    const children=grp.children||[];
+    if(!children.length||children.some(c=>!c.linkedPlans||!c.linkedPlans.length))return;
+    const planNos=[...new Set(children.flatMap(c=>c.linkedPlans||[]))];
+    if(!planNos.every(isPlanReadyForShippingOrder))return;
+
+    const orderNo=`DN${now.slice(0,10).replace(/-/g,'')}${String(Math.floor(100+Math.random()*899))}`;
+    const items=children.map(c=>{
+      const pNo=(c.linkedPlans||[])[0]||'';
+      const opt=fbaPlanOptions.find(p=>p.plan===pNo);
+      const decl=Number(c.declared||0);
+      return {
+        sku:c.sku,
+        name:c.product||opt?.product||c.sku,
+        plan:pNo,
+        remark:opt?.remark||'',
+        declare:decl,
+        planQty:Number(opt?.quantity||decl),
+        pick:0,
+        ship:0,
+        shipped:0,
+        receive:0,
+        status:'草稿'
+      };
+    });
+    const declTotal=items.reduce((s,it)=>s+Number(it.declare||0),0);
+    bridge.autoShippingOrders=bridge.autoShippingOrders.filter(o=>o.fbaShipmentNo!==grp.shipmentNo);
+    bridge.autoShippingOrders.unshift({
+      id:orderNo,
+      creator:'系统自动生成',
+      created:now.slice(0,10),
+      status:'草稿',
+      logistics:'未提交',
+      from:'跨跃猫物流仓',
+      to:mapDestWarehouseForAutoOrder(grp),
+      shipMode:'FBA直发',
+      channel:'—',
+      transport:'海卡（6000）',
+      provider:'—',
+      country:grp.countryCode==='US'?'美国 - US':(grp.countryCode||'美国 - US'),
+      warehouseType:'平台仓',
+      shipmentNo:grp.shipmentNo,
+      fbaShipmentNo:grp.shipmentNo,
+      referenceId:grp.reference||grp.shipmentName||'—',
+      remark:`由 FBA 货件 ${grp.shipmentNo} 关联全部计划均达「待生成发货单」后自动生成`,
+      plans:planNos.length,
+      skus:items.length,
+      planQty:items.reduce((s,it)=>s+Number(it.planQty||0),0),
+      declare:declTotal,
+      pick:0,
+      ship:0,
+      receive:0,
+      pendingReceive:0,
+      items
+    });
+    grp.shipmentOrderNo=orderNo;
+    bridge.fbaShipmentOrderLinks[grp.shipmentNo]=orderNo;
+    bridge.shippingOrderDestMap=bridge.shippingOrderDestMap||{};
+    bridge.shippingOrderDestMap[orderNo]=mapDestWarehouseForAutoOrder(grp);
+    applyOrderGeneratedToPlans(bridge,planNos,orderNo);
+    created.push(orderNo);
+  });
+  if(created.length){
+    writeV2Bridge(bridge);
+    snapshotFbaShipmentsToBridge();
+  }
+  return created;
+}
 function syncPlanLinkState(planNo){
   if(!planNo)return [];
   const linkedShipments=getLinkedShipmentsForPlan(planNo);
   const declaredTotal=linkedShipments.reduce((sum,x)=>sum+Number(x.declaredQty||0),0);
-  const nextStatus=linkedShipments.length>0?'已完成':'待发货';
   const opt=fbaPlanOptions.find(p=>p.plan===planNo);
-  if(opt)opt.status=nextStatus;
   const rawPlan=rows.find(r=>r.plan===planNo);
-  if(rawPlan){
-    rawPlan.status=nextStatus;
-    rawPlan.linkedShipments=linkedShipments.map(x=>x.shipmentNo);
-  }
+  const planQty=Number((opt&&opt.quantity)||(rawPlan&&rawPlan.quantity)||0);
+  const bridge=readV2Bridge();
+
   if(linkedShipments.length>0){
-    persistV2BridgeLink(
-      planNo,
-      linkedShipments.map(x=>x.shipmentNo).join('、'),
-      linkedShipments.map(x=>x.shipmentName).filter(Boolean).join('、'),
-      linkedShipments.length,
+    const diff=planQty>0?declaredTotal-planQty:0;
+    const nextStatusKey=diff!==0?'pending_review':'pending_shipping_order';
+    const nextStatusLabel=diff!==0?'待复核':'待生成发货单';
+    if(opt){opt.status=nextStatusLabel;opt.statusKey=nextStatusKey;}
+    if(rawPlan){
+      rawPlan.status=nextStatusLabel;
+      rawPlan.statusKey=nextStatusKey;
+      rawPlan.linkedShipments=linkedShipments.map(x=>x.shipmentNo);
+    }
+    const shipNos=linkedShipments.map(x=>x.shipmentNo).join('、');
+    const shipNames=linkedShipments.map(x=>x.shipmentName).filter(Boolean).join('、');
+    bridge.links[planNo]={
+      shipmentNo:shipNos,
+      shipmentName:shipNames,
+      shipmentCount:linkedShipments.length,
       declaredTotal
-    );
+    };
+    bridge.unlinkedPlans=bridge.unlinkedPlans.filter(p=>p!==planNo);
+    bridge.v2StatusFromUpstream[planNo]={
+      status:nextStatusKey,
+      arrivalSubStatus:'',
+      planDiff:diff,
+      fbaShipmentNo:shipNos,
+      fbaRefId:shipNames
+    };
+    writeV2Bridge(bridge);
   }else{
+    if(opt){opt.status='待创建货件';opt.statusKey='pending_fba_create';}
+    if(rawPlan){
+      rawPlan.status='待创建货件';
+      rawPlan.statusKey='pending_fba_create';
+      rawPlan.linkedShipments=[];
+    }
     persistV2BridgeUnlink(planNo);
   }
   return linkedShipments;
 }
-function confirmBatchLinkPlans(){
-  const pickedItems=fbaLinkModalState.items.filter(x=>Boolean(x.selectedPlan));
-  if(!pickedItems.length){toast('请至少为 1 条明细选择发货计划','error');return;}
+function executeBatchLinkPlans(pickedItems){
+  const affectedPlans=[];
+  const affectedShipments=new Set();
   pickedItems.forEach(item=>{
     const child=findFbaChild(item.childId);
     if(child){
-      /* 一个 FBA 货件明细只能关联 1 条发货计划，同一发货计划可被多个 FBA 货件关联 */
       child.linkedPlans=[item.selectedPlan.plan];
-      syncPlanLinkState(item.selectedPlan.plan);
+      if(!affectedPlans.includes(item.selectedPlan.plan))affectedPlans.push(item.selectedPlan.plan);
+      affectedShipments.add(item.shipmentNo);
       fbaState.selectedChildIds.delete(child.id);
       addPlanLog(item.selectedPlan.id,'关联FBA货件',`货件 ${item.shipmentNo}（SKU ${item.sku}）关联发货计划 ${item.selectedPlan.plan}`);
     }
   });
+  affectedPlans.forEach(planNo=>syncPlanLinkState(planNo));
+  snapshotFbaShipmentsToBridge();
+  const autoOrders=tryAutoGenerateDraftShippingOrders([...affectedShipments]);
   closeFbaPlanPopover();
   renderFbaTable();
-  toast(`已成功关联 ${pickedItems.length} 条明细的发货计划`);
+  const reviewCount=affectedPlans.filter(p=>{
+    const opt=fbaPlanOptions.find(x=>x.plan===p);
+    return opt&&opt.statusKey==='pending_review';
+  }).length;
+  if(autoOrders.length){
+    toast(`关联成功！货件已自动生成草稿发货单 ${autoOrders.join('、')}`);
+  }else if(reviewCount){
+    toast(`已关联 ${pickedItems.length} 条明细，其中 ${reviewCount} 条存在数量差异已提交计划「待复核」`);
+  }else{
+    toast(`已成功关联 ${pickedItems.length} 条明细，对应计划进入「待生成发货单」`);
+  }
+}
+function closeFbaDiffConfirm(){
+  $('#fbaDiffConfirmMask')?.classList.add('hidden');
+}
+function confirmBatchLinkPlans(){
+  const pickedItems=fbaLinkModalState.items.filter(x=>Boolean(x.selectedPlan));
+  if(!pickedItems.length){toast('请至少为 1 条明细选择发货计划','error');return;}
+
+  /* 预计算每个受影响计划关联后的累计 FBA 申报数量，检验是否存在差异 */
+  const pickedByPlan=new Map();
+  pickedItems.forEach(item=>{
+    const pNo=item.selectedPlan.plan;
+    if(!pickedByPlan.has(pNo))pickedByPlan.set(pNo,[]);
+    pickedByPlan.get(pNo).push(item);
+  });
+  const discrepancies=[];
+  pickedByPlan.forEach((items,planNo)=>{
+    const planObj=items[0].selectedPlan;
+    const planQty=Number(planObj.quantity||0);
+    if(planQty<=0)return;
+    const pickedChildIds=new Set(items.map(i=>i.childId));
+    let existingDeclared=0;
+    fbaGroups.forEach(g=>{
+      g.children.forEach(c=>{
+        if(!pickedChildIds.has(c.id)&&(c.linkedPlans||[]).includes(planNo)){
+          existingDeclared+=Number(c.declared||0);
+        }
+      });
+    });
+    const addedDeclared=items.reduce((s,i)=>s+Number(i.declared||0),0);
+    const totalDeclared=existingDeclared+addedDeclared;
+    if(totalDeclared!==planQty){
+      discrepancies.push({
+        planNo,
+        sku:planObj.sku,
+        planQty,
+        totalDeclared,
+        diff:totalDeclared-planQty
+      });
+    }
+  });
+
+  if(discrepancies.length){
+    $('#fbaDiffConfirmBody').innerHTML=discrepancies.map(d=>`
+      <tr>
+        <td><b>${d.planNo}</b></td>
+        <td>${d.sku}</td>
+        <td>${d.planQty}</td>
+        <td>${d.totalDeclared}</td>
+        <td><span style="color:#f56c6c;font-weight:600;">${d.diff>0?`+${d.diff}`:d.diff}</span></td>
+      </tr>`).join('');
+    $('#fbaDiffConfirmMask').classList.remove('hidden');
+    $('#fbaDiffProceedBtn').onclick=()=>{
+      closeFbaDiffConfirm();
+      executeBatchLinkPlans(pickedItems);
+    };
+    $('#fbaDiffCancelBtn').onclick=closeFbaDiffConfirm;
+    $('#fbaDiffConfirmClose').onclick=closeFbaDiffConfirm;
+    return;
+  }
+
+  executeBatchLinkPlans(pickedItems);
 }
 function findFbaChild(childId){return fbaGroups.flatMap(group=>group.children).find(child=>child.id===childId);}
 function openFbaUnlinkConfirm(childIds){
@@ -1502,7 +1935,7 @@ function openFbaUnlinkConfirm(childIds){
     const linkedCount=fbaGroups.flatMap(g=>g.children).filter(c=>(c.linkedPlans||[]).includes(linkedPlan)).length;
     const tailNote=linkedCount>1
       ?`该发货计划当前还关联着其他 ${linkedCount-1} 条货件明细，取消后仅解除本条关联。`
-      :'取消后该明细恢复为未关联状态，对应发货计划将回退至待发货。';
+      :'取消后该明细恢复为未关联状态，对应发货计划将回退至「待创建货件」。';
     $('#fbaUnlinkConfirmText').textContent=`确定要取消当前商品「${child.msku}（SKU: ${child.sku}）」与发货计划「${linkedPlan}」的关联吗？${tailNote}`;
   }else{
     const plans=[...new Set(targets.map(t=>t.linkedPlans[0]).filter(Boolean))];
@@ -1529,12 +1962,13 @@ function confirmFbaUnlink(){
     const remaining=syncPlanLinkState(planNo);
     if(!remaining.length)revertedPlans++;
   });
+  snapshotFbaShipmentsToBridge();
   closeFbaUnlinkConfirm();
   renderFbaTable();
   if(!unlinkedCount)return;
   if(unlinkedCount===1&&affectedPlans.length===1){
     toast(revertedPlans>0
-      ?`已取消关联发货计划 ${affectedPlans[0]}，计划已回退至待发货`
+      ?`已取消关联发货计划 ${affectedPlans[0]}，计划已回退至「待创建货件」`
       :`已取消关联发货计划 ${affectedPlans[0]}`
     );
   }else{
@@ -1749,8 +2183,14 @@ async function submitImportLink(){
     }
     match.child.linkedPlans=[plan.plan];
     syncPlanLinkState(plan.plan);
+    snapshotFbaShipmentsToBridge();
+    tryAutoGenerateDraftShippingOrders([match.group.shipmentNo]);
     addPlanLog(plan.id,'关联FBA货件',`SKU ${plan.sku} 关联货件 ${shipmentNo}（FNSKU=${fnsku}，店铺=${store}）`);
-    item.status='success';item.msg='关联成功，发货计划已关联至该 FBA 货件';
+    const opt=fbaPlanOptions.find(p=>p.plan===plan.plan);
+    item.status='success';
+    item.msg=opt&&opt.statusKey==='pending_review'
+      ?'关联成功，因数量存在差异已进入「待复核」'
+      :'关联成功，已进入「待生成发货单」/「待发货」';
     items.push(item);
   }
   importLinkState.resultItems=items;
@@ -1863,24 +2303,106 @@ function syncSelectionUi(pageData){
     };
   }
 
-  /* 同步【生成发货单】、【关联发货计划】与【取消关联】按钮状态与数量 */
+  /* 同步【生成发货单】、【同步领星货件】与【取消关联】按钮状态与数量 */
   const genGroups=getSelectedGenOrderGroups();
   const genBtn=$('#createShipmentOrderBtn');
   if(genBtn){
     genBtn.disabled=genGroups.length===0;
     genBtn.textContent=genGroups.length>0?`生成发货单（${genGroups.length}）`:'生成发货单';
   }
-  const linkChildIds=getSelectedUnlinkedChildIds();
-  const linkBtn=$('#batchLinkPlanBtn');
-  if(linkBtn){
-    linkBtn.disabled=false;
-    linkBtn.textContent=linkChildIds.length>0?`关联发货计划（${linkChildIds.length}）`:'关联发货计划';
+  const syncBtn=$('#syncFbaPrelinksBtn');
+  if(syncBtn){
+    const preCount=(readV2Bridge().prelinkedShipments||[]).length;
+    syncBtn.textContent=preCount>0?`同步领星货件（${preCount} 待同步）`:'同步领星货件';
   }
   const unlinkChildIds=getSelectedLinkedChildIds();
   const unlinkBtn=$('#batchUnlinkPlanBtn');
   if(unlinkBtn){
     unlinkBtn.disabled=unlinkChildIds.length===0;
     unlinkBtn.textContent=unlinkChildIds.length>0?`取消关联（${unlinkChildIds.length}）`:'取消关联';
+  }
+}
+
+function syncPrelinkedShipmentsFromLingxing(){
+  const bridge=readV2Bridge();
+  const pending=Array.isArray(bridge.prelinkedShipments)?bridge.prelinkedShipments:[];
+  if(!pending.length){
+    toast('当前暂无待同步的预关联 FBA 货件（所有已同步货件均为最新）');
+    return;
+  }
+  const now=new Date().toISOString().replace('T',' ').slice(0,19);
+  const byShip=new Map();
+  pending.forEach(item=>{
+    if(!item||!item.shipmentNo)return;
+    const sNo=String(item.shipmentNo).trim().toUpperCase();
+    if(!byShip.has(sNo))byShip.set(sNo,[]);
+    byShip.get(sNo).push(item);
+  });
+  const affectedPlans=new Set();
+  const syncedNos=[];
+  byShip.forEach((items,shipmentNo)=>{
+    let grp=fbaGroups.find(g=>g.shipmentNo===shipmentNo);
+    const first=items[0];
+    if(!grp){
+      grp={
+        id:`fba-group-sync-${Date.now()}-${Math.floor(Math.random()*999)}`,
+        shipmentNo,
+        shipmentName:`${first.country||'US'}-${first.sku}-SYNC`,
+        isSta:1,
+        staInboundPlanId:`wf-sync-${shipmentNo.toLowerCase()}`,
+        staDeliveryStartDate:now.slice(0,10),
+        staDeliveryEndDate:now.slice(0,10),
+        transportMode:'',
+        shipmentOrderNo:'',
+        lingxingOrderNo:'',
+        center:'ONT8',
+        seller:first.store==='ARCCAPTAIN_US'?'ARCCAPTAIN主账号-US':(first.store||'ARCCAPTAIN主账号-US'),
+        countryCode:first.country||'US',
+        reference:`SYNC-${shipmentNo.slice(-4)}`,
+        creator:'领星同步',
+        created:now.slice(0,16),
+        modified:now.slice(0,16),
+        status:'WORKING',
+        isClosed:0,
+        children:[]
+      };
+      fbaGroups.unshift(grp);
+    }
+    items.forEach((item,idx)=>{
+      const decl=Number(item.declaredHint>0?item.declaredHint:(item.planShipQty||0));
+      let child=grp.children.find(c=>String(c.sku).toLowerCase()===String(item.sku).toLowerCase()&&((!c.linkedPlans||!c.linkedPlans.length)||(c.linkedPlans||[]).includes(item.planNo)));
+      if(!child){
+        child={
+          id:`fba-sync-${shipmentNo}-${Date.now()}-${idx}`,
+          icon:'📦',
+          sku:item.sku,
+          msku:item.sku,
+          fnsku:item.fnsku||'-',
+          product:item.productName||item.sku,
+          declared:decl,
+          initDeclared:decl,
+          sent:0,
+          received:0,
+          linkedPlans:item.planNo?[item.planNo]:[]
+        };
+        grp.children.push(child);
+      }else if(item.planNo&&!(child.linkedPlans||[]).includes(item.planNo)){
+        child.linkedPlans=[...(child.linkedPlans||[]),item.planNo];
+      }
+      if(item.planNo)affectedPlans.add(item.planNo);
+    });
+    syncedNos.push(shipmentNo);
+  });
+  bridge.prelinkedShipments=[];
+  writeV2Bridge(bridge);
+  affectedPlans.forEach(pNo=>syncPlanLinkState(pNo));
+  snapshotFbaShipmentsToBridge();
+  const autoOrders=tryAutoGenerateDraftShippingOrders(syncedNos);
+  renderFbaTable();
+  if(autoOrders.length){
+    toast(`已同步预关联货件 ${syncedNos.join('、')}，数量无差异并自动生成草稿发货单 ${autoOrders.join('、')}`);
+  }else{
+    toast(`已从领星同步 ${syncedNos.length} 个预关联货件，并完成发货计划关联校验`);
   }
 }
 
@@ -2209,6 +2731,9 @@ function submitGenOrders(asDraft){
 
   /* 全部校验通过：一个货件生成一张发货单，回写发货单号与运输方式 */
   const generatedNos=[];
+  const bridge=readV2Bridge();
+  const nextOrderStatus=asDraft?'草稿':'待发货';
+  const nowStr=new Date().toISOString().replace('T',' ').slice(0,19);
   genOrderState.groupIds.forEach(id=>{
     const d=genOrderState.drafts[id];
     const grp=fbaGroups.find(g=>g.id===id);
@@ -2223,15 +2748,63 @@ function submitGenOrders(asDraft){
         if(ch)ch.sent=Number(skuItem.declareQty||0);
       });
     }
+    const items=d.skus.map(s=>({
+      sku:s.sku,
+      name:s.product||s.sku,
+      plan:s.planNo||'',
+      remark:s.skuRemark||'',
+      declare:Number(s.declareQty||0),
+      planQty:Number(s.planQty||s.declareQty||0),
+      pick:0,
+      ship:0,
+      shipped:0,
+      receive:0,
+      status:nextOrderStatus
+    }));
+    bridge.autoShippingOrders=bridge.autoShippingOrders.filter(o=>o.fbaShipmentNo!==grp.shipmentNo);
+    bridge.autoShippingOrders.unshift({
+      id:orderNo,
+      creator:'Admin',
+      created:nowStr.slice(0,10),
+      status:nextOrderStatus,
+      logistics:'未提交',
+      from:d.from||'跨跃猫物流仓',
+      to:d.to||mapDestWarehouseForAutoOrder(grp),
+      shipMode:d.shipMode||'FBA直发',
+      channel:d.channel||'—',
+      transport:d.transport||'海卡（6000）',
+      provider:d.provider||'—',
+      country:d.country||'美国 - US',
+      warehouseType:d.warehouseType||'平台仓',
+      shipmentNo:grp.shipmentNo,
+      fbaShipmentNo:grp.shipmentNo,
+      referenceId:grp.reference||grp.shipmentName||'—',
+      remark:d.remark||`由 FBA 货件 ${grp.shipmentNo} 生成`,
+      plans:new Set(items.map(i=>i.plan).filter(Boolean)).size,
+      skus:items.length,
+      planQty:items.reduce((s,i)=>s+Number(i.planQty||0),0),
+      declare:items.reduce((s,i)=>s+Number(i.declare||0),0),
+      pick:0,
+      ship:0,
+      receive:0,
+      pendingReceive:0,
+      items
+    });
+    bridge.fbaShipmentOrderLinks[grp.shipmentNo]=orderNo;
+    bridge.shippingOrderDestMap=bridge.shippingOrderDestMap||{};
+    bridge.shippingOrderDestMap[orderNo]=d.to||'美西FBA仓';
+    applyOrderGeneratedToPlans(bridge,[...new Set(items.map(it=>it.plan).filter(Boolean))],orderNo);
     generatedNos.push(orderNo);
     grp.children.forEach(c=>fbaState.selectedChildIds.delete(c.id));
   });
+  writeV2Bridge(bridge);
+  snapshotFbaShipmentsToBridge();
 
   closeGenOrderDialog();
   renderFbaTable();
   toast(asDraft
     ?`已为 ${generatedNos.length} 个货件保存发货单草稿（${generatedNos.join('、')}）`
-    :`已成功生成 ${generatedNos.length} 张发货单（${generatedNos.join('、')}），已进入待提货`
+    :`已成功生成 ${generatedNos.length} 张发货单（${generatedNos.join('、')}），已进入「待发货」`
   );
 }
 
@@ -2348,19 +2921,8 @@ function initFbaView(){
   $('#fbaPrevPage').onclick=()=>{if(fbaState.page>1){fbaState.page--;renderFbaTable();}};
   $('#fbaNextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(getFbaVisibleGroups().length/fbaState.pageSize));if(fbaState.page<pages){fbaState.page++;renderFbaTable();}};
 
-  $('#fbaPlanSearchBtn').onclick=()=>{readFbaPlanQuery();fbaState.planPage=1;renderFbaPlanList();};
-  $('#fbaPlanResetBtn').onclick=()=>{resetFbaPlanQuery();renderFbaPlanList();};
-  $('#fbaPlanSearch').addEventListener('keydown',event=>{if(event.key==='Enter')$('#fbaPlanSearchBtn').click();});
-  $('#fbaPopoverClose').onclick=closeFbaPlanPopover;
-  $('#fbaLinkCancelBtn').onclick=closeFbaPlanPopover;
-  $('#fbaLinkConfirmBtn').onclick=confirmBatchLinkPlans;
-  $('#fbaLinkTabManual').onclick=()=>switchFbaLinkTab('manual');
-  $('#fbaLinkTabImport').onclick=()=>switchFbaLinkTab('import');
-  $('#fbaLinkGoSelectBtn').onclick=closeFbaPlanPopover;
-  $('#fbaLinkGoImportBtn').onclick=()=>switchFbaLinkTab('import');
-  $('#fbaLinkModalMask').onclick=e=>{if(e.target.id==='fbaLinkModalMask')closeFbaPlanPopover();};
-  $('#batchLinkPlanBtn').onclick=()=>openFbaPlanPopover(getSelectedUnlinkedChildIds());
   $('#batchUnlinkPlanBtn').onclick=()=>openFbaUnlinkConfirm(getSelectedLinkedChildIds());
+  $('#syncFbaPrelinksBtn').onclick=syncPrelinkedShipmentsFromLingxing;
   $('#fbaExportBtn').onclick=()=>{
     const groups=getFbaVisibleGroups();
     if(!groups.length){toast('当前筛选条件下暂无可导出的数据','error');return;}
@@ -2374,8 +2936,6 @@ function initFbaView(){
   $('#fbaUnlinkCancel').onclick=closeFbaUnlinkConfirm;
   $('#fbaUnlinkConfirm').onclick=confirmFbaUnlink;
   $('#fbaUnlinkConfirmMask').onclick=event=>{if(event.target.id==='fbaUnlinkConfirmMask')closeFbaUnlinkConfirm();};
-  $('#fbaPlanPrevPage').onclick=()=>{if(fbaState.planPage>1){fbaState.planPage--;renderFbaPlanList();}};
-  $('#fbaPlanNextPage').onclick=()=>{const pages=Math.max(1,Math.ceil(filteredFbaPlans().length/fbaState.planPageSize));if(fbaState.planPage<pages){fbaState.planPage++;renderFbaPlanList();}};
   window.addEventListener('resize',()=>{layoutFbaQuery();});
 }
 
@@ -2491,6 +3051,5 @@ function initColumnConfigDrawer(){
 }
 
 initFbaView();
-initImportLink();
 initGenOrderDialog();
 initColumnConfigDrawer();

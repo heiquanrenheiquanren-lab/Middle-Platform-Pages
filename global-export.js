@@ -93,7 +93,7 @@
     var task = {
       id: uid(), taskType: options.taskType || sourcePage + '导出', templateName: options.templateName || sourcePage + '导出',
       sourcePage: sourcePage, status: 'processing', operator: 'Admin', startedAt: nowText(), completedAt: '—', duration: '—',
-      failureReason: '—', filterSnapshot: options.filterSnapshot || getFilterSnapshot(), fileType: options.fileType || (sourcePage === '产品列表' ? 'xlsx' : 'csv')
+      failureReason: '—', filterSnapshot: options.filterSnapshot || getFilterSnapshot(), fileType: options.fileType || (sourcePage === '产品列表' || sourcePage === '头程费用' ? 'xlsx' : 'csv')
     };
     tasks.unshift(task); saveTasks(); updateBadge();
     showToast('导出任务已创建，可在右上角导出中心查看');
@@ -207,7 +207,7 @@
     if (isDownloadExpired(task)) { showToast('超过 24 小时，文件已过期，请回到页面重新导出', 'gx-toast-error'); return; }
     saveTasks(); renderTable();
     var content = '\ufeff任务类型,模板名称,来源页面,筛选条件快照\n' + [task.taskType, task.templateName, task.sourcePage, task.filterSnapshot || '当前页面筛选条件'].map(function (value) { return '"' + String(value).replace(/"/g, '""') + '"'; }).join(',') + '\n';
-    var isXlsx = task.fileType === 'xlsx' || task.sourcePage === '产品列表';
+    var isXlsx = task.fileType === 'xlsx' || task.sourcePage === '产品列表' || task.sourcePage === '头程费用';
     if (isXlsx) content = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body><table><tr><th>任务类型</th><th>模板名称</th><th>来源页面</th><th>筛选条件快照</th></tr><tr><td>' + task.taskType + '</td><td>' + task.templateName + '</td><td>' + task.sourcePage + '</td><td>' + (task.filterSnapshot || '当前页面筛选条件') + '</td></tr></table></body></html>';
     var link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([content], { type: isXlsx ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8' : 'text/csv;charset=utf-8' })); link.download = (task.templateName || '导出结果') + (isXlsx ? '.xlsx' : '.csv'); link.click(); URL.revokeObjectURL(link.href); showToast('文件已开始下载');
   }

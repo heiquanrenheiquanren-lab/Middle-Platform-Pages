@@ -3,27 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>供应商列表｜供应链</title>
+  <title>供应商列表｜基础</title>
   <link rel="stylesheet" href="./management.css?v=1.0.17">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="app">
-    <header class="global-bar"><div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon">财务</button><button class="top-icon active">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button></div><div class="global-right"><span class="admin">Admin⌄</span></div></header>
+    <header class="global-bar"><div class="global-left"><span class="brand-shield"></span><button class="top-icon">工作台</button><button class="top-icon active">基础</button><button class="top-icon">财务</button><button class="top-icon">供应链</button><button class="top-icon">运营</button><button class="top-icon">产品</button></div><div class="global-right"><span class="admin">Admin⌄</span></div></header>
     <div class="shell">
-      <aside class="sidebar" aria-label="供应链菜单"><div class="nav-scroll">
-        <div class="nav-group-title"><span>♙</span><span>库存管理</span><span class="chev">⌃</span></div>
-        <div class="nav-item" data-page-nav="inventoryQuery"><span class="mini">▤</span>库存查询</div>
-        <div class="nav-item" data-page-nav="processingOrder"><span class="mini">▦</span>加工单</div>
-        <div class="nav-group-title"><span>♧</span><span>计划管理</span><span class="chev">⌃</span></div>
-        <div class="nav-item" data-page-nav="forecast"><span class="mini">▣</span>需求预测</div>
-        <div class="nav-item" data-page-nav="stock"><span class="mini">▤</span>备货计划</div>
-        <div class="nav-item" data-page-nav="purchase"><span class="mini">▥</span>采购计划</div>
-        <div class="nav-item" data-page-nav="shipment"><span class="mini">♨</span>发货计划 V1</div>
-        <div class="nav-group-title"><span>▱</span><span>供应链协同</span><span class="chev">⌃</span></div>
-        <div class="nav-item" data-page-nav="purchaseOrder"><span class="mini">▰</span>采购单</div>
-        <div class="nav-item" data-page-nav="shipmentOrder"><span class="mini">▤</span>发货单</div>
+      <aside class="sidebar" aria-label="基础菜单"><div class="nav-scroll">
+        <div class="nav-group-title"><span>♙</span><span>权限管理</span><span class="chev">⌃</span></div>
+        <div class="nav-item">账号管理</div>
+        <div class="nav-item">部门管理</div>
+        <div class="nav-item" data-page-nav="roleManagement">角色管理</div>
+        <div class="nav-item">菜单管理</div>
+        <div class="nav-item" data-page-nav="workflowManagement">流程管理</div>
+        <div class="nav-item">系统日志</div>
+        <div class="nav-group-title"><span>⚙</span><span>基础配置</span><span class="chev">⌃</span></div>
+        <div class="nav-item">平台管理</div>
+        <div class="nav-item">团队管理</div>
+        <div class="nav-item" data-page-nav="warehouseSku">仓库管理</div>
+        <div class="nav-item">国家管理</div>
+        <div class="nav-item">站点管理</div>
+        <div class="nav-item active" data-page-nav="supplierList"><span class="mini">▤</span>供应商列表</div>
         </div></aside>
       <main class="main supplier-list-main">
         <section class="query-panel" aria-label="供应商查询">

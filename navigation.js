@@ -20,7 +20,7 @@
     forecast: '../demand-forecast/index.html',
     stock: '../stock-plan/index.html',
     purchase: '../purchase-plan-2/index.html',
-    shipment: '../shipment-plan/index.html',
+    shipment: '../shipment-plan-v2/index.html',
     shipmentV2: '../shipment-plan-v2/index.html',
     purchaseOrder: '../purchase-orders/index.html',
     purchaseChange: '../purchase-changes/index.html',
@@ -318,22 +318,25 @@
   }
 
   function mountSupplierNav() {
-    var titles = Array.prototype.slice.call(document.querySelectorAll('.nav-group-title, .side-nav > .nav-section'));
-    titles.forEach(function (title) {
-      if ((title.textContent || '').indexOf('供应链协同') < 0) return;
-      var container = title.parentElement;
+    document.querySelectorAll('.nav-item, .side-nav .nav-item, [data-base-page="站点管理"]').forEach(function (source) {
+      if ((source.textContent || '').replace(/\s+/g, '') !== '站点管理') return;
+      var container = source.parentElement;
       if (!container || container.querySelector('[data-page-nav="supplierList"]')) return;
-      var lastItem = title;
-      while (lastItem.nextElementSibling && lastItem.nextElementSibling.matches('.nav-item')) lastItem = lastItem.nextElementSibling;
-      var group = document.createElement('div');
-      group.className = title.className;
-      group.innerHTML = '<span>▤</span><span>供应商管理</span><span class="chev">⌃</span>';
-      var item = document.createElement('div');
-      item.className = 'nav-item' + (location.pathname.indexOf('/supplier-list/') >= 0 ? ' active' : '');
+      var item = source.cloneNode(true);
+      if (item.tagName === 'BUTTON') {
+        var div = document.createElement('div');
+        div.className = 'nav-item' + (location.pathname.indexOf('/supplier-list/') >= 0 ? ' active' : '');
+        div.setAttribute('data-page-nav', 'supplierList');
+        div.innerHTML = '<span class="nav-symbol">▤</span><span>供应商列表</span>';
+        source.insertAdjacentElement('afterend', div);
+        return;
+      }
+      item.removeAttribute('data-base-page');
       item.setAttribute('data-page-nav', 'supplierList');
+      item.classList.remove('active');
+      if (location.pathname.indexOf('/supplier-list/') >= 0) item.classList.add('active');
       item.innerHTML = '<span class="mini">▤</span>供应商列表';
-      lastItem.insertAdjacentElement('afterend', group);
-      group.insertAdjacentElement('afterend', item);
+      source.insertAdjacentElement('afterend', item);
     });
   }
 
@@ -358,7 +361,7 @@
       item.setAttribute('data-page-nav', 'historicalPurchasePrice');
       item.classList.remove('active');
       if (location.pathname.indexOf('/historical-purchase-price/') >= 0) item.classList.add('active');
-      item.innerHTML = '<span class="mini">⌁</span>历史采购价';
+      item.innerHTML = '<span class="mini">⌁</span>采购价分析';
       source.insertAdjacentElement('afterend', item);
     });
   }
@@ -391,29 +394,22 @@
     });
   }
 
-  function mountShipmentV2Nav() {
-    document.querySelectorAll('[data-page-nav="shipment"]').forEach(function (source) {
-      var container = source.parentElement;
-      if (!container || container.querySelector('[data-page-nav="shipmentV2"]')) return;
-      var item = source.cloneNode(true);
-      item.setAttribute('data-page-nav', 'shipmentV2');
-      item.classList.remove('active');
-      if (location.pathname.indexOf('/shipment-plan-v2/') >= 0) item.classList.add('active');
-      var icon = item.querySelector('.mini, .nav-icon');
-      if (icon) {
-        item.innerHTML = '';
-        item.appendChild(icon.cloneNode(true));
-        if (icon.classList.contains('nav-icon')) {
-          var span = document.createElement('span');
-          span.textContent = '发货计划 V2';
-          item.appendChild(span);
-        } else {
-          item.appendChild(document.createTextNode('发货计划 V2'));
-        }
+  function normalizeShipmentPlanNav() {
+    document.querySelectorAll('[data-page-nav="shipmentV2"]').forEach(function (v2) {
+      var container = v2.parentElement;
+      if (container && container.querySelector('[data-page-nav="shipment"]')) {
+        v2.remove();
       } else {
-        item.textContent = '发货计划 V2';
+        v2.setAttribute('data-page-nav', 'shipment');
       }
-      source.insertAdjacentElement('afterend', item);
+    });
+    document.querySelectorAll('[data-page-nav="shipment"]').forEach(function (item) {
+      var walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+      var node;
+      while ((node = walker.nextNode())) {
+        node.nodeValue = node.nodeValue.replace(/发货计划\s*V[12]/g, '发货计划');
+      }
+      if (location.pathname.indexOf('/shipment-plan-v2/') >= 0) item.classList.add('active');
     });
   }
 
@@ -805,7 +801,7 @@
     mountPurchaseChangeNav();
     mountHistoricalPurchasePriceNav();
     mountFbaShipmentNav();
-    mountShipmentV2Nav();
+    normalizeShipmentPlanNav();
     renameWarehouseNavigation();
 
     var collapsed = false;
