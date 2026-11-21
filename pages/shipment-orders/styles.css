@@ -146,9 +146,11 @@
 .minimal-card-head .el-button{height:30px;border-radius:6px}
 .create-dialog .public-form{padding:0 16px 16px}
 .create-dialog .public-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px}
-.create-dialog .public-form .el-form-item{display:block;margin:0;min-width:0}
-.create-dialog .public-form .el-form-item__label{display:block;float:none;width:auto!important;justify-content:flex-start;height:auto;padding:0 0 6px;line-height:18px;font-size:12px;color:#606266}
-.create-dialog .public-form .el-form-item__content{display:block;margin-left:0!important;width:100%;min-width:0}
+.create-dialog .public-form .el-form-item{display:flex;align-items:center;gap:8px;margin:0;min-width:0}
+.create-dialog .public-form .el-form-item__label{flex:none;width:78px!important;justify-content:flex-end;text-align:right;height:auto;padding:0;line-height:32px;font-size:12px;color:#606266;white-space:nowrap}
+.create-dialog .public-form .el-form-item__content{flex:1;margin-left:0!important;min-width:0}
+.create-dialog .remark-row .el-form-item{align-items:flex-start}
+.create-dialog .remark-row .el-form-item__label{width:56px!important}
 .create-dialog .address-area{margin-top:12px;padding-top:12px;border-top:1px solid #f0f2f5}
 .create-dialog .address-block{margin-bottom:10px}
 .create-dialog .address-block:last-of-type{margin-bottom:0}
@@ -217,9 +219,14 @@
 .detail-dialog .box-header{background:#fafbfc;border-bottom:1px solid #f0f2f5}
 .detail-dialog .detail-section-hint{font-size:12px;font-weight:400;color:#909399}
 
-/* —— 提货/收货/发货/手动完结/数量调整：中性汇总条与工具栏 —— */
-.pickup-summary,.quantity-adjust-summary,.receive-summary{border:1px solid #eef1f6;border-radius:8px;background:#f5f7fa}
-.receive-toolbar{background:#fafbfc;border:1px solid #eef1f6;border-radius:6px}
+/* —— 提货/收货/发货/手动完结/数量调整/导入/差异明细：统一白卡简约风格 —— */
+.el-dialog.is-align-center{margin:auto!important}
+.pickup-summary,.quantity-adjust-summary,.receive-summary,.import-guide,.receive-toolbar,.pickup-dialog .pickup-table-wrap,.receive-dialog .pickup-table-wrap,.ship-dialog .pickup-table-wrap,.quantity-adjust-dialog .quantity-adjust-table-wrap{border:1px solid #e7ecf3;border-radius:8px;background:#fff;box-shadow:0 1px 2px rgba(31,45,61,.04)}
+.el-dialog .el-table__header th.el-table__cell{height:38px;background:#f5f7fa;color:#606266;font-size:12px;font-weight:600}
+.el-dialog .el-table--border .el-table__cell{border-right:0!important;border-bottom-color:#f0f2f5!important}
+.el-dialog .el-table__body tr:hover>td.el-table__cell{background:#f5faff}
+.el-dialog .el-table--border::after,.el-dialog .el-table--border .el-table__inner-wrapper::after{display:none}
+.pickup-footer .pickup-footer-actions .el-button,.import-footer-actions .el-button,.dialog-footer .el-button{height:32px;min-width:72px;border-radius:6px}
 .processing-batch-summary{background:#fff;border:1px solid #e7ecf3;border-radius:8px;box-shadow:0 1px 2px rgba(31,45,61,.04)}
 .processing-batch-summary .batch-summary-info b{color:#303133}
 .cost-apportion-summary{border:1px solid #eef1f6;border-radius:8px;background:#f5f7fa;color:#606266}

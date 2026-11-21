@@ -111,6 +111,8 @@
     { key: 'planQtyTotal', label: '计划提货总量', tableClass: 'num-col', num: true },
     { key: 'receivedQtyTotal', label: '已入库总量', tableClass: 'num-col', num: true },
     { key: 'expectedDate', label: '预计提货日期', tableClass: 'date-col' },
+    { key: 'providerPickup', label: '服务商包提货', tableClass: 'pickup-flag-col' },
+    { key: 'pickupFee', label: '提货运费', tableClass: 'fee-col', num: true },
     { key: 'remark', label: '备注', tableClass: 'remark-col' },
     { key: 'creator', label: '创建人', tableClass: 'creator-col' },
     { key: 'createdAt', label: '创建时间', tableClass: 'created-at-col' }
@@ -206,6 +208,8 @@
     status: '草稿',
     target: DEFAULT_TARGET,
     carrier: '跨越猫头程车队',
+    providerPickup: false,
+    pickupFee: 0,
     remark: '',
     expectedDate: '',
     completedAt: '—',
@@ -229,16 +233,16 @@
       createdAt: '2026-11-17 09:30',
       remark: '多提货仓合提草稿示例（含 1 个计划 3 仓合提、2 仓合提与同 SKU 跨计划汇总）',
       items: [
-        makeItem({ planNo: 'YMX20261117-18', shipmentOrderNo: 'DN20261117901', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', sku: 'ARC-TIG200-US', lingxingSku: 'ARC-TIG200-US', name: '氩弧焊机 TIG200', fnsku: 'X004TIG200', supplierSku: 'SUP-TIG-02', planShipQty: 30, planQty: 12, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '同一计划分 3 个前置仓合提至跨跃猫', destWarehouse: 'ONT8-美西FBA仓' }),
-        makeItem({ planNo: 'YMX20261117-18', shipmentOrderNo: 'DN20261117901', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '坪山石井本地仓', sku: 'ARC-TIG200-US', lingxingSku: 'ARC-TIG200-US', name: '氩弧焊机 TIG200', fnsku: 'X004TIG200', supplierSku: 'SUP-TIG-02', planShipQty: 30, planQty: 8, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '同一计划分 3 个前置仓合提至跨跃猫', destWarehouse: 'ONT8-美西FBA仓' }),
-        makeItem({ planNo: 'YMX20261117-18', shipmentOrderNo: 'DN20261117901', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: 'ARC-TIG200-US', lingxingSku: 'ARC-TIG200-US', name: '氩弧焊机 TIG200', fnsku: 'X004TIG200', supplierSku: 'SUP-TIG-02', planShipQty: 30, planQty: 10, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '同一计划分 3 个前置仓合提至跨跃猫', destWarehouse: 'ONT8-美西FBA仓' }),
-        makeItem({ planNo: 'YMX20261117-12', shipmentOrderNo: '', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', sku: 'ARC-MIG200-US', lingxingSku: 'ARC-MIG200-US', name: '逆变焊机 MIG200', fnsku: 'X004MIG200', supplierSku: 'SUP-MIG-01', planShipQty: 20, planQty: 12, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '2 仓分提备货批次', destWarehouse: '' }),
-        makeItem({ planNo: 'YMX20261117-12', shipmentOrderNo: '', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '坪山石井本地仓', sku: 'ARC-MIG200-US', lingxingSku: 'ARC-MIG200-US', name: '逆变焊机 MIG200', fnsku: 'X004MIG200', supplierSku: 'SUP-MIG-01', planShipQty: 20, planQty: 8, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '2 仓分提备货批次', destWarehouse: '' }),
-        makeItem({ planNo: 'YMX20261105-10', shipmentOrderNo: '', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', sku: 'ARC-MIG200-US', lingxingSku: 'ARC-MIG200-US', name: '逆变焊机 MIG200', fnsku: 'X004MIG200', supplierSku: 'SUP-MIG-01', planShipQty: 20, planQty: 20, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: 'FBA按整箱建单少了2件，待复核确认', destWarehouse: '' })
+        makeItem({ planNo: 'SP2611170002', shipmentOrderNo: 'DN20261117901', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', sku: 'ARC-TIG200-US', lingxingSku: 'ARC-TIG200-US', name: '氩弧焊机 TIG200', fnsku: 'X004TIG200', supplierSku: 'SUP-TIG-02', planShipQty: 30, planQty: 12, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '同一计划分 3 个前置仓合提至跨跃猫', destWarehouse: 'ONT8-美西FBA仓' }),
+        makeItem({ planNo: 'SP2611170002', shipmentOrderNo: 'DN20261117901', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '坪山石井本地仓', sku: 'ARC-TIG200-US', lingxingSku: 'ARC-TIG200-US', name: '氩弧焊机 TIG200', fnsku: 'X004TIG200', supplierSku: 'SUP-TIG-02', planShipQty: 30, planQty: 8, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '同一计划分 3 个前置仓合提至跨跃猫', destWarehouse: 'ONT8-美西FBA仓' }),
+        makeItem({ planNo: 'SP2611170002', shipmentOrderNo: 'DN20261117901', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: 'ARC-TIG200-US', lingxingSku: 'ARC-TIG200-US', name: '氩弧焊机 TIG200', fnsku: 'X004TIG200', supplierSku: 'SUP-TIG-02', planShipQty: 30, planQty: 10, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '同一计划分 3 个前置仓合提至跨跃猫', destWarehouse: 'ONT8-美西FBA仓' }),
+        makeItem({ planNo: 'SP2611170001', shipmentOrderNo: '', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', sku: 'ARC-MIG200-US', lingxingSku: 'ARC-MIG200-US', name: '逆变焊机 MIG200', fnsku: 'X004MIG200', supplierSku: 'SUP-MIG-01', planShipQty: 20, planQty: 12, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '2 仓分提备货批次', destWarehouse: '' }),
+        makeItem({ planNo: 'SP2611170001', shipmentOrderNo: '', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '坪山石井本地仓', sku: 'ARC-MIG200-US', lingxingSku: 'ARC-MIG200-US', name: '逆变焊机 MIG200', fnsku: 'X004MIG200', supplierSku: 'SUP-MIG-01', planShipQty: 20, planQty: 8, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '2 仓分提备货批次', destWarehouse: '' }),
+        makeItem({ planNo: 'SP2611050001', shipmentOrderNo: '', team: '亚马逊团队', opsOwner: '王方圆', pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', sku: 'ARC-MIG200-US', lingxingSku: 'ARC-MIG200-US', name: '逆变焊机 MIG200', fnsku: 'X004MIG200', supplierSku: 'SUP-MIG-01', planShipQty: 20, planQty: 20, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: 'FBA按整箱建单少了2件，待复核确认', destWarehouse: '' })
       ],
       logs: [
-        { type: '自动生成', content: '来源计划 YMX20261117-18（摩仕达12 + 坪山石井8 + 常州佳士10，共30件）自动创建草稿', operator: '系统自动', time: '2026-11-17 09:30' },
-        { type: '自动合并', content: '来源计划 YMX20261117-12（摩仕达12 + 坪山石井8）及 YMX20261105-10（摩仕达20）自动并入当前草稿', operator: '系统自动', time: '2026-11-17 09:50' }
+        { type: '新增', content: '来源计划 SP2611170002（摩仕达12 + 坪山石井8 + 常州佳士10，共30件）自动创建草稿', operator: '系统自动', time: '2026-11-17 09:30' },
+        { type: '同步', content: '来源计划 SP2611170001（摩仕达12 + 坪山石井8）及 SP2611050001（摩仕达20）自动并入当前草稿', operator: '系统自动', time: '2026-11-17 09:50' }
       ]
     }),
     makeOrder({
@@ -252,10 +256,10 @@
       createdAt: '2026-11-17 10:40',
       remark: '常州市佳士精密仓库待提草稿',
       items: [
-        makeItem({ planNo: 'WEM20261105-11', shipmentOrderNo: '', team: '北美大件组', opsOwner: '陈晓', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: '153US0000024', lingxingSku: '153US0000024', name: '焊枪配件套装', fnsku: '—', supplierSku: 'SUP-153-24', planShipQty: 30, planQty: 30, platform: '沃尔玛', store: 'WEM_Walmart_US', country: 'US', planRemark: '已确认待物流生成发货单', destWarehouse: '' })
+        makeItem({ planNo: 'SP2611050003', shipmentOrderNo: '', team: '北美大件组', opsOwner: '陈晓', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: '153US0000024', lingxingSku: '153US0000024', name: '焊枪配件套装', fnsku: '—', supplierSku: 'SUP-153-24', planShipQty: 30, planQty: 30, platform: '沃尔玛', store: 'WEM_Walmart_US', country: 'US', planRemark: '已确认待物流生成发货单', destWarehouse: '' })
       ],
       logs: [
-        { type: '自动生成', content: '来源计划 WEM20261105-11（常州市佳士精密工业有限公司仓库 · 30件）自动创建草稿', operator: '系统自动', time: '2026-11-17 10:40' }
+        { type: '新增', content: '来源计划 SP2611050003（常州市佳士精密工业有限公司仓库 · 30件）自动创建草稿', operator: '系统自动', time: '2026-11-17 10:40' }
       ]
     }),
     makeOrder({
@@ -269,12 +273,12 @@
       createdAt: '2026-11-16 14:20',
       remark: '一车跨坪山石井本地仓 + 摩仕达仓库多点提货',
       items: [
-        makeItem({ planNo: 'YMX20261106-1', shipmentOrderNo: 'DN20260808001', team: '刘绎天', opsOwner: '毛粤风', pickupWarehouse: '坪山石井本地仓', sku: 'DD123456', lingxingSku: 'DD123456', name: '测试-DD123456', fnsku: '—', supplierSku: 'SUP-DD-01', planShipQty: 26, planQty: 16, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '旺季海外仓补货', destWarehouse: '跨跃猫美西一件代发仓 纽约仓' }),
-        makeItem({ planNo: 'YMX20261106-1', shipmentOrderNo: 'DN20260808001', team: '刘绎天', opsOwner: '毛粤风', pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', sku: 'DD123456', lingxingSku: 'DD123456', name: '测试-DD123456', fnsku: '—', supplierSku: 'SUP-DD-01', planShipQty: 26, planQty: 10, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '旺季海外仓补货', destWarehouse: '跨跃猫美西一件代发仓 纽约仓' })
+        makeItem({ planNo: 'SP2611060001', shipmentOrderNo: 'DN20260808001', team: '刘绎天', opsOwner: '毛粤风', pickupWarehouse: '坪山石井本地仓', sku: 'DD123456', lingxingSku: 'DD123456', name: '测试-DD123456', fnsku: '—', supplierSku: 'SUP-DD-01', planShipQty: 26, planQty: 16, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '旺季海外仓补货', destWarehouse: '跨跃猫美西一件代发仓 纽约仓' }),
+        makeItem({ planNo: 'SP2611060001', shipmentOrderNo: 'DN20260808001', team: '刘绎天', opsOwner: '毛粤风', pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', sku: 'DD123456', lingxingSku: 'DD123456', name: '测试-DD123456', fnsku: '—', supplierSku: 'SUP-DD-01', planShipQty: 26, planQty: 10, platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', planRemark: '旺季海外仓补货', destWarehouse: '跨跃猫美西一件代发仓 纽约仓' })
       ],
       logs: [
-        { type: '自动生成', content: '由发货计划 YMX20261106-1 两个提货仓合并创建草稿', operator: '系统自动', time: '2026-11-16 14:15' },
-        { type: '提交', content: '提交提货单，进入「提货中」，已指派粤B·8H2K9前往 2 个提货仓揽货', operator: 'Admin', time: '2026-11-16 14:20' }
+        { type: '新增', content: '由发货计划 SP2611060001 两个提货仓合并创建草稿', operator: '系统自动', time: '2026-11-16 14:15' },
+        { type: '编辑', content: '提交提货单，进入「提货中」，已指派粤B·8H2K9前往 2 个提货仓揽货', operator: 'Admin', time: '2026-11-16 14:20' }
       ]
     }),
     makeOrder({
@@ -288,15 +292,15 @@
       createdAt: '2026-11-15 11:00',
       remark: '多提货仓分批入库：坪山先到 12/14 件，常州仓 10 件在途待入',
       items: [
-        makeItem({ planNo: 'WEM20261105-9', shipmentOrderNo: 'DN20260808004', team: '北美大件组', opsOwner: '毛粤风', pickupWarehouse: '坪山石井本地仓', sku: '153US0000031', lingxingSku: '153US0000031', name: '不锈钢焊丝', fnsku: '—', supplierSku: 'SUP-153-31', planShipQty: 24, planQty: 14, receivedQty: 12, platform: '沃尔玛', store: 'WEM_Walmart_US', country: 'US', planRemark: '发货单已发出，部分入库中', destWarehouse: '跨跃猫美西一件代发仓 纽约仓' }),
-        makeItem({ planNo: 'WEM20261105-9', shipmentOrderNo: 'DN20260808004', team: '北美大件组', opsOwner: '毛粤风', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: '153US0000031', lingxingSku: '153US0000031', name: '不锈钢焊丝', fnsku: '—', supplierSku: 'SUP-153-31', planShipQty: 24, planQty: 10, receivedQty: 0, platform: '沃尔玛', store: 'WEM_Walmart_US', country: 'US', planRemark: '发货单已发出，部分入库中', destWarehouse: '跨跃猫美西一件代发仓 纽约仓' })
+        makeItem({ planNo: 'SP2611050002', shipmentOrderNo: 'DN20260808004', team: '北美大件组', opsOwner: '毛粤风', pickupWarehouse: '坪山石井本地仓', sku: '153US0000031', lingxingSku: '153US0000031', name: '不锈钢焊丝', fnsku: '—', supplierSku: 'SUP-153-31', planShipQty: 24, planQty: 14, receivedQty: 12, platform: '沃尔玛', store: 'WEM_Walmart_US', country: 'US', planRemark: '发货单已发出，部分入库中', destWarehouse: '跨跃猫美西一件代发仓 纽约仓' }),
+        makeItem({ planNo: 'SP2611050002', shipmentOrderNo: 'DN20260808004', team: '北美大件组', opsOwner: '毛粤风', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: '153US0000031', lingxingSku: '153US0000031', name: '不锈钢焊丝', fnsku: '—', supplierSku: 'SUP-153-31', planShipQty: 24, planQty: 10, receivedQty: 0, platform: '沃尔玛', store: 'WEM_Walmart_US', country: 'US', planRemark: '发货单已发出，部分入库中', destWarehouse: '跨跃猫美西一件代发仓 纽约仓' })
       ],
       batches: [
-        { no: 'TH20261115004-01', date: '2026-11-16 16:40', receiver: '跨跃猫陈仓管', qty: 12, remark: '第一批到仓签收', details: [{ planNo: 'WEM20261105-9', pickupWarehouse: '坪山石井本地仓', sku: '153US0000031', qty: 12 }] }
+        { no: 'TH20261115004-01', date: '2026-11-16 16:40', receiver: '跨跃猫陈仓管', qty: 12, remark: '第一批到仓签收', details: [{ planNo: 'SP2611050002', pickupWarehouse: '坪山石井本地仓', sku: '153US0000031', qty: 12 }] }
       ],
       logs: [
-        { type: '提交', content: '提交进入「提货中」', operator: '张敏', time: '2026-11-15 11:05' },
-        { type: '入库签收', content: '批次 TH20261115004-01 入库跨跃猫物流仓 12 件，单据进入「部分入库」', operator: '跨跃猫陈仓管', time: '2026-11-16 16:40' }
+        { type: '编辑', content: '提交进入「提货中」', operator: '张敏', time: '2026-11-15 11:05' },
+        { type: '编辑', content: '批次 TH20261115004-01 入库跨跃猫物流仓 12 件，单据进入「部分入库」', operator: '跨跃猫陈仓管', time: '2026-11-16 16:40' }
       ]
     }),
     makeOrder({
@@ -311,14 +315,14 @@
       createdAt: '2026-11-12 09:20',
       remark: '德国补货前置提货已完成入库',
       items: [
-        makeItem({ planNo: 'WEM20261104-3', shipmentOrderNo: 'DN20260808002', team: '欧洲运营组', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: 'FF123456', lingxingSku: 'FF123456', name: '测试-FF123456', fnsku: 'X003FF1234', supplierSku: 'SUP-FF-03', planShipQty: 60, planQty: 60, receivedQty: 60, platform: '亚马逊', store: 'ARCCAPTAIN_DE', country: 'DE', destWarehouse: 'DE-法兰克福海外仓' })
+        makeItem({ planNo: 'SP2611040001', shipmentOrderNo: 'DN20260808002', team: '欧洲运营组', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: 'FF123456', lingxingSku: 'FF123456', name: '测试-FF123456', fnsku: 'X003FF1234', supplierSku: 'SUP-FF-03', planShipQty: 60, planQty: 60, receivedQty: 60, platform: '亚马逊', store: 'ARCCAPTAIN_DE', country: 'DE', destWarehouse: 'DE-法兰克福海外仓' })
       ],
       batches: [
-        { no: 'TH20261112005-01', date: '2026-11-13 17:10', receiver: '跨跃猫周主管', qty: 60, remark: '全额签收入库', details: [{ planNo: 'WEM20261104-3', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: 'FF123456', qty: 60 }] }
+        { no: 'TH20261112005-01', date: '2026-11-13 17:10', receiver: '跨跃猫周主管', qty: 60, remark: '全额签收入库', details: [{ planNo: 'SP2611040001', pickupWarehouse: '常州市佳士精密工业有限公司仓库', sku: 'FF123456', qty: 60 }] }
       ],
       logs: [
-        { type: '提交', content: '提交进入「提货中」', operator: '李晨', time: '2026-11-12 09:25' },
-        { type: '入库签收', content: '全部签收入库跨跃猫物流仓 60 件，单据完成', operator: '跨跃猫周主管', time: '2026-11-13 17:10' }
+        { type: '编辑', content: '提交进入「提货中」', operator: '李晨', time: '2026-11-12 09:25' },
+        { type: '编辑', content: '全部签收入库跨跃猫物流仓 60 件，单据完成', operator: '跨跃猫周主管', time: '2026-11-13 17:10' }
       ]
     }),
     makeOrder({
@@ -332,11 +336,11 @@
       createdAt: '2026-11-10 15:40',
       remark: '上游计划取消作废',
       items: [
-        makeItem({ planNo: 'WEM20261104-2', shipmentOrderNo: '', team: 'Jasic团队', pickupWarehouse: '坪山石井本地仓', sku: 'EE123456', lingxingSku: 'EE123456', name: '测试-EE123456', fnsku: '—', supplierSku: 'SUP-EE-04', planShipQty: 24, planQty: 24, platform: 'Ozon', store: 'Ozon_Direct', country: 'RU', destWarehouse: 'UK-曼彻斯特海外仓' })
+        makeItem({ planNo: 'SP2611040002', shipmentOrderNo: '', team: 'Jasic团队', pickupWarehouse: '坪山石井本地仓', sku: 'EE123456', lingxingSku: 'EE123456', name: '测试-EE123456', fnsku: '—', supplierSku: 'SUP-EE-04', planShipQty: 24, planQty: 24, platform: 'Ozon', store: 'Ozon_Direct', country: 'RU', destWarehouse: 'UK-曼彻斯特海外仓' })
       ],
       logs: [
-        { type: '创建', content: '创建提货单草稿', operator: 'Admin', time: '2026-11-10 15:40' },
-        { type: '作废', content: '对应发货计划已取消，提货单作废', operator: 'Admin', time: '2026-11-10 16:00' }
+        { type: '新增', content: '创建提货单草稿', operator: 'Admin', time: '2026-11-10 15:40' },
+        { type: '编辑', content: '对应发货计划已取消，作废提货单', operator: 'Admin', time: '2026-11-10 16:00' }
       ]
     })
   ];
@@ -368,6 +372,12 @@
     return existing;
   }
 
+  const WAREHOUSE_SUPPLIER_MAP = {
+    '常州市佳士精密工业有限公司仓库': 'JASIC 供应商',
+    '深圳市摩仕达焊接设备有限公司仓库': '摩仕达供应链',
+    '坪山石井本地仓': 'ARCCAP 供应商'
+  };
+
   function runFifoPurchaseAutoInbound({ order, batchNo, date, receiver, picks, anomalyType, anomalyNote, bridge }) {
     const catalog = ensurePoCatalog(bridge);
     bridge.purchaseAutoInbound = Array.isArray(bridge.purchaseAutoInbound) ? bridge.purchaseAutoInbound : [];
@@ -380,16 +390,20 @@
 
     picks.forEach(({ item, qty }) => {
       let remain = Number(qty || 0);
-      const candidates = [];
+      const expectedSupplier = WAREHOUSE_SUPPLIER_MAP[item.pickupWarehouse] || '';
+      const allCandidates = [];
       catalog.forEach(po => {
         if (!activeStatuses.has(po.status)) return;
         (po.items || []).forEach(line => {
           if (line.sku === item.sku && Number(line.transitQty || 0) > 0) {
-            candidates.push({ po, line });
+            allCandidates.push({ po, line });
           }
         });
       });
-      candidates.sort((a, b) => String(a.po.createdAt || '').localeCompare(String(b.po.createdAt || '')));
+      allCandidates.sort((a, b) => String(a.po.createdAt || '').localeCompare(String(b.po.createdAt || '')));
+      // 同供应商约束：若提货仓有明确对应供应商且目录存在该供应商订单，优先并限定在同供应商内冲减，避免误冲其他供应商应付账款
+      const sameSupCandidates = expectedSupplier ? allCandidates.filter(c => c.po.supplier === expectedSupplier) : [];
+      const candidates = sameSupCandidates.length ? sameSupCandidates : (expectedSupplier ? [] : allCandidates);
 
       const allocs = [];
       const deductFrom = (pool, crossTeam) => {
@@ -614,7 +628,7 @@
         if (targetDraft) {
           targetDraft.items.push(newItem);
           targetDraft.logs.unshift({
-            type: '自动合并',
+            type: '同步',
             content: `同提货仓计划 ${d.planNo}（${wh} · ${qty}件）自动并入当前草稿`,
             operator: '系统自动',
             time: NOW
@@ -631,7 +645,7 @@
             remark: `由发货计划自动生成（${wh}）`,
             items: [newItem],
             logs: [{
-              type: '自动生成',
+              type: '新增',
               content: `来源计划 ${d.planNo}（${wh} · ${qty}件）自动创建提货单草稿，目标入库仓：${DEFAULT_TARGET}`,
               operator: '系统自动',
               time: NOW
@@ -668,24 +682,81 @@
     return mask;
   }
 
+  const multiState = { sourceWarehouse: new Set(), team: new Set(), creator: new Set() };
+  const multiInstances = [];
+  function initMultiSelect(id, options, selectedSet, placeholder) {
+    const root = $(id);
+    if (!root) return;
+    const trigger = $('[data-trigger]', root);
+    const menu = $('[data-menu]', root);
+    const sync = () => {
+      const vals = [...selectedSet];
+      trigger.textContent = vals.length ? (vals.length === 1 ? vals[0] : `已选 ${vals.length} 项`) : placeholder;
+      trigger.classList.toggle('has-value', vals.length > 0);
+      trigger.title = vals.join('、');
+    };
+    const renderMenu = () => {
+      menu.innerHTML = options.map(opt => `<label class="multi-opt"><input type="checkbox" value="${esc(opt)}" ${selectedSet.has(opt) ? 'checked' : ''}><span>${esc(opt)}</span></label>`).join('');
+      $$('input', menu).forEach(cb => cb.onchange = e => {
+        if (e.target.checked) selectedSet.add(cb.value);
+        else selectedSet.delete(cb.value);
+        sync();
+      });
+    };
+    trigger.onclick = e => {
+      e.stopPropagation();
+      const willOpen = !menu.classList.contains('open');
+      $$('.multi .dropdown.open').forEach(m => { m.classList.remove('open'); m.previousElementSibling?.classList.remove('open'); });
+      if (willOpen) {
+        renderMenu();
+        menu.classList.add('open');
+        trigger.classList.add('open');
+      }
+    };
+    menu.onclick = e => e.stopPropagation();
+    sync();
+    multiInstances.push({ sync });
+  }
+  document.addEventListener('click', () => {
+    $$('.multi .dropdown.open').forEach(m => { m.classList.remove('open'); m.previousElementSibling?.classList.remove('open'); });
+  });
+
   function filtered() {
-    const type = $('#codeType').value, keys = split($('#codeText').value), skuKeys = split($('#skuText').value);
-    const source = $('#sourceWarehouseQuery').value, target = $('#targetWarehouseQuery').value;
-    const creator = $('#creatorQuery').value, team = $('#teamQuery').value;
+    const type = $('#codeType').value, keys = split($('#codeText').value);
+    const skuType = $('#skuType').value, rawSku = $('#skuText').value.trim().toLowerCase(), skuKeys = split(rawSku);
+    const providerPickup = $('#providerPickupQuery') ? $('#providerPickupQuery').value : '';
+    const sourceType = $('#sourceTypeQuery') ? $('#sourceTypeQuery').value : '';
     const timeType = $('#timeType').value, start = $('#startDate').value, end = $('#endDate').value;
     return orders
       .filter(o => state.status === '全部' || o.status === state.status)
       .filter(o => !keys.length || keys.some(k => {
-        const hay = type === 'no' ? o.no : type === 'planNo' ? orderPlans(o).join(' ') : type === 'shipNo' ? orderShipNos(o).join(' ') : (o.batches || []).map(b => b.no).join(' ');
-        return String(hay).toLowerCase().includes(k);
+        const list = type === 'no' ? [o.no] : type === 'planNo' ? orderPlans(o) : type === 'shipNo' ? orderShipNos(o) : (o.batches || []).map(b => b.no);
+        return list.some(v => String(v || '').toLowerCase() === k);
       }))
-      .filter(o => !skuKeys.length || o.items.some(i => skuKeys.some(k => `${i.sku} ${i.lingxingSku} ${i.name}`.toLowerCase().includes(k))))
-      .filter(o => !source || o.items.some(i => i.pickupWarehouse === source))
-      .filter(o => !target || o.target === target)
-      .filter(o => !team || o.items.some(i => i.team === team))
-      .filter(o => !creator || o.creator === creator)
-      .filter(o => !start || String(o[timeType] || '').slice(0, 10) >= start)
-      .filter(o => !end || String(o[timeType] || '').slice(0, 10) <= end);
+      .filter(o => {
+        if (!rawSku) return true;
+        if (skuType === 'name') return o.items.some(i => String(i.name || '').toLowerCase().includes(rawSku));
+        if (skuType === 'lingxingSku') return o.items.some(i => skuKeys.includes(String(i.lingxingSku || '').toLowerCase()));
+        return o.items.some(i => skuKeys.includes(String(i.sku || '').toLowerCase()));
+      })
+      .filter(o => !multiState.sourceWarehouse.size || o.items.some(i => multiState.sourceWarehouse.has(i.pickupWarehouse)))
+      .filter(o => !multiState.team.size || o.items.some(i => multiState.team.has(i.team)))
+      .filter(o => !multiState.creator.size || multiState.creator.has(o.creator))
+      .filter(o => !providerPickup || (providerPickup === '是' ? Boolean(o.providerPickup) : !o.providerPickup))
+      .filter(o => {
+        if (!sourceType) return true;
+        if (sourceType === 'plan') return o.items.some(i => !i.isNoPlan && i.planNo);
+        if (sourceType === 'noPlan') return o.items.some(i => i.isNoPlan || !i.planNo);
+        if (sourceType === 'pureNoPlan') return o.items.length > 0 && o.items.every(i => i.isNoPlan || !i.planNo);
+        return true;
+      })
+      .filter(o => {
+        if (!start && !end) return true;
+        const val = String(o[timeType] || '');
+        if (!val || val === '—') return false;
+        const day = val.slice(0, 10);
+        return (!start || day >= start) && (!end || day <= end);
+      });
   }
 
   function renderTabs() {
@@ -833,10 +904,13 @@
       return '<button class="link" data-action="edit">编辑</button><button class="link log-link" data-action="log">日志</button>';
     }
     if (o.status === '提货中') {
-      return '<button class="link" data-action="receive">入库签收</button><button class="link log-link" data-action="log">日志</button>';
+      return '<button class="link" data-action="edit">编辑</button><button class="link" data-action="receive">入库签收</button><button class="link log-link" data-action="log">日志</button>';
     }
     if (o.status === '部分入库') {
       return '<button class="link" data-action="receive">继续入库</button><button class="link" data-action="complete">手动完结</button><button class="link log-link" data-action="log">日志</button>';
+    }
+    if (o.status === '已作废') {
+      return '<button class="link" data-action="edit">编辑</button><button class="link log-link" data-action="log">日志</button>';
     }
     return '<button class="link log-link" data-action="log">日志</button>';
   }
@@ -845,13 +919,17 @@
     const selectedOrders = [...state.selected].map(id => orders.find(o => o.id === id)).filter(Boolean);
     const submitBtn = $('#batchSubmitBtn');
     const voidBtn = $('#batchVoidBtn');
+    const showSubmit = state.status === '全部' || state.status === '草稿';
+    const showVoid = state.status === '全部' || state.status === '草稿' || state.status === '提货中';
 
     if (submitBtn) {
+      submitBtn.hidden = !showSubmit;
       const canSubmit = selectedOrders.some(o => o.status === '草稿' && (o.items || []).length > 0);
       submitBtn.disabled = !canSubmit;
       submitBtn.title = canSubmit ? '将所选草稿提货单提交至「提货中」' : '请勾选至少 1 张「草稿」提货单';
     }
     if (voidBtn) {
+      voidBtn.hidden = !showVoid;
       const canVoid = selectedOrders.some(o => o.status === '草稿' || (o.status === '提货中' && sum(o.items, 'receivedQty') === 0));
       voidBtn.disabled = !canVoid;
       voidBtn.title = canVoid ? '作废所选未入库提货单' : '请勾选「草稿」或未入库的「提货中」提货单';
@@ -881,6 +959,8 @@
         if (c.key === 'planQtyTotal') return `<td class="num-col">${planTotal.toLocaleString()}</td>`;
         if (c.key === 'receivedQtyTotal') return `<td class="num-col">${recvTotal.toLocaleString()}</td>`;
         if (c.key === 'expectedDate') return `<td>${esc(o.expectedDate || '—')}</td>`;
+        if (c.key === 'providerPickup') return `<td><span class="pp-status ${o.providerPickup ? 'pp-status--done' : 'pp-status--draft'}">${o.providerPickup ? '是' : '否'}</span></td>`;
+        if (c.key === 'pickupFee') return `<td class="num-col">${o.pickupFee != null && Number(o.pickupFee) > 0 ? `¥${Number(o.pickupFee).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '¥0.00'}</td>`;
         if (c.key === 'remark') {
           return `<td><div class="batch-remark"><span class="batch-remark__text" title="${esc(o.remark || '暂无备注')}">${esc(o.remark || '—')}</span><button class="batch-remark__edit" type="button" data-remark-id="${o.id}" title="编辑备注" aria-label="编辑备注">${PENCIL_ICON}</button></div></td>`;
         }
@@ -1039,43 +1119,95 @@
 
   function itemsTable(items) {
     if (!items.length) {
-      return '<div class="empty" style="padding:40px 0;color:#909399;text-align:center">暂未添加提货明细，可点击「引入发货计划」或「+ 追加无计划提货（清库/凑重）」添加明细</div>';
+      return '<div class="empty" style="padding:40px 0;color:#909399;text-align:center">暂未添加提货明细，请点击「新建提货」添加明细（无需关联发货计划，适用于清库 / 凑重 / 呆滞尾货等场景）</div>';
     }
-    return `<table class="pickup-editor-table"><thead><tr><th>SKU</th><th style="width:200px">产品名称</th><th>发货计划号</th><th>关联发货单</th><th style="width:155px"><span style="color:#f56c6c">*</span> 团队（无计划必填）</th><th style="width:240px">提货仓</th><th>计划提货量</th><th>操作</th></tr></thead><tbody>${
+    return `<table class="pickup-editor-table"><thead><tr><th>SKU</th><th style="width:200px">产品名称</th><th>发货计划号</th><th>关联发货单</th><th style="width:155px"><span style="color:#f56c6c">*</span> 团队<button class="batch-fill-trigger" type="button" data-batch-col="team">批量</button></th><th style="width:245px"><span style="color:#f56c6c">*</span> 提货仓<button class="batch-fill-trigger" type="button" data-batch-col="pickupWarehouse">批量</button></th><th style="width:135px"><span style="color:#f56c6c">*</span> 计划提货量<button class="batch-fill-trigger" type="button" data-batch-col="planQty">批量</button></th><th style="width:72px">操作</th></tr></thead><tbody>${
       items.map((i, idx) => {
         const noPlan = Boolean(i.isNoPlan || !i.planNo);
+        const qtyVal = Number(i.planQty) > 0 ? Number(i.planQty) : '';
         return `<tr data-idx="${idx}">
         <td>${esc(i.sku)}</td>
         <td class="product"><div class="detail-product"><img class="detail-product__img" src="${esc(i.imageUrl || PLACEHOLDER_IMG)}" alt=""><span class="detail-product__name">${esc(i.name)}</span></div></td>
         <td>${noPlan ? '<span class="no-plan-tag">无计划补提</span>' : `<b>${esc(i.planNo)}</b>`}</td>
         <td>${i.shipmentOrderNo ? `<span class="dn-tag">${esc(i.shipmentOrderNo)}</span>` : '—'}</td>
-        <td><div class="editor-team-wrap">${noPlan ? '<span class="editor-team-req" title="无计划提货必须选择团队">*</span>' : ''}<select class="control editor-team ${!i.team ? 'is-missing' : ''}" data-idx="${idx}"><option value="" ${!i.team ? 'selected' : ''}>请选择团队（必填）</option>${TEAMS.map(t => `<option value="${t}" ${i.team === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div></td>
-        <td><select class="control editor-wh" data-idx="${idx}">${PICKUP_WAREHOUSES.map(w => `<option ${i.pickupWarehouse === w ? 'selected' : ''}>${w}</option>`).join('')}</select></td>
-        <td><div class="qty-cell"><input class="control editor-qty" type="number" min="1" value="${i.planQty}"></div></td>
+        <td><select class="control editor-team ${!i.team ? 'is-missing' : ''}" data-idx="${idx}"><option value="" ${!i.team ? 'selected' : ''}>请选择团队</option>${TEAMS.map(t => `<option value="${t}" ${i.team === t ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
+        <td><select class="control editor-wh ${!i.pickupWarehouse ? 'is-missing' : ''}" data-idx="${idx}"><option value="" ${!i.pickupWarehouse ? 'selected' : ''}>请选择提货仓</option>${PICKUP_WAREHOUSES.map(w => `<option value="${w}" ${i.pickupWarehouse === w ? 'selected' : ''}>${w}</option>`).join('')}</select></td>
+        <td><div class="qty-cell"><input class="control editor-qty ${!qtyVal ? 'is-missing' : ''}" type="number" min="1" value="${qtyVal}" placeholder="必填"></div></td>
         <td><button class="link remove" type="button">移除</button></td>
       </tr>`;
       }).join('')
     }</tbody></table>`;
   }
 
+  function openBatchColPopover(anchor, colKey, mask) {
+    $$('.remark-popover').forEach(el => el.remove());
+    if (!state.editingItems.length) return;
+    const inputHtml = colKey === 'team'
+      ? `<select class="control" id="batchPopVal"><option value="">请选择团队</option>${TEAMS.map(t => `<option value="${t}">${t}</option>`).join('')}</select>`
+      : colKey === 'pickupWarehouse'
+        ? `<select class="control" id="batchPopVal"><option value="">请选择提货仓</option>${PICKUP_WAREHOUSES.map(w => `<option value="${w}">${w}</option>`).join('')}</select>`
+        : `<input class="control" id="batchPopVal" type="number" min="1" placeholder="请输入计划提货量">`;
+
+    const pop = document.createElement('div');
+    pop.className = 'remark-popover batch-fill-popover';
+    pop.innerHTML = `${inputHtml}<div class="remark-popover__actions"><button class="btn" type="button" data-pop-cancel>取消</button><button class="btn primary" type="button" data-pop-save>确认</button></div>`;
+    document.body.append(pop);
+    const rect = anchor.getBoundingClientRect();
+    pop.style.top = `${Math.max(12, rect.top - pop.offsetHeight - 6)}px`;
+    pop.style.left = `${Math.max(12, Math.min(window.innerWidth - pop.offsetWidth - 12, rect.left - pop.offsetWidth / 2 + rect.width / 2))}px`;
+
+    const close = () => { pop.remove(); document.removeEventListener('mousedown', onDocDown, true); };
+    const onDocDown = ev => { if (!pop.contains(ev.target) && ev.target !== anchor && !anchor.contains(ev.target)) close(); };
+    setTimeout(() => document.addEventListener('mousedown', onDocDown, true), 0);
+    $('[data-pop-cancel]', pop).onclick = close;
+    $('[data-pop-save]', pop).onclick = () => {
+      const raw = $('#batchPopVal', pop).value;
+      if (colKey === 'team') {
+        if (!raw) return toast('请选择团队');
+        state.editingItems.forEach(i => { i.team = raw; });
+        toast(`已批量设置团队为「${raw}」`);
+      } else if (colKey === 'pickupWarehouse') {
+        if (!raw) return toast('请选择提货仓');
+        state.editingItems.forEach(i => {
+          i.pickupWarehouse = raw;
+          i.key = itemKey(i.planNo, raw, i.sku);
+        });
+        toast(`已批量设置提货仓为「${raw}」`);
+      } else {
+        const qty = Math.round(Number(raw) || 0);
+        if (!(qty > 0)) return toast('请输入大于 0 的整数');
+        state.editingItems.forEach(i => { i.planQty = qty; });
+        toast(`已批量设置计划提货量为 ${qty} 件`);
+      }
+      close();
+      refreshEditorSummary(mask);
+    };
+    $('#batchPopVal', pop).focus();
+  }
+
   function refreshEditorSummary(mask) {
     const items = state.editingItems;
-    const plan = sum(items, 'planQty');
-    const whs = [...new Set(items.map(i => i.pickupWarehouse))];
-    const noPlanCount = items.filter(i => i.isNoPlan || !i.planNo).length;
-    const el = $('.footer-summary', mask);
-    if (el) el.innerHTML = `已选 <b>${items.length}</b> 条明细${noPlanCount ? `（含无计划补提 <b>${noPlanCount}</b> 条）` : ''} · 涉及提货仓 <b>${whs.length}</b> 个（${esc(whs.join('、') || '—')}） · 计划提货合计 <b>${plan}</b> 件`;
-    const clearBtn = $('#clearItems', mask);
-    if (clearBtn) clearBtn.disabled = !items.length;
+    const updateFooter = () => {
+      const plan = sum(items, 'planQty');
+      const whs = [...new Set(items.map(i => i.pickupWarehouse).filter(Boolean))];
+      const noPlanCount = items.filter(i => i.isNoPlan || !i.planNo).length;
+      const el = $('.footer-summary', mask);
+      if (el) el.innerHTML = `已选 <b>${items.length}</b> 条明细${noPlanCount ? `（含无计划补提 <b>${noPlanCount}</b> 条）` : ''} · 涉及提货仓 <b>${whs.length}</b> 个（${esc(whs.join('、') || '—')}） · 计划提货合计 <b>${plan}</b> 件`;
+    };
+    updateFooter();
     const wrap = $('.pickup-items-wrap', mask);
     if (wrap) {
       wrap.innerHTML = itemsTable(items);
+      $$('.batch-fill-trigger', wrap).forEach(btn => btn.onclick = e => {
+        e.stopPropagation();
+        openBatchColPopover(btn, btn.dataset.batchCol, mask);
+      });
       $$('.editor-qty', wrap).forEach((inp, n) => inp.oninput = e => {
-        const v = Math.max(1, Math.round(Number(e.target.value) || 1));
+        const raw = e.target.value.trim();
+        const v = raw === '' ? 0 : Math.max(0, Math.round(Number(raw) || 0));
         items[n].planQty = v;
-        const plan2 = sum(items, 'planQty');
-        const whs2 = [...new Set(items.map(i => i.pickupWarehouse))];
-        if (el) el.innerHTML = `已选 <b>${items.length}</b> 条明细${noPlanCount ? `（含无计划补提 <b>${noPlanCount}</b> 条）` : ''} · 涉及提货仓 <b>${whs2.length}</b> 个（${esc(whs2.join('、') || '—')}） · 计划提货合计 <b>${plan2}</b> 件`;
+        inp.classList.toggle('is-missing', !(v > 0));
+        updateFooter();
       });
       $$('.editor-team', wrap).forEach(sel => sel.onchange = e => {
         const val = e.target.value;
@@ -1086,9 +1218,26 @@
         const idx = Number(sel.dataset.idx);
         items[idx].pickupWarehouse = e.target.value;
         items[idx].key = itemKey(items[idx].planNo, items[idx].pickupWarehouse, items[idx].sku);
-        refreshEditorSummary(mask);
+        sel.classList.toggle('is-missing', !e.target.value);
+        updateFooter();
       });
-      $$('.remove', wrap).forEach((b, n) => b.onclick = () => { items.splice(n, 1); refreshEditorSummary(mask); });
+      $$('.remove', wrap).forEach((b, n) => b.onclick = () => {
+        const target = items[n];
+        if (!target) return;
+        confirmAction({
+          title: '确认移除明细',
+          message: `确定要移除「${target.sku}${target.name ? ` · ${target.name}` : ''}」吗？`,
+          subMessage: target.planNo ? `该明细关联发货计划 ${target.planNo}，移除后本次提货单将不再包含此项。` : '',
+          type: 'warning',
+          confirmText: '确认移除',
+          confirmType: 'danger',
+          onConfirm: () => {
+            items.splice(n, 1);
+            refreshEditorSummary(mask);
+            toast('已移除该明细');
+          }
+        });
+      });
     }
   }
 
@@ -1201,37 +1350,53 @@
 
   function openNoPlanPicker(parentMask) {
     const chosen = new Set();
-    const mask = modal(`<section class="ui-dialog picker-dialog"><header class="ui-dialog__header"><div><h2>追加无计划提货（清库 / 凑重 / 呆滞尾货）</h2><p>允许整单无发货计划直接创建提货单；加入后【团队】字段为必填，用于入库签收时按团队优先 FIFO 自动冲减在途采购单</p></div><button class="ui-dialog__close" data-close>×</button></header><div class="ui-dialog__body">
+    const mask = modal(`<section class="ui-dialog picker-dialog"><header class="ui-dialog__header"><div><h2>新建提货</h2><p>无需关联发货计划，适用于清库 / 凑重 / 呆滞尾货等场景</p></div><button class="ui-dialog__close" data-close>×</button></header><div class="ui-dialog__body">
+<div class="pickup-hint">说明：新建提货无需关联发货计划，适用于清库、凑重、呆滞尾货等场景；加入提货单后，需填写必填项【团队】【提货仓】【计划提货量】。</div>
 <div class="picker-toolbar">
-  <input class="control picker-search-input" id="npSearch" placeholder="搜索 SKU / 领星 SKU / 产品名称">
-  <select class="control picker-team-select" id="npTeam"><option value="">团队：明细行逐行必填</option>${TEAMS.map(t => `<option value="${t}">${t}</option>`).join('')}</select>
-  <select class="control picker-team-select" id="npWh" style="width:230px">${PICKUP_WAREHOUSES.map(w => `<option value="${w}">${w}</option>`).join('')}</select>
-  <input class="control" id="npQty" type="number" min="1" value="10" style="width:92px" title="默认提货数量" placeholder="数量">
+  <input class="control picker-search-input" id="npSku" placeholder="SKU（支持多个，逗号/空格隔开）">
+  <input class="control picker-search-input" id="npLxSku" placeholder="领星 SKU（支持多个，逗号/空格隔开）">
+  <input class="control picker-search-input" id="npName" placeholder="品名（支持模糊搜索）">
+  <button class="btn" id="npReset" type="button">重置</button>
+  <span class="picker-meta" id="npMeta"></span>
 </div>
-<div class="picker-table-wrap"><table class="picker-table"><thead><tr><th style="width:44px"><input type="checkbox" id="npAll"></th><th>SKU</th><th>领星 SKU</th><th>产品名称</th><th>FNSKU</th><th>供应商料号</th><th>默认平台/店铺</th></tr></thead><tbody id="npBody"></tbody></table></div>
-</div><footer class="ui-dialog__footer"><div class="footer-summary">已选 <b id="npCount">0</b> 个无计划 SKU（加入后可微调提货仓、数量与必填团队）</div><div class="footer-actions"><button class="btn" data-close>取消</button><button class="btn primary" id="npConfirm">加入提货单</button></div></footer></section>`);
+<div class="picker-table-wrap"><table class="picker-table"><colgroup><col style="width:46px"><col style="width:180px"><col style="width:180px"><col></colgroup><thead><tr><th><input type="checkbox" id="npAll"></th><th>SKU</th><th>领星 SKU</th><th>产品名称</th></tr></thead><tbody id="npBody"></tbody></table></div>
+</div><footer class="ui-dialog__footer"><div class="footer-summary">已选 <b id="npCount">0</b> 个 SKU（加入后请在明细中完善团队、提货仓与计划提货量）</div><div class="footer-actions"><button class="btn" data-close>取消</button><button class="btn primary" id="npConfirm">加入提货单</button></div></footer></section>`);
 
     const renderSkus = () => {
-      const q = $('#npSearch', mask).value.trim().toLowerCase();
-      const rows = NO_PLAN_SKU_CATALOG.filter(c => !q || `${c.sku} ${c.lingxingSku} ${c.name}`.toLowerCase().includes(q));
+      const skuKeys = split($('#npSku', mask).value);
+      const lxKeys = split($('#npLxSku', mask).value);
+      const nameQ = $('#npName', mask).value.trim().toLowerCase();
+      const rows = NO_PLAN_SKU_CATALOG
+        .filter(c => !skuKeys.length || skuKeys.some(k => c.sku.toLowerCase().includes(k)))
+        .filter(c => !lxKeys.length || lxKeys.some(k => c.lingxingSku.toLowerCase().includes(k)))
+        .filter(c => !nameQ || c.name.toLowerCase().includes(nameQ));
+      if ($('#npMeta', mask)) $('#npMeta', mask).textContent = `共 ${rows.length} 个 SKU`;
       $('#npBody', mask).innerHTML = rows.length ? rows.map(c => `<tr>
         <td><input type="checkbox" data-np="${esc(c.sku)}" ${chosen.has(c.sku) ? 'checked' : ''}></td>
         <td><b>${esc(c.sku)}</b></td>
         <td>${esc(c.lingxingSku)}</td>
         <td class="product"><div class="detail-product"><img class="detail-product__img" src="${PLACEHOLDER_IMG}" alt=""><span class="detail-product__name">${esc(c.name)}</span></div></td>
-        <td>${esc(c.fnsku)}</td>
-        <td>${esc(c.supplierSku)}</td>
-        <td>${esc(c.platform)} / ${esc(c.store)}</td>
-      </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:#909399;padding:30px">未找到匹配 SKU</td></tr>';
+      </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:#909399;padding:36px">未找到匹配 SKU</td></tr>';
       $('#npCount', mask).textContent = chosen.size;
-      $$('[data-np]', mask).forEach(cb => cb.onchange = e => {
+      const allCbs = $$('[data-np]', mask);
+      $('#npAll', mask).checked = allCbs.length > 0 && allCbs.every(cb => cb.checked);
+      allCbs.forEach(cb => cb.onchange = e => {
         if (e.target.checked) chosen.add(cb.dataset.np);
         else chosen.delete(cb.dataset.np);
         $('#npCount', mask).textContent = chosen.size;
+        $('#npAll', mask).checked = allCbs.length > 0 && allCbs.every(x => x.checked);
       });
     };
     renderSkus();
-    $('#npSearch', mask).oninput = renderSkus;
+    $('#npSku', mask).oninput = renderSkus;
+    $('#npLxSku', mask).oninput = renderSkus;
+    $('#npName', mask).oninput = renderSkus;
+    $('#npReset', mask).onclick = () => {
+      $('#npSku', mask).value = '';
+      $('#npLxSku', mask).value = '';
+      $('#npName', mask).value = '';
+      renderSkus();
+    };
     $('#npAll', mask).onchange = e => {
       $$('[data-np]', mask).forEach(cb => {
         cb.checked = e.target.checked;
@@ -1242,28 +1407,25 @@
     };
     $('#npConfirm', mask).onclick = () => {
       if (!chosen.size) return toast('请至少勾选 1 个 SKU');
-      const team = $('#npTeam', mask).value;
-      const wh = $('#npWh', mask).value || PICKUP_WAREHOUSES[0];
-      const qty = Math.max(1, Math.round(Number($('#npQty', mask).value) || 10));
       let added = 0;
       chosen.forEach(sku => {
         const meta = NO_PLAN_SKU_CATALOG.find(x => x.sku === sku);
         if (!meta) return;
-        const k = itemKey('', wh, sku);
+        const k = itemKey('', '', sku);
         if (state.editingItems.some(i => i.key === k)) return;
         state.editingItems.push(makeItem({
           planNo: '',
           isNoPlan: true,
-          team,
+          team: '',
           opsOwner: '—',
-          pickupWarehouse: wh,
+          pickupWarehouse: '',
           sku: meta.sku,
           lingxingSku: meta.lingxingSku,
           name: meta.name,
           fnsku: meta.fnsku,
           supplierSku: meta.supplierSku,
           planShipQty: 0,
-          planQty: qty,
+          planQty: 0,
           platform: meta.platform,
           store: meta.store,
           country: meta.country,
@@ -1273,59 +1435,133 @@
       });
       mask.remove();
       refreshEditorSummary(parentMask);
-      toast(added ? `已追加 ${added} 条无计划补提明细${team ? '' : '，请在列表中选择必填【团队】'}` : '所选 SKU+提货仓 已在当前明细中');
+      toast(added ? `已加入 ${added} 条明细，请完善团队、提货仓和计划提货量` : '所选 SKU 已在当前待完善明细中');
     };
   }
 
   function openEditor(row) {
     state.editingId = row ? row.id : null;
     state.editingItems = row ? row.items.map(i => ({ ...i })) : [];
+    const isPack = Boolean(row && row.providerPickup);
     const mask = modal(`<section class="ui-dialog pickup-dialog"><header class="ui-dialog__header"><div><h2>${row ? '编辑' : '新建'}提货单</h2><p>支持同一提货单从多个提货仓揽货，也支持整单无发货计划纯清库/凑重提货</p></div><button class="ui-dialog__close" data-close>×</button></header><div class="ui-dialog__body">
 <section class="ui-form-card pickup-form-card"><div class="ui-form-grid pickup-form-grid">
 <label class="ui-field"><span class="ui-field__label"><em class="ui-field__required">*</em>目标入库仓</span><select class="control" id="fTarget">${TARGET_WAREHOUSES.map(w => `<option value="${w}" selected>${w}</option>`).join('')}</select></label>
 <label class="ui-field"><span class="ui-field__label"><em class="ui-field__required">*</em>预计提货日期</span><input class="control" id="fExpected" type="date" value="${row ? (row.expectedDate || '2026-11-18') : '2026-11-18'}"></label>
-<label class="ui-field"><span class="ui-field__label">承运车队 / 司机信息</span><input class="control" id="fCarrier" value="${esc(row ? row.carrier : '')}" placeholder="如：跨越猫专车 / 车牌"></label>
-<label class="ui-field ui-field--wide" style="grid-column:span 3"><span class="ui-field__label">备注</span><input class="control" id="fRemark" maxlength="200" value="${esc(row ? row.remark : '')}" placeholder="最多 200 字"></label>
+<label class="ui-field"><span class="ui-field__label">服务商包提货</span><label class="pickup-check-field"><input type="checkbox" id="fProviderPickup" ${isPack ? 'checked' : ''}><span>包提货</span></label></label>
+<label class="ui-field"><span class="ui-field__label">提货运费</span><div class="pickup-fee-wrap"><input class="control" id="fPickupFee" type="number" min="0" step="0.01" value="${!isPack && row && row.pickupFee != null && row.pickupFee !== '' ? Number(row.pickupFee) : ''}" placeholder="${isPack ? '包提货无需填写运费' : '请输入提货运费'}" ${isPack ? 'disabled' : ''}><span class="pickup-fee-unit">元</span></div></label>
+<label class="ui-field" style="grid-column:span 2"><span class="ui-field__label">备注</span><input class="control" id="fRemark" maxlength="200" value="${esc(row ? row.remark : '')}" placeholder="最多 200 字"></label>
 </div></section>
-<section class="pickup-items-card"><div class="pickup-items-toolbar"><strong>提货明细（多提货仓 / 无计划补提）</strong><button class="btn primary" id="pickPlans" type="button">引入发货计划（支持多提货仓）</button><button class="btn" id="pickNoPlanBtn" type="button">+ 追加无计划提货（清库/凑重）</button><button class="btn" id="clearItems" type="button">清空</button></div><div class="pickup-hint">说明：允许整张提货单完全不含发货计划（纯清库/凑重）；「无计划补提」明细的【团队】字段为必填项，用于入库签收后按团队优先 FIFO 自动冲减采购单在途。</div><div class="pickup-items-wrap">${itemsTable(state.editingItems)}</div></section>
+<section class="pickup-items-card"><div class="pickup-items-toolbar"><strong>提货明细（多提货仓 / 无计划补提）</strong><button class="btn primary" id="pickNoPlanBtn" type="button">新建提货</button></div>
+<div class="pickup-hint">说明：允许整张提货单完全不含发货计划（纯清库/凑重）；带 * 字段为必填项，可点击表头「批量」按钮统一设置。</div><div class="pickup-items-wrap">${itemsTable(state.editingItems)}</div></section>
 </div><footer class="ui-dialog__footer"><div class="footer-summary"></div><div class="footer-actions"><button class="btn" data-close>取消</button><button class="btn" id="saveDraft">保存草稿</button><button class="btn primary" id="submitOrder">提交（进入提货中）</button></div></footer></section>`);
 
-    $('#pickPlans', mask).onclick = () => openPlanPicker(mask);
+    const syncFeeState = checked => {
+      const feeInp = $('#fPickupFee', mask);
+      feeInp.disabled = checked;
+      if (checked) {
+        feeInp.value = '';
+        feeInp.placeholder = '包提货无需填写运费';
+      } else {
+        feeInp.placeholder = '请输入提货运费';
+      }
+    };
+    $('#fProviderPickup', mask).onchange = e => syncFeeState(e.target.checked);
     $('#pickNoPlanBtn', mask).onclick = () => openNoPlanPicker(mask);
-    $('#clearItems', mask).onclick = () => { state.editingItems = []; refreshEditorSummary(mask); toast('已清空明细'); };
     refreshEditorSummary(mask);
 
     const validateForm = () => {
       const target = $('#fTarget', mask).value || DEFAULT_TARGET;
       const expected = $('#fExpected', mask).value;
-      const carrier = $('#fCarrier', mask).value.trim() || '待分配车队';
+      const providerPickup = $('#fProviderPickup', mask).checked;
+      const rawFee = $('#fPickupFee', mask).value.trim();
+      const pickupFee = providerPickup ? 0 : (rawFee === '' ? 0 : Number(rawFee));
       const remark = $('#fRemark', mask).value.trim();
       if (!expected) { toast('请选择预计提货日期'); return null; }
-      if (!state.editingItems.length) { toast('请至少添加 1 条发货计划明细或无计划补提明细'); return null; }
-      const badIdx = state.editingItems.findIndex(i => !String(i.team || '').trim());
-      if (badIdx !== -1) {
-        const badSel = $(`.editor-team[data-idx="${badIdx}"]`, mask);
-        if (badSel) {
-          badSel.classList.add('is-missing');
-          badSel.focus();
-        }
-        toast('无计划补提明细必须选择【团队】后才能保存或提交');
+      if (!providerPickup && (!Number.isFinite(pickupFee) || pickupFee < 0)) { toast('提货运费不能为负数'); $('#fPickupFee', mask).focus(); return null; }
+      if (!state.editingItems.length) { toast('请至少添加 1 条提货明细'); return null; }
+      const badTeamIdx = state.editingItems.findIndex(i => !String(i.team || '').trim());
+      if (badTeamIdx !== -1) {
+        const badSel = $(`.editor-team[data-idx="${badTeamIdx}"]`, mask);
+        if (badSel) { badSel.classList.add('is-missing'); badSel.focus(); }
+        toast(`第 ${badTeamIdx + 1} 行【团队】为必填项，请选择后保存或提交`);
         return null;
       }
-      if (state.editingItems.some(i => Number(i.planQty || 0) <= 0)) { toast('计划提货量必须大于 0'); return null; }
-      return { target, expected, carrier, remark };
+      const badWhIdx = state.editingItems.findIndex(i => !String(i.pickupWarehouse || '').trim());
+      if (badWhIdx !== -1) {
+        const badSel = $(`.editor-wh[data-idx="${badWhIdx}"]`, mask);
+        if (badSel) { badSel.classList.add('is-missing'); badSel.focus(); }
+        toast(`第 ${badWhIdx + 1} 行【提货仓】为必填项，请选择后保存或提交`);
+        return null;
+      }
+      const badQtyIdx = state.editingItems.findIndex(i => !(Number(i.planQty || 0) > 0));
+      if (badQtyIdx !== -1) {
+        const badInp = $$('.editor-qty', mask)[badQtyIdx];
+        if (badInp) { badInp.classList.add('is-missing'); badInp.focus(); }
+        toast(`第 ${badQtyIdx + 1} 行【计划提货量】必须大于 0`);
+        return null;
+      }
+      return { target, expected, providerPickup, pickupFee, remark };
+    };
+    const findDuplicateNoPlanGroups = () => {
+      const map = new Map();
+      state.editingItems.forEach((i, idx) => {
+        if (!(i.isNoPlan || !i.planNo)) return;
+        if (!i.sku || !i.pickupWarehouse || !i.team) return;
+        const gk = `${i.sku}__${i.pickupWarehouse}__${i.team}`;
+        if (!map.has(gk)) map.set(gk, []);
+        map.get(gk).push({ item: i, idx });
+      });
+      return [...map.values()].filter(g => g.length > 1);
+    };
+    const mergeDuplicateNoPlanItems = () => {
+      const merged = [], seen = new Map();
+      state.editingItems.forEach(i => {
+        if (i.isNoPlan || !i.planNo) {
+          const gk = `${i.sku}__${i.pickupWarehouse}__${i.team}`;
+          if (seen.has(gk)) {
+            const first = seen.get(gk);
+            first.planQty = Number(first.planQty || 0) + Number(i.planQty || 0);
+            return;
+          }
+          seen.set(gk, i);
+        }
+        merged.push(i);
+      });
+      state.editingItems = merged;
+      refreshEditorSummary(mask);
+    };
+    const checkDupAndRun = (nextFn) => {
+      const form = validateForm();
+      if (!form) return;
+      const dups = findDuplicateNoPlanGroups();
+      if (!dups.length) return nextFn(form);
+      const preview = dups.slice(0, 3).map(g => `${g[0].item.sku}（${g[0].item.pickupWarehouse} · ${g[0].item.team}，共 ${g.length} 行合计 ${g.reduce((s, x) => s + Number(x.item.planQty || 0), 0)} 件）`).join('；');
+      confirmAction({
+        title: '检测到重复提货明细',
+        message: `存在相同「SKU + 提货仓 + 团队」的无计划明细：${preview}${dups.length > 3 ? ` 等 ${dups.length} 组` : ''}。`,
+        subMessage: '建议合并数量，避免入库签收时重复拆分冲减采购单在途。',
+        type: 'warning',
+        confirmText: '合并数量并继续',
+        confirmType: 'primary',
+        onConfirm: () => {
+          mergeDuplicateNoPlanItems();
+          toast('已合并重复明细数量');
+          nextFn(form);
+        }
+      });
     };
     const save = (status, validated) => {
       const form = validated || validateForm();
       if (!form) return;
-      const { target, expected, carrier, remark } = form;
+      const { target, expected, providerPickup, pickupFee, remark } = form;
 
       const items = state.editingItems.map(i => makeItem(i));
       if (state.editingId) {
         const o = orders.find(x => x.id === state.editingId);
-        Object.assign(o, { target, expectedDate: expected, carrier, remark, items });
+        Object.assign(o, { target, expectedDate: expected, providerPickup, pickupFee, remark, items });
         if (status === '提货中') o.status = '提货中';
-        o.logs.unshift({ type: status === '提货中' ? '提交' : '编辑', content: `更新提货明细 ${items.length} 条（${orderWarehouses(o).join('、')}），共 ${sum(items, 'planQty')} 件${status === '提货中' ? '，进入「提货中」' : ''}`, operator: 'Admin', time: NOW });
+        else if (o.status === '已作废') o.status = '草稿';
+        o.logs.unshift({ type: '编辑', content: `${status === '提货中' ? '更新并提交进入「提货中」' : '更新提货明细'} ${items.length} 条（${orderWarehouses(o).join('、')}），共 ${sum(items, 'planQty')} 件`, operator: 'Admin', time: NOW });
         toast(status === '提货中' ? '提货单已提交，进入「提货中」' : '草稿已保存');
       } else {
         const newOrder = makeOrder({
@@ -1334,12 +1570,13 @@
           status,
           target,
           expectedDate: expected,
-          carrier,
+          providerPickup,
+          pickupFee,
           remark,
           creator: 'Admin',
           createdAt: NOW,
           items,
-          logs: [{ type: status === '提货中' ? '提交' : '创建', content: `${status === '提货中' ? '创建并提交进入「提货中」' : '创建草稿'}，涉及 ${orderWarehouses({ items }).join('、')} 共 ${sum(items, 'planQty')} 件`, operator: 'Admin', time: NOW }]
+          logs: [{ type: '新增', content: `${status === '提货中' ? '创建并提交进入「提货中」' : '创建草稿'}，涉及 ${orderWarehouses({ items }).join('、')} 共 ${sum(items, 'planQty')} 件`, operator: 'Admin', time: NOW }]
         });
         orders.unshift(newOrder);
         toast(status === '提货中' ? '提货单已提交，进入「提货中」' : '草稿已保存');
@@ -1349,10 +1586,16 @@
       state.page = 1;
       render();
     };
-    $('#saveDraft', mask).onclick = () => save('草稿');
-    $('#submitOrder', mask).onclick = () => {
-      const form = validateForm();
-      if (!form) return;
+    if (row && row.status === '提货中') {
+      if ($('#saveDraft', mask)) $('#saveDraft', mask).hidden = true;
+      if ($('#submitOrder', mask)) $('#submitOrder', mask).textContent = '保存修改';
+    }
+    $('#saveDraft', mask).onclick = () => checkDupAndRun(form => save('草稿', form));
+    $('#submitOrder', mask).onclick = () => checkDupAndRun(form => {
+      if (row && row.status === '提货中') {
+        save('提货中', form);
+        return;
+      }
       const items = state.editingItems.map(i => makeItem(i));
       const whText = orderWarehouses({ items }).join('、') || '—';
       confirmAction({
@@ -1364,7 +1607,7 @@
         confirmType: 'primary',
         onConfirm: () => save('提货中', form)
       });
-    };
+    });
   }
 
   function openReceive(o) {
@@ -1579,8 +1822,8 @@
           o.status = allDone ? '已完成' : '部分入库';
           if (allDone) o.completedAt = `${date} ${NOW.slice(11)}`;
           o.logs.unshift({
-            type: '入库签收',
-            content: `批次 ${batchNo} 入库「${o.target || DEFAULT_TARGET}」${totalQty} 件，自动冲减采购单：${poAllocText}${autoRes.totalUnmatchedQty > 0 ? `，未匹配在途 ${autoRes.totalUnmatchedQty} 件` : ''}${anomalyType !== '正常到货' ? `；签收异常：${anomalyType}` : ''}，状态转为「${o.status}」`,
+            type: '编辑',
+            content: `批次 ${batchNo} 入库签收「${o.target || DEFAULT_TARGET}」${totalQty} 件${anomalyType !== '正常到货' ? `（签收异常：${anomalyType}）` : ''}，状态转为「${o.status}」`,
             operator: receiver,
             time: `${date} ${NOW.slice(11)}`
           });
@@ -1614,6 +1857,8 @@
       ['计划 / 已入库', `${plan} / ${received} 件（差异 ${Math.max(0, plan - received)}）`],
       ['承运信息', o.carrier || '—'],
       ['预计提货日期', o.expectedDate || '—'],
+      ['服务商包提货', o.providerPickup ? '是（包提货）' : '否'],
+      ['提货运费', `¥${Number(o.pickupFee || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
       ['创建信息', `${o.creator} / ${o.createdAt}`],
       ['完成时间', o.completedAt || '—']
     ].map(([l, v]) => `<div class="detail-field"><label>${l}</label><span>${esc(v)}</span></div>`).join('')}
@@ -1808,8 +2053,8 @@
           o.status = '已完成';
           o.completedAt = NOW;
           o.logs.unshift({
-            type: '手动完结',
-            content: `确认尾差不再补提（原因：${reason}${remark ? `，备注：${remark}` : ''}），累计入库 ${receivedTotal} 件，单据完结`,
+            type: '编辑',
+            content: `手动完结：确认尾差不再补提（原因：${reason}${remark ? `，备注：${remark}` : ''}），累计入库 ${receivedTotal} 件，单据完结`,
             operator: 'Admin',
             time: NOW
           });
@@ -1851,7 +2096,7 @@
       targets.forEach(o => {
         o.status = '已作废';
         o.logs.unshift({
-          type: '作废',
+          type: '编辑',
           content: reason ? `作废提货单（原因：${reason}）` : '作废提货单',
           operator: 'Admin',
           time: NOW
@@ -1890,7 +2135,7 @@
       onConfirm: () => {
         targets.forEach(o => {
           o.status = '提货中';
-          o.logs.unshift({ type: '提交', content: `批量提交进入「提货中」（涉及提货仓：${orderWarehouses(o).join('、')}，共 ${sum(o.items, 'planQty')} 件）`, operator: 'Admin', time: NOW });
+          o.logs.unshift({ type: '编辑', content: `批量提交进入「提货中」（涉及提货仓：${orderWarehouses(o).join('、')}，共 ${sum(o.items, 'planQty')} 件）`, operator: 'Admin', time: NOW });
           state.selected.delete(o.id);
         });
         saveOrdersToBridge();
@@ -1920,7 +2165,6 @@
   if ($('#batchSubmitBtn')) $('#batchSubmitBtn').onclick = batchSubmitOrders;
   if ($('#batchVoidBtn')) $('#batchVoidBtn').onclick = batchVoidOrders;
   if ($('#colConfigBtn')) $('#colConfigBtn').onclick = openColumnConfigDrawer;
-  if ($('#anomalyLogBtn')) $('#anomalyLogBtn').onclick = openAnomalyModal;
   $('#searchBtn').onclick = () => {
     if (($('#startDate').value && !$('#endDate').value) || (!$('#startDate').value && $('#endDate').value)) return toast('请选择完整的时间范围');
     if ($('#startDate').value && $('#endDate').value && $('#startDate').value > $('#endDate').value) return toast('开始日期不能晚于结束日期');
@@ -1929,8 +2173,10 @@
     toast('查询完成');
   };
   $('#resetBtn').onclick = () => {
-    $$('#queryGrid input').forEach(i => i.value = '');
+    $$('#queryGrid input:not([type="checkbox"])').forEach(i => i.value = '');
     $$('#queryGrid select').forEach(s => s.selectedIndex = 0);
+    Object.values(multiState).forEach(s => s.clear());
+    multiInstances.forEach(m => m.sync());
     state.status = '全部';
     render();
     toast('查询条件已重置');
@@ -1947,11 +2193,17 @@
 
   window.addEventListener('storage', e => {
     if (e.key === BRIDGE_KEY) {
-      syncWithV2Bridge();
+      initMultiSelect('#sourceWarehouseMulti', PICKUP_WAREHOUSES, multiState.sourceWarehouse, '请选择提货仓（可多选）');
+  initMultiSelect('#teamMulti', TEAMS, multiState.team, '请选择团队（可多选）');
+  initMultiSelect('#creatorMulti', ['系统自动', 'Admin', '张敏', '李晨'], multiState.creator, '请选择创建人（可多选）');
+  syncWithV2Bridge();
       render();
     }
   });
 
+  initMultiSelect('#sourceWarehouseMulti', PICKUP_WAREHOUSES, multiState.sourceWarehouse, '请选择提货仓（可多选）');
+  initMultiSelect('#teamMulti', TEAMS, multiState.team, '请选择团队（可多选）');
+  initMultiSelect('#creatorMulti', ['系统自动', 'Admin', '张敏', '李晨'], multiState.creator, '请选择创建人（可多选）');
   syncWithV2Bridge();
   render();
   layoutQuery();

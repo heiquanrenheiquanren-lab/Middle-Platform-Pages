@@ -10,7 +10,7 @@ const settlementOptions=['月结30天','月结90天','月结150天','月结180�
 const skuPool=['140US260008','42101000004','XX123456-1','DD123456','EE123456','FF123456','KK123456','fan-test-sku'];
 const icons=['🎒','🧰','▧','📦','🧯','🪖','🌺','🐹'];
 const statusPool=['待提交','待提交','待审核','待收货','部分收货','已完成','待收货','已完成','待提交','部分收货','已完成','待提交','已驳回'];
-const docItemCounts=[2,2,1,3,1,2,3,2,2,1,3,2,3];
+const docItemCounts=[6,5,1,3,1,2,3,2,5,1,3,5,3];
 
 function money(value){return `¥ ${Number(value).toFixed(2)}`;}
 
@@ -23,7 +23,7 @@ function normalizePurchaseLabels(root=document){
   root.querySelectorAll?.('[placeholder],[title],[aria-label]').forEach(element=>['placeholder','title','aria-label'].forEach(attribute=>{const value=element.getAttribute(attribute);if(value)element.setAttribute(attribute,normalize(value));}));
 }
 
-const lineRows=Array.from({length:27},(_,i)=>({
+const lineRows=Array.from({length:40},(_,i)=>({
   id:`line-${i+1}`,index:i,sku:skuPool[i%skuPool.length],icon:icons[i%icons.length],urgent:i%4===0||i%7===0,
   planNo:`CGJH202608${String(1001+i)}`,batchNo:`PC2026${String(8001+i)}`,
   platform:platforms[i%platforms.length],store:stores[i%stores.length],team:teams[i%teams.length],
@@ -627,10 +627,35 @@ const purchasePlanSkuRows=lineRows.map((item,index)=>({
 const purchaseCreateState={
   activeTab:'purchase-plan',
   editingRowId:null,
+  checkedIds:new Set(),
   form:{supplier:'',warehouse:'',purchaseOwner:loginAccount,purchaseSubject:'',settlement:'',prepayRate:'0',taxIncluded:'否',tax:'0',freight:'0',discount:'0',otherFee:'0',remark:''},
   selected:[],
   query:{planNo:'',sku:'',supplier:'',platform:'',team:''}
 };
+const skuSupplierBindings=(()=>{
+  const map=new Map();
+  purchaseOrders.forEach(order=>{
+    if(!order.supplier)return;
+    (order.items||[]).forEach(item=>{
+      if(!map.has(item.sku))map.set(item.sku,new Set());
+      map.get(item.sku).add(order.supplier);
+    });
+  });
+  return map;
+})();
+function findUnboundSkus(items,supplier){
+  if(!supplier)return [];
+  return (items||[]).filter(item=>{
+    const set=skuSupplierBindings.get(item.sku);
+    return set&&!set.has(supplier);
+  }).map(item=>item.sku);
+}
+function supplierErrorBannerHtml(orderNo,supplier,skus){
+  return `<div class="pb-supplier-error-banner" role="alert"><span>采购单 <b>${orderNo}</b> 中 SKU（${skus.join('、')}）尚未维护供应商「${supplier}」，请先前往产品资料维护</span><button class="btn small-btn" type="button" data-goto-product-list>前往产品资料 →</button></div>`;
+}
+function bindGotoProductList(root){
+  root.querySelectorAll('[data-goto-product-list]').forEach(btn=>btn.onclick=()=>{window.open('../product-list/index.html','_blank');});
+}
 function purchaseCreateOptionList(items,selected=''){return items.map(item=>`<option value="${item}" ${item===selected?'selected':''}>${item}</option>`).join('');}
 function purchaseCreateSelect(name,placeholder,items,selected=''){return `<div class="purchase-select" data-purchase-select="${name}"><button class="purchase-select-trigger" type="button" data-select-trigger>${selected||placeholder}<span>⌄</span></button><div class="purchase-select-menu" data-select-menu>${items.map(item=>`<button type="button" data-select-option="${item}" class="${item===selected?'selected':''}">${item}</button>`).join('')}</div></div>`;}
 function closePurchaseSelectMenus(except){$$('.purchase-select').forEach(select=>{if(select!==except)select.querySelector('[data-select-menu]')?.classList.remove('show');});}
@@ -638,17 +663,15 @@ function bindPurchaseSelects(root,change){root.querySelectorAll('[data-purchase-
 document.addEventListener('click',()=>closePurchaseSelectMenus());
 function purchaseCreateField(label,control,required=false){return `<label class="purchase-create-field"><span>${required?'<em>*</em>':''}${label}</span>${control}</label>`;}
 function selectedPurchasePlanRows(){
-  const editingOrder=purchaseCreateState.editingRowId?purchaseOrders.find(order=>order.id===purchaseCreateState.editingRowId):null;
-  const canChangeSupplier=Boolean(editingOrder&&editingOrder.status==='待提交');
-  if(!purchaseCreateState.selected.length)return '<tr><td colspan="17" class="purchase-create-empty"><div class="purchase-create-empty-inner"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="7" y="14" width="34" height="26" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 14v-3a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3" stroke="currentColor" stroke-width="2"/><path d="M17 24h14M17 30h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><p>暂未添加采购 SKU</p><span>点击右上角「新增 SKU」，从采购计划中选择商品</span></div></td></tr>';
-  return purchaseCreateState.selected.map((item,index)=>`<tr data-create-row="${item.id}"><td>${index+1}</td><td>${item.planNo}</td><td class="purchase-create-sku"><span class="sku-thumb">${item.icon}</span><b>${item.sku}</b></td><td class="purchase-create-name">${item.name}</td><td>${item.team}</td><td>${item.platform}</td><td>${item.store}</td><td>${item.sellerSku}</td><td>${item.plannedQty}</td><td><input class="purchase-create-number" data-selected-field="orderQty" data-id="${item.id}" type="number" min="${item.minOrderQty}" value="${item.orderQty}"></td><td><input class="purchase-create-number" data-selected-field="unitPrice" data-id="${item.id}" type="number" min="0" step="0.01" value="${item.unitPrice}"></td><td>${money(Number(item.orderQty||0)*Number(item.unitPrice||0))}</td><td>${item.boxes}</td><td><span class="purchase-create-readonly-date">${item.planOrderDate}</span></td><td>${item.planDeliveryDate}</td><td><input class="purchase-create-remark" data-selected-field="remark" data-id="${item.id}" value="${item.remark||''}" placeholder="请输入备注"></td><td class="purchase-create-action-cell">${canChangeSupplier?`<button class="link-btn" type="button" data-supplier-change="${item.id}">更换供应商</button>`:''}<button class="link-btn danger-link" type="button" data-create-remove="${item.id}">移除</button></td></tr>`).join('');
+  if(!purchaseCreateState.selected.length)return '<tr><td colspan="16" class="purchase-create-empty"><div class="purchase-create-empty-inner"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="7" y="14" width="34" height="26" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 14v-3a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3" stroke="currentColor" stroke-width="2"/><path d="M17 24h14M17 30h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><p>暂未添加采购 SKU</p><span>点击右上角「新增 SKU」，从采购计划中选择商品</span></div></td></tr>';
+  return purchaseCreateState.selected.map((item,index)=>`<tr data-create-row="${item.id}"><td><input type="checkbox" data-create-check="${item.id}" ${purchaseCreateState.checkedIds.has(item.id)?'checked':''}></td><td>${index+1}</td><td>${item.planNo}</td><td><b>${item.sku}</b></td><td class="purchase-create-name"><span class="sku-thumb">${item.icon}</span><span>${item.name}</span></td><td>${item.team}</td><td>${item.platform}</td><td>${item.store}</td><td>${item.plannedQty}</td><td><input class="purchase-create-number" data-selected-field="orderQty" data-id="${item.id}" type="number" min="${item.minOrderQty}" value="${item.orderQty}"></td><td><input class="purchase-create-number" data-selected-field="unitPrice" data-id="${item.id}" type="number" min="0" step="0.01" value="${item.unitPrice}"></td><td>${money(Number(item.orderQty||0)*Number(item.unitPrice||0))}</td><td>${item.boxes}</td><td><span class="purchase-create-readonly-date">${item.planOrderDate}</span></td><td>${item.planDeliveryDate}</td><td><input class="purchase-create-remark" data-selected-field="remark" data-id="${item.id}" value="${item.remark||''}" placeholder="请输入备注"></td></tr>`).join('');
 }
 function purchaseCreateTotals(){
   return purchaseCreateState.selected.reduce((sum,item)=>{sum.planned+=Number(item.plannedQty)||0;sum.qty+=Number(item.orderQty)||0;sum.amount+=(Number(item.orderQty)||0)*(Number(item.unitPrice)||0);sum.boxes+=Number(item.boxes)||0;return sum;},{planned:0,qty:0,amount:0,boxes:0});
 }
 function purchaseCreateTotalsRow(){
   const t=purchaseCreateTotals();
-  return `<tr><td>合计</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td data-total="planned">${t.planned}</td><td data-total="qty">${t.qty}</td><td></td><td data-total="amount">${money(t.amount)}</td><td data-total="boxes">${t.boxes}</td><td></td><td></td><td></td><td></td></tr>`;
+  return `<tr><td></td><td>合计</td><td></td><td></td><td></td><td></td><td></td><td></td><td data-total="planned">${t.planned}</td><td data-total="qty">${t.qty}</td><td></td><td data-total="amount">${money(t.amount)}</td><td data-total="boxes">${t.boxes}</td><td></td><td></td><td></td></tr>`;
 }
 function syncPurchaseCreateTotals(){
   const modal=$('#purchaseCreateModal');if(!modal||modal.hidden)return;const t=purchaseCreateTotals();
@@ -673,23 +696,60 @@ function bindPurchaseCreateModal(){
   bindPurchaseSelects(modal,(name,value)=>{purchaseCreateState.form[name]=value;syncPurchaseCreateAddSku();});
   modal.querySelectorAll('[data-create-tab]').forEach(button=>button.onclick=()=>{purchaseCreateState.activeTab=button.dataset.createTab;renderPurchaseCreateModal();});
   const addSkuTrigger=modal.querySelector('#openPurchasePlanSku');if(addSkuTrigger)addSkuTrigger.onclick=openPurchasePlanSkuModal;
-  modal.querySelectorAll('[data-supplier-change]').forEach(button=>button.onclick=()=>{
-    const item=purchaseCreateState.selected.find(entry=>entry.id===button.dataset.supplierChange);
-    if(!item)return;
-    openSupplierChangePopover(button,[item]);
-  });
-  modal.querySelectorAll('[data-create-remove]').forEach(button=>button.onclick=()=>{
-    const id=button.dataset.createRemove;
-    const item=purchaseCreateState.selected.find(entry=>entry.id===id);
-    if(!item)return;
-    if(!purchaseCreateState.editingRowId){purchaseCreateState.selected=purchaseCreateState.selected.filter(entry=>entry.id!==id);renderPurchaseCreateModal();return;}
-    const order=purchaseOrders.find(entry=>entry.id===purchaseCreateState.editingRowId);
-    if(order&&order.status!=='待提交'){toast('仅待提交状态的采购单可移除 SKU','error');return;}
-    if(purchaseCreateState.selected.length<=1){toast('采购单至少保留 1 个 SKU，如需整单取消请使用「作废」','error');return;}
-    openRemoveReasonPopover(button,item,reason=>{closeRemoveReasonPopover();removeItemFromEditingOrder(item,reason);});
+  const splitTrigger=modal.querySelector('#openCreateSplitOrder');
+  if(splitTrigger)splitTrigger.onclick=async()=>{
+    const row=purchaseOrders.find(entry=>entry.id===purchaseCreateState.editingRowId);
+    if(!row)return;
+    const picked=purchaseCreateState.selected.filter(item=>purchaseCreateState.checkedIds.has(item.id));
+    if(!picked.length){toast('请先勾选需要拆出的采购明细','error');return;}
+    if(picked.length>=purchaseCreateState.selected.length){toast('不能将全部 SKU 拆出，请至少在原采购单保留 1 个 SKU','error');return;}
+    const skus=picked.map(item=>item.sku).join('、');
+    const ok=await askConfirm(`确认将选中的 ${picked.length} 个 SKU（${skus}）从 ${row.midNo} 拆出生成新采购单吗？`,'拆采购单','确认拆单');
+    if(!ok)return;
+    const {newDoc,pickedIds}=createSplitOrderFromSource(row,purchaseCreateState.form,picked);
+    purchaseCreateState.selected=purchaseCreateState.selected.filter(entry=>!pickedIds.has(entry.id));
+    pickedIds.forEach(id=>purchaseCreateState.checkedIds.delete(id));
+    renderPurchaseCreateModal();renderTabs();renderTable();
+    toast(`已拆出新采购单 ${newDoc.midNo}`);
+  };
+  const removeSelectedTrigger=modal.querySelector('#removeCreateSelectedSkus');
+  if(removeSelectedTrigger)removeSelectedTrigger.onclick=async()=>{
+    const picked=purchaseCreateState.selected.filter(item=>purchaseCreateState.checkedIds.has(item.id));
+    if(!picked.length){toast('请先勾选需要移除的采购明细','error');return;}
+    if(!purchaseCreateState.editingRowId){
+      const pickedIds=new Set(picked.map(item=>item.id));
+      purchaseCreateState.selected=purchaseCreateState.selected.filter(entry=>!pickedIds.has(entry.id));
+      pickedIds.forEach(id=>purchaseCreateState.checkedIds.delete(id));
+      renderPurchaseCreateModal();
+      return;
+    }
+    const row=purchaseOrders.find(entry=>entry.id===purchaseCreateState.editingRowId);
+    if(!row)return;
+    if(picked.length>=purchaseCreateState.selected.length){toast('采购单至少保留 1 个 SKU，如需整单取消请使用「作废」','error');return;}
+    const skus=picked.map(item=>item.sku).join('、');
+    const ok=await askConfirm(`确认从采购单 ${row.midNo} 移除选中的 ${picked.length} 个 SKU（${skus}）吗？`,'移除 SKU','确认移除');
+    if(!ok)return;
+    const pickedIds=new Set(picked.map(item=>item.id));
+    const rawIds=new Set(picked.map(item=>String(item.id).replace('plan-sku-','')));
+    row.items=(row.items||[]).filter(entry=>!pickedIds.has(entry.id)&&!rawIds.has(entry.id));
+    row.updatedBy=loginAccount||'Admin';row.updatedAt='2026-09-03 16:40';
+    recalcPurchaseOrder(row);
+    purchaseCreateState.selected=purchaseCreateState.selected.filter(entry=>!pickedIds.has(entry.id));
+    pickedIds.forEach(id=>purchaseCreateState.checkedIds.delete(id));
+    renderPurchaseCreateModal();renderTable();
+    toast(`已移除 ${picked.length} 个 SKU`);
+  };
+  const selectAll=modal.querySelector('[data-create-select-all]');
+  if(selectAll)selectAll.onchange=()=>{
+    purchaseCreateState.selected.forEach(item=>selectAll.checked?purchaseCreateState.checkedIds.add(item.id):purchaseCreateState.checkedIds.delete(item.id));
+    modal.querySelectorAll('[data-create-check]').forEach(cb=>{cb.checked=selectAll.checked;});
+  };
+  modal.querySelectorAll('[data-create-check]').forEach(cb=>cb.onchange=()=>{
+    cb.checked?purchaseCreateState.checkedIds.add(cb.dataset.createCheck):purchaseCreateState.checkedIds.delete(cb.dataset.createCheck);
+    if(selectAll)selectAll.checked=purchaseCreateState.selected.length>0&&purchaseCreateState.selected.every(item=>purchaseCreateState.checkedIds.has(item.id));
   });
   modal.querySelectorAll('[data-selected-field]').forEach(input=>input.oninput=()=>{const item=purchaseCreateState.selected.find(row=>row.id===input.dataset.id);if(item)item[input.dataset.selectedField]=input.dataset.selectedField==='remark'?input.value:Math.max(0,Number(input.value)||0);syncPurchaseCreateTotals();});
-  const submitBtn=modal.querySelector('[data-create-submit]');if(submitBtn)submitBtn.onclick=()=>purchaseCreateState.editingRowId?savePurchaseOrderEdit():submitPurchaseCreate(false);
+  const submitBtn=modal.querySelector('[data-create-submit]');if(submitBtn)submitBtn.onclick=()=>purchaseCreateState.editingRowId?savePurchaseOrderEdit(false):submitPurchaseCreate(false);
   const draftBtn=modal.querySelector('[data-create-save-draft]');if(draftBtn)draftBtn.onclick=()=>savePurchaseOrderEdit(false);
   const reviewBtn=modal.querySelector('[data-create-submit-review]');if(reviewBtn)reviewBtn.onclick=()=>savePurchaseOrderEdit(true);
 }
@@ -719,7 +779,7 @@ function bindPurchasePlanSkuModal(rows){
 }
 function renderPurchasePlanSkuModal(){
   const modal=$('#purchasePlanSkuModal'),rows=filteredPurchasePlanRows(),selectedIds=new Set(purchaseCreateState.selected.map(item=>item.id));
-  modal.innerHTML=`<div class="purchase-plan-sku-dialog"><header class="purchase-plan-sku-header"><div><h2>新增 SKU</h2><span>选择采购计划中的 SKU 加入采购单</span></div><button class="purchase-plan-sku-close" type="button" aria-label="关闭新增 SKU">×</button></header><div class="purchase-plan-sku-body"><div class="purchase-plan-sku-query"><input class="purchase-create-control" data-plan-query="planNo" value="${purchaseCreateState.query.planNo}" placeholder="采购计划号"><input class="purchase-create-control" data-plan-query="sku" value="${purchaseCreateState.query.sku}" placeholder="SKU">${purchaseCreateSelect('supplier','供应商（全部）',suppliers,purchaseCreateState.query.supplier)}${purchaseCreateSelect('platform','平台（全部）',platforms,purchaseCreateState.query.platform)}${purchaseCreateSelect('team','团队（全部）',teams,purchaseCreateState.query.team)}<button class="btn primary" type="button" data-plan-search>查询</button><button class="btn" type="button" data-plan-reset>重置</button></div><div class="purchase-plan-sku-hint">共 ${rows.length} 条采购计划 SKU</div><div class="purchase-plan-sku-table-wrap"><table class="purchase-plan-sku-table"><thead><tr><th><input type="checkbox" data-plan-select-all ${rows.length&&rows.every(item=>selectedIds.has(item.id))?'checked':''}></th><th>采购计划</th><th>SKU</th><th>计划采购数量</th><th>采购单价</th><th>计划采购金额</th><th>箱数</th><th>采购仓</th><th>团队</th><th>平台</th><th>店铺</th><th>SellerSKU</th><th>FNSKU</th><th>领星SKU</th><th>计划下单日期</th><th>计划交货日期</th><th>备注</th></tr></thead><tbody>${rows.length?rows.map(item=>`<tr><td><input type="checkbox" data-plan-select="${item.id}" ${selectedIds.has(item.id)?'checked':''}></td><td>${item.planNo}</td><td class="purchase-create-sku"><span class="sku-thumb">${item.icon}</span><b>${item.sku}</b></td><td>${item.plannedQty}</td><td><input class="purchase-create-number" data-plan-number="unitPrice" data-id="${item.id}" type="number" min="0" step="0.01" value="${item.unitPrice}"></td><td>${money(Number(item.plannedQty||0)*Number(item.unitPrice||0))}</td><td>${item.boxes}</td><td>${item.purchaseWarehouse}</td><td>${item.team}</td><td>${item.platform}</td><td>${item.store}</td><td>${item.sellerSku}</td><td>${item.fnsku}</td><td>${item.lingxingSku}</td><td><span class="purchase-create-readonly-date">${item.planOrderDate}</span></td><td>${item.planDeliveryDate}</td><td>${item.remark||'—'}</td></tr>`).join(''):'<tr><td colspan="17" class="purchase-create-empty">暂无符合条件的采购计划 SKU</td></tr>'}</tbody></table></div></div><footer class="purchase-plan-sku-footer"><span>已选 ${purchaseCreateState.selected.length} 个 SKU</span><div><button class="btn" type="button" data-plan-close>取消</button><button class="btn primary" type="button" data-plan-confirm>确认选择</button></div></footer></div>`;
+  modal.innerHTML=`<div class="purchase-plan-sku-dialog"><header class="purchase-plan-sku-header"><div><h2>新增 SKU</h2><span>选择采购计划中的 SKU 加入采购单</span></div><button class="purchase-plan-sku-close" type="button" aria-label="关闭新增 SKU">×</button></header><div class="purchase-plan-sku-body"><div class="purchase-plan-sku-query"><input class="purchase-create-control" data-plan-query="planNo" value="${purchaseCreateState.query.planNo}" placeholder="采购计划号"><input class="purchase-create-control" data-plan-query="sku" value="${purchaseCreateState.query.sku}" placeholder="SKU">${purchaseCreateSelect('supplier','供应商（全部）',suppliers,purchaseCreateState.query.supplier)}${purchaseCreateSelect('platform','平台（全部）',platforms,purchaseCreateState.query.platform)}${purchaseCreateSelect('team','团队（全部）',teams,purchaseCreateState.query.team)}<button class="btn primary" type="button" data-plan-search>查询</button><button class="btn" type="button" data-plan-reset>重置</button></div><div class="purchase-plan-sku-hint">共 ${rows.length} 条采购计划 SKU</div><div class="purchase-plan-sku-table-wrap"><table class="purchase-plan-sku-table"><thead><tr><th><input type="checkbox" data-plan-select-all ${rows.length&&rows.every(item=>selectedIds.has(item.id))?'checked':''}></th><th>采购计划</th><th>SKU</th><th>计划采购数量</th><th>采购单价</th><th>计划采购金额</th><th>箱数</th><th>采购仓</th><th>团队</th><th>平台</th><th>店铺</th><th>FNSKU</th><th>领星SKU</th><th>计划下单日期</th><th>计划交货日期</th><th>备注</th></tr></thead><tbody>${rows.length?rows.map(item=>`<tr><td><input type="checkbox" data-plan-select="${item.id}" ${selectedIds.has(item.id)?'checked':''}></td><td>${item.planNo}</td><td class="purchase-create-sku"><span class="sku-thumb">${item.icon}</span><b>${item.sku}</b></td><td>${item.plannedQty}</td><td><input class="purchase-create-number" data-plan-number="unitPrice" data-id="${item.id}" type="number" min="0" step="0.01" value="${item.unitPrice}"></td><td>${money(Number(item.plannedQty||0)*Number(item.unitPrice||0))}</td><td>${item.boxes}</td><td>${item.purchaseWarehouse}</td><td>${item.team}</td><td>${item.platform}</td><td>${item.store}</td><td>${item.fnsku}</td><td>${item.lingxingSku}</td><td><span class="purchase-create-readonly-date">${item.planOrderDate}</span></td><td>${item.planDeliveryDate}</td><td>${item.remark||'—'}</td></tr>`).join(''):'<tr><td colspan="16" class="purchase-create-empty">暂无符合条件的采购计划 SKU</td></tr>'}</tbody></table></div></div><footer class="purchase-plan-sku-footer"><span>已选 ${purchaseCreateState.selected.length} 个 SKU</span><div><button class="btn" type="button" data-plan-close>取消</button><button class="btn primary" type="button" data-plan-confirm>确认选择</button></div></footer></div>`;
   modal.hidden=false;bindPurchasePlanSkuModal(rows);
 }
 function openPurchasePlanSkuModal(){renderPurchasePlanSkuModal();}
@@ -947,17 +1007,19 @@ function closeSupplierChangePopover(){if(supplierChangePopover){supplierChangePo
 function supplierTargetOrder(source,newSupplier){
   return purchaseOrders.find(order=>order.id!==source.id&&order.status==='待提交'&&order.supplier===newSupplier&&order.warehouse===source.warehouse)||null;
 }
-function openSupplierChangePopover(anchor,items){
+function openSupplierChangePopover(anchor,items,opts){
   closeSupplierChangePopover();closeRemoveReasonPopover();
   const picked=Array.isArray(items)?items:[items];
-  const row=purchaseOrders.find(order=>order.id===purchaseCreateState.editingRowId);
+  const row=opts?.row||purchaseOrders.find(order=>order.id===purchaseCreateState.editingRowId);
+  const selectedCount=opts?.selectedCount??purchaseCreateState.selected.length;
   if(!anchor||!picked.length||!row)return;
   if(row.status!=='待提交'){toast('仅待提交状态的采购单可更换供应商','error');return;}
-  if(purchaseCreateState.selected.length-picked.length<1){toast('更换后本单将无 SKU，如需整单取消请使用「作废」','error');return;}
+  if(selectedCount-picked.length<1){toast('更换后本单将无 SKU，如需整单取消请使用「作废」','error');return;}
   const rect=anchor.getBoundingClientRect(),pop=document.createElement('div');
   pop.className='remark-popover supplier-change-popover';
-  const options=[...new Set([...suppliers,row.supplier].filter(Boolean))];
-  pop.innerHTML=`<div class="supplier-change-popover__title">更换供应商 <span>已选 ${picked.length} 个 SKU</span></div><div class="supplier-change-popover__skus">${picked.map(entry=>entry.sku).join('、')}</div><select class="supplier-change-popover__select" aria-label="选择新的供应商">${options.map(name=>`<option value="${name}" ${name===row.supplier?'selected':''}>${name}</option>`).join('')}</select><div class="supplier-change-popover__hint"></div><div class="remark-popover__actions"><button class="btn" type="button" data-supplier-action="cancel">取消</button><button class="btn primary" type="button" data-supplier-action="confirm">确定</button></div>`;
+  const currentSupplier=opts?.currentSupplier||row.supplier;
+  const options=[...new Set([...suppliers,currentSupplier].filter(Boolean))];
+  pop.innerHTML=`<div class="supplier-change-popover__title">更换供应商 <span>已选 ${picked.length} 个 SKU</span></div><div class="supplier-change-popover__skus">${picked.map(entry=>entry.sku).join('、')}</div><select class="supplier-change-popover__select" aria-label="选择新的供应商">${options.map(name=>`<option value="${name}" ${name===currentSupplier?'selected':''}>${name}</option>`).join('')}</select><div class="supplier-change-popover__hint"></div><div class="remark-popover__actions"><button class="btn" type="button" data-supplier-action="cancel">取消</button><button class="btn primary" type="button" data-supplier-action="confirm">确定</button></div>`;
   document.body.appendChild(pop);
   const width=360;
   pop.style.width=`${width}px`;
@@ -966,7 +1028,7 @@ function openSupplierChangePopover(anchor,items){
   supplierChangePopover=pop;
   const select=pop.querySelector('.supplier-change-popover__select'),hint=pop.querySelector('.supplier-change-popover__hint');
   const refreshHint=()=>{
-    if(select.value===row.supplier){hint.textContent='请选择新的供应商';return;}
+    if(select.value===currentSupplier){hint.textContent='请选择新的供应商';return;}
     const target=supplierTargetOrder(row,select.value);
     hint.textContent=target?`${picked.length} 个 SKU 将并入 ${target.midNo}（${select.value} · ${target.warehouse}）`:`将新建采购单（${select.value} · ${row.warehouse}），转入 ${picked.length} 个 SKU`;
   };
@@ -975,12 +1037,12 @@ function openSupplierChangePopover(anchor,items){
   pop.querySelector('[data-supplier-action="cancel"]').onclick=closeSupplierChangePopover;
   pop.querySelector('[data-supplier-action="confirm"]').onclick=()=>{
     const next=select.value;
-    if(!next||next===row.supplier){toast('请选择新的供应商','error');return;}
-    applySupplierChange(row,picked,next);
+    if(!next||next===currentSupplier){toast('请选择新的供应商','error');return;}
+    applySupplierChange(row,picked,next,opts?.onAfterChange);
   };
   window.setTimeout(()=>{if(supplierChangePopover===pop)document.addEventListener('click',closeSupplierChangePopover,{once:true});},0);
 }
-function applySupplierChange(source,picked,newSupplier){
+function applySupplierChange(source,picked,newSupplier,onAfterChange){
   const now='2026-09-03 16:40';
   const lines=picked.map(entry=>{const id=String(entry.id).replace('plan-sku-','');return source.items.find(item=>item.id===id)||source.items.find(item=>item.sku===entry.sku);}).filter(Boolean);
   if(!lines.length){toast('未找到采购明细','error');return;}
@@ -1004,9 +1066,14 @@ function applySupplierChange(source,picked,newSupplier){
     purchaseOrders.unshift(doc);
     message=`已新建采购单 ${doc.midNo}，${lines.length} 个 SKU（${skus}）已转入（${newSupplier}）`;
   }
-  purchaseCreateState.selected=purchaseCreateState.selected.filter(entry=>!picked.some(item=>item.id===entry.id));
   closeSupplierChangePopover();
-  renderPurchaseCreateModal();renderTabs();renderTable();
+  if(typeof onAfterChange==='function'){
+    onAfterChange({source,target,lines});
+  }else{
+    purchaseCreateState.selected=purchaseCreateState.selected.filter(entry=>!picked.some(item=>item.id===entry.id));
+    renderPurchaseCreateModal();
+  }
+  renderTabs();renderTable();
   toast(message);
 }
 function buildSupplierTransferOrder(source,lines,newSupplier){
@@ -1017,23 +1084,46 @@ function buildSupplierTransferOrder(source,lines,newSupplier){
   return doc;
 }
 // ===== 批量编辑采购单 =====
-const batchEditState={ids:[],activeId:null,drafts:{}};
+const batchEditState={ids:[],activeId:null,drafts:{},originals:{},checkedByOrder:{},splitIds:new Set()};
 function batchEditSnapshot(row){
   return {
     supplier:row.supplier||'',warehouse:row.warehouse||'',purchaseOwner:row.purchaseOwner||loginAccount,
     purchaseSubject:row.purchaseSubject||'',settlement:row.settlement||'',prepayRate:String(row.prepayRate??0),
     taxIncluded:row.taxIncluded||'否',tax:String(row.tax??0),freight:String(row.freight??0),discount:String(row.discount??0),otherFee:String(row.otherFee??0),remark:row.remark||'',
     items:(row.items||[]).map((item,index)=>{
-      return {sku:item.sku,name:item.name,team:item.team,planNo:item.planNo||`CGJH202608${String(1001+index)}`,plannedQty:Number(item.plannedQty??item.purchaseQty)||0,orderQty:Number(item.purchaseQty)||0,unitPrice:Number(item.unitPrice)||0,remark:item.remark||''};
+      const plan=purchasePlanSkuRows.find(source=>source.id===`plan-sku-${item.id}`||(source.planNo===item.planNo&&source.sku===item.sku))||{};
+      return {...plan,...item,planNo:item.planNo||plan.planNo||`CGJH202608${String(1001+index)}`,plannedQty:Number(item.plannedQty??item.purchaseQty)||0,orderQty:Number(item.purchaseQty)||0,unitPrice:Number(item.unitPrice)||0,remark:item.remark||''};
     })
   };
 }
 function batchEditOrder(id){return purchaseOrders.find(row=>row.id===id);}
+function batchEditOrderAmount(draft){
+  const itemsAmount=(draft.items||[]).reduce((sum,item)=>sum+(Number(item.orderQty)||0)*(Number(item.unitPrice)||0),0);
+  return Math.max(0,itemsAmount+(Number(draft.freight)||0)+(Number(draft.otherFee)||0)-(Number(draft.discount)||0));
+}
+function batchEditIsDirty(id){
+  const draft=batchEditState.drafts[id],orig=batchEditState.originals[id];
+  if(!draft||!orig)return false;
+  const baseKeys=['supplier','warehouse','purchaseOwner','purchaseSubject','settlement','prepayRate','taxIncluded','tax','freight','discount','otherFee','remark'];
+  if(baseKeys.some(key=>String(draft[key]??'')!==String(orig[key]??'')))return true;
+  if(draft.items.length!==orig.items.length)return true;
+  return draft.items.some((item,idx)=>{
+    const o=orig.items[idx];
+    return !o||item.id!==o.id||Number(item.orderQty)!==Number(o.orderQty)||Number(item.unitPrice)!==Number(o.unitPrice)||String(item.remark||'')!==String(o.remark||'');
+  });
+}
 function openBatchEditModal(rows){
   if(!rows||!rows.length)return;
   batchEditState.ids=rows.map(row=>row.id);
   batchEditState.drafts={};
-  rows.forEach(row=>{batchEditState.drafts[row.id]=batchEditSnapshot(row);});
+  batchEditState.originals={};
+  batchEditState.checkedByOrder={};
+  batchEditState.splitIds=new Set();
+  rows.forEach(row=>{
+    batchEditState.drafts[row.id]=batchEditSnapshot(row);
+    batchEditState.originals[row.id]=batchEditSnapshot(row);
+    batchEditState.checkedByOrder[row.id]=new Set();
+  });
   batchEditState.activeId=rows[0].id;
   renderBatchEditModal();
 }
@@ -1041,9 +1131,11 @@ function renderBatchEditModal(){
   const modal=$('#batchEditModal');
   if(!batchEditState.ids.length){modal.hidden=true;return;}
   const active=batchEditState.activeId,draft=batchEditState.drafts[active],row=batchEditOrder(active);
+  const checkedSet=batchEditState.checkedByOrder[active]||(batchEditState.checkedByOrder[active]=new Set());
   const navItems=batchEditState.ids.map(id=>{
-    const doc=batchEditOrder(id),d=batchEditState.drafts[id];
-    return `<div class="pb-nav-item${id===active?' active':''}" data-batch-nav="${id}"><div class="pb-nav-main"><b>${doc.midNo}</b><span>${d.supplier||'未选择供应商'} · ${d.purchaseOwner||'未指定采购员'}</span></div><button class="pb-nav-remove" type="button" data-batch-remove="${id}" aria-label="移除 ${doc.midNo}">✕</button></div>`;
+    const doc=batchEditOrder(id),d=batchEditState.drafts[id],dirty=batchEditIsDirty(id),isSplit=batchEditState.splitIds.has(id);
+    const skuCount=(d.items||[]).length,amt=batchEditOrderAmount(d);
+    return `<div class="pb-nav-item${id===active?' active':''}" data-batch-nav="${id}"><div class="pb-nav-main"><div class="pb-nav-top"><b>${doc.midNo}</b>${isSplit?'<span class="pb-nav-split">已拆单</span>':''}${dirty?'<span class="pb-nav-dirty">已修改</span>':''}</div><span class="pb-nav-meta">${d.supplier||'未选择供应商'} · ${d.purchaseOwner||'未指定采购员'}</span><span class="pb-nav-sub">${skuCount} 个 SKU · ${money(amt)}</span></div><button class="pb-nav-remove" type="button" data-batch-remove="${id}" aria-label="移除 ${doc.midNo}" title="移出本次批量编辑">✕</button></div>`;
   }).join('');
   const baseGrid=
     purchaseCreateField('供应商',purchaseCreateSelect('batch-supplier','请选择供应商',suppliers,draft.supplier),true)+
@@ -1058,23 +1150,38 @@ function renderBatchEditModal(){
     purchaseCreateField('优惠金额',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-batch-form="discount" type="number" min="0" step="0.01" value="${draft.discount}"><span>¥</span></div>`)+
     purchaseCreateField('其他费用',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-batch-form="otherFee" type="number" min="0" step="0.01" value="${draft.otherFee}"><span>¥</span></div>`)+
     purchaseCreateField('备注',`<textarea class="purchase-create-textarea" data-batch-form="remark" placeholder="请输入备注">${draft.remark}</textarea>`);
-  const itemRows=draft.items.length?draft.items.map((item,index)=>`<tr><td>${index+1}</td><td>${item.planNo}</td><td><b>${item.sku}</b></td><td>${item.name}</td><td>${item.team}</td><td>${item.plannedQty}</td><td><input class="purchase-create-control pb-item-input" data-batch-item="${index}" data-batch-field="orderQty" type="number" min="1" value="${item.orderQty}"></td><td><input class="purchase-create-control pb-item-input" data-batch-item="${index}" data-batch-field="unitPrice" type="number" min="0" step="0.01" value="${item.unitPrice}"></td><td data-batch-amount="${index}">${money(item.orderQty*item.unitPrice)}</td><td><input class="purchase-create-control" data-batch-item="${index}" data-batch-field="remark" value="${item.remark}" placeholder="请输入备注"></td></tr>`).join(''):`<tr><td colspan="9" class="purchase-create-empty"><div class="purchase-create-empty-inner"><p>该采购单暂无明细</p></div></td></tr>`;
+  const itemRows=draft.items.length?draft.items.map((item,index)=>`<tr><td><input type="checkbox" data-batch-item-check="${index}" ${checkedSet.has(item.id)?'checked':''}></td><td>${index+1}</td><td>${item.planNo}</td><td><b>${item.sku}</b></td><td class="purchase-create-name"><span class="sku-thumb">${item.icon||'📦'}</span><span>${item.name}</span></td><td>${item.team||'—'}</td><td>${item.platform||'—'}</td><td>${item.store||'—'}</td><td>${item.plannedQty}</td><td><input class="purchase-create-control pb-item-input" data-batch-item="${index}" data-batch-field="orderQty" type="number" min="${item.minOrderQty||1}" value="${item.orderQty}"></td><td><input class="purchase-create-control pb-item-input" data-batch-item="${index}" data-batch-field="unitPrice" type="number" min="0" step="0.01" value="${item.unitPrice}"></td><td data-batch-amount="${index}">${money(item.orderQty*item.unitPrice)}</td><td>${Number(item.boxes)||0}</td><td><span class="purchase-create-readonly-date">${item.planOrderDate||'—'}</span></td><td>${item.planDeliveryDate||'—'}</td><td><input class="purchase-create-control" data-batch-item="${index}" data-batch-field="remark" value="${item.remark}" placeholder="请输入备注"></td></tr>`).join(''):`<tr><td colspan="16" class="purchase-create-empty"><div class="purchase-create-empty-inner"><p>该采购单暂无明细，请至少保留一个采购 SKU</p></div></td></tr>`;
+  const totalPlanned=draft.items.reduce((sum,item)=>sum+(Number(item.plannedQty)||0),0);
   const totalQty=draft.items.reduce((sum,item)=>sum+(Number(item.orderQty)||0),0);
   const totalAmount=draft.items.reduce((sum,item)=>sum+(Number(item.orderQty)||0)*(Number(item.unitPrice)||0),0);
+  const totalBoxes=draft.items.reduce((sum,item)=>sum+(Number(item.boxes)||0),0);
+  const allChecked=draft.items.length>0&&draft.items.every(item=>checkedSet.has(item.id));
   modal.innerHTML=`<div class="purchase-batch-dialog">
-    <header class="purchase-create-header pb-head"><div><h2>批量编辑采购单</h2><span class="pb-head-sub">已选 ${batchEditState.ids.length} 张待提交采购单 · 修改自动暂存，底部按钮统一生效</span></div><button class="purchase-create-close" type="button" data-batch-close aria-label="关闭">✕</button></header>
+    <header class="purchase-create-header pb-head"><div><h2>批量编辑采购单</h2><span class="pb-head-sub">已选 ${batchEditState.ids.length} 张待提交采购单 · 切换单据自动暂存，底部按钮统一生效</span></div><button class="purchase-create-close" type="button" data-batch-close aria-label="关闭">✕</button></header>
     <div class="purchase-batch-body">
       <aside class="purchase-batch-nav"><div class="pb-nav-title">采购单（${batchEditState.ids.length}）</div><div class="pb-nav-list">${navItems}</div></aside>
       <div class="purchase-batch-panel">
-        <div class="pb-panel-head"><b>当前编辑：${row.midNo}</b><span>切换左侧导航继续编辑下一张</span></div>
+        <div class="pb-panel-head"><b>当前编辑：${row.midNo}</b><span>点击左侧或按 ↑ ↓ 键切换采购单</span></div>
         <section class="purchase-create-section"><div class="purchase-create-section-title"><i class="purchase-create-title-bar"></i>采购单资料</div><div class="purchase-create-grid">${baseGrid}</div></section>
-        <section class="purchase-create-section"><div class="purchase-create-section-title"><i class="purchase-create-title-bar"></i>采购明细</div><div class="purchase-create-table-wrap pb-item-table-wrap"><table class="purchase-create-table"><thead><tr><th>序号</th><th>采购计划</th><th>SKU</th><th>品名</th><th>团队</th><th>计划数量</th><th>采购数量</th><th>采购单价</th><th>金额</th><th>备注</th></tr></thead><tbody>${itemRows}</tbody><tfoot><tr><td>合计</td><td></td><td></td><td></td><td></td><td></td><td data-batch-total="qty">${totalQty}</td><td></td><td data-batch-total="amount">${money(totalAmount)}</td><td></td></tr></tfoot></table></div></section>
+        <section class="purchase-create-section"><div class="purchase-create-plan-toolbar"><div class="purchase-create-plan-title"><i class="purchase-create-title-bar"></i><b>采购明细</b></div><div class="purchase-create-plan-actions"><button class="btn small-btn" type="button" data-batch-split>拆采购单</button><button class="btn danger small-btn" type="button" data-batch-remove-skus>移除</button></div></div><div class="purchase-create-table-wrap pb-item-table-wrap"><table class="purchase-create-table"><thead><tr><th><input type="checkbox" data-batch-select-all ${allChecked?'checked':''}></th><th>序号</th><th>采购计划</th><th>SKU</th><th>品名</th><th>团队</th><th>平台</th><th>店铺</th><th>计划采购数量</th><th>采购数量</th><th>采购单价</th><th>采购金额</th><th>箱规数量</th><th>计划下单日期</th><th>计划交货日期</th><th>备注</th></tr></thead><tbody>${itemRows}</tbody><tfoot><tr><td></td><td>合计</td><td></td><td></td><td></td><td></td><td></td><td></td><td data-batch-total="planned">${totalPlanned}</td><td data-batch-total="qty">${totalQty}</td><td></td><td data-batch-total="amount">${money(totalAmount)}</td><td data-batch-total="boxes">${totalBoxes}</td><td></td><td></td><td></td></tr></tfoot></table></div></section>
       </div>
     </div>
-    <footer class="purchase-create-footer pb-footer"><div class="purchase-create-footer-stats"><span class="purchase-create-stat">本次编辑 <em data-batch-count>${batchEditState.ids.length}</em> 张采购单</span></div><div class="pb-footer-actions"><button class="btn" type="button" data-batch-close2>取消</button><button class="btn" type="button" data-batch-save>保存到待提交</button><button class="btn primary" type="button" data-batch-review>提交审核</button></div></footer>
+    <footer class="purchase-create-footer pb-footer"><div class="purchase-create-footer-stats"><span class="purchase-create-stat">共 <em data-batch-stat="count">${draft.items.length}</em> 个 SKU</span><span class="purchase-create-stat">采购数量 <em data-batch-stat="qty">${totalQty}</em></span><span class="purchase-create-stat">采购金额 <em data-batch-stat="amount">${money(totalAmount)}</em></span></div><div class="pb-footer-actions"><button class="btn" type="button" data-batch-close2>取消</button><button class="btn" type="button" data-batch-save>保存到待提交</button><button class="btn primary" type="button" data-batch-review>提交审核</button></div></footer>
   </div>`;
   modal.hidden=false;
+  if(typeof normalizePurchaseLabels==='function')normalizePurchaseLabels(modal);
   bindBatchEditModal();
+}
+function syncBatchNavItem(modal,id){
+  const nav=modal.querySelector(`[data-batch-nav="${id}"]`),draft=batchEditState.drafts[id];
+  if(!nav||!draft)return;
+  const meta=nav.querySelector('.pb-nav-meta'),sub=nav.querySelector('.pb-nav-sub'),top=nav.querySelector('.pb-nav-top');
+  if(meta)meta.textContent=`${draft.supplier||'未选择供应商'} · ${draft.purchaseOwner||'未指定采购员'}`;
+  if(sub)sub.textContent=`${(draft.items||[]).length} 个 SKU · ${money(batchEditOrderAmount(draft))}`;
+  const dirty=batchEditIsDirty(id);
+  let badge=top?.querySelector('.pb-nav-dirty');
+  if(dirty&&!badge&&top){badge=document.createElement('span');badge.className='pb-nav-dirty';badge.textContent='已修改';top.appendChild(badge);}
+  if(!dirty&&badge)badge.remove();
 }
 function bindBatchEditModal(){
   const modal=$('#batchEditModal');
@@ -1089,8 +1196,7 @@ function bindBatchEditModal(){
   const syncForm=(name,value)=>{
     const draft=batchEditState.drafts[batchEditState.activeId];if(!draft)return;
     draft[name.replace('batch-','')]=value;
-    const meta=modal.querySelector(`[data-batch-nav="${batchEditState.activeId}"] .pb-nav-main span`);
-    if(meta)meta.textContent=`${draft.supplier||'未选择供应商'} · ${draft.purchaseOwner||'未指定采购员'}`;
+    syncBatchNavItem(modal,batchEditState.activeId);
   };
   modal.querySelectorAll('[data-batch-form]').forEach(input=>{const handler=()=>syncForm(input.dataset.batchForm,input.value);input.oninput=handler;input.onchange=handler;});
   bindPurchaseSelects(modal,(name,value)=>syncForm(name,value));
@@ -1106,16 +1212,83 @@ function bindBatchEditModal(){
         const totalAmount=draft.items.reduce((sum,line)=>sum+(Number(line.orderQty)||0)*(Number(line.unitPrice)||0),0);
         const totalQtyCell=modal.querySelector('[data-batch-total="qty"]'),totalAmountCell=modal.querySelector('[data-batch-total="amount"]');
         if(totalQtyCell)totalQtyCell.textContent=totalQty;if(totalAmountCell)totalAmountCell.textContent=money(totalAmount);
+        const statQty=modal.querySelector('[data-batch-stat="qty"]'),statAmount=modal.querySelector('[data-batch-stat="amount"]');
+        if(statQty)statQty.textContent=totalQty;if(statAmount)statAmount.textContent=money(totalAmount);
       }
+      syncBatchNavItem(modal,batchEditState.activeId);
     };
     input.oninput=handler;input.onchange=handler;
   });
+  const selectAll=modal.querySelector('[data-batch-select-all]');
+  if(selectAll)selectAll.onchange=()=>{
+    const activeId=batchEditState.activeId,draft=batchEditState.drafts[activeId];
+    if(!draft)return;
+    const set=batchEditState.checkedByOrder[activeId]||(batchEditState.checkedByOrder[activeId]=new Set());
+    draft.items.forEach(item=>selectAll.checked?set.add(item.id):set.delete(item.id));
+    modal.querySelectorAll('[data-batch-item-check]').forEach(cb=>{cb.checked=selectAll.checked;});
+  };
+  modal.querySelectorAll('[data-batch-item-check]').forEach(cb=>cb.onchange=()=>{
+    const activeId=batchEditState.activeId,draft=batchEditState.drafts[activeId];
+    if(!draft)return;
+    const set=batchEditState.checkedByOrder[activeId]||(batchEditState.checkedByOrder[activeId]=new Set());
+    const item=draft.items[Number(cb.dataset.batchItemCheck)];
+    if(!item)return;
+    cb.checked?set.add(item.id):set.delete(item.id);
+    if(selectAll)selectAll.checked=draft.items.length>0&&draft.items.every(entry=>set.has(entry.id));
+  });
+  const splitBtn=modal.querySelector('[data-batch-split]');
+  if(splitBtn)splitBtn.onclick=async()=>{
+    const activeId=batchEditState.activeId,draft=batchEditState.drafts[activeId],row=batchEditOrder(activeId);
+    if(!draft||!row)return;
+    const set=batchEditState.checkedByOrder[activeId]||new Set();
+    const picked=draft.items.filter(item=>set.has(item.id));
+    if(!picked.length){toast('请先勾选需要拆出的采购明细','error');return;}
+    if(picked.length>=draft.items.length){toast('不能将全部 SKU 拆出，请至少在原采购单保留 1 个 SKU','error');return;}
+    const skus=picked.map(item=>item.sku).join('、');
+    const ok=await askConfirm(`确认将选中的 ${picked.length} 个 SKU（${skus}）从 ${row.midNo} 拆出生成新采购单吗？`,'拆采购单','确认拆单');
+    if(!ok)return;
+    const {newDoc,pickedIds}=createSplitOrderFromSource(row,draft,picked);
+    draft.items=draft.items.filter(entry=>!pickedIds.has(entry.id));
+    if(batchEditState.originals[activeId]?.items)batchEditState.originals[activeId].items=batchEditState.originals[activeId].items.filter(entry=>!pickedIds.has(entry.id));
+    pickedIds.forEach(id=>set.delete(id));
+    batchEditState.ids.unshift(newDoc.id);
+    batchEditState.drafts[newDoc.id]=batchEditSnapshot(newDoc);
+    batchEditState.originals[newDoc.id]=batchEditSnapshot(newDoc);
+    batchEditState.checkedByOrder[newDoc.id]=new Set();
+    batchEditState.splitIds.add(newDoc.id);
+    batchEditState.activeId=newDoc.id;
+    renderBatchEditModal();renderTabs();renderTable();
+    toast(`已拆出新采购单 ${newDoc.midNo}`);
+  };
+  const removeSkusBtn=modal.querySelector('[data-batch-remove-skus]');
+  if(removeSkusBtn)removeSkusBtn.onclick=async()=>{
+    const activeId=batchEditState.activeId,draft=batchEditState.drafts[activeId],row=batchEditOrder(activeId);
+    if(!draft||!row)return;
+    const set=batchEditState.checkedByOrder[activeId]||new Set();
+    const picked=draft.items.filter(item=>set.has(item.id));
+    if(!picked.length){toast('请先勾选需要移除的采购明细','error');return;}
+    if(picked.length>=draft.items.length){toast('采购单至少保留 1 个 SKU，如需整单取消请使用「作废」','error');return;}
+    const skus=picked.map(item=>item.sku).join('、');
+    const ok=await askConfirm(`确认从采购单 ${row.midNo} 移除选中的 ${picked.length} 个 SKU（${skus}）吗？`,'移除 SKU','确认移除');
+    if(!ok)return;
+    const pickedIds=new Set(picked.map(item=>item.id));
+    row.items=(row.items||[]).filter(entry=>!pickedIds.has(entry.id));
+    row.updatedBy=loginAccount||'Admin';row.updatedAt='2026-09-03 16:40';
+    recalcPurchaseOrder(row);
+    draft.items=draft.items.filter(entry=>!pickedIds.has(entry.id));
+    if(batchEditState.originals[activeId]?.items)batchEditState.originals[activeId].items=batchEditState.originals[activeId].items.filter(entry=>!pickedIds.has(entry.id));
+    pickedIds.forEach(id=>set.delete(id));
+    renderBatchEditModal();renderTable();
+    toast(`已移除 ${picked.length} 个 SKU`);
+  };
   const saveButton=modal.querySelector('[data-batch-save]');if(saveButton)saveButton.onclick=()=>saveBatchEdits(false);
   const reviewButton=modal.querySelector('[data-batch-review]');if(reviewButton)reviewButton.onclick=()=>saveBatchEdits(true);
 }
 function removeBatchOrder(id){
   batchEditState.ids=batchEditState.ids.filter(item=>item!==id);
   delete batchEditState.drafts[id];
+  delete batchEditState.originals[id];
+  delete batchEditState.checkedByOrder[id];
   if(!batchEditState.ids.length){
     closeBatchEdit();toast('已移除全部采购单，本次批量编辑取消');
     state.selected.clear();applyFilters(false);renderTabs();renderTable();syncSelection();
@@ -1125,7 +1298,15 @@ function removeBatchOrder(id){
   renderBatchEditModal();
 }
 function closeBatchEdit(){$('#batchEditModal').hidden=true;}
-function saveBatchEdits(asReview){
+function showBatchSupplierError(orderNo,supplier,skus){
+  const panel=$('#batchEditModal .purchase-batch-panel');
+  if(!panel)return;
+  panel.querySelectorAll('.pb-supplier-error-banner').forEach(el=>el.remove());
+  panel.insertAdjacentHTML('afterbegin',supplierErrorBannerHtml(orderNo,supplier,skus));
+  bindGotoProductList(panel);
+  panel.scrollTop=0;
+}
+async function saveBatchEdits(asReview){
   const missing=batchEditState.ids.find(id=>{
     const draft=batchEditState.drafts[id];
     return ['supplier','warehouse','purchaseOwner','purchaseSubject','settlement'].some(key=>!draft[key]);
@@ -1136,13 +1317,58 @@ function saveBatchEdits(asReview){
     toast(`${doc.midNo} 存在未填写的必填项（供应商/采购仓/采购员/结算方式/采购主体），已定位到该单，请补全后再提交`,'error');
     return;
   }
+  const emptyItemOrder=batchEditState.ids.find(id=>!(batchEditState.drafts[id]?.items||[]).length);
+  if(emptyItemOrder){
+    const doc=batchEditOrder(emptyItemOrder);
+    batchEditState.activeId=emptyItemOrder;renderBatchEditModal();
+    toast(`${doc.midNo} 请至少保留一个采购 SKU`,'error');
+    return;
+  }
+  const invalidQtyOrder=batchEditState.ids.find(id=>(batchEditState.drafts[id]?.items||[]).some(item=>Number(item.orderQty)<=0));
+  if(invalidQtyOrder){
+    const doc=batchEditOrder(invalidQtyOrder);
+    batchEditState.activeId=invalidQtyOrder;renderBatchEditModal();
+    toast(`${doc.midNo} 存在采购数量小于等于 0 的明细，请修改后再提交`,'error');
+    return;
+  }
+  const unboundOrder=batchEditState.ids.find(id=>{
+    const draft=batchEditState.drafts[id];
+    return findUnboundSkus(draft.items,draft.supplier).length>0;
+  });
+  if(unboundOrder){
+    const doc=batchEditOrder(unboundOrder),draft=batchEditState.drafts[unboundOrder];
+    const unbound=findUnboundSkus(draft.items,draft.supplier);
+    batchEditState.activeId=unboundOrder;renderBatchEditModal();
+    showBatchSupplierError(doc.midNo,draft.supplier,unbound);
+    toast(`${doc.midNo} 中部分 SKU 未维护供应商「${draft.supplier}」`,'error');
+    return;
+  }
   const count=batchEditState.ids.length;
+  const orderNos=batchEditState.ids.map(id=>batchEditOrder(id)?.midNo).filter(Boolean).join('、');
+  const ok=await askConfirm(asReview?`确认将采购单 ${orderNos} 提交审核吗？`:`确认将采购单 ${orderNos} 保存到待提交吗？`,asReview?'提交审核':'保存到待提交',asReview?'确认提交':'确认保存');
+  if(!ok)return;
   batchEditState.ids.forEach(id=>{
     const row=batchEditOrder(id),draft=batchEditState.drafts[id];
-    Object.assign(row,{supplier:draft.supplier,warehouse:draft.warehouse,purchaseOwner:draft.purchaseOwner,purchaseSubject:draft.purchaseSubject,settlement:draft.settlement,prepayRate:Number(draft.prepayRate)||0,taxIncluded:draft.taxIncluded,tax:Number(draft.tax)||0,freight:Number(draft.freight)||0,discount:Number(draft.discount)||0,otherFee:Number(draft.otherFee)||0,remark:draft.remark});
-    (draft.items||[]).forEach((snap,index)=>{
-      const item=row.items[index];
-      if(item){item.purchaseQty=snap.orderQty;item.unitPrice=snap.unitPrice;item.remark=snap.remark;}
+    const items=(draft.items||[]).map(snap=>({
+      ...snap,
+      purchaseQty:Number(snap.orderQty)||0,
+      unitPrice:Number(snap.unitPrice)||0,
+      remark:snap.remark||''
+    }));
+    const freight=Number(draft.freight)||0,discount=Number(draft.discount)||0,otherFee=Number(draft.otherFee)||0;
+    const purchaseQty=items.reduce((sum,item)=>sum+Number(item.purchaseQty||0),0);
+    const receiveQty=items.reduce((sum,item)=>sum+Number(item.receiveQty||0),0);
+    const itemsAmount=items.reduce((sum,item)=>sum+Number(item.purchaseQty||0)*Number(item.unitPrice||0),0);
+    Object.assign(row,{
+      supplier:draft.supplier,warehouse:draft.warehouse,purchaseOwner:draft.purchaseOwner,
+      purchaseSubject:draft.purchaseSubject,settlement:draft.settlement,
+      prepayRate:Number(draft.prepayRate)||0,taxIncluded:draft.taxIncluded,tax:Number(draft.tax)||0,
+      freight,discount,otherFee,remark:draft.remark,
+      items,purchaseQty,receiveQty,
+      pendingQty:Math.max(purchaseQty-receiveQty,0),
+      amount:Math.max(0,itemsAmount+freight+otherFee-discount),
+      totalFees:freight+otherFee,
+      updatedBy:'Admin',updatedAt:'2026-09-03 16:40'
     });
     if(asReview)row.status='待审核';
   });
@@ -1150,10 +1376,56 @@ function saveBatchEdits(asReview){
   closeBatchEdit();
   toast(asReview?`已提交审核 ${count} 张采购单`:`已保存 ${count} 张采购单到待提交`);
 }
-document.addEventListener('keydown',event=>{if(event.key==='Escape')closeBatchEdit();});
+// ===== 拆采购单（单个编辑 & 批量编辑共用） =====
+function createSplitOrderFromSource(sourceRow,sourceForm,pickedItems){
+  const now='2026-09-03 16:40',docIndex=purchaseOrders.length+1;
+  const pickedIds=new Set(pickedItems.map(it=>it.id));
+  const newItems=pickedItems.map((it,idx)=>({...it,id:`line-split-${Date.now()}-${idx}`,purchaseQty:Number(it.orderQty??it.purchaseQty)||0,unitPrice:Number(it.unitPrice)||0,transitQty:0,arrivedQty:0,receiveQty:0,pendingQty:Number(it.orderQty??it.purchaseQty)||0,receiveBatches:[]}));
+  const newDoc={
+    id:`po-split-${Date.now()}`,ecNo:'—',lxNo:'—',erpSource:'易仓',
+    midNo:`PO202609${String(727000+docIndex)}`,trackingNo:`PO202609${String(805000+docIndex)}`,
+    supplier:sourceForm?.supplier||sourceRow.supplier||'',supplierCode:sourceRow.supplierCode||'待维护',
+    warehouse:sourceForm?.warehouse||sourceRow.warehouse||'',
+    purchaseOwner:sourceForm?.purchaseOwner||sourceRow.purchaseOwner||loginAccount,
+    purchaseSubject:sourceForm?.purchaseSubject||sourceRow.purchaseSubject||'',
+    settlement:sourceForm?.settlement||sourceRow.settlement||'',
+    currency:sourceRow.currency||'CNY',
+    taxIncluded:sourceForm?.taxIncluded||sourceRow.taxIncluded||'否',
+    prepayRate:Number(sourceForm?.prepayRate??sourceRow.prepayRate)||0,
+    freight:0,discount:0,otherFee:0,creator:loginAccount||'Admin',status:'待提交',
+    tax:Number(sourceForm?.tax??sourceRow.tax)||0,receiveDate:'—',
+    logistics:[{no:'—',company:'待维护'}],logisticsIndex:0,remark:sourceForm?.remark||'',attachments:[],
+    updatedBy:loginAccount||'Admin',createdAt:now,updatedAt:now,items:newItems,totalFees:0,receiveQty:0,transitQty:0,arrivedQty:0
+  };
+  recalcPurchaseOrder(newDoc);
+  purchaseOrders.unshift(newDoc);
+  const rawIds=new Set([...pickedIds].map(id=>String(id).replace('plan-sku-','')));
+  sourceRow.items=(sourceRow.items||[]).filter(entry=>!pickedIds.has(entry.id)&&!rawIds.has(entry.id));
+  sourceRow.updatedBy=loginAccount||'Admin';sourceRow.updatedAt=now;
+  recalcPurchaseOrder(sourceRow);
+  return {newDoc,pickedIds};
+}
+document.addEventListener('keydown',event=>{
+  const modal=$('#batchEditModal');
+  if(!modal||modal.hidden)return;
+  if(event.key==='Escape'){closeBatchEdit();return;}
+  if(event.key==='ArrowUp'||event.key==='ArrowDown'){
+    const tag=document.activeElement?.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+    const idx=batchEditState.ids.indexOf(batchEditState.activeId);
+    if(idx<0)return;
+    const nextIdx=event.key==='ArrowDown'?idx+1:idx-1;
+    if(nextIdx>=0&&nextIdx<batchEditState.ids.length){
+      event.preventDefault();
+      batchEditState.activeId=batchEditState.ids[nextIdx];
+      renderBatchEditModal();
+    }
+  }
+});
 function openPurchaseEdit(row){
   if(!row||!['待提交','已驳回'].includes(row.status))return;
   purchaseCreateState.editingRowId=row.id;
+  purchaseCreateState.checkedIds=new Set();
   purchaseCreateState.form={
     supplier:row.supplier||'',warehouse:row.warehouse||'',purchaseOwner:row.purchaseOwner||loginAccount,
     purchaseSubject:row.purchaseSubject||'',settlement:row.settlement||'',prepayRate:String(row.prepayRate??0),
@@ -1166,7 +1438,15 @@ function openPurchaseEdit(row){
   purchaseCreateState.query={planNo:'',sku:'',supplier:'',platform:'',team:''};
   renderPurchaseCreateModal();
 }
-function savePurchaseOrderEdit(saveAsReview){
+function showCreateSupplierError(orderNo,supplier,skus){
+  const body=$('#purchaseCreateModal .purchase-create-body');
+  if(!body)return;
+  body.querySelectorAll('.pb-supplier-error-banner').forEach(el=>el.remove());
+  body.insertAdjacentHTML('afterbegin',supplierErrorBannerHtml(orderNo,supplier,skus));
+  bindGotoProductList(body);
+  body.scrollTop=0;
+}
+async function savePurchaseOrderEdit(saveAsReview){
   const form=purchaseCreateState.form,row=purchaseOrders.find(item=>item.id===purchaseCreateState.editingRowId);
   const required=[['supplier','请选择供应商'],['warehouse','请选择采购仓'],['purchaseOwner','请确认采购员'],['purchaseSubject','请选择采购主体'],['settlement','请选择结算方式']];
   const missing=required.find(([key])=>!form[key]);
@@ -1176,6 +1456,14 @@ function savePurchaseOrderEdit(saveAsReview){
   if(!purchaseCreateState.selected.length){toast('请至少保留一个采购计划 SKU','error');return;}
   if(purchaseCreateState.selected.some(item=>Number(item.orderQty)<=0)){toast('采购数量必须大于 0','error');return;}
   if(purchaseCreateState.selected.some(item=>Number(item.orderQty)<Number(item.receiveQty||0))){toast('采购数量不能小于已收货数量','error');return;}
+  const unbound=findUnboundSkus(purchaseCreateState.selected,form.supplier);
+  if(unbound.length){
+    showCreateSupplierError(row.midNo,form.supplier,unbound);
+    toast(`采购单 ${row.midNo} 中部分 SKU 未维护供应商「${form.supplier}」`,'error');
+    return;
+  }
+  const ok=await askConfirm(saveAsReview?`确认将采购单 ${row.midNo} 提交审核吗？`:`确认保存采购单 ${row.midNo} 到待提交吗？`,saveAsReview?'提交审核':'保存到待提交',saveAsReview?'确认提交':'确认保存');
+  if(!ok)return;
   const items=purchaseCreateState.selected.map((source,index)=>{
     const existing=row.items.find(item=>item.id===source.id.replace('plan-sku-',''))||row.items[index]||{};
     return {...existing,...source,id:existing.id||source.id.replace('plan-sku-',''),purchaseQty:Number(source.orderQty)||0,unitPrice:Number(source.unitPrice)||0,receiveQty:Number(existing.receiveQty)||0,receiveBatches:existing.receiveBatches||[]};
@@ -1193,10 +1481,12 @@ function savePurchaseOrderEdit(saveAsReview){
 }
 function syncPurchaseCreateAddSku(){const button=$('#purchaseCreateModal #openPurchasePlanSku');if(!button)return;const enabled=['supplier','warehouse','purchaseOwner','purchaseSubject','settlement'].every(key=>Boolean(purchaseCreateState.form[key]));button.disabled=!enabled;button.title=enabled?'':'请先填写供应商、采购仓、采购员、采购主体和结算方式';}
 function renderPurchaseCreateModal(){
-  const modal=$('#purchaseCreateModal'),form=purchaseCreateState.form,editingRow=purchaseOrders.find(item=>item.id===purchaseCreateState.editingRowId),editing=Boolean(purchaseCreateState.editingRowId),rejectedEdit=editing&&editingRow&&editingRow.status==='已驳回',title=editing?'编辑采购单':'新建采购单',subtitle=editing?(rejectedEdit?'编辑已驳回采购单，可保存到待提交或直接提交审核':'编辑采购单信息，保存后可重新提交审核'):'从采购计划选择 SKU，填写采购单基础信息',submitText=editing?'保存':'提交',canAddSku=['supplier','warehouse','purchaseOwner','purchaseSubject','settlement'].every(key=>Boolean(form[key]));
+  const modal=$('#purchaseCreateModal'),form=purchaseCreateState.form,editingRow=purchaseOrders.find(item=>item.id===purchaseCreateState.editingRowId),editing=Boolean(purchaseCreateState.editingRowId),rejectedEdit=editing&&editingRow&&editingRow.status==='已驳回',canSplit=Boolean(editingRow&&editingRow.status==='待提交'),title=editing?'编辑采购单':'新建采购单',subtitle=editing?(rejectedEdit?'编辑已驳回采购单，可保存到待提交或直接提交审核':'编辑采购单信息，保存后可重新提交审核'):'从采购计划选择 SKU，填写采购单基础信息',submitText=editing?'保存':'提交',canAddSku=['supplier','warehouse','purchaseOwner','purchaseSubject','settlement'].every(key=>Boolean(form[key]));
   const totals=purchaseCreateTotals();
-  const addSkuButton=editing?'':`<button class="btn primary small-btn" type="button" id="openPurchasePlanSku" ${canAddSku?'':'disabled'}>＋ 新增 SKU</button>`;
-  modal.innerHTML=`<div class="purchase-create-dialog"><header class="purchase-create-header"><div><h2>${title}</h2><span>${subtitle}</span></div><button class="purchase-create-close" type="button" aria-label="关闭采购单弹窗">×</button></header><div class="purchase-create-body"><section class="purchase-create-section purchase-create-base-section"><div class="purchase-create-section-title"><i class="purchase-create-title-bar"></i>采购单资料</div><div class="purchase-create-grid">${purchaseCreateField('供应商',editing?`<div class="purchase-create-readonly-field" title="采购单按供应商拆单；如需更换供应商，请在采购明细行点击「更换供应商」">${form.supplier||'—'}</div>`:purchaseCreateSelect('supplier','请选择供应商',suppliers,form.supplier),true)}${purchaseCreateField('采购仓',purchaseCreateSelect('warehouse','请选择采购仓',warehouses,form.warehouse),true)}${purchaseCreateField('采购员',purchaseCreateSelect('purchaseOwner','请选择采购员',purchaseOwnerOptions,form.purchaseOwner),true)}${purchaseCreateField('结算方式',purchaseCreateSelect('settlement','请选择结算方式',settlementOptions,form.settlement),true)}${purchaseCreateField('采购主体',purchaseCreateSelect('purchaseSubject','请选择采购主体',purchaseSubjects,form.purchaseSubject),true)}${purchaseCreateField('预付比例',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="prepayRate" type="number" min="0" max="100" value="${form.prepayRate}"><span>%</span></div>`)}${purchaseCreateField('是否含税',purchaseCreateSelect('taxIncluded','请选择是否含税',['否','是'],form.taxIncluded))}${purchaseCreateField('税率',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="tax" type="number" min="0" max="100" value="${form.tax}"><span>%</span></div>`)}${purchaseCreateField('运费',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="freight" type="number" min="0" step="0.01" value="${form.freight}" placeholder="请输入运费"><span>¥</span></div>`)}${purchaseCreateField('优惠金额',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="discount" type="number" min="0" step="0.01" value="${form.discount}" placeholder="请输入优惠金额"><span>¥</span></div>`)}${purchaseCreateField('其他费用',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="otherFee" type="number" min="0" step="0.01" value="${form.otherFee}" placeholder="请输入其他费用"><span>¥</span></div>`)}${purchaseCreateField('备注',`<textarea class="purchase-create-textarea" data-create-form="remark" placeholder="请输入备注">${form.remark}</textarea>`)}</div></section><section class="purchase-create-section purchase-create-plan-section"><div class="purchase-create-plan-toolbar"><div class="purchase-create-plan-title"><i class="purchase-create-title-bar"></i><b>采购明细</b></div><div class="purchase-create-plan-actions">${addSkuButton}</div></div><div class="purchase-create-table-wrap"><table class="purchase-create-table"><thead><tr><th>序号</th><th>采购计划</th><th>SKU</th><th>品名</th><th>团队</th><th>平台</th><th>店铺</th><th>SellerSKU/Asin</th><th>计划采购数量</th><th>采购数量</th><th>采购单价</th><th>采购金额</th><th>箱规数量</th><th>计划下单日期</th><th>计划交货日期</th><th>备注</th><th>操作</th></tr></thead><tbody>${selectedPurchasePlanRows()}</tbody><tfoot>${purchaseCreateTotalsRow()}</tfoot></table></div></section></div><footer class="purchase-create-footer"><div class="purchase-create-footer-stats"><span class="purchase-create-stat">已选 <em data-stat="count">${purchaseCreateState.selected.length}</em> 个 SKU</span><span class="purchase-create-stat">采购数量 <em data-stat="qty">${totals.qty}</em></span><span class="purchase-create-stat">采购金额 <em data-stat="amount">${money(totals.amount)}</em></span></div><div><button class="btn" type="button" data-create-close>取消</button>${rejectedEdit?'<button class="btn" type="button" data-create-save-draft>保存到待提交</button><button class="btn primary" type="button" data-create-submit-review>提交审核</button>':`<button class="btn primary" type="button" data-create-submit>${submitText}</button>`}</div></footer></div>`;
+  const addSkuButton=editing?(canSplit?`<button class="btn small-btn" type="button" id="openCreateSplitOrder">拆采购单</button><button class="btn danger small-btn" type="button" id="removeCreateSelectedSkus">移除</button>`:`<button class="btn danger small-btn" type="button" id="removeCreateSelectedSkus">移除</button>`):`<button class="btn primary small-btn" type="button" id="openPurchasePlanSku" ${canAddSku?'':'disabled'}>＋ 新增 SKU</button><button class="btn danger small-btn" type="button" id="removeCreateSelectedSkus">移除</button>`;
+  const checkHead=`<th><input type="checkbox" data-create-select-all ${purchaseCreateState.selected.length&&purchaseCreateState.selected.every(item=>purchaseCreateState.checkedIds.has(item.id))?'checked':''}></th>`;
+  const footerBtns=editing?`<button class="btn" type="button" data-create-save-draft>保存到待提交</button><button class="btn primary" type="button" data-create-submit-review>提交审核</button>`:`<button class="btn primary" type="button" data-create-submit>${submitText}</button>`;
+  modal.innerHTML=`<div class="purchase-create-dialog"><header class="purchase-create-header"><div><h2>${title}</h2><span>${subtitle}</span></div><button class="purchase-create-close" type="button" aria-label="关闭采购单弹窗">×</button></header><div class="purchase-create-body"><section class="purchase-create-section purchase-create-base-section"><div class="purchase-create-section-title"><i class="purchase-create-title-bar"></i>采购单资料</div><div class="purchase-create-grid">${purchaseCreateField('供应商',purchaseCreateSelect('supplier','请选择供应商',suppliers,form.supplier),true)}${purchaseCreateField('采购仓',purchaseCreateSelect('warehouse','请选择采购仓',warehouses,form.warehouse),true)}${purchaseCreateField('采购员',purchaseCreateSelect('purchaseOwner','请选择采购员',purchaseOwnerOptions,form.purchaseOwner),true)}${purchaseCreateField('结算方式',purchaseCreateSelect('settlement','请选择结算方式',settlementOptions,form.settlement),true)}${purchaseCreateField('采购主体',purchaseCreateSelect('purchaseSubject','请选择采购主体',purchaseSubjects,form.purchaseSubject),true)}${purchaseCreateField('预付比例',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="prepayRate" type="number" min="0" max="100" value="${form.prepayRate}"><span>%</span></div>`)}${purchaseCreateField('是否含税',purchaseCreateSelect('taxIncluded','请选择是否含税',['否','是'],form.taxIncluded))}${purchaseCreateField('税率',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="tax" type="number" min="0" max="100" value="${form.tax}"><span>%</span></div>`)}${purchaseCreateField('运费',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="freight" type="number" min="0" step="0.01" value="${form.freight}" placeholder="请输入运费"><span>¥</span></div>`)}${purchaseCreateField('优惠金额',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="discount" type="number" min="0" step="0.01" value="${form.discount}" placeholder="请输入优惠金额"><span>¥</span></div>`)}${purchaseCreateField('其他费用',`<div class="purchase-create-suffix"><input class="purchase-create-control" data-create-form="otherFee" type="number" min="0" step="0.01" value="${form.otherFee}" placeholder="请输入其他费用"><span>¥</span></div>`)}${purchaseCreateField('备注',`<textarea class="purchase-create-textarea" data-create-form="remark" placeholder="请输入备注">${form.remark}</textarea>`)}</div></section><section class="purchase-create-section purchase-create-plan-section"><div class="purchase-create-plan-toolbar"><div class="purchase-create-plan-title"><i class="purchase-create-title-bar"></i><b>采购明细</b></div><div class="purchase-create-plan-actions">${addSkuButton}</div></div><div class="purchase-create-table-wrap"><table class="purchase-create-table"><thead><tr>${checkHead}<th>序号</th><th>采购计划</th><th>SKU</th><th>品名</th><th>团队</th><th>平台</th><th>店铺</th><th>计划采购数量</th><th>采购数量</th><th>采购单价</th><th>采购金额</th><th>箱规数量</th><th>计划下单日期</th><th>计划交货日期</th><th>备注</th></tr></thead><tbody>${selectedPurchasePlanRows()}</tbody><tfoot>${purchaseCreateTotalsRow()}</tfoot></table></div></section></div><footer class="purchase-create-footer"><div class="purchase-create-footer-stats"><span class="purchase-create-stat">已选 <em data-stat="count">${purchaseCreateState.selected.length}</em> 个 SKU</span><span class="purchase-create-stat">采购数量 <em data-stat="qty">${totals.qty}</em></span><span class="purchase-create-stat">采购金额 <em data-stat="amount">${money(totals.amount)}</em></span></div><div><button class="btn" type="button" data-create-close>取消</button>${footerBtns}</div></footer></div>`;
   modal.hidden=false;bindPurchaseCreateModal();syncPurchaseCreateAddSku();
 }
 function initPurchaseCreate(){const trigger=$('#openPurchaseCreate');if(trigger)trigger.onclick=()=>{resetPurchaseCreate();renderPurchaseCreateModal();};}
@@ -1206,8 +1496,8 @@ function purchaseFeeRows(){return purchaseOrders.flatMap(order=>receiveDetailRow
 function filteredPurchaseFeeRows(){const query=purchaseFeeApportionState.query;return purchaseFeeRows().filter(row=>(!query.docNo||[row.orderNo,row.erpNo].some(value=>String(value||'').toLowerCase().includes(query.docNo.toLowerCase())))&&(!query.team||row.team===query.team)&&(!query.batchNo||row.batchNo.toLowerCase().includes(query.batchNo.toLowerCase())));}
 function purchaseFeeTypeAmount(row,type){return type==='运费'?Number(row.freight)||0:type==='辅料包材费'?Number(row.materialFee)||0:Number(row.otherInboundFee)||0;}
 function recalcPurchaseFeeAmounts(){const type=purchaseFeeApportionState.form.type,rule=purchaseFeeApportionState.form.rule,total=Number(purchaseFeeApportionState.form.amount)||0,rows=purchaseFeeApportionState.rows.filter(row=>purchaseFeeApportionState.selectedKeys.has(row.key));const bases=rows.map(row=>rule==='按金额分摊'?purchaseFeeTypeAmount(row,type):Number(row.qty)||0),baseTotal=bases.reduce((sum,value)=>sum+value,0),amounts=new Map();let allocated=0;rows.forEach((row,index)=>{const amount=!total||!baseTotal?0:index===rows.length-1?total-allocated:Number((total*bases[index]/baseTotal).toFixed(2));allocated+=amount;amounts.set(row.key,amount);});rows.forEach(row=>{const cell=$(`[data-fee-apportion-amount="${row.key}"]`);if(cell)cell.textContent=money(amounts.get(row.key)||0);});const summaryTotal=[...amounts.values()].reduce((sum,value)=>sum+value,0),countEl=$('#purchaseFeeSelectedCount'),skuEl=$('#purchaseFeeSkuCount'),qtyEl=$('#purchaseFeeQtyTotal'),totalEl=$('#purchaseFeeTotal');if(countEl)countEl.textContent=rows.length;if(skuEl)skuEl.textContent=new Set(rows.map(row=>row.sku)).size;if(qtyEl)qtyEl.textContent=rows.reduce((sum,row)=>sum+Number(row.qty||0),0);if(totalEl)totalEl.textContent=money(summaryTotal);}
-function purchaseFeeTableRows(){if(!purchaseFeeApportionState.rows.length)return '<tr><td colspan="15" class="purchase-fee-empty">未查询到符合条件的收货批次，请调整筛选条件</td></tr>';return purchaseFeeApportionState.rows.map(row=>`<tr><td><input type="checkbox" data-fee-row="${row.key}" ${purchaseFeeApportionState.selectedKeys.has(row.key)?'checked':''}></td><td>${row.batchNo}</td><td>${row.planNo}</td><td class="purchase-create-sku"><span class="sku-thumb">${row.icon}</span><b>${row.sku}</b></td><td>${row.lingxingSku}</td><td>${row.name}</td><td>${row.sellerSku}</td><td>${row.store}</td><td>${row.team}</td><td>${row.qty}</td><td>${row.remark||'—'}</td><td>${money(row.freight)}</td><td>${money(row.materialFee)}</td><td>${money(row.otherInboundFee)}</td><td class="purchase-fee-apportion-cell" data-fee-apportion-amount="${row.key}">${money(0)}</td></tr>`).join('');}
-function renderPurchaseFeeApportionModal(){const modal=$('#purchaseFeeApportionModal'),form=purchaseFeeApportionState.form;modal.innerHTML=`<div class="purchase-fee-apportion-dialog"><header class="purchase-fee-apportion-header"><div><h2>采购运费分摊</h2><span>按收货批次筛选采购单，将费用分摊到对应 SKU</span></div><button class="purchase-fee-apportion-close" type="button" aria-label="关闭采购运费分摊">×</button></header><div class="purchase-fee-apportion-body"><section class="purchase-fee-section"><div class="purchase-fee-section-title">费用资料</div><div class="purchase-fee-form-grid">${purchaseCreateField('费用类型',purchaseCreateSelect('fee-type','请选择费用类型',['运费','辅料包材费','其他入库费'],form.type),true)}${purchaseCreateField('费用金额',`<input class="purchase-create-control" data-fee-form="amount" type="number" min="0" step="0.01" value="${form.amount}" placeholder="请输入费用金额">`,true)}${purchaseCreateField('费用周期',`<div class="purchase-fee-date-range"><input class="purchase-create-control" data-fee-form="startDate" type="date" value="${form.startDate}"><span>至</span><input class="purchase-create-control" data-fee-form="endDate" type="date" value="${form.endDate}"></div>`,true)}${purchaseCreateField('分摊规则',purchaseCreateSelect('fee-rule','请选择分摊规则',['按数量分摊','按金额分摊'],form.rule),true)}${purchaseCreateField('负责人',purchaseCreateSelect('fee-owner','请选择负责人',creators,form.owner),true)}${purchaseCreateField('备注',`<textarea class="purchase-fee-remark" data-fee-form="remark" placeholder="请输入备注">${form.remark}</textarea>`)}</div></section><section class="purchase-fee-section"><div class="purchase-fee-section-title">收货批次筛选</div><div class="purchase-fee-query"><input class="purchase-create-control" data-fee-filter="docNo" value="${purchaseFeeApportionState.query.docNo}" placeholder="采购单号"><div class="purchase-fee-query-select">${purchaseCreateSelect('fee-filter-team','团队（全部）',teams,purchaseFeeApportionState.query.team)}</div><input class="purchase-create-control" data-fee-filter="batchNo" value="${purchaseFeeApportionState.query.batchNo}" placeholder="收货批次号"><div class="purchase-fee-query-actions"><button class="btn primary" type="button" data-fee-search>查询</button><button class="btn" type="button" data-fee-reset>重置</button></div></div></section><section class="purchase-fee-section purchase-fee-batch-section"><div class="purchase-fee-section-head"><span class="purchase-fee-section-title">收货批次</span><span class="purchase-fee-section-hint">查询结果将自动全量纳入分摊</span></div><div class="purchase-fee-table-wrap"><table class="purchase-fee-table"><thead><tr><th><input type="checkbox" data-fee-select-all ${purchaseFeeApportionState.rows.length&&purchaseFeeApportionState.rows.every(row=>purchaseFeeApportionState.selectedKeys.has(row.key))?'checked':''}></th><th>批次号</th><th>计划号</th><th>SKU</th><th>领星SKU</th><th>品名</th><th>SellerSKU/Asin</th><th>店铺</th><th>团队</th><th>收货数量</th><th>备注</th><th>运费</th><th>辅料包材费</th><th>其他入库费</th><th>本次分摊金额</th></tr></thead><tbody>${purchaseFeeTableRows()}</tbody></table></div><div class="purchase-fee-summary">已纳入 <b id="purchaseFeeSelectedCount">0</b> 个批次 · 涉及 <b id="purchaseFeeSkuCount">0</b> 个 SKU · 共 <b id="purchaseFeeQtyTotal">0</b> 件 · 本次分摊合计 <b id="purchaseFeeTotal">¥ 0.00</b></div></section></div><footer class="purchase-fee-apportion-footer"><button class="btn" type="button" data-fee-close>取消</button><button class="btn" type="button" data-fee-reset-form>重置</button><button class="btn primary" type="button" data-fee-submit>提交</button></footer></div>`;modal.hidden=false;bindPurchaseFeeApportionModal();recalcPurchaseFeeAmounts();}
+function purchaseFeeTableRows(){if(!purchaseFeeApportionState.rows.length)return '<tr><td colspan="14" class="purchase-fee-empty">未查询到符合条件的收货批次，请调整筛选条件</td></tr>';return purchaseFeeApportionState.rows.map(row=>`<tr><td><input type="checkbox" data-fee-row="${row.key}" ${purchaseFeeApportionState.selectedKeys.has(row.key)?'checked':''}></td><td>${row.batchNo}</td><td>${row.planNo}</td><td class="purchase-create-sku"><span class="sku-thumb">${row.icon}</span><b>${row.sku}</b></td><td>${row.lingxingSku}</td><td>${row.name}</td><td>${row.store}</td><td>${row.team}</td><td>${row.qty}</td><td>${row.remark||'—'}</td><td>${money(row.freight)}</td><td>${money(row.materialFee)}</td><td>${money(row.otherInboundFee)}</td><td class="purchase-fee-apportion-cell" data-fee-apportion-amount="${row.key}">${money(0)}</td></tr>`).join('');}
+function renderPurchaseFeeApportionModal(){const modal=$('#purchaseFeeApportionModal'),form=purchaseFeeApportionState.form;modal.innerHTML=`<div class="purchase-fee-apportion-dialog"><header class="purchase-fee-apportion-header"><div><h2>采购运费分摊</h2><span>按收货批次筛选采购单，将费用分摊到对应 SKU</span></div><button class="purchase-fee-apportion-close" type="button" aria-label="关闭采购运费分摊">×</button></header><div class="purchase-fee-apportion-body"><section class="purchase-fee-section"><div class="purchase-fee-section-title">费用资料</div><div class="purchase-fee-form-grid">${purchaseCreateField('费用类型',purchaseCreateSelect('fee-type','请选择费用类型',['运费','辅料包材费','其他入库费'],form.type),true)}${purchaseCreateField('费用金额',`<input class="purchase-create-control" data-fee-form="amount" type="number" min="0" step="0.01" value="${form.amount}" placeholder="请输入费用金额">`,true)}${purchaseCreateField('费用周期',`<div class="purchase-fee-date-range"><input class="purchase-create-control" data-fee-form="startDate" type="date" value="${form.startDate}"><span>至</span><input class="purchase-create-control" data-fee-form="endDate" type="date" value="${form.endDate}"></div>`,true)}${purchaseCreateField('分摊规则',purchaseCreateSelect('fee-rule','请选择分摊规则',['按数量分摊','按金额分摊'],form.rule),true)}${purchaseCreateField('负责人',purchaseCreateSelect('fee-owner','请选择负责人',creators,form.owner),true)}${purchaseCreateField('备注',`<textarea class="purchase-fee-remark" data-fee-form="remark" placeholder="请输入备注">${form.remark}</textarea>`)}</div></section><section class="purchase-fee-section"><div class="purchase-fee-section-title">收货批次筛选</div><div class="purchase-fee-query"><input class="purchase-create-control" data-fee-filter="docNo" value="${purchaseFeeApportionState.query.docNo}" placeholder="采购单号"><div class="purchase-fee-query-select">${purchaseCreateSelect('fee-filter-team','团队（全部）',teams,purchaseFeeApportionState.query.team)}</div><input class="purchase-create-control" data-fee-filter="batchNo" value="${purchaseFeeApportionState.query.batchNo}" placeholder="收货批次号"><div class="purchase-fee-query-actions"><button class="btn primary" type="button" data-fee-search>查询</button><button class="btn" type="button" data-fee-reset>重置</button></div></div></section><section class="purchase-fee-section purchase-fee-batch-section"><div class="purchase-fee-section-head"><span class="purchase-fee-section-title">收货批次</span><span class="purchase-fee-section-hint">查询结果将自动全量纳入分摊</span></div><div class="purchase-fee-table-wrap"><table class="purchase-fee-table"><thead><tr><th><input type="checkbox" data-fee-select-all ${purchaseFeeApportionState.rows.length&&purchaseFeeApportionState.rows.every(row=>purchaseFeeApportionState.selectedKeys.has(row.key))?'checked':''}></th><th>批次号</th><th>计划号</th><th>SKU</th><th>领星SKU</th><th>品名</th><th>店铺</th><th>团队</th><th>收货数量</th><th>备注</th><th>运费</th><th>辅料包材费</th><th>其他入库费</th><th>本次分摊金额</th></tr></thead><tbody>${purchaseFeeTableRows()}</tbody></table></div><div class="purchase-fee-summary">已纳入 <b id="purchaseFeeSelectedCount">0</b> 个批次 · 涉及 <b id="purchaseFeeSkuCount">0</b> 个 SKU · 共 <b id="purchaseFeeQtyTotal">0</b> 件 · 本次分摊合计 <b id="purchaseFeeTotal">¥ 0.00</b></div></section></div><footer class="purchase-fee-apportion-footer"><button class="btn" type="button" data-fee-close>取消</button><button class="btn" type="button" data-fee-reset-form>重置</button><button class="btn primary" type="button" data-fee-submit>提交</button></footer></div>`;modal.hidden=false;bindPurchaseFeeApportionModal();recalcPurchaseFeeAmounts();}
 function bindPurchaseFeeApportionModal(){const modal=$('#purchaseFeeApportionModal');modal.querySelector('.purchase-fee-apportion-close').onclick=closePurchaseFeeApportion;modal.querySelector('[data-fee-close]').onclick=closePurchaseFeeApportion;modal.onclick=event=>{if(event.target===modal)closePurchaseFeeApportion();};modal.querySelectorAll('[data-fee-form]').forEach(input=>input.oninput=input.onchange=()=>{purchaseFeeApportionState.form[input.dataset.feeForm]=input.value;recalcPurchaseFeeAmounts();});bindPurchaseSelects(modal,(name,value)=>{const key=name.replace('fee-','');if(key==='filter-team')purchaseFeeApportionState.query.team=value;else{purchaseFeeApportionState.form[key]=value;recalcPurchaseFeeAmounts();}});modal.querySelectorAll('[data-fee-filter]').forEach(input=>input.oninput=()=>{purchaseFeeApportionState.query[input.dataset.feeFilter]=input.value;});modal.querySelector('[data-fee-search]').onclick=()=>{purchaseFeeApportionState.rows=filteredPurchaseFeeRows();purchaseFeeApportionState.selectedKeys=new Set(purchaseFeeApportionState.rows.map(row=>row.key));renderPurchaseFeeApportionModal();};modal.querySelector('[data-fee-reset]').onclick=()=>{purchaseFeeApportionState.query={docNo:'',team:'',batchNo:''};purchaseFeeApportionState.rows=purchaseFeeRows();purchaseFeeApportionState.selectedKeys=new Set(purchaseFeeApportionState.rows.map(row=>row.key));renderPurchaseFeeApportionModal();};modal.querySelectorAll('[data-fee-row]').forEach(input=>input.onchange=()=>{input.checked?purchaseFeeApportionState.selectedKeys.add(input.dataset.feeRow):purchaseFeeApportionState.selectedKeys.delete(input.dataset.feeRow);recalcPurchaseFeeAmounts();});const all=modal.querySelector('[data-fee-select-all]');if(all)all.onchange=()=>{purchaseFeeApportionState.rows.forEach(row=>all.checked?purchaseFeeApportionState.selectedKeys.add(row.key):purchaseFeeApportionState.selectedKeys.delete(row.key));renderPurchaseFeeApportionModal();};modal.querySelector('[data-fee-reset-form]').onclick=()=>{purchaseFeeApportionState.form={type:'运费',amount:'',startDate:'',endDate:'',rule:'按数量分摊',owner:'Admin',remark:''};renderPurchaseFeeApportionModal();};modal.querySelector('[data-fee-submit]').onclick=submitPurchaseFeeApportion;}
 function closePurchaseFeeApportion(){$('#purchaseFeeApportionModal').hidden=true;}
 function submitPurchaseFeeApportion(){const form=purchaseFeeApportionState.form,selected=purchaseFeeApportionState.rows.filter(row=>purchaseFeeApportionState.selectedKeys.has(row.key)),amount=Number(form.amount)||0;if(!form.type||!form.rule||!form.owner){toast('请填写完整的费用资料','error');return;}if(!amount){toast('请输入大于 0 的费用金额','error');return;}if(!selected.length){toast('请至少选择一个收货批次','error');return;}const rows=selected.map(row=>({...row})),bases=rows.map(row=>form.rule==='按金额分摊'?purchaseFeeTypeAmount(row,form.type):Number(row.qty)||0),baseTotal=bases.reduce((sum,value)=>sum+value,0);if(!baseTotal){toast('当前批次没有可用于分摊的数量或金额','error');return;}let allocated=0;rows.forEach((row,index)=>{const part=index===rows.length-1?amount-allocated:Number((amount*bases[index]/baseTotal).toFixed(2));allocated+=part;const doc=purchaseOrders.find(item=>item.id===row.orderId),item=doc?.items.find(item=>item.id===row.itemId);if(item){item.purchaseFeeAllocations=item.purchaseFeeAllocations||[];item.purchaseFeeAllocations.push({type:form.type,amount:part,rule:form.rule,owner:form.owner,remark:form.remark,startDate:form.startDate,endDate:form.endDate});if(form.type==='运费')item.freight=Number(item.freight||0)+part;if(form.type==='辅料包材费')item.materialFee=Number(item.materialFee||0)+part;if(form.type==='其他入库费')item.otherFee=Number(item.otherFee||0)+part;}});closePurchaseFeeApportion();toast(`采购${form.type}分摊成功，共 ${selected.length} 个收货批次`);}
@@ -1474,9 +1764,132 @@ function syncPickupAutoInboundFromBridge(){
     applyFilters(false);renderTabs();renderTable();
     if(newToastCount>0)toast(`已同步提货单自动入库，共冲减 ${newToastCount} 条采购在途明细`);
   }
+  refreshPoAnomalyBadge();
 }
+
+const SEED_PICKUP_ANOMALIES=[
+  {
+    id:'ANM-2026111801',
+    time:'2026-11-18 15:20',
+    pickupNo:'TH20261117003',
+    batchNo:'TH20261117003-01',
+    sku:'DD123456',
+    targetTeam:'亚马逊团队',
+    category:'auto_po_cross',
+    typeLabel:'跨团队入库（无本团队单）',
+    reason:'采购系统未找到「亚马逊团队」SKU DD123456 的在途采购单，已按同供应商最早在途采购单跨团队入库 18 件',
+    qty:18,
+    allocations:[{poNo:'PO2026111202',poTeam:'刘绎天',qty:18,crossTeam:true}],
+    status:'待核对',
+    handler:'跨跃猫陈仓管'
+  },
+  {
+    id:'ANM-2026111802',
+    time:'2026-11-18 11:40',
+    pickupNo:'TH20261117005',
+    batchNo:'TH20261117005-01',
+    sku:'ARC-MIG200-US',
+    targetTeam:'北美大件组',
+    category:'auto_po_lack',
+    typeLabel:'全平台在途采购不足',
+    reason:'SKU ARC-MIG200-US 本次入库 52 件，同供应商在途采购单冲减 40 件后仍盈余/未匹配 12 件，请采购核对是否漏建采购单',
+    qty:12,
+    allocations:[{poNo:'PO2026111503',poTeam:'亚马逊团队',qty:40,crossTeam:true}],
+    status:'待核对',
+    handler:'跨跃猫陈仓管'
+  },
+  {
+    id:'ANM-2026111601',
+    time:'2026-11-16 18:05',
+    pickupNo:'TH20261115004',
+    batchNo:'TH20261115004-01',
+    sku:'153US0000031',
+    targetTeam:'欧洲运营组',
+    category:'receive_diff',
+    typeLabel:'签收异常｜供应商库存不足少发',
+    reason:'仓库签收原因：供应商库存不足少发（常州佳士仓实收 30 件，待补提 10 件）',
+    qty:10,
+    allocations:[],
+    status:'待核对',
+    handler:'跨跃猫陈仓管'
+  },
+  {
+    id:'ANM-2026111401',
+    time:'2026-11-14 16:30',
+    pickupNo:'TH20261114002',
+    batchNo:'TH20261114002-01',
+    sku:'140US260008',
+    targetTeam:'B端团队',
+    category:'auto_po_cross',
+    typeLabel:'跨团队入库（本团队在途不足）',
+    reason:'「B端团队」在途仅够冲减 20 件，剩余 10 件已按同供应商最早在途采购单跨团队借单入库',
+    qty:10,
+    allocations:[{poNo:'PO2026111001',poTeam:'B端团队',qty:20,crossTeam:false},{poNo:'PO2026111503',poTeam:'亚马逊团队',qty:10,crossTeam:true}],
+    status:'已核对',
+    handler:'采购张敏'
+  }
+];
+function readPickupBridge(){
+  try{return JSON.parse(localStorage.getItem(PICKUP_PO_BRIDGE_KEY)||'{}')||{};}catch{return {};}
+}
+function getPickupAnomalies(){
+  const b=readPickupBridge();
+  if(!Array.isArray(b.pickupAnomalies)||!b.pickupAnomalies.length){
+    b.pickupAnomalies=JSON.parse(JSON.stringify(SEED_PICKUP_ANOMALIES));
+    try{localStorage.setItem(PICKUP_PO_BRIDGE_KEY,JSON.stringify(b));}catch{}
+  }
+  return b.pickupAnomalies;
+}
+function savePickupAnomalies(list){
+  const b=readPickupBridge();
+  b.pickupAnomalies=list;
+  try{localStorage.setItem(PICKUP_PO_BRIDGE_KEY,JSON.stringify(b));}catch{}
+  refreshPoAnomalyBadge();
+}
+function refreshPoAnomalyBadge(){
+  const badge=$('#poAnomalyBadge');
+  if(!badge)return;
+  const pending=getPickupAnomalies().filter(a=>a.status!=='已核对').length;
+  badge.textContent=String(pending);
+  badge.hidden=pending===0;
+}
+function openPickupAnomalyModal(){
+  const mask=$('#pickupAnomalyModal');
+  if(!mask)return;
+  let tabStatus='全部',catFilter='',kw='';
+  const escHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const renderModal=()=>{
+    const list=getPickupAnomalies();
+    const pendingTotal=list.filter(a=>a.status!=='已核对').length;
+    const crossCount=list.filter(a=>a.category==='auto_po_cross').length;
+    const lackCount=list.filter(a=>a.category==='auto_po_lack').length;
+    const diffCount=list.filter(a=>a.category==='receive_diff').length;
+    const rows=list.filter(a=>(tabStatus==='全部'||(tabStatus==='待核对'?a.status!=='已核对':a.status==='已核对'))&&(!catFilter||a.category===catFilter)&&(!kw||`${a.pickupNo||''} ${a.batchNo||''} ${a.sku||''} ${a.targetTeam||''} ${a.reason||''}`.toLowerCase().includes(kw)));
+    mask.innerHTML=`<div class="anomaly-dialog"><div class="anomaly-dialog__head"><div><h2>提货入库异常记录</h2><p>汇总提货单入库签收自动冲减采购单在途时触发的「跨团队借单」「在途采购不足」「签收少发/错货差异」，供采购核对处理</p></div><button class="anomaly-dialog__close" id="closeAnomalyModal" type="button">×</button></div><div class="anomaly-dialog__body"><div class="anomaly-summary"><div class="anomaly-stat"><span>异常记录总数</span><b>${list.length}</b></div><div class="anomaly-stat"><span>待核对</span><b style="color:#f56c6c">${pendingTotal}</b></div><div class="anomaly-stat"><span>跨团队借单入库</span><b>${crossCount}</b></div><div class="anomaly-stat"><span>全平台在途不足</span><b>${lackCount}</b></div><div class="anomaly-stat"><span>仓库签收差异</span><b>${diffCount}</b></div></div><div class="anomaly-toolbar"><div class="anomaly-tabs"><button type="button" class="anomaly-tab ${tabStatus==='全部'?'active':''}" data-st="全部">全部 (${list.length})</button><button type="button" class="anomaly-tab ${tabStatus==='待核对'?'active':''}" data-st="待核对">待核对 (${pendingTotal})</button><button type="button" class="anomaly-tab ${tabStatus==='已核对'?'active':''}" data-st="已核对">已核对 (${list.length-pendingTotal})</button></div><div class="anomaly-filters"><select class="control" id="poAnmCat"><option value="">全部异常类型</option><option value="auto_po_cross" ${catFilter==='auto_po_cross'?'selected':''}>跨团队借单入库</option><option value="auto_po_lack" ${catFilter==='auto_po_lack'?'selected':''}>全平台在途不足</option><option value="receive_diff" ${catFilter==='receive_diff'?'selected':''}>仓库签收差异</option></select><input class="control" id="poAnmKw" style="width:240px" value="${escHtml(kw)}" placeholder="搜索提货单号 / SKU / 团队"></div></div><div class="anomaly-table-card"><table class="anomaly-table"><thead><tr><th>时间 / 提货单</th><th>SKU / 提货团队</th><th>异常类型</th><th>原因与自动冲减明细</th><th>核对状态</th><th>操作</th></tr></thead><tbody>${rows.length?rows.map(a=>{const isDone=a.status==='已核对';const cls=a.category==='auto_po_cross'?'cross':a.category==='auto_po_lack'?'lack':'diff';const chips=(a.allocations||[]).map(al=>`<span class="anomaly-chip ${al.crossTeam?'is-cross':''}">${escHtml(al.poNo)}（${escHtml(al.poTeam)}）-${al.qty}${al.crossTeam?' · 跨团队':''}</span>`).join('');return `<tr data-anm-id="${escHtml(a.id)}"><td><div><b>${escHtml(a.pickupNo||'—')}</b></div><div style="color:#909399;margin-top:3px">${escHtml(a.batchNo||'—')} · ${escHtml(a.time||'—')}</div></td><td><div><b>${escHtml(a.sku||'—')}</b></div><div style="color:#909399;margin-top:3px">提货团队：${escHtml(a.targetTeam||'—')}</div></td><td><span class="anomaly-type-tag ${cls}">${escHtml(a.typeLabel||'异常')}</span></td><td><div>${escHtml(a.reason||'—')}</div>${chips?`<div class="anomaly-chips">${chips}</div>`:''}</td><td><span class="anomaly-status-pill ${isDone?'is-resolved':'is-pending'}">${isDone?'已核对':'待核对'}</span></td><td><button class="anomaly-action-btn" type="button" data-toggle-anm="${escHtml(a.id)}">${isDone?'重新打开':'标记已核对'}</button></td></tr>`;}).join(''):'<tr><td colspan="6" style="text-align:center;color:#909399;padding:36px">暂无提货入库异常记录（在提货单页执行入库签收后若有跨团队或短少会自动同步至此）</td></tr>'}</tbody></table></div></div><div class="anomaly-dialog__foot"><span>共 ${rows.length} 条记录 · 待核对 ${pendingTotal} 条</span><button class="btn" id="closeAnomalyFoot" type="button">关闭</button></div></div>`;
+    $('#closeAnomalyModal',mask).onclick=()=>{mask.hidden=true;};
+    $('#closeAnomalyFoot',mask).onclick=()=>{mask.hidden=true;};
+    mask.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{tabStatus=b.dataset.st;renderModal();});
+    $('#poAnmCat',mask).onchange=e=>{catFilter=e.target.value;renderModal();};
+    $('#poAnmKw',mask).oninput=e=>{kw=e.target.value.trim().toLowerCase();renderModal();};
+    mask.querySelectorAll('[data-toggle-anm]').forEach(b=>b.onclick=()=>{
+      const next=getPickupAnomalies();
+      const target=next.find(x=>x.id===b.dataset.toggleAnm);
+      if(!target)return;
+      target.status=target.status==='已核对'?'待核对':'已核对';
+      savePickupAnomalies(next);
+      renderModal();
+      toast(target.status==='已核对'?'已标记核对完成':'已重新打开为待核对');
+    });
+  };
+  renderModal();
+  mask.hidden=false;
+}
+
+if($('#openPickupAnomalies'))$('#openPickupAnomalies').onclick=openPickupAnomalyModal;
 
 seedPickupLinkedPurchaseOrders();
 applyFilters(false);renderTabs();renderTable();
+syncPickupAutoInboundFromBridge();
+refreshPoAnomalyBadge();
 syncPickupAutoInboundFromBridge();
 window.addEventListener('storage',event=>{if(event.key===PICKUP_PO_BRIDGE_KEY)syncPickupAutoInboundFromBridge();});

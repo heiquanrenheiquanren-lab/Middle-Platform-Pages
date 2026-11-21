@@ -34,8 +34,9 @@
     { key: '_check', label: '', fixed: 'left-0', system: true },
     { key: 'sku', label: 'SKU', fixed: 'left-1', locked: true },
     { key: 'lingxingSku', label: '领星SKU', fixed: 'left-2', locked: true },
-    { key: 'planNo', label: '计划号', fixed: 'left-3', locked: true },
+    { key: 'planNo', label: '发货计划', fixed: 'left-3', locked: true },
     { key: 'productName', label: '品名' },
+    { key: 'asin', label: 'ASIN' },
     { key: 'fnsku', label: 'FNSKU' },
     { key: 'team', label: '团队' },
     { key: 'platform', label: '平台' },
@@ -46,7 +47,7 @@
     { key: 'opsOwner', label: '运营负责人' },
     { key: 'fbaShipmentNo', label: 'FBA 货件号' },
     { key: 'fbaRefId', label: 'FBA 货件名称' },
-    { key: 'remark', label: '备注', editable: 'text' },
+    { key: 'remark', label: '备注' },
     { key: 'pickupWarehouse', label: '提货仓' },
     { key: 'shippingOrderNo', label: '发货单号' },
     { key: 'shipWarehouse', label: '发货仓', editable: 'select', options: 'shipWarehouses' },
@@ -79,7 +80,7 @@
   const COL_DEFS = COLUMNS.filter(c => !c.system);
   const DEFAULT_COL_KEYS = COL_DEFS.map(c => c.key);
   const COL_STORAGE_KEY = 'shipment-plan-v2-column-config';
-  const COL_CONFIG_VERSION = 5;
+  const COL_CONFIG_VERSION = 7;
 
   function normalizeColKeys(keys, mergeMissing) {
     const available = DEFAULT_COL_KEYS;
@@ -113,7 +114,7 @@
   const rows = [
     {
       id: 1, sku: 'DD123456', thumbColor: '#2563eb', thumbText: 'DD', linked: true,
-      planNo: 'YMX20261106-1', lingxingSku: 'DD123456', productName: '测试-DD123456', model: '型号-DD123456',
+      planNo: 'SP2611060001', lingxingSku: 'DD123456', productName: '测试-DD123456', model: '型号-DD123456',
       cat1: '通用', cat2: '通用', saleType: '常规', fnsku: '-', sellerSku: 'SL-DD123456', asin: 'B0DD123456',
       store: 'ARCCAPTAIN_US', platform: '亚马逊', country: 'US', team: '刘绎天', teamOwner: '刘绎天', opsOwner: '毛粤风',
       pickupWarehouse: [{ warehouse: '坪山石井本地仓', qty: 16 }, { warehouse: '深圳市摩仕达焊接设备有限公司仓库', qty: 10 }], shipWarehouse: '跨跃猫物流仓',
@@ -130,7 +131,7 @@
     },
     {
       id: 2, sku: 'KK123456', thumbColor: '#7c3aed', thumbText: 'KK', linked: false,
-      planNo: 'QTT20261106-1', lingxingSku: 'KK123456', productName: '测试-KK123456', model: '型号-KK123456',
+      planNo: 'SP2611060002', lingxingSku: 'KK123456', productName: '测试-KK123456', model: '型号-KK123456',
       cat1: '通用', cat2: '通用', saleType: '常规', fnsku: 'X003KK1234', sellerSku: 'SL-KK123456', asin: 'B0KK123456',
       store: 'WEM_Walmart_US', platform: '沃尔玛', country: 'US', team: '亚马逊团队', teamOwner: '王方圆', opsOwner: '王方圆',
       pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', shipWarehouse: '跨跃猫物流仓',
@@ -147,7 +148,7 @@
     },
     {
       id: 3, sku: 'FF123456', thumbColor: '#ea580c', thumbText: 'FF', linked: false,
-      planNo: 'WEM20261104-3', lingxingSku: 'FF123456', productName: '测试-FF123456', model: '型号-FF123456',
+      planNo: 'SP2611040001', lingxingSku: 'FF123456', productName: '测试-FF123456', model: '型号-FF123456',
       cat1: '通用', cat2: '通用', saleType: '常规', fnsku: 'X003FF1234', sellerSku: 'SL-FF123456', asin: 'B0FF123456',
       store: 'ARCCAPTAIN_DE', platform: '亚马逊', country: 'DE', team: '欧洲运营组', teamOwner: '陈晓', opsOwner: '林思雨',
       pickupWarehouse: '常州市佳士精密工业有限公司仓库', shipWarehouse: '跨跃猫物流仓',
@@ -164,7 +165,7 @@
     },
     {
       id: 4, sku: 'EE123456', thumbColor: '#16a34a', thumbText: 'EE', linked: false,
-      planNo: 'WEM20261104-2', lingxingSku: 'EE123456', productName: '测试-EE123456', model: '型号-EE123456',
+      planNo: 'SP2611040002', lingxingSku: 'EE123456', productName: '测试-EE123456', model: '型号-EE123456',
       cat1: '通用', cat2: '通用', saleType: '常规', fnsku: '-', sellerSku: 'SL-EE123456', asin: 'B0EE123456',
       store: 'Ozon_Direct', platform: 'Ozon', country: 'RU', team: 'Jasic团队', teamOwner: '李明', opsOwner: '李明',
       pickupWarehouse: '坪山石井本地仓', shipWarehouse: '跨跃猫物流仓',
@@ -181,7 +182,7 @@
     },
     {
       id: 5, sku: 'TEST-LINK-INV-BATCH-OK', thumbColor: '', thumbText: '无图', linked: false,
-      planNo: 'YMX20261104-8', lingxingSku: 'TEST-BATCH-OK', productName: '-', model: '-',
+      planNo: 'SP2611040003', lingxingSku: 'TEST-BATCH-OK', productName: '-', model: '-',
       cat1: '通用', cat2: '通用', saleType: '0', fnsku: '-', sellerSku: '-', asin: '-',
       store: 'ARCCAPTAIN_US', platform: '亚马逊', country: 'US', team: '亚马逊团队', teamOwner: '王方圆', opsOwner: 'Admin',
       pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', shipWarehouse: '跨跃猫物流仓',
@@ -198,7 +199,7 @@
     },
     {
       id: 6, sku: 'ARC-MIG200-US', thumbColor: '#0284c7', thumbText: 'MI', linked: true,
-      planNo: 'YMX20261105-10', lingxingSku: 'ARC-MIG200-US', productName: '逆变焊机 MIG200', model: 'MIG200',
+      planNo: 'SP2611050001', lingxingSku: 'ARC-MIG200-US', productName: '逆变焊机 MIG200', model: 'MIG200',
       cat1: '焊机', cat2: '常规', saleType: '常规', fnsku: 'X004MIG200', sellerSku: 'SL-MIG200 / B09MIG200', asin: 'B09MIG200',
       store: 'ARCCAPTAIN_US', platform: '亚马逊', country: 'US', team: '亚马逊团队', teamOwner: '王方圆', opsOwner: '王方圆',
       pickupWarehouse: [{ warehouse: '深圳市摩仕达焊接设备有限公司仓库', qty: 20 }], shipWarehouse: '跨跃猫物流仓',
@@ -216,7 +217,7 @@
     },
     {
       id: 7, sku: '153US0000031', thumbColor: '#059669', thumbText: '焊丝', linked: true,
-      planNo: 'WEM20261105-9', lingxingSku: '153US0000031', productName: '不锈钢焊丝', model: 'ER308L',
+      planNo: 'SP2611050002', lingxingSku: '153US0000031', productName: '不锈钢焊丝', model: 'ER308L',
       cat1: '焊材', cat2: '耗材', saleType: '常规', fnsku: '-', sellerSku: 'SL-15331', asin: '-',
       store: 'WEM_Walmart_US', platform: '沃尔玛', country: 'US', team: '北美大件组', teamOwner: '毛粤风', opsOwner: '毛粤风',
       pickupWarehouse: [{ warehouse: '坪山石井本地仓', qty: 24 }], shipWarehouse: '跨跃猫物流仓',
@@ -233,7 +234,7 @@
     },
     {
       id: 8, sku: '153US0000024', thumbColor: '#d97706', thumbText: '配件', linked: true,
-      planNo: 'WEM20261105-11', lingxingSku: '153US0000024', productName: '焊枪配件套装', model: 'WP-17',
+      planNo: 'SP2611050003', lingxingSku: '153US0000024', productName: '焊枪配件套装', model: 'WP-17',
       cat1: '配件', cat2: '常规', saleType: '常规', fnsku: '-', sellerSku: 'SL-15324', asin: '-',
       store: 'WEM_Walmart_US', platform: '沃尔玛', country: 'US', team: '北美大件组', teamOwner: '陈晓', opsOwner: '陈晓',
       pickupWarehouse: [{ warehouse: '常州市佳士精密工业有限公司仓库', qty: 30 }], shipWarehouse: '跨跃猫物流仓',
@@ -250,7 +251,7 @@
     },
     {
       id: 9, sku: 'ARC-MIG200-US', thumbColor: '#0284c7', thumbText: 'MI', linked: true,
-      planNo: 'YMX20261117-12', lingxingSku: 'ARC-MIG200-US', productName: '逆变焊机 MIG200', model: 'MIG200',
+      planNo: 'SP2611170001', lingxingSku: 'ARC-MIG200-US', productName: '逆变焊机 MIG200', model: 'MIG200',
       cat1: '焊机', cat2: '常规', saleType: '常规', fnsku: 'X004MIG200', sellerSku: 'SL-MIG200', asin: 'B09MIG200',
       store: 'ARCCAPTAIN_US', platform: '亚马逊', country: 'US', team: '亚马逊团队', teamOwner: '王方圆', opsOwner: '王方圆',
       pickupWarehouse: [{ warehouse: '深圳市摩仕达焊接设备有限公司仓库', qty: 12 }, { warehouse: '坪山石井本地仓', qty: 8 }], shipWarehouse: '跨跃猫物流仓',
@@ -365,7 +366,10 @@
       }
     };
     function updateTrigger() {
-      trigger.textContent = selected.size ? `${placeholder.replace('（可多选）', '')}（${selected.size}）` : placeholder;
+      const label = placeholder.replace(/^请选择/, '').replace('（可多选）', '');
+      trigger.textContent = selected.size ? `${label}（${selected.size}）` : placeholder;
+      trigger.classList.toggle('has-value', selected.size > 0);
+      wrap.classList.toggle('has-value', selected.size > 0);
     }
     menu.innerHTML = list.map(v => `<label class="multi-opt"><input type="checkbox" value="${esc(v)}"><span>${esc(v)}</span></label>`).join('');
     trigger.addEventListener('click', e => {
@@ -595,6 +599,71 @@
     if (showMsg) toast(`查询完成，共 ${state.filtered.length} 条发货计划`);
   }
 
+  const REMARK_EDIT_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.9 2.1a1.5 1.5 0 0 1 2.1 2.1l-7.7 7.7-2.8.7.7-2.8 7.7-7.7Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="m9.8 3.2 3 3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+  const ACTION_VISIBILITY = {
+    all: ['createPlanBtn', 'batchEditBtn', 'confirmBtn', 'linkFbaBtn', 'unlinkFbaBtn', 'reviewApproveBtn', 'reviewRejectBtn', 'importPlanBtn', 'batchVoidBtn'],
+    pending_confirm: ['createPlanBtn', 'batchEditBtn', 'confirmBtn', 'importPlanBtn', 'batchVoidBtn'],
+    pending_fba_create: ['createPlanBtn', 'batchEditBtn', 'linkFbaBtn', 'importPlanBtn', 'batchVoidBtn'],
+    pending_review: ['createPlanBtn', 'batchEditBtn', 'linkFbaBtn', 'unlinkFbaBtn', 'reviewApproveBtn', 'reviewRejectBtn', 'importPlanBtn', 'batchVoidBtn'],
+    pending_shipping_order: ['createPlanBtn', 'batchEditBtn', 'linkFbaBtn', 'unlinkFbaBtn', 'importPlanBtn', 'batchVoidBtn'],
+    pending_ship: ['createPlanBtn', 'importPlanBtn', 'batchVoidBtn'],
+    pending_arrival: ['createPlanBtn', 'importPlanBtn'],
+    completed: ['createPlanBtn', 'importPlanBtn'],
+    void: ['createPlanBtn', 'importPlanBtn']
+  };
+  const EDITABLE_STATUSES = ['pending_confirm', 'pending_fba_create', 'pending_review', 'pending_shipping_order'];
+  function canEditPlanRow(row) {
+    return Boolean(row && EDITABLE_STATUSES.includes(row.status) && !row.shippingOrderNo);
+  }
+
+  function syncActionVisibility() {
+    const allowed = ACTION_VISIBILITY[state.statusTab] || ACTION_VISIBILITY.all;
+    $$('.head-actions > button').forEach(btn => {
+      btn.hidden = !allowed.includes(btn.id);
+    });
+  }
+
+  function closeRemarkPopover() {
+    document.querySelectorAll('.remark-popover').forEach(el => el.remove());
+  }
+
+  function openRemarkPopover(trigger, row) {
+    closeRemarkPopover();
+    const pop = document.createElement('div');
+    pop.className = 'remark-popover';
+    pop.innerHTML = `<textarea class="remark-popover__input" maxlength="500" rows="4" placeholder="请输入备注"></textarea><div class="remark-popover__actions"><button class="btn" type="button" data-remark-action="cancel">取消</button><button class="btn primary" type="button" data-remark-action="confirm">确定</button></div>`;
+    document.body.appendChild(pop);
+    const textarea = pop.querySelector('.remark-popover__input');
+    textarea.value = row.remark || '';
+
+    const rect = trigger.getBoundingClientRect();
+    const popW = pop.offsetWidth || 330;
+    const popH = pop.offsetHeight || 160;
+    let left = Math.max(12, Math.min(window.innerWidth - popW - 12, rect.right - popW));
+    let top = rect.bottom + 6;
+    if (top + popH > window.innerHeight - 12) {
+      top = Math.max(12, rect.top - popH - 6);
+    }
+    pop.style.left = `${left}px`;
+    pop.style.top = `${top}px`;
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+
+    pop.querySelector('[data-remark-action="cancel"]').onclick = closeRemarkPopover;
+    pop.querySelector('[data-remark-action="confirm"]').onclick = () => {
+      const oldVal = (row.remark || '').trim();
+      const nextVal = textarea.value.trim();
+      closeRemarkPopover();
+      if (nextVal === oldVal) return;
+      row.remark = nextVal;
+      row.updatedAt = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      addLog(row.id, '编辑', nextVal ? `修改备注：${oldVal || '空'} → ${nextVal}` : '清空备注');
+      publishV2PlansToBridge();
+      applyFilter(false);
+      toast('备注已保存');
+    };
+  }
+
   function renderStatusTabs(baseRows) {
     const tabs = [['all', '全部'], ...Object.entries(STATUS_META).map(([k, v]) => [k, v.label])];
     $('#statusTabs').innerHTML = tabs.map(([key, label]) => {
@@ -605,6 +674,7 @@
           <span class="count-pill">${count}</span>
         </button>`;
     }).join('');
+    syncActionVisibility();
   }
 
   function getVisibleColumns() {
@@ -630,8 +700,6 @@
     $('#tableBody').innerHTML = pageRows.map(r => {
       const d = calcDerived(r);
       const fullReadonly = r.status === 'completed' || r.status === 'void';
-      const arrivalLocked = r.status === 'pending_arrival';
-      const readonly = fullReadonly || arrivalLocked;
       const cells = visibleCols.map(c => {
         const cls = c.fixed ? `sticky-${c.fixed}` : '';
         if (c.key === '_check') {
@@ -657,32 +725,37 @@
         if (c.key === '_action') {
           const canLinkFba = r.team === '亚马逊团队' && ['pending_fba_create', 'pending_review', 'pending_shipping_order'].includes(r.status);
           const linkBtnHtml = canLinkFba
-            ? `<button class="spv2-op-btn" type="button" data-open-fba-link="${r.id}">${r.fbaShipmentNo ? '调整货件' : '关联货件'}</button>`
+            ? `<button class="spv2-op-btn is-primary" type="button" data-open-fba-link="${r.id}">${r.fbaShipmentNo ? '调整货件' : '关联货件'}</button>`
             : '';
-          return `<td class="${cls}"><div class="spv2-op-links">${linkBtnHtml}<button class="spv2-op-btn is-gray" type="button" data-row-log="${r.id}">日志</button></div></td>`;
+          const editBtnHtml = canEditPlanRow(r)
+            ? `<button class="spv2-op-btn is-primary" type="button" data-edit-row="${r.id}">编辑</button>`
+            : '';
+          return `<td class="${cls}"><div class="spv2-op-links">${linkBtnHtml}${editBtnHtml}<button class="spv2-op-btn is-gray" type="button" data-row-log="${r.id}">日志</button></div></td>`;
         }
         if (c.key === 'fbaShipmentNo') {
           const val = r.fbaShipmentNo;
-          const canEditLink = r.team === '亚马逊团队' && ['pending_fba_create', 'pending_review', 'pending_shipping_order'].includes(r.status);
-          const preCount = (r.fbaLinks || []).filter(x => x && x.syncState === 'prelinked').length;
           if (val) {
             const nos = String(val).split(/[、,，]+/).filter(Boolean);
             const count = r.fbaLinkCount || nos.length;
             const qty = Number(r.fbaLinkDeclaredQty || 0);
-            let badgeText = qty > 0
+            const badgeText = qty > 0
               ? `已关联 ${count} 货件 / ${qty} 件`
               : (count > 1 ? `已关联 ${count} 货件` : '');
-            if (preCount > 0) badgeText = preCount === count ? `已预关联 ${count} 货件（待同步）` : `${badgeText} · 含 ${preCount} 预关联`;
-            const badgeCls = preCount > 0 ? 'spv2-fba-link-summary is-prelink' : 'spv2-fba-link-summary';
-            const manageBtn = canEditLink ? `<button class="spv2-inline-link-btn" type="button" data-open-fba-link="${r.id}">管理</button>` : '';
             const title = badgeText ? `${val}（${badgeText}）` : val;
-            return `<td class="${cls}" title="${esc(title)}"><div class="spv2-fba-cell"><span class="spv2-fba-nos">${esc(val)}</span>${badgeText ? `<span class="${badgeCls}">${esc(badgeText)}</span>` : ''}${manageBtn}</div></td>`;
+            return `<td class="${cls}" title="${esc(title)}"><div class="spv2-fba-cell"><span class="spv2-fba-nos">${esc(val)}</span>${badgeText ? `<span class="spv2-fba-link-summary">${esc(badgeText)}</span>` : ''}</div></td>`;
           }
           if (r.team === '亚马逊团队') {
-            const addBtn = canEditLink ? `<button class="spv2-inline-link-btn" type="button" data-open-fba-link="${r.id}">+ 关联货件</button>` : '';
-            return `<td class="${cls}"><div class="spv2-fba-cell"><span class="spv2-unlinked-tag">未关联</span>${addBtn}</div></td>`;
+            return `<td class="${cls}"><div class="spv2-fba-cell"><span class="spv2-unlinked-tag">未关联</span></div></td>`;
           }
           return `<td class="${cls}">-</td>`;
+        }
+        if (c.key === 'remark') {
+          const canEditRemark = !fullReadonly;
+          const text = r.remark ? r.remark : '—';
+          const editBtn = canEditRemark
+            ? `<button class="batch-remark__edit" type="button" data-remark-row="${r.id}" title="编辑备注" aria-label="编辑计划 ${esc(r.planNo)} 的备注">${REMARK_EDIT_ICON}</button>`
+            : '';
+          return `<td class="${cls} remark-cell"><div class="batch-remark"><span class="batch-remark__text" title="${esc(r.remark || '暂无备注')}">${esc(text)}</span>${editBtn}</div></td>`;
         }
         if (c.key === 'fbaRefId') {
           const val = r[c.key];
@@ -696,35 +769,9 @@
           const allocs = normalizePickupAllocs(r.pickupWarehouse, r.planShipQty);
           const html = renderPickupCellHtml(allocs, {
             planQty: Number(r.planShipQty) || 0,
-            readonly,
-            delAttr: 'data-pw-del-row',
-            delIdx: r.id,
-            openAttr: 'data-pw-open-row',
-            openIdx: r.id,
-            emptyText: '请选择提货仓',
-            btnText: '+ 追加'
+            readonly: true
           });
           return `<td class="${cls}">${html}</td>`;
-        }
-        if (c.editable) {
-          const fieldDisabled = fullReadonly || (arrivalLocked && c.key !== 'remark');
-          const dis = fieldDisabled ? 'disabled' : '';
-          if (c.editable === 'select') {
-            const baseList = OPTIONS[c.options] || [];
-            const list = r[c.key] && !baseList.includes(r[c.key]) ? [r[c.key], ...baseList] : baseList;
-            const emptyOpt = (c.allowEmpty || !r[c.key]) ? `<option value="" ${!r[c.key] ? 'selected' : ''}>请选择</option>` : '';
-            const opts = emptyOpt + list.map(opt => `<option value="${esc(opt)}" ${r[c.key] === opt ? 'selected' : ''}>${esc(opt)}</option>`).join('');
-            return `<td class="${cls}"><select class="spv2-inline-control" data-edit-id="${r.id}" data-edit-key="${c.key}" ${dis}>${opts}</select></td>`;
-          }
-          if (c.editable === 'number') {
-            const numVal = r[c.key] === '-' || r[c.key] === undefined || r[c.key] === null ? '' : r[c.key];
-            return `<td class="${cls}"><input class="spv2-inline-control spv2-inline-num" type="number" step="any" value="${esc(numVal)}" data-edit-id="${r.id}" data-edit-key="${c.key}" ${dis}></td>`;
-          }
-          if (c.editable === 'date') {
-            const dateVal = r[c.key] === '-' || !r[c.key] ? '' : r[c.key];
-            return `<td class="${cls}"><input class="spv2-inline-control spv2-inline-date" type="date" value="${esc(dateVal)}" data-edit-id="${r.id}" data-edit-key="${c.key}" ${dis}></td>`;
-          }
-          return `<td class="${cls}"><input class="spv2-inline-control" type="text" value="${esc(r[c.key])}" data-edit-id="${r.id}" data-edit-key="${c.key}" ${dis}></td>`;
         }
         const val = d[c.key] !== undefined ? d[c.key] : (r[c.key] !== undefined && r[c.key] !== '' ? r[c.key] : '-');
         if (c.key === 'planDiff' && Number(val) !== 0) {
@@ -814,7 +861,40 @@
     renderTable();
   });
 
-  /* 行内日志、关联货件、提货仓多选操作 */
+  /* 行内日志、关联货件、取消关联、提货仓多选操作 */
+  function unlinkFbaPlans(targets) {
+    if (!targets.length) return;
+    const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    const bridge = readFbaBridge();
+    const metaMap = getSyncedFbaMetaMap(bridge);
+    targets.forEach(r => {
+      const prevFba = r.fbaShipmentNo || '—';
+      r.fbaShipmentNo = '';
+      r.fbaRefId = '';
+      r.fbaLinkCount = 0;
+      r.fbaLinkDeclaredQty = 0;
+      r.fbaLinks = [];
+      r.planDiffOverride = null;
+      r.status = 'pending_fba_create';
+      r.updatedAt = now;
+      delete bridge.links[r.planNo];
+      delete bridge.v2StatusFromUpstream[r.planNo];
+      bridge.prelinkedShipments = (bridge.prelinkedShipments || []).filter(p => p && p.planNo !== r.planNo);
+      if (!bridge.unlinkedPlans.includes(r.planNo)) bridge.unlinkedPlans.push(r.planNo);
+      Object.values(metaMap).forEach(grp => {
+        (grp.children || []).forEach(c => {
+          if (Array.isArray(c.linkedPlans)) c.linkedPlans = c.linkedPlans.filter(p => p !== r.planNo);
+        });
+      });
+      addLog(r.id, '取消', `取消发货计划 ${r.planNo} 的 FBA 货件关联（原货件：${prevFba}），退回「待创建货件」`);
+    });
+    bridge.fbaShipmentsMeta = metaMap;
+    writeFbaBridge(bridge);
+    publishV2PlansToBridge();
+    applyFilter(false);
+    toast(`已取消 ${targets.length} 条发货计划的 FBA 货件关联，已退回「待创建货件」`);
+  }
+
   $('#tableBody').addEventListener('click', e => {
     const fbaLinkBtn = e.target.closest('[data-open-fba-link]');
     if (fbaLinkBtn) {
@@ -823,41 +903,38 @@
       if (row) openV2FbaLinkModal([row]);
       return;
     }
-    const pwDelBtn = e.target.closest('[data-pw-del-row]');
-    if (pwDelBtn) {
+    const fbaUnlinkBtn = e.target.closest('[data-unlink-fba]');
+    if (fbaUnlinkBtn) {
       e.stopPropagation();
-      const id = Number(pwDelBtn.dataset.pwDelRow);
-      const val = pwDelBtn.dataset.pwVal;
-      const row = rows.find(r => r.id === id);
-      if (!row) return;
-      const curList = normalizePickupAllocs(row.pickupWarehouse, row.planShipQty);
-      if (curList.length <= 1) {
-        toast('请至少保留 1 个提货仓，可在浮层中勾选替换');
-        const cell = pwDelBtn.closest('.spv2-pw-cell') || pwDelBtn;
-        openPickupMgrPopover({ mode: 'list-row', rowId: id }, cell);
-        return;
-      }
-      const nextList = curList.filter(a => a.warehouse !== val);
-      row.pickupWarehouse = nextList;
-      row.updatedAt = new Date().toISOString().replace('T', ' ').slice(0, 19);
-      addLog(row.id, '修改提货仓', `移除提货仓「${val}」（当前：${formatPickupSummary(nextList)}）`);
-      publishV2PlansToBridge();
-      applyFilter(false);
-      toast(`已移除提货仓「${val}」`);
+      const row = rows.find(r => r.id === Number(fbaUnlinkBtn.dataset.unlinkFba));
+      if (row) unlinkFbaPlans([row]);
       return;
     }
-    const pwOpenEl = e.target.closest('[data-pw-open-row]');
-    if (pwOpenEl) {
+    const remarkBtn = e.target.closest('[data-remark-row]');
+    if (remarkBtn) {
       e.stopPropagation();
-      const id = Number(pwOpenEl.dataset.pwOpenRow);
-      const cell = pwOpenEl.closest('.spv2-pw-cell') || pwOpenEl;
-      openPickupMgrPopover({ mode: 'list-row', rowId: id }, cell);
+      const row = rows.find(r => r.id === Number(remarkBtn.dataset.remarkRow));
+      if (row) openRemarkPopover(remarkBtn, row);
+      return;
+    }
+    const editBtn = e.target.closest('[data-edit-row]');
+    if (editBtn) {
+      openSingleEditModal(Number(editBtn.dataset.editRow));
       return;
     }
     const logBtn = e.target.closest('[data-row-log]');
     if (logBtn) {
       openPlanLogModal(Number(logBtn.dataset.rowLog));
     }
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.remark-popover') && !e.target.closest('[data-remark-row]')) {
+      closeRemarkPopover();
+    }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeRemarkPopover();
   });
 
   const planLogState = { rowId: 0, page: 1, pageSize: 10 };
@@ -1004,7 +1081,7 @@
   function openRejectModal(targets) {
     pendingRejectIds = targets.map(r => r.id);
     $('#rejectReasonInput').value = '';
-    $('#rejectSummaryDesc').textContent = `确认驳回所选 ${targets.length} 条计划（${targets.map(t => t.planNo).join('、')}）的 FBA 差异吗？驳回后将退回「待创建货件」并自动解绑原 FBA 货件，通知运营删单重建。`;
+    $('#rejectSummaryDesc').textContent = `确认驳回所选 ${targets.length} 条计划（${targets.map(t => t.planNo).join('、')}）的 FBA 差异吗？驳回后将退回「待创建货件」，保留原已关联 FBA 货件，运营可通过「调整货件」进行追加、减少或更换货件。`;
     $('#rejectModalMask').classList.remove('hidden');
     setTimeout(() => $('#rejectReasonInput').focus(), 20);
   }
@@ -1031,29 +1108,17 @@
     targets.forEach(r => {
       const prevFba = r.fbaShipmentNo || '—';
       r.status = 'pending_fba_create';
-      r.fbaShipmentNo = '';
-      r.fbaRefId = '';
-      r.fbaLinkCount = 0;
-      r.fbaLinkDeclaredQty = 0;
-      r.fbaLinks = [];
-      r.planDiffOverride = null;
       r.updatedAt = now;
-      delete bridge.links[r.planNo];
-      delete bridge.v2StatusFromUpstream[r.planNo];
-      bridge.prelinkedShipments = (bridge.prelinkedShipments || []).filter(p => p && p.planNo !== r.planNo);
-      if (!bridge.unlinkedPlans.includes(r.planNo)) bridge.unlinkedPlans.push(r.planNo);
-      Object.values(bridge.fbaShipmentsMeta || {}).forEach(grp => {
-        (grp.children || []).forEach(c => {
-          if (Array.isArray(c.linkedPlans)) c.linkedPlans = c.linkedPlans.filter(p => p !== r.planNo);
-        });
-      });
-      addLog(r.id, '驳回', `驳回 FBA 差异（原货件 ${prevFba} 已解绑），退回「待创建货件」通知运营重建${reason ? `。原因：${reason}` : ''}`);
+      if (bridge.v2StatusFromUpstream[r.planNo]) {
+        bridge.v2StatusFromUpstream[r.planNo].status = 'pending_fba_create';
+      }
+      addLog(r.id, '驳回', `驳回 FBA 差异，退回「待创建货件」（保留原关联货件 ${prevFba}，可通过「调整货件」追加/减少/更换）${reason ? `。原因：${reason}` : ''}`);
     });
     writeFbaBridge(bridge);
     publishV2PlansToBridge();
     closeRejectModal();
     applyFilter(false);
-    toast(`已驳回 ${targets.length} 条计划，已退回「待创建货件」并解绑原 FBA 货件`);
+    toast(`已驳回 ${targets.length} 条计划，已退回「待创建货件」（保留原 FBA 货件关联）`);
   });
 
   $('#batchVoidBtn').addEventListener('click', () => {
@@ -1076,19 +1141,19 @@
     toast(`已作废 ${targets.length} 条发货计划`);
   });
 
-  /* 可添加的 SKU 商品池（用于「添加 SKU」小弹窗） */
+  /* 可添加的 SKU 商品池（用于「添加 SKU」小弹窗；fnskuList 含多个时不默认选中，仅唯一 1 个时自动选中） */
   const SKU_POOL = [
-    { sku: '10230100501', lingxingSku: '10230100501', productName: '焊机脚踏开关（TIG通用）', fnsku: 'X004Q36S81', team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'TIG-PEDAL-US', opsOwner: '王方圆', packSpec: '28*20*14', boxSpec: '46*36*32', boxQty: 10, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 8, remark: '', supplierCode: 'SUP-1023-01' },
-    { sku: '140US260008', lingxingSku: '140US260008', productName: '电焊机 140A', team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-140US / B09140US', opsOwner: '王方圆', packSpec: '42*24*28', boxSpec: '58*44*38', boxQty: 8, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 16, remark: '', supplierCode: 'SUP-140-01' },
-    { sku: '153US0000017', lingxingSku: '153US0000017', productName: '送丝管耗材套装 S1 500W', team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-153S1 / B09153S1', opsOwner: '王方圆', packSpec: '22*18*10', boxSpec: '48*38*32', boxQty: 20, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 40, remark: '', supplierCode: 'SUP-153-17' },
-    { sku: '153US0000024', lingxingSku: '153US0000024', productName: '焊枪配件套装', team: 'Jasic团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-15324 / B0915324', opsOwner: '陈晓', packSpec: '25*18*12', boxSpec: '50*40*34', boxQty: 15, pickupWarehouse: '常州市佳士精密工业有限公司仓库', planShipQty: 30, remark: '', supplierCode: 'SUP-153-24' },
-    { sku: '153US0000031', lingxingSku: '153US0000031', productName: '不锈钢焊丝', team: '北美大件组', platform: '沃尔玛', store: 'WEM_Walmart_US', country: 'US', sellerSku: 'SL-15331 / B0915331', opsOwner: '毛粤风', packSpec: '20*20*15', boxSpec: '44*44*32', boxQty: 12, pickupWarehouse: '坪山石井本地仓', planShipQty: 24, remark: '', supplierCode: 'SUP-153-31' },
-    { sku: '42101000004', lingxingSku: '42101000004', productName: 'TIG 焊丝-不锈钢', team: '欧洲运营组', platform: '亚马逊', store: 'ARCCAPTAIN_DE', country: 'DE', sellerSku: 'SL-42104 / B0942104', opsOwner: '林思雨', packSpec: '18*18*12', boxSpec: '40*40*30', boxQty: 10, pickupWarehouse: '常州市佳士精密工业有限公司仓库', planShipQty: 20, remark: '', supplierCode: 'SUP-421-04' },
-    { sku: 'ARC-MIG200-US', lingxingSku: 'ARC-MIG200-US', productName: '逆变焊机 MIG200', team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-MIG200 / B09MIG200', opsOwner: '王方圆', packSpec: '42*25*30', boxSpec: '60*45*40', boxQty: 10, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 20, remark: '', supplierCode: 'SUP-MIG-01' },
-    { sku: 'ARC-TIG200-US', lingxingSku: 'ARC-TIG200-US', productName: '氩弧焊机 TIG200', team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-TIG200 / B09TIG200', opsOwner: '王方圆', packSpec: '45*28*32', boxSpec: '55*42*38', boxQty: 8, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 16, remark: '', supplierCode: 'SUP-TIG-02' },
-    { sku: 'DD123456', lingxingSku: 'DD123456', productName: '组合产品 DD', team: '刘绎天', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-DD123 / B0DD123456', opsOwner: '毛粤风', packSpec: '40*30*28', boxSpec: '60*45*40', boxQty: 13, pickupWarehouse: '坪山石井本地仓', planShipQty: 26, remark: '', supplierCode: 'SUP-DD-01' },
-    { sku: 'EE123456', lingxingSku: 'EE123456', productName: '组合产品子项 EE', team: 'Jasic团队', platform: 'Ozon', store: 'Ozon_Direct', country: 'RU', sellerSku: 'SL-EE123 / B0EE123456', opsOwner: '李明', packSpec: '35*25*22', boxSpec: '50*40*35', boxQty: 8, pickupWarehouse: '坪山石井本地仓', planShipQty: 24, remark: '', supplierCode: 'SUP-EE-04' },
-    { sku: 'FF123456', lingxingSku: 'FF123456', productName: '组合产品子项 FF', team: '欧洲运营组', platform: '亚马逊', store: 'ARCCAPTAIN_DE', country: 'DE', sellerSku: 'SL-FF123 / B0FF123456', opsOwner: '林思雨', packSpec: '38*26*24', boxSpec: '55*42*38', boxQty: 12, pickupWarehouse: '常州市佳士精密工业有限公司仓库', planShipQty: 24, remark: '', supplierCode: 'SUP-FF-03' }
+    { sku: '10230100501', lingxingSku: '10230100501', productName: '焊机脚踏开关（TIG通用）', fnskuList: ['X004Q36S81', 'X004Q36S82'], team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'TIG-PEDAL-US', opsOwner: '王方圆', packSpec: '28*20*14', boxSpec: '46*36*32', boxQty: 10, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 8, remark: '', supplierCode: 'SUP-1023-01' },
+    { sku: '140US260008', lingxingSku: '140US260008', productName: '电焊机 140A', fnskuList: ['X004140US1', 'X004140US2', 'X004140US3'], team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-140US / B09140US', opsOwner: '王方圆', packSpec: '42*24*28', boxSpec: '58*44*38', boxQty: 8, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 16, remark: '', supplierCode: 'SUP-140-01' },
+    { sku: '153US0000017', lingxingSku: '153US0000017', productName: '送丝管耗材套装 S1 500W', fnskuList: ['X004153S1A', 'X004153S1B'], team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-153S1 / B09153S1', opsOwner: '王方圆', packSpec: '22*18*10', boxSpec: '48*38*32', boxQty: 20, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 40, remark: '', supplierCode: 'SUP-153-17' },
+    { sku: '153US0000024', lingxingSku: '153US0000024', productName: '焊枪配件套装', fnskuList: ['X00415324A'], team: 'Jasic团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-15324 / B0915324', opsOwner: '陈晓', packSpec: '25*18*12', boxSpec: '50*40*34', boxQty: 15, pickupWarehouse: '常州市佳士精密工业有限公司仓库', planShipQty: 30, remark: '', supplierCode: 'SUP-153-24' },
+    { sku: '153US0000031', lingxingSku: '153US0000031', productName: '不锈钢焊丝', fnskuList: ['X00415331A'], team: '北美大件组', platform: '沃尔玛', store: 'WEM_Walmart_US', country: 'US', sellerSku: 'SL-15331 / B0915331', opsOwner: '毛粤风', packSpec: '20*20*15', boxSpec: '44*44*32', boxQty: 12, pickupWarehouse: '坪山石井本地仓', planShipQty: 24, remark: '', supplierCode: 'SUP-153-31' },
+    { sku: '42101000004', lingxingSku: '42101000004', productName: 'TIG 焊丝-不锈钢', fnskuList: ['X0042104DE'], team: '欧洲运营组', platform: '亚马逊', store: 'ARCCAPTAIN_DE', country: 'DE', sellerSku: 'SL-42104 / B0942104', opsOwner: '林思雨', packSpec: '18*18*12', boxSpec: '40*40*30', boxQty: 10, pickupWarehouse: '常州市佳士精密工业有限公司仓库', planShipQty: 20, remark: '', supplierCode: 'SUP-421-04' },
+    { sku: 'ARC-MIG200-US', lingxingSku: 'ARC-MIG200-US', productName: '逆变焊机 MIG200', fnskuList: ['X004MIG200', 'X004MIG200B'], team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-MIG200 / B09MIG200', opsOwner: '王方圆', packSpec: '42*25*30', boxSpec: '60*45*40', boxQty: 10, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 20, remark: '', supplierCode: 'SUP-MIG-01' },
+    { sku: 'ARC-TIG200-US', lingxingSku: 'ARC-TIG200-US', productName: '氩弧焊机 TIG200', fnskuList: ['X004TIG200', 'X004TIG200B'], team: '亚马逊团队', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-TIG200 / B09TIG200', opsOwner: '王方圆', packSpec: '45*28*32', boxSpec: '55*42*38', boxQty: 8, pickupWarehouse: '深圳市摩仕达焊接设备有限公司仓库', planShipQty: 16, remark: '', supplierCode: 'SUP-TIG-02' },
+    { sku: 'DD123456', lingxingSku: 'DD123456', productName: '组合产品 DD', fnskuList: ['X004DD123A', 'X004DD123B'], team: '刘绎天', platform: '亚马逊', store: 'ARCCAPTAIN_US', country: 'US', sellerSku: 'SL-DD123 / B0DD123456', opsOwner: '毛粤风', packSpec: '40*30*28', boxSpec: '60*45*40', boxQty: 13, pickupWarehouse: '坪山石井本地仓', planShipQty: 26, remark: '', supplierCode: 'SUP-DD-01' },
+    { sku: 'EE123456', lingxingSku: 'EE123456', productName: '组合产品子项 EE', fnskuList: ['X004EE1234'], team: 'Jasic团队', platform: 'Ozon', store: 'Ozon_Direct', country: 'RU', sellerSku: 'SL-EE123 / B0EE123456', opsOwner: '李明', packSpec: '35*25*22', boxSpec: '50*40*35', boxQty: 8, pickupWarehouse: '坪山石井本地仓', planShipQty: 24, remark: '', supplierCode: 'SUP-EE-04' },
+    { sku: 'FF123456', lingxingSku: 'FF123456', productName: '组合产品子项 FF', fnskuList: ['X003FF1234'], team: '欧洲运营组', platform: '亚马逊', store: 'ARCCAPTAIN_DE', country: 'DE', sellerSku: 'SL-FF123 / B0FF123456', opsOwner: '林思雨', packSpec: '38*26*24', boxSpec: '55*42*38', boxQty: 12, pickupWarehouse: '常州市佳士精密工业有限公司仓库', planShipQty: 24, remark: '', supplierCode: 'SUP-FF-03' }
   ];
 
   /* 新建发货计划弹窗（UI_SPEC 1.8：底部汇总 + 取消/提交，前4列固定，添加SKU独立小弹窗） */
@@ -1126,6 +1191,8 @@
         <td>${selHtml(idx, 'platform', OPTIONS.platforms, s.platform, '请选择')}</td>
         <td>${selHtml(idx, 'store', OPTIONS.stores, s.store, '请选择')}</td>
         <td>${esc(s.country)}</td>
+        <td><input class="spv2-inline-control" data-csku-idx="${idx}" data-csku-key="asin" value="${esc(s.asin)}" placeholder="请输入 ASIN"></td>
+        <td>${selHtml(idx, 'fnsku', Array.isArray(s.fnskuList) ? s.fnskuList : [], s.fnsku, '请选择')}</td>
         <td>${selHtml(idx, 'opsOwner', OPTIONS.planOwners, s.opsOwner, '请选择')}</td>
         <td>${esc(s.packSpec)}</td>
         <td>${esc(s.boxSpec)}</td>
@@ -1137,7 +1204,7 @@
         <td>${esc(s.supplierCode)}</td>
         <td class="spv2-c-fix-right"><button class="spv2-op-btn is-danger" type="button" data-csku-del="${idx}">移除</button></td>
       </tr>
-    `).join('') : `<tr><td colspan="17" class="spv2-create-empty"><div class="spv2-create-empty-inner"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="7" y="14" width="34" height="26" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 14v-3a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3" stroke="currentColor" stroke-width="2"/><path d="M17 24h14M17 30h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><p>暂未添加发货 SKU</p><span>点击右上角「添加 SKU」，选择需要发货的商品</span></div></td></tr>`;
+    `).join('') : `<tr><td colspan="19" class="spv2-create-empty"><div class="spv2-create-empty-inner"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="7" y="14" width="34" height="26" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 14v-3a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3" stroke="currentColor" stroke-width="2"/><path d="M17 24h14M17 30h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><p>暂未添加发货 SKU</p><span>点击右上角「添加 SKU」，选择需要发货的商品</span></div></td></tr>`;
     updateCreateStats();
   }
 
@@ -1504,10 +1571,125 @@
   const createTableWrap = document.querySelector('.spv2-create-table-wrap');
   if (createTableWrap) createTableWrap.addEventListener('scroll', closeBatchFillPopover);
 
+  const modalEditorState = {
+    mode: 'create',
+    editRowId: 0,
+    batchIds: [],
+    activeBatchId: 0,
+    drafts: {}
+  };
+
   function closeCreateModal() {
     closeBatchFillPopover();
     $('#createModalMask').classList.add('hidden');
     $('#createModal').classList.add('hidden');
+  }
+
+  function snapshotRowToDraft(row) {
+    const poolItem = SKU_POOL.find(p => p.sku === row.sku);
+    const fnskuSet = new Set(
+      (poolItem && Array.isArray(poolItem.fnskuList) ? poolItem.fnskuList : [])
+        .concat(row.fnsku && row.fnsku !== '-' ? [row.fnsku] : [])
+    );
+    return {
+      shipMethod: row.shipMethod || '本地仓发货',
+      shipWarehouse: row.shipWarehouse || '跨跃猫物流仓',
+      transportMode: row.transportMode || '',
+      destWarehouse: row.destWarehouse || '',
+      estShipDate: row.estShipDate || '',
+      estDays: row.estDays != null && row.estDays !== '' ? String(row.estDays) : '',
+      estArrivalDate: row.estArrivalDate || '',
+      skus: [{
+        sku: row.sku,
+        lingxingSku: row.lingxingSku || '',
+        productName: row.productName || '',
+        boxSpec: row.boxSpec || '',
+        boxQty: Number(row.boxQty) || 1,
+        supplierCode: row.supplierCode || '',
+        sellerSku: row.sellerSku || '',
+        fnskuList: Array.from(fnskuSet),
+        asin: row.asin && row.asin !== '-' ? row.asin : '',
+        fnsku: row.fnsku && row.fnsku !== '-' ? row.fnsku : '',
+        team: row.team || '',
+        platform: row.platform || '',
+        store: row.store || '',
+        country: row.country || '',
+        opsOwner: row.opsOwner || '',
+        pickupWarehouse: normalizePickupAllocs(row.pickupWarehouse, row.planShipQty),
+        planShipQty: Number(row.planShipQty) || '',
+        remark: row.remark || ''
+      }]
+    };
+  }
+
+  function loadDraftIntoForm(draft) {
+    $('#cShipMethod').value = draft.shipMethod || '本地仓发货';
+    $('#cShipWarehouse').value = draft.shipWarehouse || '跨跃猫物流仓';
+    $('#cTransportMode').value = draft.transportMode || '';
+    $('#cDestWarehouse').value = draft.destWarehouse || '';
+    $('#cEstShipDate').value = draft.estShipDate || '';
+    $('#cEstDays').value = draft.estDays || '';
+    $('#cEstArrivalDate').value = draft.estArrivalDate || '';
+    state.createSkus = (draft.skus || []).map(item => ({
+      ...item,
+      fnskuList: Array.isArray(item.fnskuList) ? [...item.fnskuList] : [],
+      pickupWarehouse: normalizePickupAllocs(item.pickupWarehouse, item.planShipQty)
+    }));
+    renderCreateSkus();
+  }
+
+  function saveFormToActiveDraft() {
+    if (modalEditorState.mode !== 'batch-edit' || !modalEditorState.activeBatchId) return;
+    const draft = modalEditorState.drafts[modalEditorState.activeBatchId];
+    if (!draft) return;
+    draft.shipMethod = $('#cShipMethod').value;
+    draft.shipWarehouse = $('#cShipWarehouse').value;
+    draft.transportMode = $('#cTransportMode').value || '';
+    draft.destWarehouse = $('#cDestWarehouse').value || '';
+    draft.estShipDate = $('#cEstShipDate').value || '';
+    draft.estDays = $('#cEstDays').value || '';
+    draft.estArrivalDate = $('#cEstArrivalDate').value || '';
+    draft.skus = state.createSkus.map(item => ({
+      ...item,
+      fnskuList: Array.isArray(item.fnskuList) ? [...item.fnskuList] : [],
+      pickupWarehouse: normalizePickupAllocs(item.pickupWarehouse, item.planShipQty)
+    }));
+  }
+
+  function renderBatchEditNav() {
+    const isBatch = modalEditorState.mode === 'batch-edit';
+    $('#batchEditNav').classList.toggle('hidden', !isBatch);
+    $('#statBatchPlansWrap').classList.toggle('hidden', !isBatch);
+    if (!isBatch) return;
+    const count = modalEditorState.batchIds.length;
+    $('#batchEditNavCount').textContent = count;
+    $('#statBatchPlans').textContent = count;
+    $('#batchEditNavList').innerHTML = modalEditorState.batchIds.map(id => {
+      const row = rows.find(r => r.id === id);
+      const draft = modalEditorState.drafts[id];
+      if (!row || !draft) return '';
+      const statusLabel = (STATUS_META[row.status] && STATUS_META[row.status].label) || row.status;
+      const destLabel = draft.destWarehouse || row.destWarehouse || '未选目的地仓';
+      const skuCount = (draft.skus || []).length;
+      const activeCls = id === modalEditorState.activeBatchId ? 'is-active' : '';
+      return `
+        <div class="spv2-batch-nav-item ${activeCls}" data-batch-nav-id="${id}">
+          <div class="spv2-batch-nav-main">
+            <b>${esc(row.planNo)}</b>
+            <span>${esc(statusLabel)} · ${skuCount} 个 SKU · ${esc(destLabel)}</span>
+          </div>
+          <button class="spv2-batch-nav-remove" type="button" data-batch-nav-remove="${id}" aria-label="移除 ${esc(row.planNo)}">✕</button>
+        </div>`;
+    }).join('');
+  }
+
+  function configureModalChrome(title, subtitle, submitText) {
+    $('#createModalTitle').textContent = title;
+    $('#createModalSubtitle').textContent = subtitle;
+    $('#createSubmitBtn').textContent = submitText;
+    renderBatchEditNav();
+    $('#createModalMask').classList.remove('hidden');
+    $('#createModal').classList.remove('hidden');
   }
 
   function resetCreateForm() {
@@ -1523,10 +1705,99 @@
   }
 
   $('#createPlanBtn').addEventListener('click', () => {
+    modalEditorState.mode = 'create';
+    modalEditorState.editRowId = 0;
+    modalEditorState.batchIds = [];
+    modalEditorState.activeBatchId = 0;
+    modalEditorState.drafts = {};
     resetCreateForm();
-    $('#createModalMask').classList.remove('hidden');
-    $('#createModal').classList.remove('hidden');
+    configureModalChrome('新建发货计划', '填写发货计划与物流轨迹，并添加发货 SKU 明细', '提交');
   });
+
+  function openSingleEditModal(id) {
+    const row = rows.find(r => r.id === id);
+    if (!row) return;
+    if (!canEditPlanRow(row)) {
+      toast(row.shippingOrderNo ? `计划 ${row.planNo} 已生成发货单，不支持编辑` : `计划 ${row.planNo} 当前状态不支持编辑`);
+      return;
+    }
+    modalEditorState.mode = 'edit';
+    modalEditorState.editRowId = id;
+    modalEditorState.batchIds = [];
+    modalEditorState.activeBatchId = 0;
+    modalEditorState.drafts = {};
+    loadDraftIntoForm(snapshotRowToDraft(row));
+    configureModalChrome('编辑发货计划', `发货计划：${row.planNo} · 修改后点击保存生效`, '保存');
+  }
+
+  function openBatchEditModal(selectedRows) {
+    if (!selectedRows.length) return;
+    modalEditorState.mode = 'batch-edit';
+    modalEditorState.editRowId = 0;
+    modalEditorState.batchIds = selectedRows.map(r => r.id);
+    modalEditorState.drafts = {};
+    selectedRows.forEach(r => {
+      modalEditorState.drafts[r.id] = snapshotRowToDraft(r);
+    });
+    modalEditorState.activeBatchId = selectedRows[0].id;
+    loadDraftIntoForm(modalEditorState.drafts[modalEditorState.activeBatchId]);
+    configureModalChrome(
+      '批量编辑发货计划',
+      `已选 ${selectedRows.length} 个发货计划 · 修改自动暂存，底部按钮统一生效`,
+      '保存全部'
+    );
+  }
+
+  $('#batchEditBtn').addEventListener('click', () => {
+    const selectedRows = rows.filter(r => state.selected.has(r.id));
+    if (!selectedRows.length) {
+      toast('请先勾选需要编辑的发货计划');
+      return;
+    }
+    const invalidShipOrder = selectedRows.filter(r => Boolean(r.shippingOrderNo));
+    if (invalidShipOrder.length) {
+      toast(`已生成发货单的计划不支持编辑：${invalidShipOrder.map(r => r.planNo).join('、')}`);
+      return;
+    }
+    const invalidStatus = selectedRows.filter(r => !canEditPlanRow(r));
+    if (invalidStatus.length) {
+      toast(`当前状态不支持编辑（仅待确认/待创建货件/待复核/待生成发货单可编辑）：${invalidStatus.map(r => r.planNo).join('、')}`);
+      return;
+    }
+    openBatchEditModal(selectedRows);
+  });
+
+  $('#batchEditNavList').addEventListener('click', e => {
+    const removeBtn = e.target.closest('[data-batch-nav-remove]');
+    if (removeBtn) {
+      e.stopPropagation();
+      const removeId = Number(removeBtn.dataset.batchNavRemove);
+      saveFormToActiveDraft();
+      modalEditorState.batchIds = modalEditorState.batchIds.filter(id => id !== removeId);
+      delete modalEditorState.drafts[removeId];
+      if (!modalEditorState.batchIds.length) {
+        closeCreateModal();
+        toast('已移除全部发货计划，本次批量编辑取消');
+        return;
+      }
+      if (modalEditorState.activeBatchId === removeId) {
+        modalEditorState.activeBatchId = modalEditorState.batchIds[0];
+        loadDraftIntoForm(modalEditorState.drafts[modalEditorState.activeBatchId]);
+      }
+      $('#createModalSubtitle').textContent = `已选 ${modalEditorState.batchIds.length} 个发货计划 · 修改自动暂存，底部按钮统一生效`;
+      renderBatchEditNav();
+      return;
+    }
+    const navItem = e.target.closest('[data-batch-nav-id]');
+    if (!navItem) return;
+    const nextId = Number(navItem.dataset.batchNavId);
+    if (nextId === modalEditorState.activeBatchId) return;
+    saveFormToActiveDraft();
+    modalEditorState.activeBatchId = nextId;
+    loadDraftIntoForm(modalEditorState.drafts[nextId]);
+    renderBatchEditNav();
+  });
+
   $('#createCloseBtn').addEventListener('click', closeCreateModal);
   $('#createCancelBtn').addEventListener('click', closeCreateModal);
   $('#cEstShipDate').addEventListener('change', () => {
@@ -1620,8 +1891,14 @@
       if (existingSet.has(sku)) return;
       const item = SKU_POOL.find(p => p.sku === sku);
       if (item) {
+        const fnskuOptions = Array.isArray(item.fnskuList) && item.fnskuList.length
+          ? item.fnskuList
+          : (item.fnsku && item.fnsku !== '-' ? [item.fnsku] : []);
         state.createSkus.push({
           ...item,
+          fnskuList: fnskuOptions,
+          asin: '',
+          fnsku: fnskuOptions.length === 1 ? fnskuOptions[0] : '',
           team: '',
           platform: '',
           store: '',
@@ -1689,65 +1966,206 @@
     if (!del) return;
     state.createSkus.splice(Number(del.dataset.cskuDel), 1);
     renderCreateSkus();
-  });
-  $('#createSubmitBtn').addEventListener('click', () => {
-    if (!$('#cShipMethod').value || !$('#cShipWarehouse').value) {
-      return toast('请填写所有带 * 的必填项');
+    if (modalEditorState.mode === 'batch-edit') {
+      saveFormToActiveDraft();
+      renderBatchEditNav();
     }
-    if (!state.createSkus.length) return toast('请至少添加一条 SKU 明细');
-    for (const s of state.createSkus) {
-      if (!s.team) return toast(`请为 SKU ${s.sku} 选择团队`);
-      if (!(Number(s.planShipQty) > 0)) return toast(`请为 SKU ${s.sku} 填写大于 0 的计划发货数量`);
+  });
+  $('#cDestWarehouse').addEventListener('change', () => {
+    if (modalEditorState.mode === 'batch-edit') {
+      saveFormToActiveDraft();
+      renderBatchEditNav();
+    }
+  });
+
+  function readCurrentFormDraft() {
+    return {
+      shipMethod: $('#cShipMethod').value,
+      shipWarehouse: $('#cShipWarehouse').value,
+      transportMode: $('#cTransportMode').value || '',
+      destWarehouse: $('#cDestWarehouse').value || '',
+      estShipDate: $('#cEstShipDate').value || '',
+      estDays: $('#cEstDays').value || '',
+      estArrivalDate: $('#cEstArrivalDate').value || '',
+      skus: state.createSkus
+    };
+  }
+
+  function validatePlanDraft(draft) {
+    if (!draft.shipMethod || !draft.shipWarehouse) return '请填写所有带 * 的必填项';
+    if (!draft.skus || !draft.skus.length) return '请至少添加一条 SKU 明细';
+    for (const s of draft.skus) {
+      if (!s.team) return `请为 SKU ${s.sku} 选择团队`;
+      if (!(Number(s.planShipQty) > 0)) return `请为 SKU ${s.sku} 填写大于 0 的计划发货数量`;
       const allocs = normalizePickupAllocs(s.pickupWarehouse, s.planShipQty);
-      if (!allocs.length) return toast(`请为 SKU ${s.sku} 选择提货仓`);
-      if (allocs.some(a => !(Number(a.qty) > 0))) return toast(`请为 SKU ${s.sku} 的所有提货仓填写大于 0 的提货数量`);
+      if (!allocs.length) return `请为 SKU ${s.sku} 选择提货仓`;
+      if (allocs.some(a => !(Number(a.qty) > 0))) return `请为 SKU ${s.sku} 的所有提货仓填写大于 0 的提货数量`;
       const total = getPickupTotalQty(allocs);
       const planQty = Number(s.planShipQty) || 0;
       if (total > planQty) {
-        return toast(`SKU ${s.sku} 各提货仓提货数量合计(${total})不能大于计划发货数量(${planQty})`);
+        return `SKU ${s.sku} 各提货仓提货数量合计(${total})不能大于计划发货数量(${planQty})`;
       }
     }
-    const shipWarehouse = $('#cShipWarehouse').value;
-    const transportMode = $('#cTransportMode').value || '';
-    const destWarehouse = $('#cDestWarehouse').value || 'ONT8-美西FBA仓';
-    const shipMethod = $('#cShipMethod').value;
+    return '';
+  }
+
+  function resolveDraftMeta(draft, fallbackDest) {
+    const shipWarehouse = draft.shipWarehouse;
+    const destWarehouse = draft.destWarehouse !== undefined ? draft.destWarehouse : (fallbackDest || '');
+    const shipMethod = draft.shipMethod;
     const logistics = deriveLogisticsInfo(shipWarehouse, destWarehouse, shipMethod);
-    const estShipDate = $('#cEstShipDate').value || '';
-    const estDaysRaw = $('#cEstDays').value;
-    const estDays = estDaysRaw ? Number(estDaysRaw) : '';
+    const estShipDate = draft.estShipDate || '';
+    const estDays = draft.estDays ? Number(draft.estDays) : '';
     const calcArrival = estShipDate && estDays ? addDays(estShipDate, estDays) : '';
-    const estArrivalDate = $('#cEstArrivalDate').value || (calcArrival !== '-' ? calcArrival : '');
-    const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
-    state.createSkus.forEach((s, idx) => {
-      const newId = Math.max(0, ...rows.map(r => r.id)) + 1;
-      const planNo = `YMX${now.slice(0, 10).replace(/-/g, '')}-${newId}`;
-      const allocs = normalizePickupAllocs(s.pickupWarehouse, s.planShipQty);
-      const newRow = {
-        id: newId, sku: s.sku, thumbColor: '#2563eb', thumbText: s.sku.slice(0, 2).toUpperCase(), linked: true,
-        planNo, lingxingSku: s.lingxingSku, productName: s.productName, model: s.sku,
-        cat1: '焊机', cat2: '常规', saleType: '常规', fnsku: s.fnsku || '-', sellerSku: s.sellerSku, asin: '-',
-        store: s.store, platform: s.platform, country: s.country, team: s.team, teamOwner: '王方圆', opsOwner: s.opsOwner,
-        pickupWarehouse: allocs, shipWarehouse,
-        destWarehouse, destType: '海外仓', shipMethod,
-        provider: logistics.provider, providerSub: logistics.providerSub, channel: logistics.channel, boxNo: '',
-        transportMode, estDays,
-        estShipDate, estArrivalDate,
-        planShipQty: Number(s.planShipQty) || 1, remark: s.remark, estUnitPrice: 12.0,
-        boxSpec: s.boxSpec, boxWeight: 15.0, boxQty: s.boxQty, supplierCode: s.supplierCode,
-        planPurchaseQty: Number(s.planShipQty) || 1, planDeliveryDate: estShipDate, demandGap: 0,
-        suggestedOrderQty: Number(s.planShipQty) || 1, expectedDeliveryDate: estArrivalDate,
-        platformInStock: 0, platformInTransit: 0, overseasInStock: 0, overseasPendingShip: 0, overseasInTransit: 0,
-        localInStock: 50, localPendingShip: 0, poTotal: 0, poInTransit: 0, supplierInStock: 0, supplierInProd: 0,
-        purchaseNo: '', shippingOrderNo: '', fbaShipmentNo: '', fbaRefId: '',
-        status: 'pending_confirm', createdAt: now, updatedAt: now, creator: 'Admin', _custom: true
-      };
-      rows.unshift(newRow);
-      addLog(newId, '新建', `新建发货计划 ${planNo}（明细 #${idx + 1}）`);
+    const estArrivalDate = draft.estArrivalDate || (calcArrival !== '-' ? calcArrival : '');
+    return { shipWarehouse, transportMode: draft.transportMode || '', destWarehouse, shipMethod, logistics, estShipDate, estDays, estArrivalDate };
+  }
+
+  function generateShipmentPlanNo(now) {
+    const datePart = String(now || '').slice(2, 10).replace(/-/g, '');
+    const prefix = `SP${datePart}`;
+    let maxSeq = 0;
+    rows.forEach(r => {
+      const no = String(r && r.planNo || '');
+      if (no.startsWith(prefix)) {
+        const tail = Number(no.slice(prefix.length));
+        if (Number.isFinite(tail) && tail > maxSeq) maxSeq = tail;
+      }
     });
-    closeCreateModal();
-    publishV2PlansToBridge();
-    applyFilter(false);
-    toast(`成功新建 ${state.createSkus.length} 条发货计划`);
+    return `${prefix}${String(maxSeq + 1).padStart(4, '0')}`;
+  }
+
+  function buildPlanRowFromSku(s, meta, now, status) {
+    const newId = Math.max(0, ...rows.map(r => r.id)) + 1;
+    const planNo = generateShipmentPlanNo(now);
+    const allocs = normalizePickupAllocs(s.pickupWarehouse, s.planShipQty);
+    return {
+      id: newId, sku: s.sku, thumbColor: '#2563eb', thumbText: s.sku.slice(0, 2).toUpperCase(), linked: true,
+      planNo, lingxingSku: s.lingxingSku, productName: s.productName, model: s.sku,
+      cat1: '焊机', cat2: '常规', saleType: '常规', fnsku: (s.fnsku || '').trim() || '-', sellerSku: s.sellerSku, asin: (s.asin || '').trim() || '-',
+      store: s.store, platform: s.platform, country: s.country, team: s.team, teamOwner: '王方圆', opsOwner: s.opsOwner,
+      pickupWarehouse: allocs, shipWarehouse: meta.shipWarehouse,
+      destWarehouse: meta.destWarehouse, destType: '海外仓', shipMethod: meta.shipMethod,
+      provider: meta.logistics.provider, providerSub: meta.logistics.providerSub, channel: meta.logistics.channel, boxNo: '',
+      transportMode: meta.transportMode, estDays: meta.estDays,
+      estShipDate: meta.estShipDate, estArrivalDate: meta.estArrivalDate,
+      planShipQty: Number(s.planShipQty) || 1, remark: s.remark, estUnitPrice: 12.0,
+      boxSpec: s.boxSpec, boxWeight: 15.0, boxQty: s.boxQty, supplierCode: s.supplierCode,
+      planPurchaseQty: Number(s.planShipQty) || 1, planDeliveryDate: meta.estShipDate, demandGap: 0,
+      suggestedOrderQty: Number(s.planShipQty) || 1, expectedDeliveryDate: meta.estArrivalDate,
+      platformInStock: 0, platformInTransit: 0, overseasInStock: 0, overseasPendingShip: 0, overseasInTransit: 0,
+      localInStock: 50, localPendingShip: 0, poTotal: 0, poInTransit: 0, supplierInStock: 0, supplierInProd: 0,
+      purchaseNo: '', shippingOrderNo: '', fbaShipmentNo: '', fbaRefId: '',
+      status: status || 'pending_confirm', createdAt: now, updatedAt: now, creator: 'Admin', _custom: true
+    };
+  }
+
+  function applyDraftToExistingRow(row, draft, now) {
+    const meta = resolveDraftMeta(draft, row.destWarehouse);
+    const primary = draft.skus[0];
+    const allocs = normalizePickupAllocs(primary.pickupWarehouse, primary.planShipQty);
+    Object.assign(row, {
+      sku: primary.sku,
+      lingxingSku: primary.lingxingSku || row.lingxingSku,
+      productName: primary.productName || row.productName,
+      model: primary.sku,
+      fnsku: (primary.fnsku || '').trim() || '-',
+      sellerSku: primary.sellerSku || row.sellerSku,
+      asin: (primary.asin || '').trim() || '-',
+      store: primary.store,
+      platform: primary.platform,
+      country: primary.country || row.country,
+      team: primary.team,
+      opsOwner: primary.opsOwner,
+      pickupWarehouse: allocs,
+      shipWarehouse: meta.shipWarehouse,
+      destWarehouse: meta.destWarehouse,
+      shipMethod: meta.shipMethod,
+      provider: meta.logistics.provider,
+      providerSub: meta.logistics.providerSub,
+      channel: meta.logistics.channel,
+      transportMode: meta.transportMode,
+      estDays: meta.estDays,
+      estShipDate: meta.estShipDate,
+      estArrivalDate: meta.estArrivalDate,
+      planShipQty: Number(primary.planShipQty) || 1,
+      remark: primary.remark || '',
+      boxSpec: primary.boxSpec || row.boxSpec,
+      boxQty: Number(primary.boxQty) || row.boxQty,
+      supplierCode: primary.supplierCode || row.supplierCode,
+      planDeliveryDate: meta.estShipDate,
+      expectedDeliveryDate: meta.estArrivalDate,
+      updatedAt: now
+    });
+    addLog(row.id, '编辑', `编辑发货计划 ${row.planNo}（SKU：${row.sku}，计划发货数量：${row.planShipQty}）`);
+    draft.skus.slice(1).forEach((extraSku, idx) => {
+      const extraRow = buildPlanRowFromSku(extraSku, meta, now, row.status);
+      rows.unshift(extraRow);
+      addLog(extraRow.id, '新建', `编辑 ${row.planNo} 时新增发货计划 ${extraRow.planNo}（明细 #${idx + 2}）`);
+    });
+  }
+
+  $('#createSubmitBtn').addEventListener('click', () => {
+    const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    if (modalEditorState.mode === 'create') {
+      const draft = readCurrentFormDraft();
+      const err = validatePlanDraft(draft);
+      if (err) return toast(err);
+      const meta = resolveDraftMeta(draft);
+      draft.skus.forEach((s, idx) => {
+        const newRow = buildPlanRowFromSku(s, meta, now, 'pending_confirm');
+        rows.unshift(newRow);
+        addLog(newRow.id, '新建', `新建发货计划 ${newRow.planNo}（明细 #${idx + 1}）`);
+      });
+      closeCreateModal();
+      publishV2PlansToBridge();
+      applyFilter(false);
+      toast(`成功新建 ${draft.skus.length} 条发货计划`);
+      return;
+    }
+
+    if (modalEditorState.mode === 'edit') {
+      const targetRow = rows.find(r => r.id === modalEditorState.editRowId);
+      if (!targetRow) return closeCreateModal();
+      const draft = readCurrentFormDraft();
+      const err = validatePlanDraft(draft);
+      if (err) return toast(err);
+      applyDraftToExistingRow(targetRow, draft, now);
+      closeCreateModal();
+      publishV2PlansToBridge();
+      applyFilter(false);
+      toast(`已保存发货计划 ${targetRow.planNo}`);
+      return;
+    }
+
+    if (modalEditorState.mode === 'batch-edit') {
+      saveFormToActiveDraft();
+      for (const id of modalEditorState.batchIds) {
+        const row = rows.find(r => r.id === id);
+        const draft = modalEditorState.drafts[id];
+        if (!row || !draft) continue;
+        const err = validatePlanDraft(draft);
+        if (err) {
+          modalEditorState.activeBatchId = id;
+          loadDraftIntoForm(draft);
+          renderBatchEditNav();
+          toast(`${row.planNo}：${err}`);
+          return;
+        }
+      }
+      let updatedCount = 0;
+      modalEditorState.batchIds.forEach(id => {
+        const row = rows.find(r => r.id === id);
+        const draft = modalEditorState.drafts[id];
+        if (!row || !draft) return;
+        applyDraftToExistingRow(row, draft, now);
+        updatedCount += 1;
+      });
+      closeCreateModal();
+      publishV2PlansToBridge();
+      applyFilter(false);
+      toast(`已保存 ${updatedCount} 个发货计划的修改`);
+    }
   });
 
   /* 列配置抽屉（对齐采购计划交互：单级平铺、搜索、锁定固定列、拖拽排序、恢复默认、持久化） */
@@ -1867,7 +2285,7 @@
     window.UIKit.openImportDialog({
       title: '导入发货计划',
       guideTitle: '第一步：使用发货计划标准模板整理数据',
-      guideText: '请勿修改模板表头。支持 .xlsx、.xls、.csv 文件，单次仅导入一个文件，系统将自动校验 SKU、仓库与计划发货数量。',
+      guideText: '请勿修改模板表头。支持 .xlsx 文件，单次仅导入一个文件，系统将自动校验 SKU、仓库与计划发货数量。',
       onDownload: () => toast('发货计划导入模板已下载'),
       onConfirm: (file, close) => {
         if (typeof close === 'function') close();
@@ -1896,13 +2314,13 @@
   });
 
   /* 初始化控件选项与首次渲染 */
-  initMulti('pickupWarehouseMulti', '提货仓（可多选）', OPTIONS.pickupWarehouses);
-  initMulti('shipWarehouseMulti', '发货仓（可多选）', OPTIONS.shipWarehouses);
-  initMulti('destinationWarehouseMulti', '目的地仓（可多选）', OPTIONS.destWarehouses);
-  initMulti('platformMulti', '平台（可多选）', OPTIONS.platforms);
-  initMulti('countryMulti', '国家（可多选）', OPTIONS.countries);
-  initMulti('storeMulti', '店铺（可多选）', OPTIONS.stores);
-  initMulti('teamMulti', '团队（可多选）', OPTIONS.teams);
+  initMulti('pickupWarehouseMulti', '请选择提货仓', OPTIONS.pickupWarehouses);
+  initMulti('shipWarehouseMulti', '请选择发货仓', OPTIONS.shipWarehouses);
+  initMulti('destinationWarehouseMulti', '请选择目的地仓', OPTIONS.destWarehouses);
+  initMulti('platformMulti', '请选择平台', OPTIONS.platforms);
+  initMulti('countryMulti', '请选择国家', OPTIONS.countries);
+  initMulti('storeMulti', '请选择店铺', OPTIONS.stores);
+  initMulti('teamMulti', '请选择团队', OPTIONS.teams);
 
   /* FBA 货件 / 发货单 / 提货单 跨页联动桥（localStorage） */
   const FBA_BRIDGE_KEY = 'dmp_fba_plan_v2_bridge';
@@ -1945,6 +2363,11 @@
       center: 'ONT8', seller: 'ARCCAPTAIN主账号-US', countryCode: 'US', status: 'WORKING', shipmentOrderNo: '',
       children: [{ id: 'fba-8-1', sku: 'ARC-MIG200-US', product: '逆变焊机 MIG200', fnsku: 'X004MIG200', declared: 12, linkedPlans: [] }]
     },
+    FBA18XYZ009: {
+      id: 'fba-group-12', shipmentNo: 'FBA18XYZ009', shipmentName: 'US-MIG200-ONT8', reference: '209ONT8X',
+      center: 'ONT8', seller: 'ARCCAPTAIN主账号-US', countryCode: 'US', status: 'WORKING', shipmentOrderNo: '',
+      children: [{ id: 'fba-12-1', sku: 'ARC-MIG200-US', product: '逆变焊机 MIG200', fnsku: 'X004MIG200', declared: 18, linkedPlans: ['SP2611050001'] }]
+    },
     FBA18ARC202: {
       id: 'fba-group-9', shipmentNo: 'FBA18ARC202', shipmentName: 'US-MIG200-FTW1-B', reference: '202FTW1B',
       center: 'FTW1', seller: 'ARCCAPTAIN主账号-US', countryCode: 'US', status: 'WORKING', shipmentOrderNo: '',
@@ -1958,7 +2381,7 @@
     FBA18TEST001: {
       id: 'fba-group-11', shipmentNo: 'FBA18TEST001', shipmentName: 'US-BATCH-LGB8', reference: '204TEST1',
       center: 'LGB8', seller: 'ARCCAPTAIN主账号-US', countryCode: 'US', status: 'WORKING', shipmentOrderNo: '',
-      children: [{ id: 'fba-11-1', sku: 'TEST-LINK-INV-BATCH-OK', product: 'TEST-LINK-INV-BATCH-OK', fnsku: '-', declared: 2, linkedPlans: [] }]
+      children: [{ id: 'fba-11-1', sku: 'TEST-BATCH-OK', product: 'TEST-LINK-INV-BATCH-OK', fnsku: '-', declared: 2, linkedPlans: [] }]
     },
     FBA19W5V3L7J: {
       id: 'fba-group-3', shipmentNo: 'FBA19W5V3L7J', shipmentName: 'CA-Foot Pedal-YYZ7', reference: '84MQKRVU',
@@ -2325,7 +2748,7 @@
     CLOSED: '已完成'
   };
 
-  let v2FbaLinkState = { items: [], activeIdx: 0, search: '', matchOnly: true };
+  let v2FbaLinkState = { items: [], activeIdx: 0, search: '' };
 
   function getActiveV2FbaItem() {
     return v2FbaLinkState.items[v2FbaLinkState.activeIdx] || null;
@@ -2333,47 +2756,59 @@
 
   function findMatchedChildInGroup(grp, plan) {
     if (!grp || !Array.isArray(grp.children)) return null;
-    const pSku = String(plan.sku || '').toLowerCase();
-    const pFnsku = String(plan.fnsku || '').toLowerCase();
-    const sameSku = grp.children.filter(c => String(c.sku || '').toLowerCase() === pSku);
-    if (!sameSku.length) return null;
-    if (pFnsku && pFnsku !== '-') {
-      const exact = sameSku.find(c => !c.fnsku || c.fnsku === '-' || String(c.fnsku).toLowerCase() === pFnsku);
-      if (exact) return exact;
-    }
-    return sameSku[0];
+    const pLxSku = String(plan.lingxingSku || '').trim().toLowerCase();
+    if (!pLxSku || pLxSku === '-') return null;
+    const sameLxSku = grp.children.filter(c => {
+      const cSku = String(c.sku || '').trim().toLowerCase();
+      const cLx = String(c.lingxingSku || '').trim().toLowerCase();
+      return cSku === pLxSku || cLx === pLxSku;
+    });
+    return sameLxSku.length ? sameLxSku[0] : null;
   }
 
-  function getCandidateFbaShipmentsForPlan(plan, metaMap, matchOnly, searchVal) {
+  function getCandidateFbaShipmentsForPlan(plan, metaMap, searchVal, pickedSet) {
     const tokens = splitTokens(searchVal || '');
+    const picked = pickedSet || new Set();
     const list = [];
     Object.values(metaMap || {}).forEach(grp => {
       if (!grp || !grp.shipmentNo) return;
       if (['DELETED', 'CANCELLED', 'ABANDONED'].includes(grp.status)) return;
-      const matchedChild = findMatchedChildInGroup(grp, plan);
-      const storeOk = isStoreMatchForFba(plan.store, grp.seller);
-      if (matchOnly && (!matchedChild || !storeOk)) return;
-      if (tokens.length) {
+      const isPicked = picked.has(grp.shipmentNo);
+      if (!isPicked) {
+        if (!tokens.length) return;
         const hay = `${grp.shipmentNo} ${grp.shipmentName || ''} ${grp.reference || ''} ${grp.center || ''} ${grp.seller || ''}`.toLowerCase();
         if (!tokens.some(t => hay.includes(t))) return;
       }
+      const matchedChild = findMatchedChildInGroup(grp, plan);
+      const storeOk = isStoreMatchForFba(plan.store, grp.seller);
       const targetChild = matchedChild || (grp.children && grp.children[0]) || null;
+      const skuMismatch = !matchedChild;
       const occupiedBy = ((targetChild && targetChild.linkedPlans) || []).filter(p => p !== plan.planNo);
+      const childSku = targetChild ? (targetChild.sku || '—') : '—';
+      const lingxingSku = targetChild ? (targetChild.lingxingSku || targetChild.sku || '—') : '—';
+      const childFnsku = targetChild ? (targetChild.fnsku || '—') : '—';
+      const childProduct = targetChild ? (targetChild.product || targetChild.name || targetChild.productName || childSku) : '—';
       list.push({
         shipmentNo: grp.shipmentNo,
-        shipmentName: grp.shipmentName || '',
+        shipmentName: grp.shipmentName || '—',
         reference: grp.reference || '',
         status: grp.status || 'WORKING',
         seller: grp.seller || '',
         center: grp.center || '',
         shipmentOrderNo: grp.shipmentOrderNo || '',
-        declaredQty: targetChild ? Number(targetChild.declared || 0) : 0,
-        childSku: targetChild ? targetChild.sku : '-',
+        declaredQty: matchedChild ? Number(matchedChild.declared || 0) : (targetChild ? Number(targetChild.declared || 0) : 0),
+        childSku,
+        lingxingSku,
+        childFnsku,
+        childProduct,
         occupiedBy,
-        isMatch: Boolean(matchedChild && storeOk)
+        skuMismatch,
+        isMatch: Boolean(matchedChild && storeOk),
+        isPicked
       });
     });
     list.sort((a, b) => {
+      if (a.isPicked !== b.isPicked) return a.isPicked ? -1 : 1;
       if (a.occupiedBy.length !== b.occupiedBy.length) return a.occupiedBy.length - b.occupiedBy.length;
       if (a.isMatch !== b.isMatch) return a.isMatch ? -1 : 1;
       return a.shipmentNo.localeCompare(b.shipmentNo);
@@ -2390,14 +2825,17 @@
       const ch = grp ? (findMatchedChildInGroup(grp, plan) || (grp.children && grp.children[0])) : null;
       const q = ch ? Number(ch.declared || 0) : Number(item.knownQtyMap[sNo] || 0);
       syncedQty += q;
-      syncedList.push({ shipmentNo: sNo, shipmentName: (grp && grp.shipmentName) || '', declaredQty: q, shippingOrderNo: (grp && grp.shipmentOrderNo) || '' });
+      syncedList.push({
+        shipmentNo: sNo,
+        shipmentName: (grp && grp.shipmentName) || '',
+        declaredQty: q,
+        shippingOrderNo: (grp && grp.shipmentOrderNo) || ''
+      });
     });
-    const prelinkQty = item.prelinks.reduce((s, p) => s + Number(p.declaredHint || 0), 0);
-    const totalCount = syncedList.length + item.prelinks.length;
+    const totalCount = syncedList.length;
     const planQty = Number(plan.planShipQty || 0);
-    const hasPrelink = item.prelinks.length > 0;
     const diff = syncedQty - planQty;
-    return { syncedQty, prelinkQty, syncedList, totalCount, planQty, hasPrelink, diff };
+    return { syncedQty, syncedList, totalCount, planQty, hasPrelink: false, diff };
   }
 
   function renderV2FbaModal() {
@@ -2407,38 +2845,29 @@
     if (!activeItem) return;
 
     const sidebar = $('#v2FbaSidebar');
-    if (v2FbaLinkState.items.length > 1) {
-      sidebar.classList.remove('hidden');
-      const doneCnt = v2FbaLinkState.items.filter(it => it.pickedSyncedNos.size + it.prelinks.length > 0).length;
-      $('#v2FbaSidebarProgress').textContent = `${doneCnt} / ${v2FbaLinkState.items.length}`;
-      $('#v2FbaSidebarList').innerHTML = v2FbaLinkState.items.map((it, idx) => {
-        const st = calcItemLinkStats(it, metaMap);
-        const cls = idx === v2FbaLinkState.activeIdx ? 'active' : '';
-        const statusTag = st.totalCount === 0
-          ? '<span style="color:#909399">未选货件</span>'
-          : st.hasPrelink
-            ? `<span style="color:#b88230">${st.totalCount} 货件(含预关联)</span>`
-            : st.diff === 0
-              ? `<span style="color:#52a31b">${st.totalCount} 货件 · 无差异</span>`
-              : `<span style="color:#f56c6c">${st.totalCount} 货件 · 差 ${st.diff > 0 ? `+${st.diff}` : st.diff}</span>`;
-        return `<button class="spv2-fba-nav-item ${cls}" type="button" data-v2fba-nav="${idx}">
-          <div class="spv2-fba-nav-top"><span>${esc(it.plan.planNo)}</span>${statusTag}</div>
-          <div class="spv2-fba-nav-sub">${esc(it.plan.sku)} · 计划 ${it.plan.planShipQty} 件</div>
-        </button>`;
-      }).join('');
-    } else {
-      sidebar.classList.add('hidden');
-    }
+    sidebar.classList.remove('hidden');
+    const doneCnt = v2FbaLinkState.items.filter(it => it.pickedSyncedNos.size > 0).length;
+    $('#v2FbaSidebarProgress').textContent = `${doneCnt} / ${v2FbaLinkState.items.length}`;
+    $('#v2FbaSidebarList').innerHTML = v2FbaLinkState.items.map((it, idx) => {
+      const st = calcItemLinkStats(it, metaMap);
+      const cls = idx === v2FbaLinkState.activeIdx ? 'active' : '';
+      const statusTag = st.totalCount === 0
+        ? '<span style="color:#909399">未选货件</span>'
+        : st.diff === 0
+          ? `<span style="color:#52a31b">${st.totalCount} 货件 · 无差异</span>`
+          : `<span style="color:#f56c6c">${st.totalCount} 货件 · 差 ${st.diff > 0 ? `+${st.diff}` : st.diff}</span>`;
+      return `<button class="spv2-fba-nav-item ${cls}" type="button" data-v2fba-nav="${idx}">
+        <div class="spv2-fba-nav-top"><span>${esc(it.plan.planNo)}</span>${statusTag}</div>
+        <div class="spv2-fba-nav-sub">${esc(it.plan.sku)} · 计划 ${it.plan.planShipQty} 件</div>
+      </button>`;
+    }).join('');
 
     const stats = calcItemLinkStats(activeItem, metaMap);
     const plan = activeItem.plan;
     let diffText = '—';
     let diffCls = '';
     if (stats.totalCount > 0) {
-      if (stats.hasPrelink) {
-        diffText = `已预关联 ${activeItem.prelinks.length} 单（待同步校验）`;
-        diffCls = 'is-warn';
-      } else if (stats.diff === 0) {
+      if (stats.diff === 0) {
         diffText = '0（完全匹配）';
         diffCls = 'is-ok';
       } else {
@@ -2446,133 +2875,164 @@
         diffCls = 'is-err';
       }
     }
+    const skuAsinFnsku = `${plan.sku || '-'} / ${plan.asin || '-'} / ${plan.fnsku || '-'}`;
     $('#v2FbaPlanCtx').innerHTML = `
       <div class="spv2-fba-ctx-item"><span>发货计划号</span><b title="${esc(plan.planNo)}">${esc(plan.planNo)}</b></div>
-      <div class="spv2-fba-ctx-item"><span>店铺 / 国家</span><b title="${esc(plan.store)}">${esc(plan.store)} (${esc(plan.country)})</b></div>
-      <div class="spv2-fba-ctx-item"><span>SKU / FNSKU</span><b title="${esc(plan.sku)} / ${esc(plan.fnsku)}">${esc(plan.sku)} / ${esc(plan.fnsku || '-')}</b></div>
+      <div class="spv2-fba-ctx-item"><span>SKU / ASIN / FNSKU</span><b title="${esc(skuAsinFnsku)}">${esc(skuAsinFnsku)}</b></div>
       <div class="spv2-fba-ctx-item"><span>计划发货数量</span><b>${stats.planQty} 件</b></div>
-      <div class="spv2-fba-ctx-item"><span>已选申报合计</span><b>${stats.syncedQty} 件${stats.hasPrelink ? ` + ${activeItem.prelinks.length} 预关联` : ''}</b></div>
+      <div class="spv2-fba-ctx-item"><span>已选申报合计</span><b>${stats.syncedQty} 件</b></div>
       <div class="spv2-fba-ctx-item"><span>计划差额</span><b class="${diffCls}">${esc(diffText)}</b></div>
     `;
 
-    const cands = getCandidateFbaShipmentsForPlan(plan, metaMap, v2FbaLinkState.matchOnly, v2FbaLinkState.search);
+    const hasQueried = splitTokens(v2FbaLinkState.search || '').length > 0;
+    const cands = getCandidateFbaShipmentsForPlan(plan, metaMap, v2FbaLinkState.search, activeItem.pickedSyncedNos);
     const tbody = $('#v2FbaTableBody');
     if (!cands.length) {
-      tbody.innerHTML = `<tr><td colspan="7" style="padding:26px 12px;color:#909399">当前过滤条件下暂无匹配的已同步 FBA 货件，可取消勾选「仅看匹配店铺与 SKU」或在下方直接粘贴未同步单号做预关联</td></tr>`;
+      const emptyMsg = hasQueried
+        ? '未查询到匹配的 FBA 货件，请核对输入的 FBA 货件单号'
+        : '请输入 FBA 货件单号并点击「查询」获取货件明细';
+      tbody.innerHTML = `<tr><td colspan="8" style="padding:44px 12px;color:#909399">${emptyMsg}</td></tr>`;
     } else {
       tbody.innerHTML = cands.map(c => {
         const picked = activeItem.pickedSyncedNos.has(c.shipmentNo);
         const lockedDn = Boolean(picked && c.shipmentOrderNo && !String(c.shipmentOrderNo).startsWith('DN草稿'));
-        const occupiedText = c.occupiedBy.length
-          ? `<span style="color:#e6a23c">已关联 ${esc(c.occupiedBy.join('、'))}</span>`
-          : (c.isMatch ? '<span style="color:#52a31b">未占用 · 匹配</span>' : '<span style="color:#909399">未占用</span>');
-        const trCls = [picked ? 'is-picked' : '', lockedDn ? 'is-locked' : ''].filter(Boolean).join(' ');
-        const statusText = FBA_SHIPMENT_STATUS_LABEL[c.status] || c.status;
+        const occupiedLock = Boolean(!picked && c.occupiedBy.length);
+        const mismatchLock = Boolean(!picked && c.skuMismatch);
+        const disabledLock = lockedDn || occupiedLock || mismatchLock;
+        const lockTitle = lockedDn
+          ? '已生成发货单，不可取消勾选'
+          : (mismatchLock
+            ? `该货件不含计划领星SKU（${plan.lingxingSku || '-'}），不可关联`
+            : (occupiedLock ? `已被 ${c.occupiedBy.join('、')} 占用` : ''));
+        const subNote = c.occupiedBy.length
+          ? `<div style="font-size:11px;color:#e6a23c">已关联 ${esc(c.occupiedBy.join('、'))}</div>`
+          : (mismatchLock
+            ? `<div style="font-size:11px;color:#f56c6c">不含计划领星SKU，不可关联</div>`
+            : (c.shipmentOrderNo ? `<div style="font-size:11px;color:#1677ff">发货单 ${esc(c.shipmentOrderNo)}</div>` : ''));
+        const trCls = [picked ? 'is-picked' : '', disabledLock ? 'is-locked' : ''].filter(Boolean).join(' ');
+        const skuText = c.lingxingSku && c.lingxingSku !== c.childSku ? `${c.childSku} / ${c.lingxingSku}` : c.childSku;
+        const storeCenter = `${c.seller || '—'} · ${c.center || '—'}`;
         return `<tr class="${trCls}">
-          <td><input type="checkbox" data-v2fba-pick="${esc(c.shipmentNo)}" ${picked ? 'checked' : ''} ${lockedDn ? 'disabled title="已生成发货单，不可解绑"' : ''}></td>
-          <td><b>${esc(c.shipmentNo)}</b></td>
-          <td title="${esc(c.shipmentName)}">${esc(c.shipmentName || '—')}${c.reference ? `<div style="font-size:11px;color:#909399">${esc(c.reference)}</div>` : ''}</td>
-          <td>${esc(statusText)}</td>
-          <td>${esc(c.seller || '—')} · ${esc(c.center || '—')}</td>
+          <td><input type="checkbox" class="spv2-check-lg" data-v2fba-pick="${esc(c.shipmentNo)}" ${picked ? 'checked' : ''} ${disabledLock ? `disabled title="${esc(lockTitle)}"` : ''}></td>
+          <td title="${esc(c.shipmentNo)}"><b>${esc(c.shipmentNo)}</b>${subNote}</td>
+          <td title="${esc(c.shipmentName)}">${esc(c.shipmentName)}</td>
+          <td title="${esc(skuText)}">${esc(skuText)}</td>
+          <td title="${esc(c.childFnsku)}">${esc(c.childFnsku)}</td>
+          <td title="${esc(c.childProduct)}">${esc(c.childProduct)}</td>
+          <td title="${esc(storeCenter)}">${esc(storeCenter)}</td>
           <td><b>${c.declaredQty}</b></td>
-          <td>${occupiedText}${c.shipmentOrderNo ? `<div style="font-size:11px;color:#1677ff">发货单 ${esc(c.shipmentOrderNo)}</div>` : ''}</td>
         </tr>`;
       }).join('');
     }
-    const selectableCands = cands.filter(c => !(activeItem.pickedSyncedNos.has(c.shipmentNo) && c.shipmentOrderNo));
+    const selectableCands = cands.filter(c => !(activeItem.pickedSyncedNos.has(c.shipmentNo) && c.shipmentOrderNo && !String(c.shipmentOrderNo).startsWith('DN草稿')) && !(!activeItem.pickedSyncedNos.has(c.shipmentNo) && (c.occupiedBy.length || c.skuMismatch)));
     $('#v2FbaSelectAllVisible').checked = selectableCands.length > 0 && selectableCands.every(c => activeItem.pickedSyncedNos.has(c.shipmentNo));
-
-    $('#v2FbaPrelinkChips').innerHTML = activeItem.prelinks.length
-      ? activeItem.prelinks.map((p, idx) => `
-        <span class="spv2-prelink-chip">
-          <b>${esc(p.shipmentNo)}</b>
-          <span>预关联·待同步${p.declaredHint > 0 ? `（预计 ${p.declaredHint} 件）` : ''}</span>
-          <button type="button" data-v2fba-del-pre="${idx}" title="移除">×</button>
-        </span>`).join('')
-      : '<span style="font-size:12px;color:#909399">暂无预关联单号</span>';
+    $('#v2FbaSelectAllVisible').disabled = selectableCands.length === 0;
+    const clearBtn = $('#v2FbaClearPlanLinksBtn');
+    if (clearBtn) {
+      clearBtn.hidden = activeItem.pickedSyncedNos.size === 0;
+    }
 
     const allPlansSummary = v2FbaLinkState.items.map(it => {
       const s = calcItemLinkStats(it, metaMap);
-      return `${it.plan.planNo}：已选 ${s.totalCount} 货件（已同步 ${s.syncedQty} 件${s.hasPrelink ? ` + ${it.prelinks.length} 预关联` : ''}）`;
+      return `${it.plan.planNo}：已选 ${s.totalCount} 货件（申报合计 ${s.syncedQty} 件）`;
     }).join(' ｜ ');
-    $('#v2FbaFooterSummary').innerHTML = allPlansSummary || '请选择或粘贴要关联的 FBA 货件';
+    $('#v2FbaFooterSummary').innerHTML = allPlansSummary || '请查询并勾选要关联的 FBA 货件';
   }
 
-  function parsePrelinkInputIntoActiveItem(showEmptyToast) {
-    const activeItem = getActiveV2FbaItem();
-    const input = $('#v2FbaPrelinkInput');
-    if (!activeItem || !input) return 0;
-    const rawTokens = splitTokens(input.value).map(t => t.toUpperCase());
-    if (!rawTokens.length) {
-      if (showEmptyToast) toast('请先输入或粘贴至少 1 个 FBA 货件单号');
-      return 0;
-    }
-    const hintQty = Number($('#v2FbaPrelinkQtyInput')?.value || 0) || 0;
-    const bridge = readFbaBridge();
-    const metaMap = getSyncedFbaMetaMap(bridge);
-    let addedPre = 0;
-    let autoPickedSynced = 0;
-    rawTokens.forEach(no => {
-      if (metaMap[no]) {
-        if (!activeItem.pickedSyncedNos.has(no)) {
-          activeItem.pickedSyncedNos.add(no);
-          autoPickedSynced += 1;
-        }
-      } else if (!activeItem.prelinks.some(p => p.shipmentNo === no)) {
-        activeItem.prelinks.push({ shipmentNo: no, declaredHint: hintQty });
-        addedPre += 1;
-      }
+  const v2FbaImportState = { file: null, rowCount: 0, error: '' };
+
+  function switchV2FbaTab(tab) {
+    const modal = $('#v2FbaLinkModal');
+    if (!modal) return;
+    modal.querySelectorAll('[data-fba-tab]').forEach(btn => {
+      const active = btn.dataset.fbaTab === tab;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', String(active));
     });
-    input.value = '';
-    if ($('#v2FbaPrelinkQtyInput')) $('#v2FbaPrelinkQtyInput').value = '';
-    if (autoPickedSynced > 0 && addedPre > 0) {
-      toast(`已自动匹配 ${autoPickedSynced} 个已同步货件，并添加 ${addedPre} 个预关联单号`);
-    } else if (autoPickedSynced > 0) {
-      toast(`单号已在系统中同步，已自动在上方列表为您勾选 ${autoPickedSynced} 个货件`);
-    } else if (addedPre > 0) {
-      toast(`已添加 ${addedPre} 个预关联 FBA 单号`);
-    }
-    renderV2FbaModal();
-    return addedPre + autoPickedSynced;
+    modal.querySelectorAll('[data-fba-panel]').forEach(p => {
+      p.hidden = p.dataset.fbaPanel !== tab;
+    });
+    modal.querySelectorAll('[data-fba-footer]').forEach(f => {
+      f.hidden = f.dataset.fbaFooter !== tab;
+    });
   }
 
-  function openV2FbaLinkModal(targetPlans) {
-    const eligible = (targetPlans || []).filter(r => r && r.team === '亚马逊团队' && ['pending_fba_create', 'pending_review', 'pending_shipping_order'].includes(r.status));
-    if (!eligible.length) return toast('请先勾选「待创建货件」（或可调整关联）的亚马逊团队发货计划');
+  function refreshV2FbaImportUI() {
+    const hasFile = Boolean(v2FbaImportState.file);
+    const canConfirm = hasFile && !v2FbaImportState.error;
+    const step2 = $('#v2FbaImportStep2');
+    if (step2) step2.classList.toggle('is-active', hasFile);
+    const step3 = $('#v2FbaImportStep3');
+    if (step3) step3.classList.toggle('is-active', canConfirm);
+    const preview = $('#v2FbaImportPreview');
+    if (preview) {
+      preview.hidden = !hasFile;
+      if (hasFile) {
+        preview.textContent = `已选择文件：${v2FbaImportState.file.name}（识别到 ${v2FbaImportState.rowCount} 条关联记录）`;
+      }
+    }
+    const errEl = $('#v2FbaImportError');
+    if (errEl) {
+      errEl.hidden = !v2FbaImportState.error;
+      errEl.textContent = v2FbaImportState.error || '';
+    }
+    const label = $('#v2FbaImportFileLabel');
+    if (label) label.textContent = hasFile ? v2FbaImportState.file.name : '尚未选择文件';
+    const confirmBtn = $('#v2FbaImportConfirmBtn');
+    if (confirmBtn) confirmBtn.disabled = !canConfirm;
+  }
+
+  function loadV2FbaImportFile(file) {
+    if (!file) return;
+    const name = String(file.name || '').toLowerCase();
+    const valid = name.endsWith('.xlsx');
+    v2FbaImportState.file = valid ? file : null;
+    v2FbaImportState.rowCount = valid ? Math.max(2, Math.min(99, Math.round(Number(file.size || 320) / 160))) : 0;
+    v2FbaImportState.error = valid ? '' : '文件格式不正确，请上传 .xlsx 文件';
+    refreshV2FbaImportUI();
+    if (!valid) toast(v2FbaImportState.error);
+  }
+
+  function openV2FbaLinkModal(targetPlans, initialTab = 'query') {
+    let eligible = (targetPlans || []).filter(r => r && r.team === '亚马逊团队' && ['pending_fba_create', 'pending_review', 'pending_shipping_order'].includes(r.status));
+    if (!eligible.length) {
+      eligible = rows.filter(r => r && r.team === '亚马逊团队' && ['pending_fba_create', 'pending_review', 'pending_shipping_order'].includes(r.status));
+    }
+    if (!eligible.length && initialTab === 'query') {
+      return toast('当前暂无可关联 FBA 货件的亚马逊团队发货计划');
+    }
     const bridge = readFbaBridge();
     const metaMap = getSyncedFbaMetaMap(bridge);
     v2FbaLinkState = {
       activeIdx: 0,
       search: '',
-      matchOnly: true,
       items: eligible.map(r => {
         const pickedSyncedNos = new Set();
-        const prelinks = [];
         const knownQtyMap = {};
         (r.fbaLinks || []).forEach(lk => {
           if (!lk || !lk.shipmentNo) return;
-          if (lk.syncState === 'prelinked' && !metaMap[lk.shipmentNo]) {
-            prelinks.push({ shipmentNo: lk.shipmentNo, declaredHint: Number(lk.declaredHint || lk.declaredQty || 0) });
-          } else {
+          if (metaMap[lk.shipmentNo] || lk.syncState !== 'prelinked') {
             pickedSyncedNos.add(lk.shipmentNo);
             knownQtyMap[lk.shipmentNo] = Number(lk.declaredQty || 0);
           }
         });
-        if (!pickedSyncedNos.size && !prelinks.length && r.fbaShipmentNo) {
+        if (!pickedSyncedNos.size && r.fbaShipmentNo) {
           String(r.fbaShipmentNo).split(/[、,，]+/).map(s => s.trim()).filter(Boolean).forEach(no => {
-            if (metaMap[no]) pickedSyncedNos.add(no);
-            else prelinks.push({ shipmentNo: no, declaredHint: 0 });
+            pickedSyncedNos.add(no);
           });
         }
-        return { plan: r, pickedSyncedNos, prelinks, knownQtyMap };
+        return { plan: r, pickedSyncedNos, prelinks: [], knownQtyMap };
       })
     };
-    $('#v2FbaSearchInput').value = '';
-    $('#v2FbaMatchOnly').checked = true;
-    $('#v2FbaPrelinkInput').value = '';
-    if ($('#v2FbaPrelinkQtyInput')) $('#v2FbaPrelinkQtyInput').value = '';
+    v2FbaImportState.file = null;
+    v2FbaImportState.rowCount = 0;
+    v2FbaImportState.error = '';
+    if ($('#v2FbaImportFile')) $('#v2FbaImportFile').value = '';
+    refreshV2FbaImportUI();
+    if ($('#v2FbaSearchInput')) $('#v2FbaSearchInput').value = '';
     $('#v2FbaLinkMask').classList.remove('hidden');
     $('#v2FbaLinkModal').classList.remove('hidden');
+    switchV2FbaTab(initialTab);
     renderV2FbaModal();
   }
 
@@ -2726,8 +3186,70 @@
 
   $('#linkFbaBtn').addEventListener('click', () => {
     const selectedRows = rows.filter(r => state.selected.has(r.id));
-    if (!selectedRows.length) return toast('请先勾选至少 1 条「待创建货件」状态的亚马逊发货计划');
-    openV2FbaLinkModal(selectedRows);
+    openV2FbaLinkModal(selectedRows, 'query');
+  });
+  $('#unlinkFbaBtn').addEventListener('click', () => {
+    const targets = rows.filter(r => state.selected.has(r.id) && r.team === '亚马逊团队' && Boolean(r.fbaShipmentNo) && ['pending_fba_create', 'pending_review', 'pending_shipping_order'].includes(r.status) && !r.shippingOrderNo);
+    if (!targets.length) {
+      return toast('请先勾选已关联 FBA 货件且尚未生成正式发货单的亚马逊发货计划');
+    }
+    unlinkFbaPlans(targets);
+  });
+  $('#v2FbaClearPlanLinksBtn').addEventListener('click', () => {
+    const activeItem = getActiveV2FbaItem();
+    if (!activeItem || !activeItem.pickedSyncedNos.size) return;
+    const bridge = readFbaBridge();
+    const metaMap = getSyncedFbaMetaMap(bridge);
+    let lockedCnt = 0;
+    Array.from(activeItem.pickedSyncedNos).forEach(sNo => {
+      const grp = metaMap[sNo];
+      const lockedDn = Boolean(grp && grp.shipmentOrderNo && !String(grp.shipmentOrderNo).startsWith('DN草稿'));
+      if (lockedDn) lockedCnt += 1;
+      else activeItem.pickedSyncedNos.delete(sNo);
+    });
+    renderV2FbaModal();
+    if (lockedCnt > 0) {
+      toast(`已清空可解绑货件（${lockedCnt} 个货件已生成发货单不可解绑）`);
+    } else {
+      toast(`已清空 ${activeItem.plan.planNo} 已选的 FBA 货件，点击「关联完成」即可退回待创建货件`);
+    }
+  });
+  $('#v2FbaLinkModal').querySelectorAll('[data-fba-tab]').forEach(btn => {
+    btn.addEventListener('click', () => switchV2FbaTab(btn.dataset.fbaTab));
+  });
+  $('#v2FbaDownloadTplBtn').addEventListener('click', () => {
+    toast('已开始下载《发货计划关联FBA货件导入模板.xlsx》');
+  });
+  $('#v2FbaImportChooseBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    $('#v2FbaImportFile').click();
+  });
+  $('#v2FbaImportDrop').addEventListener('click', e => {
+    if (!e.target.closest('button')) $('#v2FbaImportFile').click();
+  });
+  $('#v2FbaImportFile').addEventListener('change', e => {
+    loadV2FbaImportFile(e.target.files[0]);
+  });
+  $('#v2FbaImportDrop').addEventListener('dragover', e => {
+    e.preventDefault();
+    $('#v2FbaImportDrop').classList.add('is-drag-over');
+  });
+  $('#v2FbaImportDrop').addEventListener('dragleave', () => {
+    $('#v2FbaImportDrop').classList.remove('is-drag-over');
+  });
+  $('#v2FbaImportDrop').addEventListener('drop', e => {
+    e.preventDefault();
+    $('#v2FbaImportDrop').classList.remove('is-drag-over');
+    loadV2FbaImportFile(e.dataTransfer.files[0]);
+  });
+  $('#v2FbaImportCancelBtn').addEventListener('click', closeV2FbaLinkModal);
+  $('#v2FbaImportConfirmBtn').addEventListener('click', () => {
+    if (!v2FbaImportState.file || v2FbaImportState.error) {
+      return toast('请先选择正确的导入文件');
+    }
+    const cnt = v2FbaImportState.rowCount;
+    closeV2FbaLinkModal();
+    toast(`按单导入关联成功，共处理 ${cnt} 条关联明细`);
   });
   $('#v2FbaCloseBtn').addEventListener('click', closeV2FbaLinkModal);
   $('#v2FbaCancelBtn').addEventListener('click', closeV2FbaLinkModal);
@@ -2735,25 +3257,30 @@
   $('#v2FbaSidebarList').addEventListener('click', e => {
     const navBtn = e.target.closest('[data-v2fba-nav]');
     if (!navBtn) return;
-    parsePrelinkInputIntoActiveItem(false);
     v2FbaLinkState.activeIdx = Number(navBtn.dataset.v2fbaNav) || 0;
+    v2FbaLinkState.search = '';
+    if ($('#v2FbaSearchInput')) $('#v2FbaSearchInput').value = '';
     renderV2FbaModal();
   });
-  $('#v2FbaSearchInput').addEventListener('input', e => {
-    v2FbaLinkState.search = e.target.value || '';
+  const triggerV2FbaSearch = () => {
+    const val = ($('#v2FbaSearchInput')?.value || '').trim();
+    if (!val) {
+      toast('请先输入要查询的 FBA 货件单号');
+      return;
+    }
+    v2FbaLinkState.search = val;
     renderV2FbaModal();
+  };
+  $('#v2FbaSearchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      triggerV2FbaSearch();
+    }
   });
-  $('#v2FbaMatchOnly').addEventListener('change', e => {
-    v2FbaLinkState.matchOnly = Boolean(e.target.checked);
-    renderV2FbaModal();
-  });
-  $('#v2FbaSelectMatchedBtn').addEventListener('click', () => {
-    const activeItem = getActiveV2FbaItem();
-    if (!activeItem) return;
-    const bridge = readFbaBridge();
-    const metaMap = getSyncedFbaMetaMap(bridge);
-    const cands = getCandidateFbaShipmentsForPlan(activeItem.plan, metaMap, v2FbaLinkState.matchOnly, v2FbaLinkState.search);
-    cands.filter(c => c.isMatch && !c.occupiedBy.length).forEach(c => activeItem.pickedSyncedNos.add(c.shipmentNo));
+  $('#v2FbaSearchBtn').addEventListener('click', triggerV2FbaSearch);
+  $('#v2FbaSearchResetBtn').addEventListener('click', () => {
+    v2FbaLinkState.search = '';
+    if ($('#v2FbaSearchInput')) $('#v2FbaSearchInput').value = '';
     renderV2FbaModal();
   });
   $('#v2FbaSelectAllVisible').addEventListener('change', e => {
@@ -2761,10 +3288,12 @@
     if (!activeItem) return;
     const bridge = readFbaBridge();
     const metaMap = getSyncedFbaMetaMap(bridge);
-    const cands = getCandidateFbaShipmentsForPlan(activeItem.plan, metaMap, v2FbaLinkState.matchOnly, v2FbaLinkState.search);
+    const cands = getCandidateFbaShipmentsForPlan(activeItem.plan, metaMap, v2FbaLinkState.search, activeItem.pickedSyncedNos);
     cands.forEach(c => {
-      if (e.target.checked) activeItem.pickedSyncedNos.add(c.shipmentNo);
-      else if (!c.shipmentOrderNo) activeItem.pickedSyncedNos.delete(c.shipmentNo);
+      const lockedDn = Boolean(c.shipmentOrderNo && !String(c.shipmentOrderNo).startsWith('DN草稿'));
+      const occupiedLock = Boolean(!activeItem.pickedSyncedNos.has(c.shipmentNo) && c.occupiedBy.length);
+      if (e.target.checked && !occupiedLock) activeItem.pickedSyncedNos.add(c.shipmentNo);
+      else if (!e.target.checked && !lockedDn) activeItem.pickedSyncedNos.delete(c.shipmentNo);
     });
     renderV2FbaModal();
   });
@@ -2775,20 +3304,6 @@
     const sNo = cb.dataset.v2fbaPick;
     if (cb.checked) activeItem.pickedSyncedNos.add(sNo);
     else activeItem.pickedSyncedNos.delete(sNo);
-    renderV2FbaModal();
-  });
-  $('#v2FbaPrelinkAddBtn').addEventListener('click', () => parsePrelinkInputIntoActiveItem(true));
-  $('#v2FbaPrelinkInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      parsePrelinkInputIntoActiveItem(true);
-    }
-  });
-  $('#v2FbaPrelinkChips').addEventListener('click', e => {
-    const delBtn = e.target.closest('[data-v2fba-del-pre]');
-    const activeItem = getActiveV2FbaItem();
-    if (!delBtn || !activeItem) return;
-    activeItem.prelinks.splice(Number(delBtn.dataset.v2fbaDelPre), 1);
     renderV2FbaModal();
   });
 
@@ -2802,13 +3317,12 @@
     commitV2FbaLinks();
   });
   $('#v2FbaSubmitBtn').addEventListener('click', () => {
-    parsePrelinkInputIntoActiveItem(false);
     const bridge = readFbaBridge();
     const metaMap = getSyncedFbaMetaMap(bridge);
     const discrepancies = [];
     v2FbaLinkState.items.forEach(item => {
       const s = calcItemLinkStats(item, metaMap);
-      if (s.totalCount > 0 && !s.hasPrelink && s.diff !== 0) {
+      if (s.totalCount > 0 && s.diff !== 0) {
         discrepancies.push({
           planNo: item.plan.planNo,
           sku: item.plan.sku,

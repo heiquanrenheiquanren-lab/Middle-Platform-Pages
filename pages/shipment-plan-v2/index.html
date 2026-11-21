@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../../global-export.css?v=1.0.0">
   <link rel="stylesheet" href="../../navigation.css?v=1.7.99">
   <link rel="stylesheet" href="../../custom-select.css?v=1.0.0">
-  <link rel="stylesheet" href="./styles.css?v=1.1.0">
+  <link rel="stylesheet" href="./styles.css?v=1.2.6">
 </head>
 <body data-ui-kit-page="standard" class="ui-page-canvas">
   <div class="toast" id="toast">查询完成</div>
@@ -47,10 +47,10 @@
               </select>
               <input class="control query-combo-input" id="codeInput" placeholder="请输入编码，多个用逗号或空格隔开" autocomplete="off">
             </div>
-            <div class="query-item q-plan"><input class="control" id="planNo" placeholder="请输入计划号，多个用逗号或空格隔开" autocomplete="off"></div>
-            <div class="query-item"><div class="multi ui-multi-select" id="pickupWarehouseMulti"><div class="multi-trigger" data-trigger>提货仓（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item"><div class="multi ui-multi-select" id="shipWarehouseMulti"><div class="multi-trigger" data-trigger>发货仓（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item"><div class="multi ui-multi-select" id="destinationWarehouseMulti"><div class="multi-trigger" data-trigger>目的地仓（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item q-plan"><input class="control" id="planNo" placeholder="请输入发货计划，多个用逗号或空格隔开" autocomplete="off"></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="pickupWarehouseMulti"><div class="multi-trigger" data-trigger>请选择提货仓</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="shipWarehouseMulti"><div class="multi-trigger" data-trigger>请选择发货仓</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="destinationWarehouseMulti"><div class="multi-trigger" data-trigger>请选择目的地仓</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item">
               <select class="control" id="destinationType" title="目的地仓类型">
                 <option value="">目的地仓类型</option>
@@ -77,10 +77,10 @@
                 <option value="一件代发（8000）">一件代发（8000）</option>
               </select>
             </div>
-            <div class="query-item"><div class="multi ui-multi-select" id="platformMulti"><div class="multi-trigger" data-trigger>平台（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item"><div class="multi ui-multi-select" id="countryMulti"><div class="multi-trigger" data-trigger>国家（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item"><div class="multi ui-multi-select" id="storeMulti"><div class="multi-trigger" data-trigger>店铺（可多选）</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item"><div class="multi ui-multi-select" id="teamMulti"><div class="multi-trigger" data-trigger>团队（可多选）</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="platformMulti"><div class="multi-trigger" data-trigger>请选择平台</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="countryMulti"><div class="multi-trigger" data-trigger>请选择国家</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="storeMulti"><div class="multi-trigger" data-trigger>请选择店铺</div><div class="dropdown" data-menu></div></div></div>
+            <div class="query-item"><div class="multi ui-multi-select" id="teamMulti"><div class="multi-trigger" data-trigger>请选择团队</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item query-date-item">
               <select class="control query-time-type" id="timeType" title="日期类型">
                 <option value="createdAt">创建时间</option>
@@ -127,8 +127,10 @@
         <section class="action-strip ui-action-row" aria-label="操作按钮区">
           <div class="head-actions">
             <button class="btn primary" id="createPlanBtn" type="button">新建发货计划</button>
+            <button class="btn" id="batchEditBtn" type="button">编辑</button>
             <button class="btn success" id="confirmBtn" type="button">确认</button>
             <button class="btn" id="linkFbaBtn" type="button">关联货件</button>
+            <button class="btn" id="unlinkFbaBtn" type="button">取消关联</button>
             <button class="btn" id="reviewApproveBtn" type="button">复核通过</button>
             <button class="btn" id="reviewRejectBtn" type="button">驳回</button>
             <button class="btn" id="importPlanBtn" type="button">导入发货计划</button>
@@ -188,12 +190,17 @@
     <div class="spv2-modal-dialog spv2-create-dialog">
       <header class="spv2-modal-head">
         <div>
-          <h3>新建发货计划</h3>
-          <p class="spv2-modal-subtitle">填写发货计划与物流轨迹，并添加发货 SKU 明细</p>
+          <h3 id="createModalTitle">新建发货计划</h3>
+          <p class="spv2-modal-subtitle" id="createModalSubtitle">填写发货计划与物流轨迹，并添加发货 SKU 明细</p>
         </div>
         <button class="spv2-modal-close" id="createCloseBtn" type="button" aria-label="关闭">×</button>
       </header>
-      <div class="spv2-modal-body">
+      <div class="spv2-create-layout">
+        <aside class="spv2-batch-nav hidden" id="batchEditNav" aria-label="已选发货计划">
+          <div class="spv2-batch-nav-title">发货计划（<span id="batchEditNavCount">0</span>）</div>
+          <div class="spv2-batch-nav-list" id="batchEditNavList"></div>
+        </aside>
+        <div class="spv2-modal-body">
         <section class="spv2-form-section">
           <h4 class="spv2-section-title"><i class="spv2-title-bar"></i><span>发货计划</span></h4>
           <div class="spv2-form-grid">
@@ -259,6 +266,8 @@
                   <th>平台<button class="spv2-batch-trigger" type="button" data-batch-field="platform">批量</button></th>
                   <th>店铺<button class="spv2-batch-trigger" type="button" data-batch-field="store">批量</button></th>
                   <th>国家</th>
+                  <th>ASIN</th>
+                  <th>FNSKU</th>
                   <th>运营负责人<button class="spv2-batch-trigger" type="button" data-batch-field="opsOwner">批量</button></th>
                   <th>包装规格（cm）长宽高</th>
                   <th>箱规（cm）长宽高</th>
@@ -275,9 +284,11 @@
             </table>
           </div>
         </section>
+        </div>
       </div>
       <footer class="spv2-modal-footer">
         <div class="spv2-footer-stats" id="createFooterStats">
+          <span class="spv2-footer-stat hidden" id="statBatchPlansWrap">本次编辑 <em id="statBatchPlans">0</em> 个发货计划</span>
           <span class="spv2-footer-stat">已选 <em id="statSkuCount">0</em> 个 SKU</span>
           <span class="spv2-footer-stat">总箱数 <em id="statTotalCartons">0</em> 箱</span>
           <span class="spv2-footer-stat">计划发货总数 <em id="statTotalQty">0</em> 件</span>
@@ -424,7 +435,7 @@
         <button class="purchase-log-close" id="rejectCloseBtn" type="button" aria-label="关闭">×</button>
       </header>
       <div class="spv2-reject-body">
-        <p class="spv2-reject-desc" id="rejectSummaryDesc">确认驳回所选计划的 FBA 差异吗？驳回后将退回「待创建货件」并自动解绑原 FBA 货件，通知运营删单重建。</p>
+        <p class="spv2-reject-desc" id="rejectSummaryDesc">确认驳回所选计划的 FBA 差异吗？驳回后将退回「待创建货件」，保留原已关联的 FBA 货件，运营可通过「调整货件」进行追加、减少或更换货件。</p>
         <label class="spv2-field">
           <span>驳回原因（选填）</span>
           <textarea class="control spv2-reject-textarea" id="rejectReasonInput" rows="3" maxlength="200" placeholder="例如：FBA货件超建数量与计划差异过大，请删除原货件按计划数重建"></textarea>
@@ -440,19 +451,23 @@
     </div>
   </div>
 
-  <!-- 关联 FBA 货件弹窗（支持单/多计划切换、1对多勾选已同步货件 + 直接粘贴预关联单号，一次性关联完成） -->
+  <!-- 关联 FBA 货件弹窗（左侧计划导航常驻、查询勾选已同步货件，一次性关联完成） -->
   <div class="spv2-modal-mask hidden" id="v2FbaLinkMask"></div>
   <div class="spv2-modal hidden" id="v2FbaLinkModal" role="dialog" aria-modal="true" aria-label="关联 FBA 货件">
     <div class="spv2-modal-dialog spv2-fba-dialog">
       <header class="spv2-modal-head">
         <div>
           <h3>关联 FBA 货件</h3>
-          <span class="spv2-modal-subtitle">支持为同一发货计划勾选多个已同步货件，或直接粘贴未同步的 FBA 单号做预关联；点击「关联完成」一次性提交</span>
+          <span class="spv2-modal-subtitle">支持按计划查询勾选已同步的 FBA 货件，或通过 Excel 模板批量导入关联；点击「关联完成」一次性提交</span>
         </div>
         <button class="spv2-modal-close" id="v2FbaCloseBtn" type="button" aria-label="关闭">×</button>
       </header>
-      <div class="spv2-fba-link-body">
-        <aside class="spv2-fba-sidebar hidden" id="v2FbaSidebar" aria-label="待关联发货计划">
+      <div class="spv2-fba-tabs" role="tablist">
+        <button class="active" type="button" role="tab" aria-selected="true" data-fba-tab="query">查询关联</button>
+        <button type="button" role="tab" aria-selected="false" data-fba-tab="import">导入关联</button>
+      </div>
+      <div class="spv2-fba-link-body" data-fba-panel="query">
+        <aside class="spv2-fba-sidebar" id="v2FbaSidebar" aria-label="待关联发货计划">
           <div class="spv2-fba-sidebar-head">
             <span>待关联计划</span>
             <em id="v2FbaSidebarProgress">0 / 0</em>
@@ -463,46 +478,66 @@
           <div class="spv2-fba-plan-ctx" id="v2FbaPlanCtx"></div>
           <div class="spv2-fba-section">
             <div class="spv2-fba-toolbar">
-              <input class="control spv2-fba-search" id="v2FbaSearchInput" placeholder="搜索或粘贴多个 FBA 货件单号 / 货件名称 / 物流中心（逗号或空格分隔）" autocomplete="off">
-              <label class="spv2-fba-match-check"><input type="checkbox" id="v2FbaMatchOnly" checked><span>仅看匹配店铺与 SKU</span></label>
-              <button class="btn spv2-btn-sm" id="v2FbaSelectMatchedBtn" type="button">一键全选匹配项</button>
+              <input class="control spv2-fba-search" id="v2FbaSearchInput" placeholder="请输入 FBA 货件单号（支持多个，用空格或逗号分隔）" autocomplete="off">
+              <button class="btn primary spv2-btn-sm" id="v2FbaSearchBtn" type="button">查询</button>
+              <button class="btn spv2-btn-sm" id="v2FbaSearchResetBtn" type="button">重置</button>
+              <button class="btn spv2-btn-sm" id="v2FbaClearPlanLinksBtn" type="button" style="margin-left:auto" hidden>清空已关联货件</button>
             </div>
             <div class="spv2-fba-table-wrap">
               <table class="spv2-fba-pick-table">
                 <thead>
                   <tr>
-                    <th style="width:42px"><input type="checkbox" id="v2FbaSelectAllVisible" aria-label="全选当前列表"></th>
-                    <th style="width:145px">FBA 货件单号</th>
-                    <th style="width:170px">货件名称 / Ref ID</th>
-                    <th style="width:110px">货件状态</th>
-                    <th style="width:175px">店铺 / 物流中心</th>
-                    <th style="width:95px">该 SKU 申报量</th>
-                    <th style="width:165px">计划关联情况</th>
+                    <th style="width:40px"><input type="checkbox" id="v2FbaSelectAllVisible" class="spv2-check-lg" aria-label="全选当前列表"></th>
+                    <th style="width:135px">FBA 货件单号</th>
+                    <th style="width:135px">货件名称</th>
+                    <th style="width:125px">SKU / 领星 SKU</th>
+                    <th style="width:105px">FNSKU</th>
+                    <th style="width:135px">品名</th>
+                    <th style="width:145px">店铺 / 物流中心</th>
+                    <th style="width:72px">申报量</th>
                   </tr>
                 </thead>
                 <tbody id="v2FbaTableBody"></tbody>
               </table>
             </div>
           </div>
-          <div class="spv2-fba-prelink-card">
-            <div class="spv2-fba-prelink-head">
-              <b>预关联未同步 FBA 单号（选填）</b>
-              <span>若领星尚未同步到该货件，可直接粘贴 1 个或多个 FBA 单号（支持逗号/空格/换行分隔）；待领星同步后自动匹配并校验差异</span>
-            </div>
-            <div class="spv2-fba-prelink-row">
-              <input class="control spv2-fba-prelink-input" id="v2FbaPrelinkInput" placeholder="例如：FBA18NEW001, FBA18NEW002" autocomplete="off">
-              <input class="control spv2-fba-prelink-qty" id="v2FbaPrelinkQtyInput" type="number" min="1" placeholder="预计申报量(选填)">
-              <button class="btn spv2-btn-sm" id="v2FbaPrelinkAddBtn" type="button">添加预关联</button>
-            </div>
-            <div class="spv2-fba-prelink-chips" id="v2FbaPrelinkChips"></div>
-          </div>
         </div>
       </div>
-      <footer class="spv2-modal-footer">
-        <div class="spv2-fba-footer-summary" id="v2FbaFooterSummary">请选择或粘贴要关联的 FBA 货件</div>
+      <section class="spv2-fba-import-panel ui-import__body" data-fba-panel="import" hidden>
+        <div class="ui-import__steps">
+          <div class="ui-import__step is-active"><span class="ui-import__step-number">1</span><span>下载模板</span></div>
+          <i class="ui-import__line"></i>
+          <div class="ui-import__step" id="v2FbaImportStep2"><span class="ui-import__step-number">2</span><span>选择文件</span></div>
+          <i class="ui-import__line"></i>
+          <div class="ui-import__step" id="v2FbaImportStep3"><span class="ui-import__step-number">3</span><span>确认导入</span></div>
+        </div>
+        <div class="ui-import__guide">
+          <strong>第一步：使用标准模板整理 FBA 货件关联数据</strong>
+          <p>1. 请勿修改模板表头。支持 .xlsx 文件，单次仅导入一个文件。</p>
+          <p style="color:#f56c6c;margin-top:0">2. 模板必填字段为「发货计划号」「FBA 货件单号」（1 个发货计划对应多个 FBA 货件时可分多行填写）。系统将按计划号与已同步的 FBA 货件明细匹配并汇总该计划对应 SKU 的申报量：累计申报量 = 计划发货数量时自动流转至「待生成发货单」（满足生单条件自动生成草稿发货单）；累计申报量 ≠ 计划发货数量时自动流转至「待复核」。</p>
+          <button class="ui-button" id="v2FbaDownloadTplBtn" type="button">下载模板</button>
+        </div>
+        <div class="ui-import__upload" id="v2FbaImportDrop">
+          <input type="file" accept=".xlsx" id="v2FbaImportFile" hidden>
+          <span class="ui-import__upload-icon">↥</span>
+          <span>将 Excel 文件拖到此处，或 <b class="ui-import__link" id="v2FbaImportChooseBtn">点击选择文件</b></span>
+        </div>
+        <p class="ui-import__tip">选择文件后点击「确认导入」，系统将自动校验文件，校验不通过会提示具体原因。</p>
+        <div class="ui-import__preview" id="v2FbaImportPreview" hidden></div>
+        <div class="ui-import__preview-errors" id="v2FbaImportError" hidden></div>
+      </section>
+      <footer class="spv2-modal-footer" data-fba-footer="query">
+        <div class="spv2-fba-footer-summary" id="v2FbaFooterSummary">请查询并勾选要关联的 FBA 货件</div>
         <div class="spv2-footer-actions">
           <button class="btn" id="v2FbaCancelBtn" type="button">取消</button>
           <button class="btn primary" id="v2FbaSubmitBtn" type="button">关联完成</button>
+        </div>
+      </footer>
+      <footer class="spv2-modal-footer ui-import__footer" data-fba-footer="import" hidden>
+        <span class="ui-import__summary" id="v2FbaImportFileLabel">尚未选择文件</span>
+        <div class="spv2-footer-actions">
+          <button class="ui-button" id="v2FbaImportCancelBtn" type="button">取消</button>
+          <button class="ui-button ui-button--primary" id="v2FbaImportConfirmBtn" type="button" disabled>确认导入</button>
         </div>
       </footer>
     </div>
@@ -534,8 +569,8 @@
     </div>
   </div>
 
-  <script src="../../ui-kit.js?v=1.0.0"></script>
-  <script src="./app.js?v=1.2.2"></script>
+  <script src="../../ui-kit.js?v=1.0.1"></script>
+  <script src="./app.js?v=1.3.7"></script>
   <script src="../../global-export.js?v=1.7.37"></script>
   <script src="../../custom-select.js?v=1.0.0"></script>
   <script src="../../navigation.js?v=1.8.02"></script>

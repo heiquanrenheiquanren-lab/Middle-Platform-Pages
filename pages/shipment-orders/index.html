@@ -68,13 +68,13 @@
         <div class="action-bar"><el-button type="primary" @click="openCreate">＋ 新建发货单</el-button><el-button @click="openImport('fee')">导入物流费用</el-button><el-button @click="openImport('track')">导入轨迹信息</el-button><el-button @click="openCostApportion">其他头程费用分摊</el-button><el-dropdown @command="handleExportCommand" style="margin-left:0"><el-button>导出<el-icon style="margin-left:4px"><i class="el-icon--right">⌄</i></el-icon></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="shipmentInfo">发货单信息</el-dropdown-item><el-dropdown-item command="skuDetail">发货 SKU 明细</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div>
         <div class="card status-card"><el-tabs v-model="statusTab" class="status-tabs"><el-tab-pane v-for="s in statuses" :key="s" :name="s"><template #label><span>{{s}}<i class="tab-count">{{statusCount(s)}}</i></span></template></el-tab-pane></el-tabs></div>
         <div class="card list-card">
-          <el-table ref="mainTableRef" :data="filteredDocs" row-key="id" height="100%" :expand-row-keys="expandedRowKeys" class="main-table document-list" style="width:100%" @selection-change="onDocSelection" @expand-change="onExpandChange">
+          <el-table ref="mainTableRef" :data="pagedDocs" row-key="id" height="100%" :expand-row-keys="expandedRowKeys" class="main-table document-list" style="width:100%" @selection-change="onDocSelection" @expand-change="onExpandChange">
             <el-table-column type="selection" width="46" fixed="left"></el-table-column>
             <el-table-column type="expand" width="46" fixed="left">
               <template #header>
                 <button class="expand-btn" :class="{open:isAllExpanded}" type="button" :aria-label="isAllExpanded?'收起全部发货单':'展开全部发货单'" :aria-expanded="String(isAllExpanded)" :title="isAllExpanded?'收起全部发货单':'展开全部发货单'" @click.stop="toggleExpandAll">⌄</button>
               </template>
-              <template #default="{row}"><div class="expand-panel"><div class="detail-table-wrap"><el-table :data="row.items" border size="small" class="detail-sku-table" style="width:100%"><el-table-column prop="sku" label="SKU" min-width="145" fixed="left"><template #default="{row:item}"><div>{{item.sku}}<el-popover v-if="skuMeta(item.sku).skuType==='组合'" trigger="click" placement="top-start" width="220" popper-class="combo-popover"><template #reference><el-tag type="warning" size="small" style="margin-left:4px;cursor:pointer">组合</el-tag></template><div class="combo-popover-title">组合明细｜{{item.sku}}</div><el-table :data="comboParts(item.sku)" size="small" border><el-table-column prop="sku" label="子件 SKU"></el-table-column><el-table-column prop="ratio" label="组合数量" width="80" align="center"></el-table-column></el-table></el-popover></div></template></el-table-column><el-table-column label="品名" min-width="220"><template #default="{row:item}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="item.name||'—'" placement="top"><div class="product-title">{{item.name||'—'}}</div></el-tooltip></div></template></el-table-column><el-table-column prop="plan" label="计划号" min-width="155"></el-table-column><el-table-column label="海外仓 SKU" min-width="145"><template #default="{row:item}">{{skuMeta(item.sku).overseasSku||'—'}}</template></el-table-column><!-- <el-table-column label="FNSKU" width="120"><template #default="{row:item}">{{skuMeta(item.sku).fnsku||'—'}}</template></el-table-column> --><el-table-column label="计划发货量" min-width="105"><template #default="{row:item}">{{skuMeta(item.sku).planQty||item.declare}}</template></el-table-column><!-- <el-table-column prop="declare" label="申报量" width="90"></el-table-column> --><el-table-column label="提货量" min-width="90"><template #default="{row:item}">{{item.pick||0}}</template></el-table-column><el-table-column label="发货量" min-width="90"><template #default="{row:item}">{{item.ship||0}}</template></el-table-column><el-table-column label="实际发货量" min-width="100"><template #default="{row:item}">{{item.shipped||0}}</template></el-table-column><el-table-column label="收货量" min-width="90"><template #default="{row:item}">{{item.receive||0}}</template></el-table-column><el-table-column label="平台" min-width="115"><template #default="{row:item}">{{skuMeta(item.sku).platform||'—'}}</template></el-table-column><el-table-column label="店铺" min-width="150"><template #default="{row:item}">{{skuMeta(item.sku).store||'—'}}</template></el-table-column><el-table-column label="团队" min-width="105"><template #default="{row:item}">{{skuMeta(item.sku).team||'—'}}</template></el-table-column><el-table-column label="备注" min-width="140"><template #default="{row:item}">{{item.remark||skuMeta(item.sku).skuRemark||'—'}}</template></el-table-column></el-table></div></div></template>
+              <template #default="{row}"><div class="expand-panel"><div class="detail-table-wrap"><el-table :data="row.items" border size="small" class="detail-sku-table" style="width:100%"><el-table-column prop="sku" label="SKU" min-width="145" fixed="left"><template #default="{row:item}"><div>{{item.sku}}<el-popover v-if="skuMeta(item.sku).skuType==='组合'" trigger="click" placement="top-start" width="220" popper-class="combo-popover"><template #reference><el-tag type="warning" size="small" style="margin-left:4px;cursor:pointer">组合</el-tag></template><div class="combo-popover-title">组合明细｜{{item.sku}}</div><el-table :data="comboParts(item.sku)" size="small" border><el-table-column prop="sku" label="子件 SKU"></el-table-column><el-table-column prop="ratio" label="组合数量" width="80" align="center"></el-table-column></el-table></el-popover></div></template></el-table-column><el-table-column label="品名" min-width="220"><template #default="{row:item}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="item.name||'—'" placement="top"><div class="product-title">{{item.name||'—'}}</div></el-tooltip></div></template></el-table-column><el-table-column prop="plan" label="发货计划" min-width="155"></el-table-column><el-table-column label="领星 SKU" min-width="125"><template #default="{row:item}">{{skuMeta(item.sku).lingxingSku||'—'}}</template></el-table-column><el-table-column label="海外仓 SKU" min-width="145"><template #default="{row:item}">{{skuMeta(item.sku).overseasSku||'—'}}</template></el-table-column><!-- <el-table-column label="FNSKU" width="120"><template #default="{row:item}">{{skuMeta(item.sku).fnsku||'—'}}</template></el-table-column> --><el-table-column label="计划发货量" min-width="105"><template #default="{row:item}">{{skuMeta(item.sku).planQty||item.declare}}</template></el-table-column><!-- <el-table-column prop="declare" label="申报量" width="90"></el-table-column> --><el-table-column label="提货量" min-width="90"><template #default="{row:item}">{{item.pick||0}}</template></el-table-column><el-table-column label="发货量" min-width="90"><template #default="{row:item}">{{item.ship||0}}</template></el-table-column><el-table-column label="实际发货量" min-width="100"><template #default="{row:item}">{{item.shipped||0}}</template></el-table-column><el-table-column label="收货量" min-width="90"><template #default="{row:item}">{{item.receive||0}}</template></el-table-column><el-table-column label="平台" min-width="115"><template #default="{row:item}">{{skuMeta(item.sku).platform||'—'}}</template></el-table-column><el-table-column label="店铺" min-width="150"><template #default="{row:item}">{{skuMeta(item.sku).store||'—'}}</template></el-table-column><el-table-column label="团队" min-width="105"><template #default="{row:item}">{{skuMeta(item.sku).team||'—'}}</template></el-table-column><el-table-column label="备注" min-width="140"><template #default="{row:item}">{{item.remark||skuMeta(item.sku).skuRemark||'—'}}</template></el-table-column></el-table></div></div></template>
             </el-table-column>
             <el-table-column label="单号" min-width="280" :resizable="true">
               <template #default="{row}"><div class="group-cell"><div class="field-line doc-line"><span class="field-label">中台发货单：</span><span class="doc-no" @click="openDetail(row)">{{row.id}}</span><span class="doc-status-badge" :class="statusBadgeClass(row.status)">{{row.status}}</span></div><div class="field-line"><span class="field-label">ERP发货单：</span><span class="doc-erp-no">{{row.yicangNo!=='—'?row.yicangNo:(row.lingxingNo!=='—'?row.lingxingNo:'—')}}</span><el-tag v-if="row.yicangNo==='—'&&row.lingxingNo!=='—'" size="small" type="info" class="erp-source-tag">领星</el-tag></div><div class="field-line"><span class="field-label">发货方式：</span><span>{{row.shipMode}}</span></div><div class="field-line"><span class="field-label">服务商单号：</span><span>{{row.providerNo||'—'}}</span></div><!-- <div class="field-line"><span class="field-label">关联货件单号：</span><span>{{row.shipmentNo||'—'}}</span></div><div class="field-line"><span class="field-label">Reference ID：</span><span>{{row.referenceId||'—'}}</span></div> --></div></template>
@@ -98,7 +98,7 @@
               <template #default="{row}"><div class="group-cell create-remark-cell"><div class="field-line plain-value">{{row.creator||'—'}}</div><div class="field-line plain-value muted">{{row.created||'—'}}</div><div class="field-line"><div class="batch-remark"><span class="batch-remark__text" :title="row.remark&&row.remark!=='—'?row.remark:'暂无备注'">{{row.remark||'—'}}</span><el-popover trigger="click" placement="bottom-end" width="248" :visible="editingRemarkId===row.id" @hide="editingRemarkId===row.id&&(editingRemarkId='')"><template #reference><button class="batch-remark__edit" type="button" @click.stop="openInlineRemark(row)" aria-label="编辑备注"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.9 2.1a1.5 1.5 0 0 1 2.1 2.1l-7.7 7.7-2.8.7.7-2.8 7.7-7.7Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="m9.8 3.2 3 3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></button></template><div class="remark-popover-box"><el-input v-model="inlineRemarkText" type="textarea" :rows="4" maxlength="500" placeholder="请输入备注"></el-input><div class="remark-popover__actions"><el-button size="small" @click="editingRemarkId=''">取消</el-button><el-button size="small" type="primary" @click="saveInlineRemark(row)">确定</el-button></div></div></el-popover></div></div></div></template>
             </el-table-column>
             <el-table-column label="头程费用" min-width="220">
-              <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">头程物流费：</span><span>{{row.actualFreight}}</span></div><div class="field-line"><span class="field-label">清关税费：</span><span>{{row.customsFee}}</span></div><div class="field-line"><span class="field-label">其他物流费：</span><span>{{row.otherLogisticsFee||'—'}}</span></div><div class="field-line"><span class="field-label">总辅料成本：</span><span>{{row.totalAccessoryCost||'—'}}</span></div><div class="field-line total-line"><span class="field-label">头程费用合计：</span><span>{{row.firstLegTotal}}</span></div></div></template>
+              <template #default="{row}"><div class="group-cell"><div class="field-line"><span class="field-label">头程物流费：</span><span>{{row.actualFreight}}</span></div><div class="field-line"><span class="field-label">清关税费：</span><span>{{row.customsFee}}</span></div><div class="field-line"><span class="field-label">其他物流费：</span><span>{{row.otherLogisticsFee||'—'}}</span></div><div class="field-line total-line"><span class="field-label">头程费用合计：</span><span>{{row.firstLegTotal}}</span></div></div></template>
             </el-table-column>
             <el-table-column label="操作" fixed="right" min-width="110">
               <template #default="{row}">
@@ -115,7 +115,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div v-if="filteredDocs?.length" class="pagination"><span class="pagination-total">共 {{filteredDocs.length}} 张</span><el-pagination background layout="prev, pager, next" :total="filteredDocs?.length||0" :page-size="10"></el-pagination></div>
+          <div v-if="filteredDocs?.length" class="pagination"><span class="pagination-total">共 {{filteredDocs.length}} 张</span><el-pagination v-model:current-page="currentPage" background layout="prev, pager, next" :total="filteredDocs?.length||0" :page-size="pageSize"></el-pagination></div>
           <el-empty v-else description="暂无符合条件的发货单" :image-size="80" style="padding:40px 0"></el-empty>
         </div>
       </section>
@@ -133,7 +133,7 @@
     <div class="create-layout">
       <section class="minimal-card">
         <div class="minimal-card-head"><div class="minimal-card-title"><span class="minimal-title-bar"></span><b>发货单资料</b></div></div>
-      <el-form ref="createFormRef" class="public-form" :model="createForm" :rules="createRules" label-position="top">
+      <el-form ref="createFormRef" class="public-form" :model="createForm" :rules="createRules">
         <div class="public-grid">
           <el-form-item label="发货仓" prop="from"><el-select v-model="createForm.from" filterable placeholder="请选择发货仓" style="width:100%"><el-option v-for="x in createFromWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></el-form-item>
           <el-form-item label="目的仓" prop="to"><el-select v-model="createForm.to" filterable placeholder="请选择目的仓" style="width:100%"><el-option v-for="x in destWarehouses" :key="x" :label="x" :value="x"></el-option><el-option label="FBA专属仓" value="__FBA__" disabled></el-option></el-select></el-form-item>
@@ -182,7 +182,7 @@
         <div v-else class="selected-table-wrap">
           <el-table :data="selectedSkus" border height="100%" class="selected-sku-table">
             <el-table-column prop="sku" label="SKU" width="140" fixed="left"></el-table-column>
-            <el-table-column label="产品信息" width="190" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.title" placement="top"><div class="product-title">{{row.title}}</div></el-tooltip></div></template></el-table-column>
+            <el-table-column label="品名" width="190" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.title" placement="top"><div class="product-title">{{row.title}}</div></el-tooltip></div></template></el-table-column>
             <el-table-column prop="planNo" label="发货计划" width="150" fixed="left"></el-table-column>
             <el-table-column prop="destWarehouse" label="目的仓" width="190" fixed="left" show-overflow-tooltip></el-table-column>
             <el-table-column prop="overseasSku" label="海外仓 SKU" width="140"></el-table-column>
@@ -253,7 +253,7 @@
     <template #footer><div class="minimal-dialog-footer"><div class="minimal-stats"><span class="minimal-pill">已选 <em>{{skuSelection.length}}</em> 个 SKU</span></div><div class="minimal-footer-actions"><el-button @click="skuVisible=false">取消</el-button><el-button type="primary" @click="confirmSkuSelection">确认选择</el-button></div></div></template>
   </el-dialog>
 
-  <el-dialog v-model="detailVisible" :title="`发货单详情｜${currentDoc?.id||''}`" width="min(1400px, calc(100vw - 48px))" top="4vh" class="detail-dialog" :close-on-click-modal="false">
+  <el-dialog v-model="detailVisible" :title="`发货单详情｜${currentDoc?.id||''}`" width="min(1400px, calc(100vw - 48px))" align-center class="detail-dialog" :close-on-click-modal="false">
     <div v-if="currentDoc" class="detail-layout">
       <div ref="detailScrollRef" class="detail-content" @scroll="onDetailScroll">
         <section id="detail-info" class="detail-section"><div class="detail-section-head">发货单信息</div><div class="detail-info-grid">
@@ -304,7 +304,7 @@
           <div class="detail-info-block-row"><span class="detail-info-label">备注：</span><span class="detail-info-value">{{currentDoc.remark||'—'}}</span></div>
         </div></section>
         <section id="detail-sku" class="detail-section"><div class="detail-section-head">SKU 明细</div><div class="detail-table-wrap"><el-table :data="currentDoc.items" border size="small" class="detail-sku-table">
-          <el-table-column prop="sku" label="SKU" width="145" fixed="left"><template #default="{row:item}"><div>{{item.sku}}<el-popover v-if="skuMeta(item.sku).skuType==='组合'" trigger="click" placement="top-start" width="220" popper-class="combo-popover"><template #reference><el-tag type="warning" size="small" style="margin-left:4px;cursor:pointer">组合</el-tag></template><div class="combo-popover-title">组合明细｜{{item.sku}}</div><el-table :data="comboParts(item.sku)" size="small" border><el-table-column prop="sku" label="子件 SKU"></el-table-column><el-table-column prop="ratio" label="组合数量" width="80" align="center"></el-table-column></el-table></el-popover></div></template></el-table-column><el-table-column label="产品信息" width="220"><template #default="{row:item}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="item.name||'—'" placement="top"><div class="product-title">{{item.name||'—'}}</div></el-tooltip></div></template></el-table-column><el-table-column prop="plan" label="计划号" width="155"></el-table-column><el-table-column label="海外仓 SKU" width="145"><template #default="{row:item}">{{skuMeta(item.sku).overseasSku||'—'}}</template></el-table-column><!-- <el-table-column label="FNSKU" width="120"><template #default="{row:item}">{{skuMeta(item.sku).fnsku||'—'}}</template></el-table-column> --><el-table-column label="计划发货量" width="105"><template #default="{row:item}">{{skuMeta(item.sku).planQty||item.declare}}</template></el-table-column><!-- <el-table-column prop="declare" label="申报量" width="90"></el-table-column> --><el-table-column label="提货量" width="90"><template #default="{row:item}">{{item.pick||0}}</template></el-table-column><el-table-column label="发货量" width="90"><template #default="{row:item}">{{item.ship||0}}</template></el-table-column><el-table-column label="实际发货量" width="100"><template #default="{row:item}">{{item.shipped||0}}</template></el-table-column><el-table-column label="收货量" width="90"><template #default="{row:item}">{{item.receive||0}}</template></el-table-column><el-table-column label="平台" width="115"><template #default="{row:item}">{{skuMeta(item.sku).platform||'—'}}</template></el-table-column><el-table-column label="店铺" width="150"><template #default="{row:item}">{{skuMeta(item.sku).store||'—'}}</template></el-table-column><el-table-column label="团队" width="105"><template #default="{row:item}">{{skuMeta(item.sku).team||'—'}}</template></el-table-column><el-table-column label="备注" width="140"><template #default="{row:item}">{{item.remark||skuMeta(item.sku).skuRemark||'—'}}</template></el-table-column>
+          <el-table-column prop="sku" label="SKU" width="145" fixed="left"><template #default="{row:item}"><div>{{item.sku}}<el-popover v-if="skuMeta(item.sku).skuType==='组合'" trigger="click" placement="top-start" width="220" popper-class="combo-popover"><template #reference><el-tag type="warning" size="small" style="margin-left:4px;cursor:pointer">组合</el-tag></template><div class="combo-popover-title">组合明细｜{{item.sku}}</div><el-table :data="comboParts(item.sku)" size="small" border><el-table-column prop="sku" label="子件 SKU"></el-table-column><el-table-column prop="ratio" label="组合数量" width="80" align="center"></el-table-column></el-table></el-popover></div></template></el-table-column><el-table-column label="品名" width="220"><template #default="{row:item}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="item.name||'—'" placement="top"><div class="product-title">{{item.name||'—'}}</div></el-tooltip></div></template></el-table-column><el-table-column prop="plan" label="计划号" width="155"></el-table-column><el-table-column label="海外仓 SKU" width="145"><template #default="{row:item}">{{skuMeta(item.sku).overseasSku||'—'}}</template></el-table-column><!-- <el-table-column label="FNSKU" width="120"><template #default="{row:item}">{{skuMeta(item.sku).fnsku||'—'}}</template></el-table-column> --><el-table-column label="计划发货量" width="105"><template #default="{row:item}">{{skuMeta(item.sku).planQty||item.declare}}</template></el-table-column><!-- <el-table-column prop="declare" label="申报量" width="90"></el-table-column> --><el-table-column label="提货量" width="90"><template #default="{row:item}">{{item.pick||0}}</template></el-table-column><el-table-column label="发货量" width="90"><template #default="{row:item}">{{item.ship||0}}</template></el-table-column><el-table-column label="实际发货量" width="100"><template #default="{row:item}">{{item.shipped||0}}</template></el-table-column><el-table-column label="收货量" width="90"><template #default="{row:item}">{{item.receive||0}}</template></el-table-column><el-table-column label="平台" width="115"><template #default="{row:item}">{{skuMeta(item.sku).platform||'—'}}</template></el-table-column><el-table-column label="店铺" width="150"><template #default="{row:item}">{{skuMeta(item.sku).store||'—'}}</template></el-table-column><el-table-column label="团队" width="105"><template #default="{row:item}">{{skuMeta(item.sku).team||'—'}}</template></el-table-column><el-table-column label="备注" width="140"><template #default="{row:item}">{{item.remark||skuMeta(item.sku).skuRemark||'—'}}</template></el-table-column>
         </el-table></div></section>
         <section id="detail-box" class="detail-section"><div class="detail-section-head">SKU 箱信息</div><div class="detail-table-wrap"><el-table :data="currentDoc.items" border size="small" class="detail-box-table" style="width:100%">
           <el-table-column prop="sku" label="SKU" fixed="left"></el-table-column><el-table-column label="净重（kg）"><template #default="{row:item}">{{skuMeta(item.sku).netWeight||'—'}}</template></el-table-column><el-table-column label="尺寸（cm）"><template #default="{row:item}">{{skuMeta(item.sku).dimensions||'—'}}</template></el-table-column><el-table-column label="体积（m³）"><template #default="{row:item}">{{skuMeta(item.sku).boxVolume||'—'}}</template></el-table-column><el-table-column label="毛重（kg）"><template #default="{row:item}">{{skuMeta(item.sku).grossWeight||'—'}}</template></el-table-column><el-table-column label="箱数"><template #default="{row:item}">{{skuMeta(item.sku).boxes||'—'}}</template></el-table-column><el-table-column label="包装规格（cm）"><template #default="{row:item}">{{skuMeta(item.sku).packageSpec||'—'}}</template></el-table-column><el-table-column label="箱规重量（kg）"><template #default="{row:item}">{{skuMeta(item.sku).boxWeight||'—'}}</template></el-table-column><el-table-column label="箱规数量"><template #default="{row:item}">{{skuMeta(item.sku).boxQty||'—'}}</template></el-table-column>
@@ -322,7 +322,7 @@
     <template #footer></template>
   </el-dialog>
 
-  <el-dialog v-model="pickupVisible" :title="`提货｜${pickupDoc?.id||''}`" width="min(1280px, calc(100vw - 48px))" top="8vh" class="pickup-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="pickupVisible" :title="`提货｜${pickupDoc?.id||''}`" width="min(1280px, calc(100vw - 48px))" align-center class="pickup-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="pickupDoc">
       <el-alert
         class="pickup-usage-hint"
@@ -333,7 +333,7 @@
       ></el-alert>
       <div class="pickup-table-wrap">
         <el-table ref="pickupTableRef" :data="visiblePickupRows" row-key="key" border class="pickup-table" style="width:100%" :fit="false" max-height="390" :row-class-name="pickupRowClassName" :span-method="pickupSpanMethod">
-          <el-table-column label="产品信息" width="240" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><div style="min-width:0;line-height:1.5"><div>SKU：{{row.sku}}<span v-if="row.isSubDetail" class="sub-ratio">×{{row.subDetail.ratio}}</span><el-tag v-if="row.isCombo" size="small" type="warning" style="margin-left:4px">组合</el-tag><el-tag v-else-if="row.isSubDetail" size="small" type="info" style="margin-left:4px">子件</el-tag></div><div class="product-title">{{row.name||'—'}}</div></div></div></template></el-table-column>
+          <el-table-column label="品名" width="240" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><div style="min-width:0;line-height:1.5"><div>SKU：{{row.sku}}<span v-if="row.isSubDetail" class="sub-ratio">×{{row.subDetail.ratio}}</span><el-tag v-if="row.isCombo" size="small" type="warning" style="margin-left:4px">组合</el-tag><el-tag v-else-if="row.isSubDetail" size="small" type="info" style="margin-left:4px">子件</el-tag></div><div class="product-title">{{row.name||'—'}}</div></div></div></template></el-table-column>
           <el-table-column label="提货方式" width="190"><template #default="{row}"><template v-if="row.isSubDetail">子件提货</template><template v-else-if="row.isCombo"><el-checkbox v-model="row.pickupFinished" @change="togglePickupMode(row,'finished',$event)">成品提货</el-checkbox><span class="muted pickup-mode-hint">（需提前库内加工）</span><el-checkbox v-model="row.pickupSub" @change="togglePickupMode(row,'sub',$event)">子件提货</el-checkbox></template><template v-else>—</template></template></el-table-column>
           <el-table-column label="提货仓" width="240"><template #header><span style="color:#f56c6c">*</span> 提货仓</template><template #default="{row}"><el-select v-if="row.isSubDetail" v-model="row.subDetail.pickupWarehouse" size="small" filterable clearable placeholder="选择子件提货仓" @change="onSubWarehouseChange(row.subDetail)"><el-option v-for="x in pickupWarehouses" :key="x" :label="x" :value="x"></el-option></el-select><el-select v-else-if="row.isCombo" v-model="row.pickupWarehouse" filterable clearable placeholder="成品提货仓" :disabled="!row.pickupFinished" @change="onFinishedWarehouseChange(row)"><el-option v-for="x in pickupWarehouses" :key="x" :label="x" :value="x"></el-option></el-select><el-select v-else v-model="row.pickupWarehouse" filterable clearable placeholder="请选择"  @change="onPickupWarehouseChange(row)"><el-option v-for="x in pickupWarehouses" :key="x" :label="x" :value="x"></el-option></el-select></template></el-table-column>
           <el-table-column label="库存/计划" width="220"><template #default="{row}"><div v-if="row.isSubDetail" class="nested-cell"><div>在库数量：<b>{{row.subDetail.stock}}</b></div><div>可提上限<el-tooltip content="可提上限 = 当前所选提货仓的在库数量库存，并受该发货单该 SKU 的发货量限制。对子件提货，系统会按 BOM 比例校验：所有子件必须能够组成一个完整的组合 SKU 套数，不能单独提取某一个子件。" placement="top"><span class="col-help-icon">?</span></el-tooltip>：{{row.subDetail.pickupMax}}</div><div>发货量：{{row.parent.planQty}}</div></div><div v-else-if="row.isCombo" class="nested-cell"><div>在库数量：<b>{{row.finishedStock}}</b></div><div>可提上限<el-tooltip content="可提上限 = 当前所选提货仓的在库数量库存，并受该发货单该 SKU 的发货量限制。对子件提货，系统会按 BOM 比例校验：所有子件必须能够组成一个完整的组合 SKU 套数，不能单独提取某一个子件。" placement="top"><span class="col-help-icon">?</span></el-tooltip>：{{row.pickupMax}}</div><div>发货量：{{row.planQty}}</div><div>提货差异<el-tooltip content="提货差异=发货量 − 累计提货。另外组合 SKU 差异套数 = 发货量 − 累计成品提货套数 − 累计子件套装提货套数。" placement="top"><span class="col-help-icon">?</span></el-tooltip>：{{Math.max(Number(row.planQty||0)-Number(row.picked||0)-Number(row.pickupQty||0)-Number(row.subSetQty||0),0)}}</div></div><div v-else class="nested-cell"><div>在库数量：<b>{{row.inStock}}</b></div><div>可提上限<el-tooltip content="可提上限 = 当前所选提货仓的在库数量库存，并受该发货单该 SKU 的发货量限制。对子件提货，系统会按 BOM 比例校验：所有子件必须能够组成一个完整的组合 SKU 套数，不能单独提取某一个子件。" placement="top"><span class="col-help-icon">?</span></el-tooltip>：{{row.pickupMax}}</div><div>发货量：{{row.planQty}}</div><div>提货差异<el-tooltip content="提货差异=发货量 − 累计提货。另外组合 SKU 差异套数 = 发货量 − 累计成品提货套数 − 累计子件套装提货套数。" placement="top"><span class="col-help-icon">?</span></el-tooltip>：{{Math.max(Number(row.planQty||0)-Number(row.picked||0)-Number(row.pickupQty||0),0)}}</div></div></template></el-table-column>
@@ -347,7 +347,7 @@
     <template #footer><div class="pickup-footer"><div class="pickup-result">本次提货 <b>{{pickupQtyTotal}}</b> 件　·　提交后状态 <el-tag size="small" :type="pickupNextStatus==='待发货'?'success':'info'">{{pickupNextStatus}}</el-tag></div><div class="pickup-footer-actions"><el-button @click="pickupVisible=false">取消</el-button><el-button type="primary" :loading="pickupSubmitting" @click="submitPickup">确认提货</el-button></div></div></template>
   </el-dialog>
 
-  <el-dialog v-model="receiveVisible" :title="`收货｜${receiveDoc?.id||''}`" width="min(1180px, calc(100vw - 48px))" top="9vh" class="receive-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="receiveVisible" :title="`收货｜${receiveDoc?.id||''}`" width="min(1180px, calc(100vw - 48px))" align-center class="receive-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="receiveDoc">
       <div class="pickup-summary receive-summary">
         <div class="pickup-summary-item"><span class="label">履约状态</span><span><el-tag :type="tagType(receiveDoc.status)">{{receiveDoc.status}}</el-tag></span></div>
@@ -362,7 +362,7 @@
         <el-table ref="receiveTableRef" :data="receiveRows" row-key="key" border class="pickup-table receive-table" max-height="410" @selection-change="onReceiveSelection">
           <el-table-column type="selection" width="52" fixed="left" reserve-selection :selectable="receiveSelectable"></el-table-column>
           <el-table-column prop="sku" label="SKU" width="145" fixed="left"></el-table-column>
-          <el-table-column label="产品信息" width="210"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
+          <el-table-column label="品名" width="210"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
           <el-table-column prop="plan" label="计划号" width="150"></el-table-column>
           <!-- <el-table-column prop="declare" label="申报数量" width="95"></el-table-column> -->
           <el-table-column prop="shipped" label="累计发货" width="95"></el-table-column>
@@ -376,7 +376,7 @@
     <template #footer><div class="pickup-footer"><div class="pickup-result">已选 <b>{{receiveSelection.length}}</b> 个 SKU　·　本次收货 <b>{{receiveQtyTotal}}</b>　·　收货后剩余 <b>{{receiveAfterRemaining}}</b>　·　提交后状态 <el-tag size="small" :type="receiveNextStatus==='已完成'?'success':receiveNextStatus==='部分收货'?'warning':'info'">{{receiveNextStatus}}</el-tag></div><div class="pickup-footer-actions"><el-button @click="receiveVisible=false">取消</el-button><el-button type="primary" :loading="receiveSubmitting" @click="submitReceive">确认收货</el-button></div></div></template>
   </el-dialog>
 
-  <el-dialog v-model="shipVisible" :title="`发货｜${shipDoc?.id||''}`" width="min(1280px, calc(100vw - 48px))" top="8vh" class="ship-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="shipVisible" :title="`发货｜${shipDoc?.id||''}`" width="min(1280px, calc(100vw - 48px))" align-center class="ship-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="shipDoc">
       <div class="pickup-summary">
         <div class="pickup-summary-item"><span class="label">履约状态</span><span><el-tag :type="tagType(shipDoc.status)">{{shipDoc.status}}</el-tag></span></div>
@@ -389,7 +389,7 @@
         <el-table ref="shipTableRef" :data="shipRows" row-key="key" border class="pickup-table" max-height="410" @selection-change="onShipSelection">
           <el-table-column type="selection" width="52" fixed="left" reserve-selection :selectable="shipSelectable"></el-table-column>
           <el-table-column prop="sku" label="SKU" width="145" fixed="left"></el-table-column>
-          <el-table-column label="产品信息" width="200" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
+          <el-table-column label="品名" width="200" fixed="left"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
           <el-table-column prop="plan" label="计划号" width="150"></el-table-column>
           <!-- <el-table-column prop="declared" label="申报数量" width="95"></el-table-column> -->
           <el-table-column prop="picked" label="提货数量" width="95"></el-table-column>
@@ -405,7 +405,7 @@
     <template #footer><div class="pickup-footer"><div class="pickup-result">已选 <b>{{shipSelection.length}}</b> 个 SKU　·　实际发货量 <b>{{shipQtyTotal}}</b>　·　提交后状态 <el-tag size="small" type="success">待收货</el-tag></div><div class="pickup-footer-actions"><el-button @click="shipVisible=false">取消</el-button><el-button type="primary" :loading="shipSubmitting" @click="submitShip">确认发货</el-button></div></div></template>
   </el-dialog>
 
-  <el-dialog v-model="completeVisible" :title="completeDocs.length>1?'批量手动完结':'手动完结｜'+completeDoc?.id" width="560px" top="12vh" class="complete-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="completeVisible" :title="completeDocs.length>1?'批量手动完结':'手动完结｜'+completeDoc?.id" width="560px" align-center class="complete-dialog" append-to-body :close-on-click-modal="false">
     <div v-if="completeDoc">
       <div v-if="completeDocs.length>1" class="pickup-summary" style="grid-template-columns:1fr 1fr"><div class="pickup-summary-item" style="grid-column:1/-1"><span class="label">选择单据</span><b>{{completeDocs.length}} 张发货单</b></div></div>
       <div class="pickup-summary" v-else>
@@ -423,7 +423,7 @@
     <template #footer><div class="pickup-footer-actions" style="justify-content:flex-end"><el-button @click="completeVisible=false">取消</el-button><el-button type="primary" :loading="completeSubmitting" @click="submitComplete">确认完结</el-button></div></template>
   </el-dialog>
 
-  <el-dialog v-model="cancelVisible" title="取消发货确认" width="520px" top="18vh" class="cancel-dialog" append-to-body :close-on-click-modal="false" destroy-on-close>
+  <el-dialog v-model="cancelVisible" title="取消发货确认" width="520px" align-center class="cancel-dialog" append-to-body :close-on-click-modal="false" destroy-on-close>
     <div v-if="cancelDoc">
       <el-alert :title="`确认取消发货单 ${cancelDoc.id} 吗？取消后单据将流转为“已取消”。`" type="warning" :closable="false" show-icon></el-alert>
       <el-form label-position="top" style="margin-top:18px">
@@ -433,7 +433,7 @@
     <template #footer><div class="pickup-footer-actions" style="justify-content:flex-end"><el-button @click="cancelVisible=false">再想想</el-button><el-button type="primary" :loading="cancelSubmitting" @click="submitCancelShip">确认取消</el-button></div></template>
   </el-dialog>
 
-  <el-dialog v-model="quantityAdjustVisible" :title="`数量调整｜${quantityAdjustDoc?.id||''}`" width="1300px" top="6vh" class="quantity-adjust-dialog" append-to-body :close-on-click-modal="false" destroy-on-close>
+  <el-dialog v-model="quantityAdjustVisible" :title="`数量调整｜${quantityAdjustDoc?.id||''}`" width="min(1300px, calc(100vw - 48px))" align-center class="quantity-adjust-dialog" append-to-body :close-on-click-modal="false" destroy-on-close>
     <div v-if="quantityAdjustDoc">
       <el-alert v-if="quantityAdjustType==='pickup'" title="调整说明：子件已完成物流加工的 SKU 不可调整提货数量，已锁定。" type="info" :closable="false" style="margin-bottom:12px"></el-alert>
       <el-form label-position="top" class="quantity-adjust-form">
@@ -476,32 +476,7 @@
     </div>
   </el-dialog>
 
-  <el-dialog v-model="processingVisible" :title="processingMode==='batch'?'批量物流加工':'物流加工｜'+processingDocId" width="min(1280px, calc(100vw - 48px))" top="7vh" class="processing-dialog" append-to-body :close-on-click-modal="false">
-    <div v-if="processingMode==='batch'" class="processing-batch-summary">
-      <div class="batch-summary-info"><b>待加工发货单 {{processingBatchSummary?.docCount||0}} 张</b><span class="muted">　·　组合 SKU {{processingBatchSummary?.comboCount||0}} 个　·　提货合计 {{processingBatchSummary?.totalPick||0}} 套　·　可加工合计 {{processingBatchSummary?.totalProcessable||0}} 套</span></div>
-      <div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键全部填充</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div>
-    </div>
-    <div v-else class="processing-single-hint"><div class="batch-summary-actions"><el-button type="primary" plain @click="fillAllProcessingQty">一键填满</el-button><el-button @click="clearAllProcessingQty">清空</el-button></div></div>
-    <el-alert class="processing-usage-hint" type="info" :closable="false" show-icon title="物流加工说明：本功能仅用于将已提至发货仓的子件按 BOM 加工成组合 SKU。请在各组合 SKU 的“加工数量”中填写本次加工数量；未填写或填写为 0 的组合 SKU不会提交。点击“确认加工”后，将一次性提交当前弹窗内所有已填写加工数量的组合 SKU。加工完成后，发货单将自动进入“待发货”状态。"></el-alert>
-    <div class="processing-search-bar"><el-input v-model="processingSearch.sku" clearable placeholder="搜索 SKU" style="width:180px"></el-input><el-input v-if="processingMode==='batch'" v-model="processingSearch.docId" clearable placeholder="搜索发货单号" style="width:200px;margin-left:10px"></el-input><el-button v-if="processingSearch.sku||processingSearch.docId" link type="primary" @click="resetProcessingSearch" style="margin-left:8px">清除筛选</el-button></div>
-    <div class="processing-table-wrap">
-      <el-table :data="filteredProcessingRows" row-key="id" border class="processing-table" max-height="460" :span-method="processingSpanMethod">
-        <el-table-column v-if="processingMode==='batch'" label="发货单号" width="195" fixed="left"><template #default="{row}"><span v-if="row.comboFirst" class="doc-no" style="cursor:default">{{row.docId}}</span></template></el-table-column>
-        <el-table-column label="SKU" width="190" fixed="left"><template #default="{row}"><div v-if="row.comboFirst"><span>{{row.comboSku}}</span><el-tag size="small" type="primary" effect="plain" style="display:block;margin-top:4px;width:fit-content">组合</el-tag></div></template></el-table-column>
-        <el-table-column prop="subSku" label="子件 SKU" width="190"><template #default="{row}"><span style="padding-left:8px;color:#666">└ {{row.subSku}} ×{{row.ratio}}</span></template></el-table-column>
-        <el-table-column label="头程服务商 / 物流渠道 / 仓库" width="220"><template #default="{row}"><div class="nested-cell"><div>头程服务商：{{row.provider||'—'}}</div><div>物流渠道：{{row.channel||'—'}}</div><div>仓库：{{row.warehouse||'—'}}</div></div></template></el-table-column><el-table-column label="子件库存明细" min-width="220" align="right"><template #default="{row}"><div class="nested-cell"><div>提货数量：{{row.pickupQty||0}}</div><div>在库数量：{{row.stock||0}}</div></div></template></el-table-column><el-table-column label="加工数量（套）" min-width="205"><template #default="{row}"><div v-if="row.comboFirst" class="processing-qty-cell"><div class="processing-available">可加工数量<el-tooltip content="可加工数量 = 当前发货仓的子件库存按 BOM 配比可组成的组合 SKU 套数，并受该组合 SKU 已提子件套装数量限制。加工数量不能超过该可加工数量。" placement="top"><span class="col-help-icon">?</span></el-tooltip>：{{row.processableQty}}</div><el-input-number v-model="row.processQty" :min="1" :max="row.processableQty" :precision="0" controls-position="right" style="width:145px"></el-input-number></div></template></el-table-column>
-        <el-table-column label="操作" min-width="110"><template #default="{row}"><el-button v-if="row.comboFirst" link type="danger" @click="removeProcessingGroup(row.comboKey)">移除</el-button></template></el-table-column>
-      </el-table>
-    </div>
-    <template #footer>
-      <div class="processing-footer">
-        <div class="processing-footer-total">当前 {{processingGroups.length}} 个组合 SKU，本次加工合计 <b>{{processingQtyTotal}}</b> 件</div>
-        <div class="pickup-footer-actions"><el-button @click="processingVisible=false">取消</el-button><el-button type="primary" :loading="processingSubmitting" @click="submitProcessing">确认加工</el-button></div>
-      </div>
-    </template>
-  </el-dialog>
-
-  <el-dialog v-model="importVisible" :title="importTitle" width="680px" top="10vh" class="import-dialog" append-to-body :close-on-click-modal="false">
+  <el-dialog v-model="importVisible" :title="importTitle" width="680px" align-center class="import-dialog" append-to-body :close-on-click-modal="false">
     <el-steps :active="importStep" align-center finish-status="success" class="import-steps"><el-step title="下载模板"></el-step><el-step title="选择文件"></el-step><el-step title="确认导入"></el-step></el-steps>
     <div class="import-guide">
       <div class="import-guide-title">第一步：使用标准模板整理数据</div>
@@ -525,7 +500,7 @@
     <template #footer><el-button @click="batchVisible=false">取消</el-button><el-button type="primary" @click="saveBatch">保存批次</el-button></template>
   </el-dialog>
 
-  <el-dialog v-model="logVisible" class="shipment-log-dialog" title="操作日志" width="960px" append-to-body>
+  <el-dialog v-model="logVisible" class="shipment-log-dialog" title="操作日志" width="960px" align-center append-to-body>
     <div v-if="logDoc">
       <div class="shipment-log-table-card">
         <el-table :data="logRows" border size="small" class="log-table">
@@ -540,10 +515,10 @@
   </el-dialog>
 
   <!-- 差异明细 -->
-  <el-dialog v-model="diffDetailVisible" :title="(diffDetailDoc?.diffDetailTitle||'差异明细')+'｜'+(diffDetailDoc?.id||'')" width="1180px" append-to-body>
+  <el-dialog v-model="diffDetailVisible" :title="(diffDetailDoc?.diffDetailTitle||'差异明细')+'｜'+(diffDetailDoc?.id||'')" width="min(1180px, calc(100vw - 48px))" align-center append-to-body>
     <el-table :data="diffDetailRows" border size="small" class="diff-detail-table">
       <el-table-column prop="sku" label="SKU" width="140" fixed="left"></el-table-column>
-      <el-table-column label="产品信息" width="220"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
+      <el-table-column label="品名" width="220"><template #default="{row}"><div class="product-cell"><el-image :src="placeholderProductImage" fit="contain" class="product-image"></el-image><el-tooltip :content="row.name||'—'" placement="top"><div class="product-title">{{row.name||'—'}}</div></el-tooltip></div></template></el-table-column>
       <el-table-column prop="plan" label="发货计划" width="140"></el-table-column>
       <el-table-column prop="ship" label="发货量" width="95"></el-table-column>
       <!-- <el-table-column prop="declare" label="申报数量" width="95"></el-table-column> -->
@@ -559,7 +534,7 @@
   </el-dialog>
 
   <!-- 其他头程费用分摊 -->
-  <el-dialog v-model="costApportionVisible" title="其他头程费用分摊" width="min(1320px, calc(100vw - 48px))" top="6vh" class="cost-apportion-dialog" :close-on-click-modal="false" destroy-on-close>
+  <el-dialog v-model="costApportionVisible" title="其他头程费用分摊" width="min(1320px, calc(100vw - 48px))" align-center class="cost-apportion-dialog" :close-on-click-modal="false" destroy-on-close>
     <div class="cost-apportion-section">
       <div class="cost-apportion-section-title">分摊批次筛选</div>
       <el-form ref="costApportionTypeFormRef" :model="costApportionForm" :rules="costApportionTypeRules" label-position="top" size="default">
@@ -612,16 +587,6 @@
       </el-form>
     </div>
     <template #footer><div class="dialog-footer"><el-button type="primary" @click="submitCostApportion">提交</el-button><el-button @click="resetCostApportion">重置</el-button><el-button @click="costApportionVisible=false">取消</el-button></div></template>
-  </el-dialog>
-  <!-- ERP 易仓详情 -->
-  <el-dialog v-model="erpDetailVisible" :title="'易仓详情｜'+(erpDetailDoc?.id||'')" width="800px" append-to-body>
-    <el-table :data="erpDetailRows" border size="small">
-      <el-table-column prop="planNo" label="头程计划单号" min-width="160"></el-table-column>
-      <el-table-column prop="orderNo" label="订单号" min-width="160"></el-table-column>
-      <el-table-column prop="pickOffNo" label="下架单号" min-width="160"></el-table-column>
-      <el-table-column prop="entryNo" label="入库单号" min-width="160"></el-table-column>
-    </el-table>
-    <template #footer><el-button @click="erpDetailVisible=false">关闭</el-button></template>
   </el-dialog>
 </div>
 <script src="../../vendor/vue.global.prod.js"></script>

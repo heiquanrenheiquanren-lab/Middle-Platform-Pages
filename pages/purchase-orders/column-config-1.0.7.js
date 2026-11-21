@@ -26,7 +26,6 @@ window.PurchaseOrderColumnConfig = (function () {
       { key: 'platform', label: '平台', group: '销售属性', width: 120 },
       { key: 'store', label: '店铺', group: '销售属性', width: 120 },
       { key: 'lingxingSku', label: '领星SKU', group: '编码信息', width: 120 },
-      { key: 'sellerSku', label: 'Seller SKU', group: '编码信息', width: 120 },
       { key: 'fnsku', label: 'FNSKU', group: '编码信息', width: 100 },
       { key: 'supplierItemNo', label: '供应商料号', group: '供应信息', width: 145 },
       { key: 'minOrderQty', label: '最小起订量', group: '供应信息', width: 90 },

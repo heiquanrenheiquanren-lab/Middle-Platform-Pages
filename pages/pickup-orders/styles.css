@@ -1,6 +1,8 @@
 .pickup-main{grid-template-rows:auto 32px minmax(0,1fr);padding:10px;background:#f5f7fa;gap:10px}
 .pickup-main>.query-panel,.pickup-main>.action-strip,.pickup-main>.list-card{margin:0!important}
 .pickup-main .query-panel{padding:12px;border:1px solid var(--ui-card-border,#e5e7eb);border-radius:8px;background:#fff}
+.pickup-main .query-panel .multi{position:relative;width:190px}
+.pickup-main .query-panel .dropdown{z-index:30}
 .pickup-main .action-strip{height:32px;padding:0;background:transparent;border:0;display:flex;align-items:center;justify-content:space-between;overflow:hidden}
 .pickup-main .action-strip .head-actions{flex:1;min-width:0;display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none}
 .pickup-main .action-strip .head-actions::-webkit-scrollbar{display:none}
@@ -98,6 +100,13 @@
 
 .pickup-dialog{width:min(1480px,calc(100vw - 48px));height:min(820px,calc(100vh - 48px));max-height:min(90vh,900px)}.pickup-dialog .ui-dialog__body{display:flex;flex-direction:column;gap:16px;flex:1 1 0}
 .pickup-form-card{flex:none}.pickup-form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pickup-check-field{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 2px;color:#606266;font-size:13px;cursor:pointer;user-select:none}
+.pickup-check-field input{width:15px;height:15px;margin:0;accent-color:#1677ff;cursor:pointer}
+.pickup-fee-wrap{position:relative;display:flex;align-items:center}
+.pickup-fee-wrap .control{padding-right:34px}
+.pickup-fee-wrap .control:disabled{background:#f5f7fa;color:#c0c4cc;cursor:not-allowed}
+.pickup-fee-unit{position:absolute;right:10px;color:#909399;font-size:12px;pointer-events:none}
+.pickup-table .pickup-flag-col{width:116px}.pickup-table .fee-col{width:110px}
 .pickup-items-card{min-height:300px;display:flex;flex:1 0 300px;flex-direction:column;border:1px solid #e5eaf1;border-radius:6px;background:#fff;overflow:hidden}
 .pickup-items-toolbar{height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid #e5eaf1;flex:none}
 .pickup-items-toolbar strong{margin-right:auto;color:#303133;font-weight:500}
@@ -177,7 +186,27 @@
 .detail-dialog{width:min(1260px,calc(100vw - 48px));height:min(780px,calc(100vh - 48px))}.detail-dialog .ui-dialog__body{flex:1 1 0;overflow-y:auto}
 .detail-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 22px;padding:16px;border:1px solid #e4e9f2;border-radius:8px;background:#fff}.detail-field label{display:block;margin-bottom:5px;color:#909399;font-size:12px}.detail-field span{display:block;color:#303133;word-break:break-word}.detail-field.wide{grid-column:span 2}
 .detail-section{margin-top:16px;border:1px solid #e4e9f2;border-radius:8px;background:#fff;overflow:hidden}.detail-section-title{height:42px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid #f0f2f5;color:#303133;font-weight:600}
-.picker-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;flex:none}.picker-toolbar .picker-search-input{width:260px;height:32px}.picker-toolbar .picker-team-select{width:136px;height:32px}.picker-meta{margin-left:auto;color:#909399;font-size:12px}
+.picker-dialog{width:min(980px,calc(100vw - 48px));height:min(680px,calc(100vh - 48px));max-height:90vh}
+.picker-dialog .ui-dialog__body{display:flex;flex-direction:column;gap:12px;flex:1 1 0;min-height:0;overflow:hidden}
+.picker-dialog .ui-dialog__footer{justify-content:space-between}
+.picker-dialog .pickup-hint{margin:0}
+.picker-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px solid #e5eaf1;border-radius:6px;background:#fff;flex:none}
+.picker-toolbar .picker-search-input{width:196px;height:32px}
+.picker-toolbar .picker-team-select{width:156px;height:32px}
+.picker-meta{margin-left:auto;color:#909399;font-size:12px}
+.batch-fill-trigger{margin-left:4px;padding:0 2px;border:0;background:transparent;color:#409eff;font-size:12px;font-weight:500;line-height:1;cursor:pointer;vertical-align:baseline}
+.batch-fill-trigger:hover{color:#1677ff;text-decoration:underline}
+.batch-fill-popover{width:240px}
+.batch-fill-popover .control{width:100%;height:32px}
+.pickup-editor-table .is-missing{border-color:#f56c6c!important;background:#fff8f8}
+.picker-table-wrap{flex:1;min-height:0;overflow:auto;border:1px solid #e5eaf1;border-radius:6px;background:#fff}
+.picker-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.picker-table th,.picker-table td{padding:8px 12px;border-bottom:1px solid #f0f2f5;text-align:left;vertical-align:middle;font-size:12px;color:#606266}
+.picker-table th{position:sticky;top:0;z-index:2;height:42px;background:#f5f7fa;color:#303133;font-weight:500;border-bottom:1px solid #e5eaf1;white-space:nowrap}
+.picker-table td{height:52px;background:#fff}
+.picker-table th:first-child,.picker-table td:first-child{width:46px;padding:0;text-align:center}
+.picker-table tbody tr:hover td{background:#f5faff}
+.picker-table tbody tr:last-child td{border-bottom:0}
 .qty-cell{display:flex;align-items:center;justify-content:center}.qty-cell .editor-qty{width:84px;height:30px}
 
 /* 右侧滑出列配置抽屉（对齐采购计划 .purchase-column-*） */

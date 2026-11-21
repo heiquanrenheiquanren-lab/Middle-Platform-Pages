@@ -15,7 +15,7 @@ createApp({
         localStorage.setItem(BRIDGE_KEY, JSON.stringify(data));
       } catch {}
     };
-    const warehouses = ['深圳仓', '东莞工厂', '义乌仓'],
+    const warehouses = ['跨跃猫物流仓', '深圳仓', '东莞工厂', '义乌仓'],
       createFromWarehouses = ['跨跃猫物流仓'],
       pickupWarehouses = ['深圳仓', '东莞工厂', '义乌仓', '华南物流中转仓', '美西集货仓'],
       destWarehouses = [
@@ -27,10 +27,10 @@ createApp({
         '德国仓',
         '英国仓',
       ];
-    const shipModes = ['仓库发货', '工厂直发', '供应商直发'],
+    const shipModes = ['海外仓发货', '仓库发货', '工厂直发', '供应商直发'],
       createShipModes = ['海外仓发货'],
       providers = ['马士基', 'DHL', '顺丰国际'],
-      transports = ['海运', '空运', '快递'],
+      transports = ['海派（6000）', '海卡（6000）', '空派（5000）', '快递（8000）', '铁运（5000）', '卡航（5000）', '一件代发（8000）', '海运', '空运', '快递'],
       createTransports = [
         '海派（6000）',
         '海卡（6000）',
@@ -40,7 +40,7 @@ createApp({
         '卡航（5000）',
         '一件代发（8000）',
       ],
-      channels = ['标准海运', '空派', '国际快递'],
+      channels = ['普船卡派', '普船快递派', '空运', '快船快递派', '快船卡派', '铁路', '自提卡派', '标准海运', '空派', '国际快递'],
       createChannels = ['普船卡派', '普船快递派', '空运', '快船快递派', '快船卡派', '铁路', '自提卡派'],
       countries = ['中国 - CN', '美国 - US', '德国 - DE', '英国 - GB'];
     const platformOptions = ['Amazon US', 'Amazon DE', 'Walmart'],
@@ -2720,9 +2720,21 @@ createApp({
         );
       }),
     );
+    const currentPage = ref(1),
+      pageSize = ref(10);
+    const pagedDocs = computed(() =>
+      filteredDocs.value.slice((currentPage.value - 1) * pageSize.value, currentPage.value * pageSize.value),
+    );
+    watch(statusTab, () => {
+      currentPage.value = 1;
+    });
     const statusCount = (s) => (s === '全部' ? docs.length : docs.filter((x) => x.status === s).length);
-    const applyQuery = () => Object.assign(appliedQuery, querySnapshot());
+    const applyQuery = () => {
+      currentPage.value = 1;
+      Object.assign(appliedQuery, querySnapshot());
+    };
     const resetQuery = () => {
+      currentPage.value = 1;
       Object.assign(query, {
         codeType: 'erpNo',
         codeText: '',
@@ -3830,7 +3842,7 @@ createApp({
       if (!doc.logs || !doc.logs.length) {
         doc.logs = [
           {
-            type: '创建',
+            type: '新增',
             content: doc.remark || `创建发货单 ${doc.id}`,
             operator: doc.creator || '系统自动生成',
             time: formatOperationTime(),
@@ -4016,10 +4028,10 @@ createApp({
       expandedRowKeys.value = (expandedRows || []).map((item) => item.id);
     };
     const isAllExpanded = computed(
-      () => filteredDocs.value.length > 0 && filteredDocs.value.every((doc) => expandedRowKeys.value.includes(doc.id)),
+      () => pagedDocs.value.length > 0 && pagedDocs.value.every((doc) => expandedRowKeys.value.includes(doc.id)),
     );
     const toggleExpandAll = () => {
-      expandedRowKeys.value = isAllExpanded.value ? [] : filteredDocs.value.map((doc) => doc.id);
+      expandedRowKeys.value = isAllExpanded.value ? [] : pagedDocs.value.map((doc) => doc.id);
     };
     const openComplete = (row) => {
       if (row) {
@@ -4110,7 +4122,7 @@ createApp({
         });
         if (!row.logs) row.logs = [];
         row.logs.unshift({
-          type: '作废',
+          type: '编辑',
           content: '发货单作废，关联发货计划已释放回「待生成发货单」',
           operator: 'Admin',
           time: formatOperationTime(),
@@ -4145,7 +4157,7 @@ createApp({
       });
       if (!row.logs) row.logs = [];
       row.logs.unshift({
-        type: '取消',
+        type: '编辑',
         content: `取消发货单，关联发货计划已释放回「待生成发货单」${remark ? `，取消原因：${remark}` : '（未填写取消原因）'}`,
         operator: 'Admin',
         time: formatOperationTime(),
@@ -6757,6 +6769,9 @@ createApp({
       queryOverflow,
       statusTab,
       filteredDocs,
+      pagedDocs,
+      currentPage,
+      pageSize,
       statusCount,
       applyQuery,
       resetQuery,

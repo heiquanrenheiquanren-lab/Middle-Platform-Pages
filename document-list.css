@@ -136,6 +136,17 @@
   text-overflow: clip !important;
 }
 
+/* Tables without a leading checkbox column place the expand affordance in column 1. */
+.document-list.document-list--no-check th:first-child,
+.document-list.document-list--no-check td:first-child {
+  text-overflow: clip !important;
+}
+
+.document-list.document-list--no-check th:nth-child(2),
+.document-list.document-list--no-check td:nth-child(2) {
+  text-overflow: ellipsis !important;
+}
+
 /* Compatibility selectors keep existing page markup on the same shared component. */
 .document-list .expand-row,
 .document-list .expand-btn {

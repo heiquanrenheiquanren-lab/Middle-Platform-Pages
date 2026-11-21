@@ -59,28 +59,19 @@
             <div class="query-item"><input class="control" id="fbaProductName" placeholder="请输入品名，支持模糊查询" autocomplete="off"></div>
             <div class="query-item"><div class="multi ui-multi-select" id="fbaCountryMulti"><div class="multi-trigger" data-trigger>请选择国家编码</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item"><div class="multi ui-multi-select" id="fbaStoreMulti"><div class="multi-trigger" data-trigger>请选择店铺</div><div class="dropdown" data-menu></div></div></div>
-            <div class="query-item">
-              <select class="control" id="fbaStatus" title="领星货件状态">
-                <option value="">领星货件状态</option>
-                <option value="UNCONFIRMED">未确认</option>
-                <option value="WORKING">待发货-已创建</option>
-                <option value="READY_TO_SHIP">待发货-已装箱</option>
-                <option value="SHIPPED">运输中-已取件</option>
-                <option value="IN_TRANSIT">运输中-已通知</option>
-                <option value="DELIVERED">已到达-待登记</option>
-                <option value="CHECKED_IN">已到达-待入库</option>
-                <option value="RECEIVING">已到达-入库中</option>
-                <option value="CLOSED">已完成</option>
-                <option value="DELETED">已删除</option>
-                <option value="CANCELLED">已取消</option>
-                <option value="ABANDONED">已放弃</option>
-              </select>
-            </div>
+            <div class="query-item"><div class="multi ui-multi-select" id="fbaStatusMulti"><div class="multi-trigger" data-trigger>领星货件状态</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item">
               <select class="control" id="fbaOrderFilter" title="发货单状态">
                 <option value="">发货单状态</option>
                 <option value="none">未生成发货单</option>
                 <option value="generated">已生成发货单</option>
+                <option value="草稿">草稿</option>
+                <option value="待发货">待发货</option>
+                <option value="待收货">待收货</option>
+                <option value="部分收货">部分收货</option>
+                <option value="已完成">已完成</option>
+                <option value="已作废">已作废</option>
+                <option value="已取消">已取消</option>
               </select>
             </div>
             <div class="query-item">
@@ -90,13 +81,7 @@
                 <option value="linked">已关联计划</option>
               </select>
             </div>
-            <div class="query-item">
-              <select class="control" id="fbaDiffFilter" title="申报差异">
-                <option value="">申报差异</option>
-                <option value="diff">有申收差异</option>
-                <option value="nodiff">无申收差异</option>
-              </select>
-            </div>
+            <div class="query-item"><div class="multi ui-multi-select" id="fbaDiffMulti"><div class="multi-trigger" data-trigger>差异状态</div><div class="dropdown" data-menu></div></div></div>
             <div class="query-item query-date-item">
               <select class="control query-time-type" id="fbaDateType" title="时间口径">
                 <option value="created">创建时间</option>
@@ -120,10 +105,7 @@
         <!-- 操作按钮行（32px 高，对齐采购计划） -->
         <section class="action-strip ui-action-row">
           <div class="head-actions">
-            <button class="btn primary" id="createShipmentOrderBtn" type="button" disabled>生成发货单</button>
-            <button class="btn" id="batchUnlinkPlanBtn" type="button" disabled>取消关联</button>
-            <button class="btn" id="syncFbaPrelinksBtn" type="button">同步领星货件</button>
-            <button class="btn" id="fbaExportBtn" type="button">导出</button>
+            <button class="btn" id="fbaExportBtn" type="button" data-custom-export="true">导出</button>
           </div>
           <button class="column-config-trigger" id="fbaColConfigBtn" type="button" title="列配置" aria-label="列配置">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -136,9 +118,8 @@
         <!-- 单据列表卡片（一二级折叠列表 + 底部汇总分页，完全对齐采购计划） -->
         <section class="list-card ui-list-card">
           <section class="table-area ui-table-wrap" id="fbaTableArea">
-            <table class="purchase-plan-table fba-table document-list ui-table" id="fbaMainTable">
+            <table class="purchase-plan-table fba-table document-list document-list--no-check ui-table" id="fbaMainTable">
               <colgroup id="fbaColGroup">
-                <col class="check-col">
                 <col class="expand-col">
                 <col class="no-col">
                 <col class="fba-status-col">
@@ -150,9 +131,6 @@
               </colgroup>
               <thead>
                 <tr id="fbaTableHeadRow">
-                  <th>
-                    <input class="checkbox" id="fbaSelectAll" type="checkbox" aria-label="全选本页货件" title="全选本页货件">
-                  </th>
                   <th>
                     <button class="document-expand expand-all" id="fbaExpandAllBtn" type="button" aria-label="展开/折叠全部" title="展开/折叠全部"></button>
                   </th>
@@ -188,165 +166,6 @@
             </div>
           </footer>
         </section>
-
-        <!-- 取消关联确认弹窗 -->
-        <div class="fba-confirm-mask hidden" id="fbaUnlinkConfirmMask">
-          <div class="fba-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="fbaUnlinkConfirmTitle">
-            <div class="fba-confirm-head"><h3 id="fbaUnlinkConfirmTitle">取消关联发货计划</h3><button class="fba-popover-close" id="fbaUnlinkConfirmClose" type="button" aria-label="关闭">×</button></div>
-            <p class="fba-confirm-text" id="fbaUnlinkConfirmText"></p>
-            <div class="fba-confirm-actions"><button class="btn" id="fbaUnlinkCancel" type="button">取消</button><button class="btn primary" id="fbaUnlinkConfirm" type="button">确认取消关联</button></div>
-          </div>
-        </div>
-
-        <!-- 生成发货单弹窗（左侧多货件切换导航 + 右侧完全复用新建发货单弹窗） -->
-        <div class="fba-gen-mask hidden" id="fbaGenOrderMask"></div>
-        <div class="fba-gen-dialog hidden" id="fbaGenOrderDialog" role="dialog" aria-modal="true" aria-labelledby="fbaGenOrderTitle">
-          <header class="fba-gen-header">
-            <div class="minimal-dialog-head">
-              <h3 id="fbaGenOrderTitle">生成发货单</h3>
-              <p id="fbaGenOrderSubtitle">已勾选 FBA 货件，每个货件对应生成 1 张发货单，请逐一确认或编辑各货件的发货单资料与明细</p>
-            </div>
-            <button class="fba-popover-close" id="fbaGenOrderClose" type="button" aria-label="关闭">×</button>
-          </header>
-          <div class="fba-gen-body">
-            <!-- 左侧 FBA 货件切换导航 -->
-            <aside class="fba-gen-sidebar" aria-label="勾选货件导航">
-              <div class="fba-gen-sidebar-head">
-                <span>勾选货件列表</span>
-                <em id="fbaGenNavProgress">0 / 0 已完善</em>
-              </div>
-              <div class="fba-gen-nav-list" id="fbaGenNavList"></div>
-            </aside>
-            <!-- 右侧 新建发货单表单与明细（复用发货单页结构） -->
-            <div class="fba-gen-main">
-              <div class="create-layout">
-                <section class="minimal-card">
-                  <div class="minimal-card-head">
-                    <div class="minimal-card-title">
-                      <span class="minimal-title-bar"></span>
-                      <b>发货单资料</b>
-                      <span class="fba-gen-current-badge" id="fbaGenCurrentBadge"></span>
-                    </div>
-                  </div>
-                  <div class="public-form">
-                    <div class="public-grid">
-                      <div class="gen-form-item">
-                        <label class="gen-form-label"><span class="req">*</span>发货仓</label>
-                        <select class="control" id="genFromWarehouse"></select>
-                      </div>
-                      <div class="gen-form-item">
-                        <label class="gen-form-label"><span class="req">*</span>目的仓（按店铺自动匹配）</label>
-                        <select class="control" id="genToWarehouse" disabled></select>
-                      </div>
-                      <div class="gen-form-item">
-                        <label class="gen-form-label"><span class="req">*</span>发货方式</label>
-                        <select class="control" id="genShipMode"></select>
-                      </div>
-                      <div class="gen-form-item">
-                        <label class="gen-form-label"><span class="req">*</span>头程服务商</label>
-                        <select class="control" id="genProvider"></select>
-                      </div>
-                      <div class="gen-form-item">
-                        <label class="gen-form-label"><span class="req">*</span>运输方式</label>
-                        <select class="control" id="genTransport"></select>
-                      </div>
-                      <div class="gen-form-item">
-                        <label class="gen-form-label"><span class="req">*</span>物流渠道</label>
-                        <select class="control" id="genChannel"></select>
-                      </div>
-                      <div class="gen-form-item">
-                        <label class="gen-form-label">目的地国家</label>
-                        <select class="control" id="genCountry"></select>
-                      </div>
-                      <div class="gen-form-item">
-                        <label class="gen-form-label">仓库类型</label>
-                        <select class="control" id="genWarehouseType">
-                          <option value="">请选择仓库类型</option>
-                          <option value="海外仓">海外仓</option>
-                          <option value="本地仓">本地仓</option>
-                          <option value="中转仓">中转仓</option>
-                        </select>
-                      </div>
-                      <div class="gen-form-item">
-                        <label class="gen-form-label">物流商单号</label>
-                        <input class="control" id="genLogisticsNo" placeholder="选填，可提交后补录" autocomplete="off">
-                      </div>
-                    </div>
-                    <div class="address-area">
-                      <div class="address-block">
-                        <div class="address-block-title">发货仓信息</div>
-                        <div class="address-grid">
-                          <div class="address-field"><span>联系人</span><input class="control" id="genFromContact" placeholder="请输入联系人" disabled></div>
-                          <div class="address-field"><span>联系电话</span><input class="control" id="genFromPhone" placeholder="请输入联系电话" disabled></div>
-                          <div class="address-field"><span>国家</span><input class="control" id="genFromCountry" placeholder="请选择国家" disabled></div>
-                          <div class="address-field"><span>省/州</span><input class="control" id="genFromProvince" placeholder="请输入省/州" disabled></div>
-                          <div class="address-field"><span>城市</span><input class="control" id="genFromCity" placeholder="请输入城市" disabled></div>
-                          <div class="address-field"><span>区/县</span><input class="control" id="genFromDistrict" placeholder="请输入区/县" disabled></div>
-                          <div class="address-field address-field-wide"><span>详细地址</span><input class="control" id="genFromDetail" placeholder="请输入详细地址" disabled></div>
-                          <div class="address-field"><span>邮编</span><input class="control" id="genFromZip" placeholder="请输入邮编" disabled></div>
-                        </div>
-                      </div>
-                      <div class="address-block">
-                        <div class="address-block-title">目的仓信息</div>
-                        <div class="address-grid">
-                          <div class="address-field"><span>联系人</span><input class="control" id="genToContact" placeholder="请输入联系人" disabled></div>
-                          <div class="address-field"><span>联系电话</span><input class="control" id="genToPhone" placeholder="请输入联系电话" disabled></div>
-                          <div class="address-field"><span>国家</span><input class="control" id="genToCountry" placeholder="请选择国家" disabled></div>
-                          <div class="address-field"><span>省/州</span><input class="control" id="genToProvince" placeholder="请输入省/州" disabled></div>
-                          <div class="address-field"><span>城市</span><input class="control" id="genToCity" placeholder="请输入城市" disabled></div>
-                          <div class="address-field"><span>区/县</span><input class="control" id="genToDistrict" placeholder="请输入区/县" disabled></div>
-                          <div class="address-field address-field-wide"><span>详细地址</span><input class="control" id="genToDetail" placeholder="请输入详细地址" disabled></div>
-                          <div class="address-field"><span>邮编</span><input class="control" id="genToZip" placeholder="请输入邮编" disabled></div>
-                        </div>
-                      </div>
-                      <div class="remark-row">
-                        <label class="gen-form-label">备注</label>
-                        <textarea class="control gen-textarea" id="genRemark" rows="2" placeholder="请输入备注"></textarea>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <section class="minimal-card minimal-card-grow">
-                  <div class="minimal-card-head">
-                    <div class="minimal-card-title"><span class="minimal-title-bar"></span><b>发货明细</b></div>
-                  </div>
-                  <div class="sku-rule-hint">当前明细由所选 FBA 货件自动带出（一个货件只能生成一个发货单），可直接调整本次发货量与备注</div>
-                  <div class="selected-table-wrap">
-                    <table class="selected-sku-table">
-                      <thead>
-                        <tr>
-                          <th style="width:135px">SKU</th>
-                          <th style="width:195px">产品信息</th>
-                          <th style="width:145px">发货计划</th>
-                          <th style="width:145px">海外仓 SKU</th>
-                          <th style="width:120px">易仓 SKU</th>
-                          <th style="width:110px">平台</th>
-                          <th style="width:105px">团队</th>
-                          <th style="width:145px">店铺</th>
-                          <th style="width:75px">箱数</th>
-                          <th style="width:130px"><span class="req">*</span>发货量</th>
-                          <th style="width:175px">重量＆体积</th>
-                          <th style="width:90px">计划差额</th>
-                          <th style="width:170px">备注</th>
-                        </tr>
-                      </thead>
-                      <tbody id="genSkuTableBody"></tbody>
-                    </table>
-                  </div>
-                </section>
-              </div>
-            </div>
-          </div>
-          <footer class="fba-gen-footer minimal-dialog-footer">
-            <div class="minimal-stats" id="fbaGenFooterStats"></div>
-            <div class="minimal-footer-actions">
-              <button class="btn" id="fbaGenCancelBtn" type="button">取消</button>
-              <button class="btn" id="fbaGenDraftBtn" type="button">保存草稿</button>
-              <button class="btn primary" id="fbaGenSubmitBtn" type="button">提交</button>
-            </div>
-          </footer>
-        </div>
 
         <!-- 列配置抽屉（参照采购计划列配置） -->
         <div class="fba-col-drawer-mask hidden" id="fbaColumnDrawerMask"></div>
